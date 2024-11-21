@@ -1,8 +1,59 @@
 # CMakeLists.txt for the Thebe engine library.
 
 set(GRAPHICS_ENGINE_SOURCES
-    Source/Thebe/Engine.cpp
-    Source/Thebe/Engine.h
+    Source/Thebe/Application.cpp
+    Source/Thebe/Application.h
+    Source/Thebe/GraphicsEngine.cpp
+    Source/Thebe/GraphicsEngine.h
+    Source/Thebe/Common.h
+    Source/Thebe/Reference.cpp
+    Source/Thebe/Reference.h
+    Source/Thebe/Log.cpp
+    Source/Thebe/Log.h
+    Source/Thebe/Math/AnimTransform.cpp
+    Source/Thebe/Math/AnimTransform.h
+    Source/Thebe/Math/AxisAlignedBoundingBox.cpp
+    Source/Thebe/Math/AxisAlignedBoundingBox.h
+    Source/Thebe/Math/Frustum.cpp
+    Source/Thebe/Math/Frustum.h
+    Source/Thebe/Math/Matrix4x4.cpp
+    Source/Thebe/Math/Matrix4x4.h
+    Source/Thebe/Math/Matrix3x3.cpp
+    Source/Thebe/Math/Matrix3x3.h
+    Source/Thebe/Math/Matrix2x2.cpp
+    Source/Thebe/Math/Matrix2x2.h
+    Source/Thebe/Math/Transform.cpp
+    Source/Thebe/Math/Transform.h
+    Source/Thebe/Math/Vector4.cpp
+    Source/Thebe/Math/Vector4.h
+    Source/Thebe/Math/Vector3.cpp
+    Source/Thebe/Math/Vector3.h
+    Source/Thebe/Math/Vector2.cpp
+    Source/Thebe/Math/Vector2.h
+    Source/Thebe/Math/Ray.cpp
+    Source/Thebe/Math/Ray.h
+    Source/Thebe/Math/Plane.cpp
+    Source/Thebe/Math/Plane.h
+    Source/Thebe/Math/LineSegment.cpp
+    Source/Thebe/Math/LineSegment.h
+    Source/Thebe/Math/Quaternion.cpp
+    Source/Thebe/Math/Quaternion.h
+    Source/Thebe/Math/Function.cpp
+    Source/Thebe/Math/Function.h
+    Source/Thebe/Math/Interval.cpp
+    Source/Thebe/Math/Interval.h
+    Source/Thebe/Math/SphericalCoords.cpp
+    Source/Thebe/Math/SphericalCoords.h
+    Source/Thebe/Math/Angle.cpp
+    Source/Thebe/Math/Angle.h
+    Source/Thebe/Math/Polygon.cpp
+    Source/Thebe/Math/Polygon.h
+    Source/Thebe/Math/PolygonMesh.cpp
+    Source/Thebe/Math/PolygonMesh.h
+    Source/Thebe/Math/Graph.cpp
+    Source/Thebe/Math/Graph.h
+    Source/Thebe/Math/Random.cpp
+    Source/Thebe/Math/Random.h
 )
 
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})
@@ -18,10 +69,21 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
     NOMINMAX
 )
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_definitions(ThebeGraphicsEngine PUBLIC
+        THEBE_LOGGING
+    )
+endif()
+
 target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
+)
+
+target_include_directories(ThebeGraphicsEngine PRIVATE
+    "Source/Thebe"
+    "Source/Thebe/Math"
 )
 
 target_include_directories(ThebeGraphicsEngine PUBLIC

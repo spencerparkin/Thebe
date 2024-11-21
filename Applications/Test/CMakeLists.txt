@@ -3,6 +3,8 @@
 set(TEST_SOURCES
     Source/Main.cpp
     Source/Main.h
+    Source/TestApplication.cpp
+    Source/TestApplication.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TEST_SOURCES})

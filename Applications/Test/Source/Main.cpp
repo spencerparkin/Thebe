@@ -1,11 +1,23 @@
 #include "Main.h"
-#include <Windows.h>
-#include <Thebe/Engine.h>
+#include "TestApplication.h"
+#include "Thebe/Log.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
 {
-	Thebe::Engine engine;
+#if defined THEBE_LOGGING
+	Thebe::Reference<Thebe::Log> log(new Thebe::Log());
+	log->AddSink(new Thebe::LogConsoleSink());
+	Thebe::Log::Set(log);
+#endif //THEBE_LOGGING
 
-	return 0;
+	TestApplication app;
+
+	int exitCode = 0;
+	if (app.Setup(instance, cmdShow, 1280, 760))
+		exitCode = app.Run();
+
+	app.Shutdown(instance);
+
+	return exitCode;
 }
