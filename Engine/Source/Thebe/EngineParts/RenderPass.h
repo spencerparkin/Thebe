@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Reference.h"
+#include "Thebe/EnginePart.h"
 #include <d3d12.h>
 #include <wrl.h>
 
@@ -23,16 +23,17 @@ namespace Thebe
 	 * For example, one queue stalls waiting for a resource to become readable while another queue
 	 * writes to it and then makes it readable.
 	 */
-	class THEBE_API RenderPass : public ReferenceCounted
+	class THEBE_API RenderPass : public EnginePart
 	{
 	public:
 		RenderPass();
 		virtual ~RenderPass();
 
-		virtual bool Setup(GraphicsEngine* graphicsEngine);
-		virtual void Render(GraphicsEngine* graphicsEngine);
+		virtual bool Setup(void* data) override;
+		virtual void Shutdown() override;
+		virtual void Perform();
 
-	private:
+	protected:
 		Reference<RenderObject> input;
 		Reference<RenderTarget> output;
 		Reference<Camera> camera;

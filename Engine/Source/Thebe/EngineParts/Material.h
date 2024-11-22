@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Reference.h"
+#include "Thebe/EnginePart.h"
 
 namespace Thebe
 {
@@ -9,11 +9,14 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class THEBE_API Material : public ReferenceCounted
+	class THEBE_API Material : public EnginePart
 	{
 	public:
 		Material();
 		virtual ~Material();
+
+		virtual bool Setup(void* data) override;
+		virtual void Shutdown() override;
 
 	private:
 		// TODO: Own PSO and root signature.

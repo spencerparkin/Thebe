@@ -1,5 +1,5 @@
-#include "Plane.h"
-#include "LineSegment.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/LineSegment.h"
 
 using namespace Thebe;
 

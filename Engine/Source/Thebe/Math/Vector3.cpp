@@ -1,8 +1,8 @@
-#include "Vector3.h"
-#include "Matrix3x3.h"
-#include "Vector2.h"
-#include "SphericalCoords.h"
-#include "Random.h"
+#include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Matrix3x3.h"
+#include "Thebe/Math/Vector2.h"
+#include "Thebe/Math/SphericalCoords.h"
+#include "Thebe/Math/Random.h"
 
 using namespace Thebe;
 

@@ -10,26 +10,30 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
-    Source/Thebe/Camera.cpp
-    Source/Thebe/Camera.h
-    Source/Thebe/Material.cpp
-    Source/Thebe/Material.h
-    Source/Thebe/Mesh.cpp
-    Source/Thebe/Mesh.h
-    Source/Thebe/RenderObject.cpp
-    Source/Thebe/RenderObject.h
-    Source/Thebe/RenderPass.cpp
-    Source/Thebe/RenderPass.h
-    Source/Thebe/RenderTarget.cpp
-    Source/Thebe/RenderTarget.h
-    Source/Thebe/Space.cpp
-    Source/Thebe/Space.h
-    Source/Thebe/SwapChain.cpp
-    Source/Thebe/SwapChain.h
-    Source/Thebe/Texture.cpp
-    Source/Thebe/Texture.h
-    Source/Thebe/VertexBuffer.cpp
-    Source/Thebe/VertexBuffer.h
+    Source/Thebe/EnginePart.cpp
+    Source/Thebe/EnginePart.h
+    Source/Thebe/EngineParts/Camera.cpp
+    Source/Thebe/EngineParts/Camera.h
+    Source/Thebe/EngineParts/Material.cpp
+    Source/Thebe/EngineParts/Material.h
+    Source/Thebe/EngineParts/Mesh.cpp
+    Source/Thebe/EngineParts/Mesh.h
+    Source/Thebe/EngineParts/RenderObject.cpp
+    Source/Thebe/EngineParts/RenderObject.h
+    Source/Thebe/EngineParts/RenderPass.cpp
+    Source/Thebe/EngineParts/RenderPass.h
+    Source/Thebe/EngineParts/RenderTarget.cpp
+    Source/Thebe/EngineParts/RenderTarget.h
+    Source/Thebe/EngineParts/MainRenderPass.cpp
+    Source/Thebe/EngineParts/MainRenderPass.h
+    Source/Thebe/EngineParts/Space.cpp
+    Source/Thebe/EngineParts/Space.h
+    Source/Thebe/EngineParts/SwapChain.cpp
+    Source/Thebe/EngineParts/SwapChain.h
+    Source/Thebe/EngineParts/Texture.cpp
+    Source/Thebe/EngineParts/Texture.h
+    Source/Thebe/EngineParts/VertexBuffer.cpp
+    Source/Thebe/EngineParts/VertexBuffer.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp
@@ -99,11 +103,6 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
-)
-
-target_include_directories(ThebeGraphicsEngine PRIVATE
-    "Source/Thebe"
-    "Source/Thebe/Math"
 )
 
 target_include_directories(ThebeGraphicsEngine PUBLIC

@@ -1,10 +1,10 @@
-#include "Transform.h"
-#include "Plane.h"
-#include "Ray.h"
-#include "LineSegment.h"
-#include "Polygon.h"
-#include "Matrix4x4.h"
-#include "Angle.h"
+#include "Thebe/Math/Transform.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Ray.h"
+#include "Thebe/Math/LineSegment.h"
+#include "Thebe/Math/Polygon.h"
+#include "Thebe/Math/Matrix4x4.h"
+#include "Thebe/Math/Angle.h"
 
 using namespace Thebe;
 

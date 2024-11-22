@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector3.h"
+#include "Thebe/Math/Vector3.h"
 #include <set>
 
 namespace Thebe

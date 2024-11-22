@@ -1,10 +1,10 @@
-#include "LineSegment.h"
-#include "Plane.h"
-#include "Matrix2x2.h"
-#include "Vector2.h"
-#include "AxisAlignedBoundingBox.h"
-#include "Plane.h"
-#include "Ray.h"
+#include "Thebe/Math/LineSegment.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Matrix2x2.h"
+#include "Thebe/Math/Vector2.h"
+#include "Thebe/Math/AxisAlignedBoundingBox.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Ray.h"
 #include <algorithm>
 
 using namespace Thebe;

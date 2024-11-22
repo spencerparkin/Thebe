@@ -1,8 +1,8 @@
-#include "Polygon.h"
-#include "Ray.h"
-#include "Interval.h"
-#include "LineSegment.h"
-#include "Matrix3x3.h"
+#include "Thebe/Math/Polygon.h"
+#include "Thebe/Math/Ray.h"
+#include "Thebe/Math/Interval.h"
+#include "Thebe/Math/LineSegment.h"
+#include "Thebe/Math/Matrix3x3.h"
 #include <algorithm>
 #include <unordered_set>
 

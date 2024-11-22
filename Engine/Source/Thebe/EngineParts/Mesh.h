@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Space.h"
+#include "Thebe/EngineParts/Space.h"
 
 namespace Thebe
 {
@@ -16,6 +16,9 @@ namespace Thebe
 		// TODO: Can we handle dynamic as well as static meshes here?
 		Mesh();
 		virtual ~Mesh();
+
+		virtual bool Setup(void* data) override;
+		virtual void Shutdown() override;
 
 	private:
 		Reference<VertexBuffer> vertexBuffer;

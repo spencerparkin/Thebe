@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vector3.h"
-#include "Plane.h"
+#include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Plane.h"
 #include <vector>
 
 namespace Thebe

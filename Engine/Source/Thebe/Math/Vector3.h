@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
-#include "Vector2.h"
+#include "Thebe/Common.h"
+#include "Thebe/Math/Vector2.h"
 #include <math.h>
 #include <vector>
 #include <istream>

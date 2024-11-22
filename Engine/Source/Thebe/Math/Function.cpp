@@ -1,6 +1,6 @@
-#include "Function.h"
-#include "Matrix3x3.h"
-#include "Matrix4x4.h"
+#include "Thebe/Math/Function.h"
+#include "Thebe/Math/Matrix3x3.h"
+#include "Thebe/Math/Matrix4x4.h"
 
 using namespace Thebe;
 

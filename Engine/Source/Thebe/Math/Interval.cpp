@@ -1,4 +1,4 @@
-#include "Interval.h"
+#include "Thebe/Math/Interval.h"
 
 using namespace Thebe;
 

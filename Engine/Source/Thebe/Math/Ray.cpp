@@ -1,7 +1,7 @@
-#include "Ray.h"
-#include "Plane.h"
-#include "AxisAlignedBoundingBox.h"
-#include "LineSegment.h"
+#include "Thebe/Math/Ray.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/AxisAlignedBoundingBox.h"
+#include "Thebe/Math/LineSegment.h"
 #include <algorithm>
 
 using namespace Thebe;

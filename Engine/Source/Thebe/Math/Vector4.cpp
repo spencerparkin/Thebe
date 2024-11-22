@@ -1,5 +1,5 @@
-#include "Math/Vector4.h"
-#include "Math/Vector3.h"
+#include "Thebe/Math/Vector4.h"
+#include "Thebe/Math/Vector3.h"
 #include <math.h>
 
 using namespace Thebe;

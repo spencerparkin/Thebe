@@ -1,4 +1,4 @@
-#include "Vector2.h"
+#include "Thebe/Math/Vector2.h"
 
 using namespace Thebe;
 

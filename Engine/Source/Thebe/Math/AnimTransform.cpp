@@ -1,5 +1,5 @@
-#include "AnimTransform.h"
-#include "Transform.h"
+#include "Thebe/Math/AnimTransform.h"
+#include "Thebe/Math/Transform.h"
 
 using namespace Thebe;
 

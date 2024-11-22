@@ -1,5 +1,5 @@
-#include "SphericalCoords.h"
-#include "Vector3.h"
+#include "Thebe/Math/SphericalCoords.h"
+#include "Thebe/Math/Vector3.h"
 
 using namespace Thebe;
 

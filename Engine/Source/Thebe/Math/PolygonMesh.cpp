@@ -1,6 +1,6 @@
-#include "PolygonMesh.h"
-#include "Polygon.h"
-#include "Graph.h"
+#include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/Polygon.h"
+#include "Thebe/Math/Graph.h"
 
 using namespace Thebe;
 

@@ -1,10 +1,12 @@
 #pragma once
 
-#include "Common.h"
+#include "Thebe/Common.h"
 #include <stdint.h>
 #include <assert.h>
 #include <unordered_map>
 #include <mutex>
+
+#define THEBE_INVALID_REF_HANDLE		0
 
 namespace Thebe
 {
@@ -208,7 +210,7 @@ namespace Thebe
 		 * @param[in] handle This is the handle returned by GetHandle on the desired object instance.
 		 * @return A pointer to the desired reference-counted object is returned, or null if it has gone out of scope.
 		 */
-		bool GetObjectFromHandle(RefHandle handle, Reference<ReferenceCounted>& ref);
+		bool GetObjectFromHandle(RefHandle& handle, Reference<ReferenceCounted>& ref);
 
 		static HandleManager* Get();
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
-#include "Reference.h"
+#include "Thebe/Common.h"
+#include "Thebe/Reference.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -12,10 +12,11 @@ namespace Thebe
 	using Microsoft::WRL::ComPtr;
 
 	class RenderPass;
-	class SwapChain;
 
 	/**
-	 * An instance of this class facilitates the rendering of graphics.
+	 * An instance of this class facilitates the rendering of graphics into a window.
+	 * An application can instantiate multiple instances of this class to render into
+	 * multiple windows, if desired.  Typically, just one window is used.
 	 */
 	class THEBE_API GraphicsEngine : public ReferenceCounted
 	{
@@ -26,32 +27,26 @@ namespace Thebe
 		/**
 		 * Initialize the graphics engine.
 		 * 
-		 * @param[in] windowHandle A swap-chain is created for this window, if given.
+		 * @param[in] windowHandle A swap-chain is created for this window.
 		 */
-		virtual bool Setup(HWND windowHandle = NULL);
+		bool Setup(HWND windowHandle);
 
 		/**
 		 * Shut every thing down, at which point, @ref Setup could be called again.
 		 */
-		virtual void Shutdown();
+		void Shutdown();
 
 		/**
 		 * Kick-off all the render passes in sequence.  This is to be called once per
-		 * iteration of the main program loop to render into a window or off-screen.
+		 * iteration of the main program loop to render into the window.
 		 */
-		virtual void Render();
-
-		/**
-		 * Add a pass to the rendering sequence.  Render passes are kicked-off in order.
-		 */
-		bool AddRenderPass(RenderPass* renderPass);
+		void Render();
 
 		ID3D12Device* GetDevice();
-		SwapChain* GetSwapChain();
 
 	private:
+
 		ComPtr<ID3D12Device> device;
-		Reference<SwapChain> swapChain;
 		std::vector<Reference<RenderPass>> renderPassArray;
 	};
 }

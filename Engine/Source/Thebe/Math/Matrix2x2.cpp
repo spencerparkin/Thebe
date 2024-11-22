@@ -1,5 +1,5 @@
-#include "Matrix2x2.h"
-#include "Vector2.h"
+#include "Thebe/Math/Matrix2x2.h"
+#include "Thebe/Math/Vector2.h"
 
 using namespace Thebe;
 

@@ -1,4 +1,4 @@
-#include "Reference.h"
+#include "Thebe/Reference.h"
 
 using namespace Thebe;
 
@@ -56,7 +56,7 @@ void HandleManager::Unregister(ReferenceCounted* refCounted)
 	this->objectMap.erase(refCounted->GetHandle());
 }
 
-bool HandleManager::GetObjectFromHandle(RefHandle handle, Reference<ReferenceCounted>& ref)
+bool HandleManager::GetObjectFromHandle(RefHandle& handle, Reference<ReferenceCounted>& ref)
 {
 	std::lock_guard guard(this->mutex);
 	ObjectMap::iterator iter = this->objectMap.find(handle);
@@ -66,6 +66,7 @@ bool HandleManager::GetObjectFromHandle(RefHandle handle, Reference<ReferenceCou
 		return true;
 	}
 
+	handle = THEBE_INVALID_REF_HANDLE;
 	return false;
 }
 

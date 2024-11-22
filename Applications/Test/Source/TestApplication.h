@@ -11,6 +11,7 @@ public:
 
 	virtual bool PrepareForWindowShow() override;
 	virtual void Shutdown(HINSTANCE instance) override;
+	virtual LRESULT OnSize(WPARAM wParam, LPARAM lParam) override;
 
 private:
 	Thebe::GraphicsEngine graphicsEngine;

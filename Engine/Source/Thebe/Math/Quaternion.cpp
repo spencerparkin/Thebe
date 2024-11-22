@@ -1,7 +1,7 @@
-#include "Quaternion.h"
-#include "Vector3.h"
-#include "Plane.h"
-#include "Ray.h"
+#include "Thebe/Math/Quaternion.h"
+#include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Ray.h"
 
 using namespace Thebe;
 

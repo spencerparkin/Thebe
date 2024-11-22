@@ -1,5 +1,5 @@
-#include "Application.h"
-#include "Log.h"
+#include "Thebe/Application.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 

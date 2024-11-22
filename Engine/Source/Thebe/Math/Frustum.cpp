@@ -1,9 +1,9 @@
-#include "Frustum.h"
-#include "Matrix4x4.h"
-#include "Plane.h"
-#include "AxisAlignedBoundingBox.h"
-#include "Transform.h"
-#include "Ray.h"
+#include "Thebe/Math/Frustum.h"
+#include "Thebe/Math/Matrix4x4.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/AxisAlignedBoundingBox.h"
+#include "Thebe/Math/Transform.h"
+#include "Thebe/Math/Ray.h"
 #include <math.h>
 
 using namespace Thebe;

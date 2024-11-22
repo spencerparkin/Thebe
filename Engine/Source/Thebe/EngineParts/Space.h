@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RenderObject.h"
-#include "Math/Transform.h"
+#include "Thebe/EngineParts/RenderObject.h"
+#include "Thebe/Math/Transform.h"
 
 namespace Thebe
 {
@@ -13,6 +13,9 @@ namespace Thebe
 	public:
 		Space();
 		virtual ~Space();
+
+		virtual bool Setup(void* data) override;
+		virtual void Shutdown() override;
 
 	protected:
 		Transform childToParent;

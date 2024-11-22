@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
-#include "Reference.h"
+#include "Thebe/Common.h"
+#include "Thebe/Reference.h"
 
 #if defined THEBE_LOGGING
 #	define THEBE_LOG(msg, ...)			do { Log::Get()->Print(msg, __VA_ARGS__); } while(false)

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Function.h"
-#include "Vector3.h"
-#include "Matrix3x3.h"
+#include "Thebe/Math/Function.h"
+#include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Matrix3x3.h"
 
 namespace Thebe
 {

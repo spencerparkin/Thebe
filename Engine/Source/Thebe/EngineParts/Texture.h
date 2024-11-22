@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderTarget.h"
+#include "Thebe/EngineParts/RenderTarget.h"
 
 namespace Thebe
 {
@@ -18,6 +18,9 @@ namespace Thebe
 	public:
 		Texture();
 		virtual ~Texture();
+
+		virtual bool Setup(void* data) override;
+		virtual void Shutdown() override;
 
 		// TODO: Own resource pointer.
 	};

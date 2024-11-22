@@ -1,7 +1,7 @@
-#include "AxisAlignedBoundingBox.h"
-#include "LineSegment.h"
-#include "Plane.h"
-#include "Interval.h"
+#include "Thebe/Math/AxisAlignedBoundingBox.h"
+#include "Thebe/Math/LineSegment.h"
+#include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Interval.h"
 #include <algorithm>
 
 using namespace Thebe;

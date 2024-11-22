@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Thebe/Common.h"
 #include <vector>
 
 namespace Thebe

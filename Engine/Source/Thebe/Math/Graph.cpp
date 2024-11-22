@@ -1,7 +1,7 @@
-#include "Graph.h"
-#include "PolygonMesh.h"
-#include "Polygon.h"
-#include "Function.h"
+#include "Thebe/Math/Graph.h"
+#include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/Polygon.h"
+#include "Thebe/Math/Function.h"
 #include <map>
 #include <algorithm>
 

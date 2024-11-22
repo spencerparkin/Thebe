@@ -1,6 +1,5 @@
-#include "GraphicsEngine.h"
-#include "RenderPass.h"
-#include "SwapChain.h"
+#include "Thebe/GraphicsEngine.h"
+#include "Thebe/EngineParts/MainRenderPass.h"
 #include "Log.h"
 #include <locale>
 #include <codecvt>
@@ -15,7 +14,7 @@ GraphicsEngine::GraphicsEngine()
 {
 }
 
-/*virtual*/ bool GraphicsEngine::Setup(HWND windowHandle /*= NULL*/)
+bool GraphicsEngine::Setup(HWND windowHandle)
 {
 	if (this->device.Get())
 	{
@@ -90,51 +89,37 @@ GraphicsEngine::GraphicsEngine()
 		return false;
 	}
 
-	if (windowHandle)
+	// TODO: I'd eventually like to be able to add a shadow pass, but that's a long way off.
+
+	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
+	mainRenderPass->SetGraphicsEngine(this);
+	if (!mainRenderPass->Setup(windowHandle))
 	{
-		this->swapChain.Set(new SwapChain());
-		if (!this->swapChain->Setup(windowHandle))
-		{
-			this->swapChain.Reset();
-			THEBE_LOG("Failed to setup swap-chain.");
-			return false;
-		}
+		THEBE_LOG("Failed to setup main render pass.");
+		return false;
 	}
+
+	this->renderPassArray.push_back(mainRenderPass.Get());
 
 	return true;
 }
 
-/*virtual*/ void GraphicsEngine::Shutdown()
+void GraphicsEngine::Shutdown()
 {
-	// TODO: Wait for GPU idle before continuing.
-	//       This would require waiting on each render pass to complete.
+	for (Reference<RenderPass>& renderPass : this->renderPassArray)
+		renderPass->Shutdown();
 
 	this->renderPassArray.clear();
-	this->swapChain = nullptr;
 	this->device = nullptr;
 }
 
-/*virtual*/ void GraphicsEngine::Render()
+void GraphicsEngine::Render()
 {
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->Render(this);
-}
-
-bool GraphicsEngine::AddRenderPass(RenderPass* renderPass)
-{
-	if (!renderPass->Setup(this))
-		return false;
-
-	this->renderPassArray.push_back(renderPass);
-	return true;
+		renderPass->Perform();
 }
 
 ID3D12Device* GraphicsEngine::GetDevice()
 {
 	return this->device.Get();
-}
-
-SwapChain* GraphicsEngine::GetSwapChain()
-{
-	return this->swapChain.Get();
 }

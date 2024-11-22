@@ -1,4 +1,4 @@
-#include "Random.h"
+#include "Thebe/Math/Random.h"
 #include <time.h>
 
 using namespace Thebe;

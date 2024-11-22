@@ -1,4 +1,4 @@
-#include "Angle.h"
+#include "Thebe/Math/Angle.h"
 #include <math.h>
 
 using namespace Thebe;
