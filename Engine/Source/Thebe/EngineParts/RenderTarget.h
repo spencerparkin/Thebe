@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include <d3d12.h>
 
 namespace Thebe
 {
@@ -17,8 +18,10 @@ namespace Thebe
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
 
-		//virtual void PreRender(CommandList* commandList);		// Issue resource barrier from previous to writable.
-		//virtual void PostRender(CommandList* commandList);	// Issue resource barrior from previous to readable?
-		//virtual ID3D12CommandAllocator* GetCommandAllocator();
+		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue);
+		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue);
+
+		virtual bool PreRender(ID3D12GraphicsCommandList* commandList);
+		virtual bool PostRender(ID3D12GraphicsCommandList* commandList);
 	};
 }

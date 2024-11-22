@@ -1,9 +1,12 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include <d3d12.h>
 
 namespace Thebe
 {
+	class Camera;
+
 	/**
 	 * 
 	 */
@@ -15,7 +18,6 @@ namespace Thebe
 
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
-
-		//virtual void Render(CommandList* commandList) = 0;
+		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera);
 	};
 }

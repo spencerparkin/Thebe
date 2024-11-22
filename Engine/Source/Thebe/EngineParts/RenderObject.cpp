@@ -18,3 +18,8 @@ RenderObject::RenderObject()
 /*virtual*/ void RenderObject::Shutdown()
 {
 }
+
+/*virtual*/ bool RenderObject::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+{
+	return true;
+}

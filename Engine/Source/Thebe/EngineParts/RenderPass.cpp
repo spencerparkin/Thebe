@@ -74,15 +74,88 @@ RenderPass::RenderPass()
 	this->commandQueue = nullptr;
 }
 
-/*virtual*/ void RenderPass::Perform()
+/*virtual*/ bool RenderPass::Perform()
 {
-	// call pre-render on the output.  this may stall us until GPU is ready.
+	if (!this->output.Get())
+		return false;
 
-	// get the command-allocator from the output.
-	// reset the command-allocator and point the command-list to it.
-	// call the input to render with our command-list.
+	// Note that this call should stall if necessary until the returned command allocator can safely be reset.
+	// A command allocator cannot be reset while the GPU is still executing commands that were allocated with it.
+	ID3D12CommandAllocator* commandAllocator = this->output->AcquireCommandAllocator(this->commandQueue.Get());
+	if (!commandAllocator)
+	{
+		THEBE_LOG("No command allocator given by the render pass output.");
+		return false;
+	}
 
-	// call post-render on the output.
+	HRESULT result = commandAllocator->Reset();
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to reset command allocator.");
+		return false;
+	}
+
+	if (!this->commandList.Get())
+	{
+		Reference<GraphicsEngine> graphicsEngine;
+		if (!this->GetGraphicsEngine(graphicsEngine))
+			return false;
+		 
+		result = graphicsEngine->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&this->commandList));
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to create command list.  Error: 0x%08x", result);
+			return false;
+		}
+
+		//this->commandList->SetName(L"");
+	}
+	else
+	{
+		result = this->commandList->Reset(commandAllocator, nullptr);
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to reset command list and put it into the recording state.");
+			return false;
+		}
+	}
+
+	if (!this->output->PreRender(this->commandList.Get()))
+	{
+		THEBE_LOG("Pre-render failed.");
+		return false;
+	}
+	
+	if (this->input.Get())
+	{
+		if (!this->input->Render(this->commandList.Get(), this->camera.Get()))
+		{
+			THEBE_LOG("Render failed.");
+			return false;
+		}
+	}
+
+	if (!this->output->PostRender(this->commandList.Get()))
+	{
+		THEBE_LOG("Post-render failed.");
+		return false;
+	}
+
+	result = this->commandList->Close();
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to close command list.");
+		return false;
+	}
+
+	// Kick-off the GPU to execute the commands.
+	ID3D12CommandList* commandListArray[] = { this->commandList.Get() };
+	this->commandQueue->ExecuteCommandLists(_countof(commandListArray), commandListArray);
+
+	// Indicate that we no longer need the command allocator.
+	this->output->ReleaseCommandAllocator(commandAllocator, this->commandQueue.Get());
+
+	return true;
 }
 
 void RenderPass::WaitForCommandQueueComplete()

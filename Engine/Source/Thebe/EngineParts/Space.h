@@ -16,9 +16,11 @@ namespace Thebe
 
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
+		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
 
 	protected:
 		Transform childToParent;
+		Transform objectToWorld;
 		std::vector<Reference<Space>> subSpaceArray;
 	};
 }

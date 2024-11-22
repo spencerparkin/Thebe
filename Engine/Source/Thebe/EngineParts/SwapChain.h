@@ -36,8 +36,11 @@ namespace Thebe
 
 		bool Resize(int width, int height);
 
-		//virtual void PreRender(CommandList* commandList) override;		// Stall if we can't render the frame yet.
-		//virtual void PostRender(CommandList* commandList);				// Present/flip and signal the current frame.
+		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue) override;
+		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue);
+
+		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
+		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 
 	private:
 		bool GetWindowDimensions(int& width, int& height);
@@ -56,5 +59,6 @@ namespace Thebe
 		Frame frameArray[THEBE_NUM_SWAP_FRAMES];
 		ComPtr<ID3D12DescriptorHeap> rtvHeap;
 		CD3DX12_VIEWPORT viewport;
+		CD3DX12_RECT scissorRect;
 	};
 }

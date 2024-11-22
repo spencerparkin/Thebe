@@ -32,7 +32,7 @@ namespace Thebe
 
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
-		virtual void Perform();
+		virtual bool Perform();
 
 		void WaitForCommandQueueComplete();
 
@@ -46,6 +46,6 @@ namespace Thebe
 		Reference<Camera> camera;
 		Reference<Fence> fence;
 		ComPtr<ID3D12CommandQueue> commandQueue;
-		// TODO: Own a graphics command list.
+		ComPtr<ID3D12GraphicsCommandList> commandList;
 	};
 }

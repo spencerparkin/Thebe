@@ -18,3 +18,10 @@ Mesh::Mesh()
 /*virtual*/ void Mesh::Shutdown()
 {
 }
+
+/*virtual*/ bool Mesh::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+{
+	// TODO: Call commandList->SetPipelineState() with our material.
+
+	return true;
+}
