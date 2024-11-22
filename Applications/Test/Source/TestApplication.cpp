@@ -10,7 +10,7 @@ TestApplication::TestApplication()
 
 /*virtual*/ bool TestApplication::PrepareForWindowShow()
 {
-	if (!this->graphicsEngine.Setup())
+	if (!this->graphicsEngine.Setup(this->windowHandle))
 		return false;
 
 	return true;

@@ -14,6 +14,8 @@ namespace Thebe
 		SwapChain();
 		virtual ~SwapChain();
 
+		virtual bool Setup(HWND windowHandle);
+
 	private:
 		HWND windowHandle;
 		// TODO: Own an array of frames, each owning a command allocator and fence/event objects.

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Node.h"
+#include "Reference.h"
 
 namespace Thebe
 {
 	/**
 	 * 
 	 */
-	class THEBE_API VertexBuffer : public Node
+	class THEBE_API VertexBuffer : public ReferenceCounted
 	{
 	public:
 		VertexBuffer();

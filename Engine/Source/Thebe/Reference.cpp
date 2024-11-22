@@ -2,7 +2,7 @@
 
 using namespace Thebe;
 
-std::atomic<uint32_t> ReferenceCounted::nextHandle(1);
+std::atomic<RefHandle> ReferenceCounted::nextHandle(1);
 
 //---------------------------- ReferenceCounted ----------------------------
 
@@ -47,7 +47,7 @@ HandleManager::HandleManager()
 void HandleManager::Register(ReferenceCounted* refCounted)
 {
 	std::lock_guard guard(this->mutex);
-	this->objectMap.insert(std::pair<uint32_t, ReferenceCounted*>(refCounted->GetHandle(), refCounted));
+	this->objectMap.insert(std::pair<RefHandle, ReferenceCounted*>(refCounted->GetHandle(), refCounted));
 }
 
 void HandleManager::Unregister(ReferenceCounted* refCounted)
@@ -56,7 +56,7 @@ void HandleManager::Unregister(ReferenceCounted* refCounted)
 	this->objectMap.erase(refCounted->GetHandle());
 }
 
-bool HandleManager::GetObjectFromHandle(uint32_t handle, Reference<ReferenceCounted>& ref)
+bool HandleManager::GetObjectFromHandle(RefHandle handle, Reference<ReferenceCounted>& ref)
 {
 	std::lock_guard guard(this->mutex);
 	ObjectMap::iterator iter = this->objectMap.find(handle);

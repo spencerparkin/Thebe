@@ -8,6 +8,8 @@
 
 namespace Thebe
 {
+	typedef uint32_t RefHandle;
+
 	/**
 	 * This is the base class for any dynamically allocated class that we would like to
 	 * reference count.  Be careful not to inherit this class more than once.  I try to
@@ -59,7 +61,7 @@ namespace Thebe
 		 * if it has not yet been destroyed.  Note that a valid handle is always
 		 * non-zero.
 		 */
-		uint32_t GetHandle() const { return this->handle; }
+		RefHandle GetHandle() const { return this->handle; }
 
 		/**
 		 * Return the number of referencers referencing this object.
@@ -68,8 +70,8 @@ namespace Thebe
 
 	private:
 		mutable std::atomic<uint32_t> refCount;		///< This is used to keep track of how many Reference class instances are pointing to this object.
-		uint32_t handle;							///< This is used to track this object without holding onto a reference to the object.
-		static std::atomic<uint32_t> nextHandle;	///< A new object is assigned this handle.
+		RefHandle handle;							///< This is used to track this object without holding onto a reference to the object.
+		static std::atomic<RefHandle> nextHandle;	///< A new object is assigned this handle.
 	};
 
 	/**
@@ -206,12 +208,12 @@ namespace Thebe
 		 * @param[in] handle This is the handle returned by GetHandle on the desired object instance.
 		 * @return A pointer to the desired reference-counted object is returned, or null if it has gone out of scope.
 		 */
-		bool GetObjectFromHandle(uint32_t handle, Reference<ReferenceCounted>& ref);
+		bool GetObjectFromHandle(RefHandle handle, Reference<ReferenceCounted>& ref);
 
 		static HandleManager* Get();
 
 	private:
-		typedef std::unordered_map<uint32_t, ReferenceCounted*> ObjectMap;
+		typedef std::unordered_map<RefHandle, ReferenceCounted*> ObjectMap;
 		ObjectMap objectMap;
 		std::mutex mutex;
 	};

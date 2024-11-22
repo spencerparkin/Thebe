@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Node.h"
+#include "Reference.h"
 #include "Transform.h"
 
 namespace Thebe
@@ -8,7 +8,7 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	class THEBE_API Camera : public Node
+	class THEBE_API Camera : public ReferenceCounted
 	{
 	public:
 		Camera();

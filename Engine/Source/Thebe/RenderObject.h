@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Node.h"
+#include "Reference.h"
 
 namespace Thebe
 {
 	/**
 	 * 
 	 */
-	class THEBE_API RenderObject : public Node
+	class THEBE_API RenderObject : public ReferenceCounted
 	{
 	public:
 		RenderObject();

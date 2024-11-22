@@ -1,9 +1,14 @@
 #pragma once
 
-#include "Node.h"
+#include "Reference.h"
+#include <d3d12.h>
+#include <wrl.h>
 
 namespace Thebe
 {
+	using Microsoft::WRL::ComPtr;
+
+	class GraphicsEngine;
 	class RenderObject;
 	class RenderTarget;
 	class Camera;
@@ -14,18 +19,24 @@ namespace Thebe
 	 * texture node for purposes of off-screen rendering, or shadow mapping.)
 	 * 
 	 * Ideally, these would render in parallel on the GPU with other render-passes whenever possible,
-	 * only stalling for other render passes if necessary.
+	 * only stalling for other render passes if necessary.  Stalls happen at the resoure barriers.
+	 * For example, one queue stalls waiting for a resource to become readable while another queue
+	 * writes to it and then makes it readable.
 	 */
-	class THEBE_API RenderPass : public Node
+	class THEBE_API RenderPass : public ReferenceCounted
 	{
 	public:
 		RenderPass();
 		virtual ~RenderPass();
 
+		virtual bool Setup(GraphicsEngine* graphicsEngine);
+		virtual void Render(GraphicsEngine* graphicsEngine);
+
 	private:
 		Reference<RenderObject> input;
 		Reference<RenderTarget> output;
 		Reference<Camera> camera;
+		ComPtr<ID3D12CommandQueue> commandQueue;
 		// TODO: Own a graphics command list.
 	};
 }

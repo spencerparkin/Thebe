@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Node.h"
+#include "Reference.h"
 
 namespace Thebe
 {
@@ -9,7 +9,7 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class THEBE_API Material : public Node
+	class THEBE_API Material : public ReferenceCounted
 	{
 	public:
 		Material();
