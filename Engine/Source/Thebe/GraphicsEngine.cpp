@@ -9,6 +9,9 @@ using namespace Thebe;
 
 GraphicsEngine::GraphicsEngine()
 {
+#if defined THEBE_LOG_FRAMERATE
+	this->frameCount = 0L;
+#endif //THEBE_LOG_FRAMERATE
 }
 
 /*virtual*/ GraphicsEngine::~GraphicsEngine()
@@ -101,6 +104,10 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 	this->renderPassArray.push_back(mainRenderPass.Get());
 
+#if defined THEBE_LOG_FRAMERATE
+	this->clock.Reset();
+#endif //THEBE_LOG_FRAMERATE
+
 	return true;
 }
 
@@ -119,7 +126,33 @@ void GraphicsEngine::Render()
 {
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Perform();
+
+#if defined THEBE_LOG_FRAMERATE
+	double deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
+	this->frameTimeList.push_back(deltaTimeSeconds);
+	while (this->frameTimeList.size() > THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION)
+		this->frameTimeList.pop_front();
+	if ((this->frameCount++ % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
+		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
+#endif //THEBE_LOG_FRAMERATE
 }
+
+#if defined THEBE_LOG_FRAMERATE
+
+double GraphicsEngine::CalcFramerate()
+{
+	if (this->frameTimeList.size() == 0)
+		return 0.0;
+
+	double averageFrameTimeSeconds = 0.0;
+	for (double frameTimeSeconds : this->frameTimeList)
+		averageFrameTimeSeconds += frameTimeSeconds;
+
+	averageFrameTimeSeconds /= double(this->frameTimeList.size());
+	return 1.0 / averageFrameTimeSeconds;
+}
+
+#endif //THEBE_LOG_FRAMERATE
 
 void GraphicsEngine::WaitForGPUIdle()
 {

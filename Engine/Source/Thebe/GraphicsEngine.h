@@ -2,10 +2,14 @@
 
 #include "Thebe/Common.h"
 #include "Thebe/Reference.h"
+#include "Thebe/Clock.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
 #include <dxgi1_6.h>
+
+#define THEBE_FRAMES_PER_FRAMERATE_LOGGING				64
+#define THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION		32
 
 namespace Thebe
 {
@@ -74,5 +78,12 @@ namespace Thebe
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
+
+#if defined THEBE_LOG_FRAMERATE
+		double CalcFramerate();
+		Clock clock;
+		std::list<double> frameTimeList;
+		UINT64 frameCount;
+#endif //THEBE_LOG_FRAMERATE
 	};
 }

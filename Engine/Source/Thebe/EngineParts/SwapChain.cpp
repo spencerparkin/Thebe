@@ -206,6 +206,8 @@ bool SwapChain::Resize(int width, int height)
 	this->scissorRect.top = 0;
 	this->scissorRect.bottom = height;
 
+	THEBE_LOG("Swap-chain resized: %d x %d", width, height);
+
 	return true;
 }
 

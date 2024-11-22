@@ -10,6 +10,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
+    Source/Thebe/Clock.cpp
+    Source/Thebe/Clock.h
     Source/Thebe/EnginePart.cpp
     Source/Thebe/EnginePart.h
     Source/Thebe/EngineParts/Camera.cpp
@@ -98,6 +100,7 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(ThebeGraphicsEngine PUBLIC
         THEBE_LOGGING
+        THEBE_LOG_FRAMERATE
     )
 endif()
 
