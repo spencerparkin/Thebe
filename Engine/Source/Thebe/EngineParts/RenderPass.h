@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include "Thebe/EngineParts/Fence.h"
 #include <d3d12.h>
 #include <wrl.h>
 
@@ -33,10 +34,17 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual void Perform();
 
+		void WaitForCommandQueueComplete();
+
+		ID3D12CommandQueue* GetCommandQueue();
+		RenderObject* GetInput();
+		RenderTarget* GetOutput();
+
 	protected:
 		Reference<RenderObject> input;
 		Reference<RenderTarget> output;
 		Reference<Camera> camera;
+		Reference<Fence> fence;
 		ComPtr<ID3D12CommandQueue> commandQueue;
 		// TODO: Own a graphics command list.
 	};

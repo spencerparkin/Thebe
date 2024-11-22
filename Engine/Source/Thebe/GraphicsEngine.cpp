@@ -1,5 +1,6 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/MainRenderPass.h"
+#include "Thebe/EngineParts/SwapChain.h"
 #include "Log.h"
 #include <locale>
 #include <codecvt>
@@ -41,9 +42,8 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	}
 #endif
 
-	// Get a factory we can use to enumerate adapters and create a swap-chain.
-	ComPtr<IDXGIFactory4> factory;
-	result = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory));
+	// Get a factory we can use to enumerate adapters.
+	result = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&this->factory));
 	if (FAILED(result))
 	{
 		THEBE_LOG("Failed to create DXGI factory.  Error: 0x%08x", result);
@@ -55,7 +55,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	{
 		// Grab the next adapter.
 		ComPtr<IDXGIAdapter1> adapter;
-		result = factory->EnumAdapters1(i, &adapter);
+		result = this->factory->EnumAdapters1(i, &adapter);
 		if (FAILED(result))
 			break;
 
@@ -106,6 +106,8 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 void GraphicsEngine::Shutdown()
 {
+	this->WaitForGPUIdle();
+
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Shutdown();
 
@@ -119,7 +121,29 @@ void GraphicsEngine::Render()
 		renderPass->Perform();
 }
 
+void GraphicsEngine::WaitForGPUIdle()
+{
+	for (Reference<RenderPass>& renderPass : this->renderPassArray)
+		renderPass->WaitForCommandQueueComplete();
+}
+
+void GraphicsEngine::Resize(int width, int height)
+{
+	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
+	if (mainRenderPass)
+	{
+		auto swapChain = dynamic_cast<SwapChain*>(mainRenderPass->GetOutput());
+		if (swapChain)
+			swapChain->Resize(width, height);
+	}
+}
+
 ID3D12Device* GraphicsEngine::GetDevice()
 {
 	return this->device.Get();
+}
+
+IDXGIFactory4* GraphicsEngine::GetFactory()
+{
+	return this->factory.Get();
 }

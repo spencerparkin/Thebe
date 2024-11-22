@@ -11,7 +11,9 @@ TestApplication::TestApplication()
 
 /*virtual*/ bool TestApplication::PrepareForWindowShow()
 {
-	if (!this->graphicsEngine.Setup(this->windowHandle))
+	this->graphicsEngine.Set(new Thebe::GraphicsEngine());
+
+	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
 
 	return true;
@@ -19,13 +21,21 @@ TestApplication::TestApplication()
 
 /*virtual*/ void TestApplication::Shutdown(HINSTANCE instance)
 {
-	this->graphicsEngine.Shutdown();
+	if (this->graphicsEngine.Get())
+	{
+		this->graphicsEngine->Shutdown();
+		this->graphicsEngine = nullptr;
+	}
 
 	Application::Shutdown(instance);
 }
 
 /*virtual*/ LRESULT TestApplication::OnSize(WPARAM wParam, LPARAM lParam)
 {
-	//this->graphicsEngine.Resize();
+	int width = LOWORD(lParam);
+	int height = HIWORD(lParam);
+
+	this->graphicsEngine->Resize(width, height);
+
 	return 0;
 }

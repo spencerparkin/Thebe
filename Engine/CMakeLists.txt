@@ -34,6 +34,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Texture.h
     Source/Thebe/EngineParts/VertexBuffer.cpp
     Source/Thebe/EngineParts/VertexBuffer.h
+    Source/Thebe/EngineParts/Fence.cpp
+    Source/Thebe/EngineParts/Fence.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp
@@ -107,4 +109,5 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
 
 target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
+    "DirectXHeader"
 )

@@ -19,8 +19,14 @@ MainRenderPass::MainRenderPass()
 
 	HWND windowHandle = (HWND)data;
 
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
 	Reference<SwapChain> swapChain = new SwapChain();
-	if (!swapChain->Setup(windowHandle))
+	swapChain->SetGraphicsEngine(graphicsEngine.Get());
+	SwapChain::SetupData swapChainSetupData{ windowHandle, this };
+	if (!swapChain->Setup(&swapChainSetupData))
 	{
 		THEBE_LOG("Failed to setup the swap-chain for the main render pass.");
 		return false;
@@ -33,4 +39,5 @@ MainRenderPass::MainRenderPass()
 
 /*virtual*/ void MainRenderPass::Shutdown()
 {
+	RenderPass::Shutdown();
 }

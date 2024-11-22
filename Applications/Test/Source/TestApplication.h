@@ -14,5 +14,5 @@ public:
 	virtual LRESULT OnSize(WPARAM wParam, LPARAM lParam) override;
 
 private:
-	Thebe::GraphicsEngine graphicsEngine;
+	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 };

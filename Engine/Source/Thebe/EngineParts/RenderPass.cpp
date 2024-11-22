@@ -1,4 +1,7 @@
 #include "Thebe/EngineParts/RenderPass.h"
+#include "Thebe/EngineParts/RenderObject.h"
+#include "Thebe/EngineParts/RenderTarget.h"
+#include "Thebe/EngineParts/Camera.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -31,11 +34,44 @@ RenderPass::RenderPass()
 		return false;
 	}
 
+	this->fence = new Fence();
+	this->fence->SetGraphicsEngine(graphicsEngine.Get());
+	if (!this->fence->Setup(nullptr))
+	{
+		THEBE_LOG("Failed to create fence for render pass.");
+		return false;
+	}
+
 	return true;
 }
 
 /*virtual*/ void RenderPass::Shutdown()
 {
+	if (this->fence.Get())
+	{
+		this->fence->Shutdown();
+		this->fence = nullptr;
+	}
+
+	if (this->input)
+	{
+		this->input->Shutdown();
+		this->input = nullptr;
+	}
+
+	if (this->output)
+	{
+		this->output->Shutdown();
+		this->output = nullptr;
+	}
+
+	if (this->camera)
+	{
+		this->camera->Shutdown();
+		this->camera = nullptr;
+	}
+
+	this->commandQueue = nullptr;
 }
 
 /*virtual*/ void RenderPass::Perform()
@@ -47,4 +83,25 @@ RenderPass::RenderPass()
 	// call the input to render with our command-list.
 
 	// call post-render on the output.
+}
+
+void RenderPass::WaitForCommandQueueComplete()
+{
+	if (this->commandQueue.Get() && this->fence.Get())
+		this->fence->EnqueueSignalAndWaitForIt(this->commandQueue.Get());
+}
+
+ID3D12CommandQueue* RenderPass::GetCommandQueue()
+{
+	return this->commandQueue.Get();
+}
+
+RenderObject* RenderPass::GetInput()
+{
+	return this->input.Get();
+}
+
+RenderTarget* RenderPass::GetOutput()
+{
+	return this->output.Get();
 }

@@ -42,11 +42,37 @@ namespace Thebe
 		 */
 		void Render();
 
+		/**
+		 * Upon return from this call, any work we've submitted to the GPU
+		 * should be finished, and the GPU should be sitting around doing nothing.
+		 */
+		void WaitForGPUIdle();
+
+		/**
+		 * Call this when the window dimensions change.
+		 */
+		void Resize(int width, int height);
+
 		ID3D12Device* GetDevice();
+		IDXGIFactory4* GetFactory();
 
 	private:
 
+		template<typename T>
+		T* FindRenderPass()
+		{
+			for (Reference<RenderPass>& renderPass : this->renderPassArray)
+			{
+				T* typedRenderPass = dynamic_cast<T*>(renderPass.Get());
+				if (typedRenderPass)
+					return typedRenderPass;
+			}
+
+			return nullptr;
+		}
+
 		ComPtr<ID3D12Device> device;
+		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
 	};
 }

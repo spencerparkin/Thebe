@@ -15,8 +15,5 @@ namespace Thebe
 
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
-
-	protected:
-		HWND windowHandle;
 	};
 }
