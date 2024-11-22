@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Common.h"
-#include <Windows.h>
+#include "Reference.h"
 
 namespace Thebe
 {
+	class RenderPass;
+
 	/**
-	 * An instance of this class facilitates the rendering of graphics into a given window.
+	 * An instance of this class facilitates the rendering of graphics.
 	 */
 	class THEBE_API GraphicsEngine
 	{
@@ -14,11 +16,13 @@ namespace Thebe
 		GraphicsEngine();
 		virtual ~GraphicsEngine();
 
-		virtual bool Setup(HWND windowHandle);
+		virtual bool Setup();
 		virtual void Shutdown();
 		virtual void Render();
 
-	protected:
-		HWND windowHandle;
+	private:
+		std::vector<Reference<RenderPass>> renderPassArray;
+		// TODO: Own device.
+		// TODO: Own the command queue.
 	};
 }

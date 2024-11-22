@@ -10,6 +10,28 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
+    Source/Thebe/Node.cpp
+    Source/Thebe/Node.h
+    Source/Thebe/Nodes/Camera.cpp
+    Source/Thebe/Nodes/Camera.h
+    Source/Thebe/Nodes/Material.cpp
+    Source/Thebe/Nodes/Material.h
+    Source/Thebe/Nodes/Mesh.cpp
+    Source/Thebe/Nodes/Mesh.h
+    Source/Thebe/Nodes/RenderObject.cpp
+    Source/Thebe/Nodes/RenderObject.h
+    Source/Thebe/Nodes/RenderPass.cpp
+    Source/Thebe/Nodes/RenderPass.h
+    Source/Thebe/Nodes/RenderTarget.cpp
+    Source/Thebe/Nodes/RenderTarget.h
+    Source/Thebe/Nodes/Space.cpp
+    Source/Thebe/Nodes/Space.h
+    Source/Thebe/Nodes/SwapChain.cpp
+    Source/Thebe/Nodes/SwapChain.h
+    Source/Thebe/Nodes/Texture.cpp
+    Source/Thebe/Nodes/Texture.h
+    Source/Thebe/Nodes/VertexBuffer.cpp
+    Source/Thebe/Nodes/VertexBuffer.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

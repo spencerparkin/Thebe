@@ -5,20 +5,14 @@ using namespace Thebe;
 
 GraphicsEngine::GraphicsEngine()
 {
-	this->windowHandle = NULL;
 }
 
 /*virtual*/ GraphicsEngine::~GraphicsEngine()
 {
 }
 
-/*virtual*/ bool GraphicsEngine::Setup(HWND windowHandle)
+/*virtual*/ bool GraphicsEngine::Setup()
 {
-	if (this->windowHandle != NULL)
-		return false;
-
-	this->windowHandle = windowHandle;
-
 	//...
 
 	return true;
@@ -27,8 +21,6 @@ GraphicsEngine::GraphicsEngine()
 /*virtual*/ void GraphicsEngine::Shutdown()
 {
 	//...
-
-	this->windowHandle = NULL;
 }
 
 /*virtual*/ void GraphicsEngine::Render()
