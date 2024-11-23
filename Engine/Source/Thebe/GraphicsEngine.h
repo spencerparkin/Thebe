@@ -7,15 +7,20 @@
 #include <d3d12sdklayers.h>
 #include <wrl.h>
 #include <dxgi1_6.h>
+#include <filesystem>
 
 #define THEBE_FRAMES_PER_FRAMERATE_LOGGING				64
 #define THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION		32
+#define THEBE_LOAD_FLAG_DONT_CHECK_CACHE				0x00000001
+#define THEBE_LOAD_FLAG_DONT_CACHE_PART					0x00000002
+#define THEBE_DUMP_FLAG_CAN_OVERWRITE					0x00000001
 
 namespace Thebe
 {
 	using Microsoft::WRL::ComPtr;
 
 	class RenderPass;
+	class EnginePart;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -59,6 +64,9 @@ namespace Thebe
 
 		ID3D12Device* GetDevice();
 		IDXGIFactory4* GetFactory();
+
+		bool LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
+		bool DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
 
 	private:
 

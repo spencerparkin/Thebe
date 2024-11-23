@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/Reference.h"
+#include "JsonValue.h"
 
 namespace Thebe
 {
@@ -21,6 +22,9 @@ namespace Thebe
 
 		void SetGraphicsEngine(GraphicsEngine* graphicsEngine);
 		bool GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine);
+
+		virtual bool LoadFromJson(const ParseParty::JsonValue* jsonValue);
+		virtual bool DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
 
 	protected:
 		RefHandle graphicsEngineHandle;

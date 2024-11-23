@@ -1,7 +1,12 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/MainRenderPass.h"
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/EngineParts/Material.h"
+#include "Thebe/EngineParts/Texture.h"
+#include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/EngineParts/Mesh.h"
 #include "Log.h"
+#include "JsonValue.h"
 #include <locale>
 #include <codecvt>
 
@@ -179,4 +184,119 @@ ID3D12Device* GraphicsEngine::GetDevice()
 IDXGIFactory4* GraphicsEngine::GetFactory()
 {
 	return this->factory.Get();
+}
+
+bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags /*= 0*/)
+{
+	using namespace ParseParty;
+
+	if ((flags & THEBE_LOAD_FLAG_DONT_CHECK_CACHE) == 0)
+	{
+		// TODO: We need to first try to hit a cache.
+	}
+
+	if (!std::filesystem::exists(enginePartPath))
+	{
+		THEBE_LOG("Can't load part, because file (%s) does not exist.", enginePartPath.c_str());
+		return false;
+	}
+
+	std::ifstream fileStream;
+	fileStream.open(enginePartPath.string(), std::ios::in);
+	if (!fileStream.is_open())
+	{
+		THEBE_LOG("Failed to open (for reading) the file: %s", enginePartPath.c_str());
+		return false;
+	}
+
+	std::stringstream stringStream;
+	stringStream << fileStream.rdbuf();
+	std::string jsonString = stringStream.str();
+	std::string parseError;
+	std::unique_ptr<JsonValue> jsonRootValue(JsonValue::ParseJson(jsonString, parseError));
+	if (!jsonRootValue.get())
+	{
+		THEBE_LOG("Json parse error in file: %s", enginePartPath.c_str());
+		THEBE_LOG("Json parse error: %s", parseError.c_str());
+		return false;
+	}
+
+	std::string ext = enginePartPath.extension().string();
+	enginePart.Reset();
+	if (ext == ".material")
+		enginePart.Set(new Material());
+	else if (ext == ".texture")
+		enginePart.Set(new Texture());
+	else if (ext == ".vertex_buffer")
+		enginePart.Set(new VertexBuffer());
+	else if (ext == ".mesh")
+		enginePart.Set(new Mesh());
+	// TODO: Add Shader, PSO, RootSignature?
+
+	if (!enginePart.Get())
+	{
+		THEBE_LOG("Extension \"%s\" not recognized.", ext.c_str());
+		return false;
+	}
+
+	if (!enginePart->LoadFromJson(jsonRootValue.get()))
+	{
+		THEBE_LOG("Engine part failed to load from JSON.");
+		return false;
+	}
+
+	if ((flags & THEBE_LOAD_FLAG_DONT_CACHE_PART) == 0)
+	{
+		// TODO: Insert the part in a cache we can check later.
+	}
+
+	return true;
+}
+
+bool GraphicsEngine::DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags /*= 0*/)
+{
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonValue> jsonValue;
+	if (!enginePart->DumpToJson(jsonValue) || !jsonValue.get())
+	{
+		THEBE_LOG("Failed to dump engine part to JSON.");
+		return false;
+	}
+
+	if (std::filesystem::exists(enginePartPath))
+	{
+		if ((flags & THEBE_DUMP_FLAG_CAN_OVERWRITE) == 0)
+		{
+			THEBE_LOG("Cannot overwrite existing file: %s", enginePartPath.c_str());
+			return false;
+		}
+
+		if (!std::filesystem::remove(enginePartPath))
+		{
+			THEBE_LOG("Failed to delete file: %s", enginePartPath.c_str());
+			return false;
+		}
+	}
+
+	// Note that we don't check the extension here, but maybe we should?
+	std::ofstream fileStream;
+	fileStream.open(enginePartPath.string(), std::ios::out);
+	if (!fileStream.is_open())
+	{
+		THEBE_LOG("Failed to open (for writing) the file: %s", enginePartPath.c_str());
+		return false;
+	}
+
+	std::string jsonString;
+	if (!jsonValue->PrintJson(jsonString))
+	{
+		THEBE_LOG("Failed to print JSON to string.");
+		return false;
+	}
+
+	fileStream << jsonString;
+	fileStream.close();
+
+	return true;
 }

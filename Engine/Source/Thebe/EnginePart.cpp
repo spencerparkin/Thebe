@@ -1,5 +1,6 @@
 #include "Thebe/EnginePart.h"
 #include "Thebe/GraphicsEngine.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 
@@ -25,4 +26,16 @@ bool EnginePart::GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine)
 
 	graphicsEngine.SafeSet(ref.Get());
 	return graphicsEngine.Get() ? true : false;
+}
+
+/*virtual*/ bool EnginePart::LoadFromJson(const ParseParty::JsonValue* jsonValue)
+{
+	THEBE_LOG("Loading engine part from JSON is not supported for this type of part.");
+	return false;
+}
+
+/*virtual*/ bool EnginePart::DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
+{
+	THEBE_LOG("Dumping engine part to JSON is not supported for this type of part.");
+	return false;
 }

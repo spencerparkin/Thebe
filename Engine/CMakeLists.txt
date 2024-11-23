@@ -108,9 +108,11 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
+    ParseParty
 )
 
 target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
     "DirectXHeader"
+    "../ThirdParty/ParseParty/ParseLibrary/Source"
 )
