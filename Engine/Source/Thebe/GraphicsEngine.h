@@ -72,6 +72,8 @@ namespace Thebe
 		bool LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
 
+		UINT64 GetFrameCount();
+
 	private:
 
 		template<typename T>
@@ -96,7 +98,8 @@ namespace Thebe
 		double CalcFramerate();
 		Clock clock;
 		std::list<double> frameTimeList;
-		UINT64 frameCount;
 #endif //THEBE_LOG_FRAMERATE
+
+		UINT64 frameCount;
 	};
 }

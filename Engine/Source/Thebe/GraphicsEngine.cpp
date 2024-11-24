@@ -15,9 +15,7 @@ using namespace Thebe;
 
 GraphicsEngine::GraphicsEngine()
 {
-#if defined THEBE_LOG_FRAMERATE
 	this->frameCount = 0L;
-#endif //THEBE_LOG_FRAMERATE
 }
 
 /*virtual*/ GraphicsEngine::~GraphicsEngine()
@@ -138,17 +136,24 @@ void GraphicsEngine::Shutdown()
 	this->device = nullptr;
 }
 
+UINT64 GraphicsEngine::GetFrameCount()
+{
+	return this->frameCount;
+}
+
 void GraphicsEngine::Render()
 {
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Perform();
+
+	this->frameCount++;
 
 #if defined THEBE_LOG_FRAMERATE
 	double deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
 	this->frameTimeList.push_back(deltaTimeSeconds);
 	while (this->frameTimeList.size() > THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION)
 		this->frameTimeList.pop_front();
-	if ((this->frameCount++ % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
+	if ((this->frameCount % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
 		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
 #endif //THEBE_LOG_FRAMERATE
 }

@@ -57,7 +57,7 @@ namespace Thebe
 		std::vector<UINT8>& GetOriginalBuffer();
 		const std::vector<UINT8>& GetOriginalBuffer() const;
 
-		bool Update(ID3D12GraphicsCommandList* commandList);
+		bool UpdateIfNecessary(ID3D12GraphicsCommandList* commandList);
 
 		UINT8* GetBufferPtr();
 		UINT32 GetBufferSize();
@@ -79,5 +79,6 @@ namespace Thebe
 		UINT8* cpuBufferPtr;
 		UINT32 bufferSize;
 		Type type;
+		UINT64 lastUpdateFrameCount;
 	};
 }

@@ -17,6 +17,7 @@ Buffer::Buffer()
 	this->cpuBufferPtr = nullptr;
 	this->gpuBufferPtr = nullptr;
 	this->type = Type::NONE;
+	this->lastUpdateFrameCount = -1L;
 }
 
 /*virtual*/ Buffer::~Buffer()
@@ -163,8 +164,18 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	this->type = Type::STATIC;
 }
 
-bool Buffer::Update(ID3D12GraphicsCommandList* commandList)
+bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 {
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	UINT64 frameCount = graphicsEngine->GetFrameCount();
+	if (frameCount == this->lastUpdateFrameCount)
+		return true;
+
+	this->lastUpdateFrameCount = frameCount;
+
 	switch (this->type)
 	{
 		case Type::STATIC:
@@ -187,10 +198,6 @@ bool Buffer::Update(ID3D12GraphicsCommandList* commandList)
 		case Type::DYNAMIC_N_BUFFER_METHOD:
 		{
 			if (!this->gpuBufferPtr || !this->cpuBufferPtr)
-				return false;
-
-			Reference<GraphicsEngine> graphicsEngine;
-			if (!this->GetGraphicsEngine(graphicsEngine))
 				return false;
 
 			SwapChain* swapChain = graphicsEngine->GetSwapChain();
