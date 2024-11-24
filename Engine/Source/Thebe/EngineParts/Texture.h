@@ -19,7 +19,7 @@ namespace Thebe
 		Texture();
 		virtual ~Texture();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		// TODO: Own reference to Buffer here?

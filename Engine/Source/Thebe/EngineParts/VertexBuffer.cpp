@@ -1,4 +1,5 @@
 #include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 
@@ -12,12 +13,27 @@ VertexBuffer::VertexBuffer()
 {
 }
 
-/*virtual*/ bool VertexBuffer::Setup(void* data)
+void VertexBuffer::SetStride(UINT32 stride)
 {
-	if (!Buffer::Setup(data))
-		return false;
+	this->vertexBufferView.StrideInBytes = stride;
+}
 
-	auto vertexBufferSetupData = static_cast<VertexBufferSetupData*>(data);
+/*virtual*/ bool VertexBuffer::Setup()
+{
+	if (this->elementDescArray.size() == 0)
+	{
+		THEBE_LOG("Element description array not configured.");
+		return false;
+	}
+
+	if (this->vertexBufferView.StrideInBytes == 0)
+	{
+		THEBE_LOG("Stride not configured.");
+		return false;
+	}
+
+	if (!Buffer::Setup())
+		return false;
 
 	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
 		this->vertexBufferView.BufferLocation = this->fastMemBuffer->GetGPUVirtualAddress();
@@ -25,9 +41,6 @@ VertexBuffer::VertexBuffer()
 		this->vertexBufferView.BufferLocation = this->slowMemBuffer->GetGPUVirtualAddress();
 
 	this->vertexBufferView.SizeInBytes = this->bufferSize;
-	this->vertexBufferView.StrideInBytes = vertexBufferSetupData->strideInBytes;
-
-	this->elementDescArray = vertexBufferSetupData->elementDescArray;
 
 	return true;
 }

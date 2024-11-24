@@ -10,7 +10,7 @@ Camera::Camera()
 {
 }
 
-/*virtual*/ bool Camera::Setup(void* data)
+/*virtual*/ bool Camera::Setup()
 {
 	return true;
 }

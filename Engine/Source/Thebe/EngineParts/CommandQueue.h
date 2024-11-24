@@ -18,7 +18,7 @@ namespace Thebe
 		CommandQueue();
 		virtual ~CommandQueue();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		void WaitForCommandQueueComplete();

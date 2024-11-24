@@ -13,7 +13,12 @@ namespace Thebe
 		MainRenderPass();
 		virtual ~MainRenderPass();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
+
+		void SetWindowHandle(HWND windowHandle);
+
+	protected:
+		HWND windowHandle;
 	};
 }

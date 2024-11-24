@@ -1,4 +1,5 @@
 #include "Thebe/EngineParts/IndexBuffer.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 
@@ -13,12 +14,26 @@ IndexBuffer::IndexBuffer()
 {
 }
 
-/*virtual*/ bool IndexBuffer::Setup(void* data)
+void IndexBuffer::SetFormat(DXGI_FORMAT format)
 {
-	if (!Buffer::Setup(data))
-		return false;
+	this->indexBufferView.Format = format;
+}
 
-	auto indexBufferSetupData = static_cast<IndexBufferSetupData*>(data);
+void IndexBuffer::SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology)
+{
+	this->primitiveTopology = primitiveTopology;
+}
+
+/*virtual*/ bool IndexBuffer::Setup()
+{
+	if (this->primitiveTopology == D3D_PRIMITIVE_TOPOLOGY_UNDEFINED)
+	{
+		THEBE_LOG("No primitive topology configured.");
+		return false;
+	}
+
+	if (!Buffer::Setup())
+		return false;
 
 	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
 		this->indexBufferView.BufferLocation = this->fastMemBuffer->GetGPUVirtualAddress();
@@ -26,8 +41,6 @@ IndexBuffer::IndexBuffer()
 		this->indexBufferView.BufferLocation = this->slowMemBuffer->GetGPUVirtualAddress();
 
 	this->indexBufferView.SizeInBytes = this->bufferSize;
-	this->indexBufferView.Format = indexBufferSetupData->format;
-	this->primitiveTopology = indexBufferSetupData->primitiveTopology;
 
 	return true;
 }

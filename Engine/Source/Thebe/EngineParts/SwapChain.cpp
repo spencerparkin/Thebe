@@ -14,13 +14,23 @@ SwapChain::SwapChain()
 {
 }
 
-/*virtual*/ bool SwapChain::Setup(void* data)
+void SwapChain::SetWindowHandle(HWND windowHandle)
 {
-	if (this->windowHandle)
-		return false;
+	this->windowHandle = windowHandle;
+}
 
-	auto setupData = static_cast<SetupData*>(data);
-	this->windowHandle = setupData->windowHandle;
+void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
+{
+	this->commandQueueForSwapChainCreate = commandQueue;
+}
+
+/*virtual*/ bool SwapChain::Setup()
+{
+	if (!this->windowHandle)
+	{
+		THEBE_LOG("No window handle configured.");
+		return false;
+	}
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -56,7 +66,7 @@ SwapChain::SwapChain()
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
 	HRESULT result = factory->CreateSwapChainForHwnd(
-		setupData->renderPass->GetCommandQueue(),
+		this->commandQueueForSwapChainCreate,
 		this->windowHandle,
 		&swapChainDesc,
 		nullptr,
@@ -67,6 +77,8 @@ SwapChain::SwapChain()
 		THEBE_LOG("Failed to create swap-chain.  Error: 0x%08x", result);
 		return false;
 	}
+
+	this->commandQueueForSwapChainCreate = nullptr;
 
 	result = swapChain1.As(&this->swapChain);
 	if (FAILED(result))
@@ -80,7 +92,7 @@ SwapChain::SwapChain()
 		Frame& frame = this->frameArray[i];
 		frame.fence = new Fence();
 		frame.fence->SetGraphicsEngine(graphicsEngine.Get());
-		if (!frame.fence->Setup(nullptr))
+		if (!frame.fence->Setup())
 			return false;
 
 		result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frame.commandAllocator));

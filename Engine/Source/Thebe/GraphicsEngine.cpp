@@ -100,7 +100,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 	this->commandExecutor.Set(new CommandExecutor());
 	this->commandExecutor->SetGraphicsEngine(this);
-	if (!this->commandExecutor->Setup(nullptr))
+	if (!this->commandExecutor->Setup())
 	{
 		THEBE_LOG("Failed to setup command executor.");
 		return false;
@@ -110,7 +110,8 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
 	mainRenderPass->SetGraphicsEngine(this);
-	if (!mainRenderPass->Setup(windowHandle))
+	mainRenderPass->SetWindowHandle(windowHandle);
+	if (!mainRenderPass->Setup())
 	{
 		THEBE_LOG("Failed to setup main render pass.");
 		return false;
@@ -262,9 +263,15 @@ bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& engineP
 		return false;
 	}
 
-	if (!enginePart->LoadFromJson(jsonRootValue.get()))
+	if (!enginePart->LoadConfigurationFromJson(jsonRootValue.get()))
 	{
-		THEBE_LOG("Engine part failed to load from JSON.");
+		THEBE_LOG("Engine part failed to configure from JSON.");
+		return false;
+	}
+
+	if (!enginePart->Setup())
+	{
+		THEBE_LOG("Failed to setup engine part.");
 		return false;
 	}
 
@@ -281,9 +288,9 @@ bool GraphicsEngine::DumpEnginePartToFile(const std::filesystem::path& enginePar
 	using namespace ParseParty;
 
 	std::unique_ptr<JsonValue> jsonValue;
-	if (!enginePart->DumpToJson(jsonValue) || !jsonValue.get())
+	if (!enginePart->DumpConfigurationToJson(jsonValue) || !jsonValue.get())
 	{
-		THEBE_LOG("Failed to dump engine part to JSON.");
+		THEBE_LOG("Failed to dump engine part configuration to JSON.");
 		return false;
 	}
 

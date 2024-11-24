@@ -10,7 +10,7 @@ RenderTarget::RenderTarget()
 {
 }
 
-/*virtual*/ bool RenderTarget::Setup(void* data)
+/*virtual*/ bool RenderTarget::Setup()
 {
 	return true;
 }

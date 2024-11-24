@@ -15,7 +15,7 @@ namespace Thebe
 		Material();
 		virtual ~Material();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 	private:

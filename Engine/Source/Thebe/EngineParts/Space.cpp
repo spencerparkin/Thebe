@@ -10,7 +10,7 @@ Space::Space()
 {
 }
 
-/*virtual*/ bool Space::Setup(void* data)
+/*virtual*/ bool Space::Setup()
 {
 	return true;
 }

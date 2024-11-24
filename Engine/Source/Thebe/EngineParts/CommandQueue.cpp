@@ -12,7 +12,7 @@ CommandQueue::CommandQueue()
 {
 }
 
-/*virtual*/ bool CommandQueue::Setup(void* data)
+/*virtual*/ bool CommandQueue::Setup()
 {
 	if (this->commandQueue.Get())
 		return false;
@@ -33,7 +33,7 @@ CommandQueue::CommandQueue()
 
 	this->fence = new Fence();
 	this->fence->SetGraphicsEngine(graphicsEngine.Get());
-	if (!this->fence->Setup(nullptr))
+	if (!this->fence->Setup())
 	{
 		THEBE_LOG("Failed to create fence for render pass.");
 		return false;

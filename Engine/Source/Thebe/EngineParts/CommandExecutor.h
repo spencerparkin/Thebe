@@ -17,7 +17,7 @@ namespace Thebe
 		CommandExecutor();
 		virtual ~CommandExecutor();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		bool BeginRecording(ComPtr<ID3D12GraphicsCommandList>& commandList);

@@ -24,6 +24,8 @@ namespace Thebe
 
 		enum Type
 		{
+			NONE,
+
 			/**
 			 * The buffer is uploaded into fast GPU memory and cannot be changed.
 			 */
@@ -49,22 +51,17 @@ namespace Thebe
 			DYNAMIC_N_BUFFER_METHOD
 		};
 
-		struct BufferSetupData
-		{
-			Type type;
-			uint8_t* bufferData;
-			uint32_t bufferSize;
-		};
-
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool LoadFromJson(const ParseParty::JsonValue* jsonValue) override;
-		virtual bool DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const override;
+
+		std::vector<UINT8>& GetOriginalBuffer();
+		const std::vector<UINT8>& GetOriginalBuffer() const;
 
 		bool Update(ID3D12GraphicsCommandList* commandList);
 
 		UINT8* GetBufferPtr();
 		UINT32 GetBufferSize();
+		void SetBufferType(Type type);
 		Type GetBufferType();
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
@@ -74,6 +71,7 @@ namespace Thebe
 			Reference<VertexBuffer>& vertexBuffer);
 
 	protected:
+		std::vector<UINT8> originalBuffer;
 		D3D12_RESOURCE_STATES resourceStateWhenRendering;
 		ComPtr<ID3D12Resource> slowMemBuffer;
 		ComPtr<ID3D12Resource> fastMemBuffer;

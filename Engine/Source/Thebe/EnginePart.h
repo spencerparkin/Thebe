@@ -17,14 +17,13 @@ namespace Thebe
 		EnginePart();
 		virtual ~EnginePart();
 
-		virtual bool Setup(void* data) = 0;
-		virtual void Shutdown() = 0;
-
 		void SetGraphicsEngine(GraphicsEngine* graphicsEngine);
 		bool GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine);
 
-		virtual bool LoadFromJson(const ParseParty::JsonValue* jsonValue);
-		virtual bool DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+		virtual bool Setup() = 0;
+		virtual void Shutdown() = 0;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue);
+		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
 
 	protected:
 		RefHandle graphicsEngineHandle;

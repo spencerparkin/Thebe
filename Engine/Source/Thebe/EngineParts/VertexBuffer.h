@@ -13,15 +13,10 @@ namespace Thebe
 		VertexBuffer();
 		virtual ~VertexBuffer();
 
-		struct VertexBufferSetupData
-		{
-			BufferSetupData bufferSetupData;
-			UINT32 strideInBytes;
-			std::vector<D3D12_INPUT_ELEMENT_DESC> elementDescArray;
-		};
-
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
+
+		void SetStride(UINT32 stride);
 
 		std::vector<D3D12_INPUT_ELEMENT_DESC>& GetElementDescArray();
 		const std::vector< D3D12_INPUT_ELEMENT_DESC>& GetElementDescArray() const;

@@ -12,7 +12,7 @@ CommandExecutor::CommandExecutor()
 {
 }
 
-/*virtual*/ bool CommandExecutor::Setup(void* data)
+/*virtual*/ bool CommandExecutor::Setup()
 {
 	if (this->commandAllocator.Get())
 	{
@@ -20,7 +20,7 @@ CommandExecutor::CommandExecutor()
 		return false;
 	}
 
-	if (!CommandQueue::Setup(data))
+	if (!CommandQueue::Setup())
 		return false;
 
 	Reference<GraphicsEngine> graphicsEngine;

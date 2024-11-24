@@ -10,7 +10,7 @@ Mesh::Mesh()
 {
 }
 
-/*virtual*/ bool Mesh::Setup(void* data)
+/*virtual*/ bool Mesh::Setup()
 {
 	return true;
 }

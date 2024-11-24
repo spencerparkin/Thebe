@@ -6,18 +6,28 @@ using namespace Thebe;
 
 MainRenderPass::MainRenderPass()
 {
+	this->windowHandle = NULL;
 }
 
 /*virtual*/ MainRenderPass::~MainRenderPass()
 {
 }
 
-/*virtual*/ bool MainRenderPass::Setup(void* data)
+void MainRenderPass::SetWindowHandle(HWND windowHandle)
 {
-	if (!RenderPass::Setup(nullptr))
-		return false;
+	this->windowHandle = windowHandle;
+}
 
-	HWND windowHandle = (HWND)data;
+/*virtual*/ bool MainRenderPass::Setup()
+{
+	if (!this->windowHandle)
+	{
+		THEBE_LOG("No window handle configured.");
+		return false;
+	}
+
+	if (!RenderPass::Setup())
+		return false;
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -25,8 +35,9 @@ MainRenderPass::MainRenderPass()
 
 	Reference<SwapChain> swapChain = new SwapChain();
 	swapChain->SetGraphicsEngine(graphicsEngine.Get());
-	SwapChain::SetupData swapChainSetupData{ windowHandle, this };
-	if (!swapChain->Setup(&swapChainSetupData))
+	swapChain->SetWindowHandle(this->windowHandle);
+	swapChain->SetCommandQueue(this->commandQueue.Get());
+	if (!swapChain->Setup())
 	{
 		THEBE_LOG("Failed to setup the swap-chain for the main render pass.");
 		return false;

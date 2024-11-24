@@ -16,7 +16,7 @@ Buffer::Buffer()
 	this->bufferSize = 0;
 	this->cpuBufferPtr = nullptr;
 	this->gpuBufferPtr = nullptr;
-	this->type = Type::STATIC;
+	this->type = Type::NONE;
 }
 
 /*virtual*/ Buffer::~Buffer()
@@ -24,11 +24,27 @@ Buffer::Buffer()
 	delete[] this->cpuBufferPtr;
 }
 
-/*virtual*/ bool Buffer::Setup(void* data)
+std::vector<UINT8>& Buffer::GetOriginalBuffer()
+{
+	return this->originalBuffer;
+}
+
+const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
+{
+	return this->originalBuffer;
+}
+
+/*virtual*/ bool Buffer::Setup()
 {
 	if (this->bufferSize > 0)
 	{
 		THEBE_LOG("Buffer already setup.");
+		return false;
+	}
+
+	if (this->type == Type::NONE)
+	{
+		THEBE_LOG("Buffer type not configured.");
 		return false;
 	}
 
@@ -40,9 +56,7 @@ Buffer::Buffer()
 	if (!device)
 		return false;
 
-	auto bufferSetupData = static_cast<BufferSetupData*>(data);
-	this->type = bufferSetupData->type;
-	this->bufferSize = bufferSetupData->bufferSize;
+	this->bufferSize = (UINT32)this->originalBuffer.size();
 	if (this->bufferSize == 0)
 	{
 		THEBE_LOG("Can't create buffer of size zero.");
@@ -68,7 +82,7 @@ Buffer::Buffer()
 	if (this->type == Type::DYNAMIC_N_BUFFER_METHOD)
 	{
 		this->cpuBufferPtr = new UINT8[this->bufferSize];
-		::memcpy(this->cpuBufferPtr, bufferSetupData->bufferData, this->bufferSize);
+		::memcpy(this->cpuBufferPtr, this->originalBuffer.data(), this->bufferSize);
 	}
 
 	CD3DX12_RANGE readRange(0, 0);
@@ -81,7 +95,7 @@ Buffer::Buffer()
 
 	if (this->type == Type::STATIC)
 	{
-		::memcpy(this->gpuBufferPtr, bufferSetupData->bufferData, this->bufferSize);
+		::memcpy(this->gpuBufferPtr, this->originalBuffer.data(), this->bufferSize);
 		this->slowMemBuffer->Unmap(0, nullptr);
 		this->gpuBufferPtr = nullptr;
 	}
@@ -149,16 +163,6 @@ Buffer::Buffer()
 	this->type = Type::STATIC;
 }
 
-/*virtual*/ bool Buffer::LoadFromJson(const ParseParty::JsonValue* jsonValue)
-{
-	return false;
-}
-
-/*virtual*/ bool Buffer::DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
-{
-	return false;
-}
-
 bool Buffer::Update(ID3D12GraphicsCommandList* commandList)
 {
 	switch (this->type)
@@ -222,6 +226,11 @@ UINT32 Buffer::GetBufferSize()
 	return this->bufferSize;
 }
 
+void Buffer::SetBufferType(Type type)
+{
+	this->type = type;
+}
+
 Buffer::Type Buffer::GetBufferType()
 {
 	return this->type;
@@ -244,31 +253,23 @@ Buffer::Type Buffer::GetBufferType()
 
 	indexBuffer.Set(new IndexBuffer());
 	indexBuffer->SetGraphicsEngine(graphicsEngine);
+	indexBuffer->SetBufferType(Buffer::STATIC);
+	indexBuffer->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	indexBuffer->SetFormat(DXGI_FORMAT_R16_UINT);
 
-	std::vector<uint16_t> indexBufferData;
-	indexBufferData.resize(polygonArray.size() * 3);
-
+	std::vector<UINT8>& originalIndexBuffer = indexBuffer->GetOriginalBuffer();
+	originalIndexBuffer.resize(polygonArray.size() * 3 * sizeof(uint16_t));
+	auto indexBufferData = (uint16_t*)originalIndexBuffer.data();;
 	int i = 0;
 	for (const auto& polygon : polygonArray)
 		for (int j = 0; j < (int)polygon.vertexArray.size(); j++)
 			indexBufferData[i++] = (uint16_t)polygon.vertexArray[j];
 
-	IndexBuffer::IndexBufferSetupData indexBufferSetupData;
-	indexBufferSetupData.bufferSetupData.type = IndexBuffer::Type::STATIC;
-	indexBufferSetupData.bufferSetupData.bufferData = (uint8_t*)indexBufferData.data();
-	indexBufferSetupData.bufferSetupData.bufferSize = indexBufferData.size() * sizeof(uint16_t);
-	indexBufferSetupData.format = DXGI_FORMAT_R16_UINT;
-	indexBufferSetupData.primitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	if (!indexBuffer->Setup(&indexBufferSetupData))
+	if (!indexBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup index buffer.");
 		return false;
 	}
-
-	vertexBuffer.Set(new VertexBuffer());
-	vertexBuffer->SetGraphicsEngine(graphicsEngine);
-
-	Vector3 center = polygonMesh.CalcVertexAverage();
 
 	struct Vertex
 	{
@@ -276,20 +277,23 @@ Buffer::Type Buffer::GetBufferType()
 		Vector3 normal;
 	};
 
-	std::vector<Vertex> vertexBufferData;
+	vertexBuffer.Set(new VertexBuffer());
+	vertexBuffer->SetGraphicsEngine(graphicsEngine);
+	vertexBuffer->SetBufferType(Buffer::STATIC);
+	vertexBuffer->SetStride(sizeof(Vertex));
+	std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescArray = vertexBuffer->GetElementDescArray();
+	elementDescArray.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+	elementDescArray.push_back({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+
+	Vector3 center = polygonMesh.CalcVertexAverage();
+	std::vector<UINT8>& originalVertexBuffer = vertexBuffer->GetOriginalBuffer();
 	const std::vector<Vector3>& vertexArray = polygonMesh.GetVertexArray();
-	vertexBufferData.resize(polygonMesh.GetVertexArray().size());
+	originalVertexBuffer.resize(vertexArray.size() * sizeof(Vertex));
+	auto vertexBufferData = (Vertex*)originalVertexBuffer.data();
 	for (int i = 0; i < (int)vertexArray.size(); i++)
 		vertexBufferData[i] = { vertexArray[i], (vertexArray[i] - center).Normalized() };
 
-	VertexBuffer::VertexBufferSetupData vertexBufferSetupData;
-	vertexBufferSetupData.bufferSetupData.type = VertexBuffer::Type::STATIC;
-	vertexBufferSetupData.bufferSetupData.bufferData = (uint8_t*)vertexBufferData.data();
-	vertexBufferSetupData.bufferSetupData.bufferSize = vertexBufferData.size() * sizeof(Vertex);
-	vertexBufferSetupData.strideInBytes = sizeof(Vertex);
-	vertexBufferSetupData.elementDescArray.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
-	vertexBufferSetupData.elementDescArray.push_back({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
-	if (!vertexBuffer->Setup(&vertexBufferSetupData))
+	if (!vertexBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup vertex buffer.");
 		return false;

@@ -14,7 +14,7 @@ Fence::Fence()
 {
 }
 
-/*virtual*/ bool Fence::Setup(void* data)
+/*virtual*/ bool Fence::Setup()
 {
 	if (this->eventHandle != NULL || this->fence.Get())
 	{

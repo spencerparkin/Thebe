@@ -13,15 +13,11 @@ namespace Thebe
 		IndexBuffer();
 		virtual ~IndexBuffer();
 
-		struct IndexBufferSetupData
-		{
-			BufferSetupData bufferSetupData;
-			DXGI_FORMAT format;
-			D3D_PRIMITIVE_TOPOLOGY primitiveTopology;
-		};
-
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
+
+		void SetFormat(DXGI_FORMAT format);
+		void SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology);
 
 	protected:
 		D3D12_INDEX_BUFFER_VIEW indexBufferView;

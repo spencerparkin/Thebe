@@ -25,13 +25,10 @@ namespace Thebe
 		SwapChain();
 		virtual ~SwapChain();
 
-		struct SetupData
-		{
-			HWND windowHandle;
-			RenderPass* renderPass;
-		};
+		void SetWindowHandle(HWND windowHandle);
+		void SetCommandQueue(ID3D12CommandQueue* commandQueue);
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		bool Resize(int width, int height);
@@ -49,6 +46,7 @@ namespace Thebe
 		bool RecreateRenderTargetViews();
 
 		HWND windowHandle;
+		ID3D12CommandQueue* commandQueueForSwapChainCreate;
 		ComPtr<IDXGISwapChain3> swapChain;
 
 		struct Frame

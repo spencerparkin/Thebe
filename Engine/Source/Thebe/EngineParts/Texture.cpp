@@ -10,7 +10,7 @@ Texture::Texture()
 {
 }
 
-/*virtual*/ bool Texture::Setup(void* data)
+/*virtual*/ bool Texture::Setup()
 {
 	return true;
 }

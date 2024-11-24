@@ -10,7 +10,7 @@ Scene::Scene()
 {
 }
 
-/*virtual*/ bool Scene::Setup(void* data)
+/*virtual*/ bool Scene::Setup()
 {
 	return true;
 }

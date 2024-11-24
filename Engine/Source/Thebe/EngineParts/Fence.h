@@ -17,7 +17,7 @@ namespace Thebe
 		Fence();
 		virtual ~Fence();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		void EnqueueSignalAndWaitForIt(ID3D12CommandQueue* commandQueue);

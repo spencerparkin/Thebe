@@ -10,7 +10,7 @@ Material::Material()
 {
 }
 
-/*virtual*/ bool Material::Setup(void* data)
+/*virtual*/ bool Material::Setup()
 {
 	return true;
 }

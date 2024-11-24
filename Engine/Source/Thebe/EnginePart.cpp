@@ -28,14 +28,12 @@ bool EnginePart::GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine)
 	return graphicsEngine.Get() ? true : false;
 }
 
-/*virtual*/ bool EnginePart::LoadFromJson(const ParseParty::JsonValue* jsonValue)
+/*virtual*/ bool EnginePart::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue)
 {
-	THEBE_LOG("Loading engine part from JSON is not supported for this type of part.");
 	return false;
 }
 
-/*virtual*/ bool EnginePart::DumpToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
+/*virtual*/ bool EnginePart::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
 {
-	THEBE_LOG("Dumping engine part to JSON is not supported for this type of part.");
 	return false;
 }

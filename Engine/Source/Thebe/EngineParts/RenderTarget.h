@@ -15,7 +15,7 @@ namespace Thebe
 		RenderTarget();
 		virtual ~RenderTarget();
 
-		virtual bool Setup(void* data) override;
+		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
 		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue);

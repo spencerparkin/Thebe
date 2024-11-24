@@ -15,9 +15,9 @@ RenderPass::RenderPass()
 {
 }
 
-/*virtual*/ bool RenderPass::Setup(void* data)
+/*virtual*/ bool RenderPass::Setup()
 {
-	if (!CommandQueue::Setup(data))
+	if (!CommandQueue::Setup())
 		return false;
 
 	return true;

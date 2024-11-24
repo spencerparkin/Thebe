@@ -10,7 +10,7 @@ RenderObject::RenderObject()
 {
 }
 
-/*virtual*/ bool RenderObject::Setup(void* data)
+/*virtual*/ bool RenderObject::Setup()
 {
 	return true;
 }
