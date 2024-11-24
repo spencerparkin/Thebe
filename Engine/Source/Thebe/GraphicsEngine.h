@@ -21,6 +21,8 @@ namespace Thebe
 
 	class RenderPass;
 	class EnginePart;
+	class SwapChain;
+	class CommandExecutor;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -64,6 +66,8 @@ namespace Thebe
 
 		ID3D12Device* GetDevice();
 		IDXGIFactory4* GetFactory();
+		SwapChain* GetSwapChain();
+		CommandExecutor* GetCommandExecutor();
 
 		bool LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
@@ -86,6 +90,7 @@ namespace Thebe
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
+		Reference<CommandExecutor> commandExecutor;
 
 #if defined THEBE_LOG_FRAMERATE
 		double CalcFramerate();

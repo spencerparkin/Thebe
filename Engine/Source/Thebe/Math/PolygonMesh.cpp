@@ -374,6 +374,21 @@ void PolygonMesh::Restore(std::istream& stream)
 	}
 }
 
+Vector3 PolygonMesh::CalcVertexAverage() const
+{
+	Vector3 average(0.0, 0.0, 0.0);
+
+	if (this->vertexArray.size() > 0)
+	{
+		for (const Vector3& vertex : this->vertexArray)
+			average += vertex;
+
+		average /= double(this->vertexArray.size());
+	}
+
+	return average;
+}
+
 //--------------------------- PolygonMesh::Polygon ---------------------------
 
 PolygonMesh::Polygon::Polygon()

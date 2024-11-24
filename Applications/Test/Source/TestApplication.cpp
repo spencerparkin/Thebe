@@ -1,5 +1,7 @@
 #include "TestApplication.h"
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/EngineParts/IndexBuffer.h"
+#include "Thebe/EngineParts/VertexBuffer.h"
 
 TestApplication::TestApplication()
 {
@@ -15,6 +17,24 @@ TestApplication::TestApplication()
 
 	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
+
+	std::vector<Thebe::Vector3> pointArray;
+	pointArray.push_back(Thebe::Vector3(-1.0, -1.0, -1.0));
+	pointArray.push_back(Thebe::Vector3(-1.0, -1.0, 1.0));
+	pointArray.push_back(Thebe::Vector3(-1.0, 1.0, -1.0));
+	pointArray.push_back(Thebe::Vector3(-1.0, 1.0, 1.0));
+	pointArray.push_back(Thebe::Vector3(1.0, -1.0, -1.0));
+	pointArray.push_back(Thebe::Vector3(1.0, -1.0, 1.0));
+	pointArray.push_back(Thebe::Vector3(1.0, 1.0, -1.0));
+	pointArray.push_back(Thebe::Vector3(1.0, 1.0, 1.0));
+
+	Thebe::Reference<Thebe::IndexBuffer> indexBuffer;
+	Thebe::Reference<Thebe::VertexBuffer> vertexBuffer;
+	if (Thebe::Buffer::GenerateIndexAndVertexBuffersForConvexHull(pointArray, this->graphicsEngine.Get(), indexBuffer, vertexBuffer))
+	{
+		indexBuffer->Shutdown();
+		vertexBuffer->Shutdown();
+	}
 
 	return true;
 }

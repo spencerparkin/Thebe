@@ -17,41 +17,15 @@ RenderPass::RenderPass()
 
 /*virtual*/ bool RenderPass::Setup(void* data)
 {
-	if (this->commandQueue.Get())
+	if (!CommandQueue::Setup(data))
 		return false;
-
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
-
-	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
-	commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	HRESULT result = graphicsEngine->GetDevice()->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&this->commandQueue));
-	if (FAILED(result))
-	{
-		THEBE_LOG("Failed to create the command queue.  Error: 0x%08x", result);
-		return false;
-	}
-
-	this->fence = new Fence();
-	this->fence->SetGraphicsEngine(graphicsEngine.Get());
-	if (!this->fence->Setup(nullptr))
-	{
-		THEBE_LOG("Failed to create fence for render pass.");
-		return false;
-	}
 
 	return true;
 }
 
 /*virtual*/ void RenderPass::Shutdown()
 {
-	if (this->fence.Get())
-	{
-		this->fence->Shutdown();
-		this->fence = nullptr;
-	}
+	CommandQueue::Shutdown();
 
 	if (this->input)
 	{
@@ -70,8 +44,6 @@ RenderPass::RenderPass()
 		this->camera->Shutdown();
 		this->camera = nullptr;
 	}
-
-	this->commandQueue = nullptr;
 }
 
 /*virtual*/ bool RenderPass::Perform()
@@ -156,17 +128,6 @@ RenderPass::RenderPass()
 	this->output->ReleaseCommandAllocator(commandAllocator, this->commandQueue.Get());
 
 	return true;
-}
-
-void RenderPass::WaitForCommandQueueComplete()
-{
-	if (this->commandQueue.Get() && this->fence.Get())
-		this->fence->EnqueueSignalAndWaitForIt(this->commandQueue.Get());
-}
-
-ID3D12CommandQueue* RenderPass::GetCommandQueue()
-{
-	return this->commandQueue.Get();
 }
 
 RenderObject* RenderPass::GetInput()

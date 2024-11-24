@@ -22,6 +22,6 @@ namespace Thebe
 		virtual bool Setup(void* data) override;
 		virtual void Shutdown() override;
 
-		// TODO: Own resource pointer.
+		// TODO: Own reference to Buffer here?
 	};
 }

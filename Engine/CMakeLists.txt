@@ -34,10 +34,22 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/SwapChain.h
     Source/Thebe/EngineParts/Texture.cpp
     Source/Thebe/EngineParts/Texture.h
+    Source/Thebe/EngineParts/Buffer.cpp
+    Source/Thebe/EngineParts/Buffer.h
     Source/Thebe/EngineParts/VertexBuffer.cpp
     Source/Thebe/EngineParts/VertexBuffer.h
+    Source/Thebe/EngineParts/IndexBuffer.cpp
+    Source/Thebe/EngineParts/IndexBuffer.h
+    Source/Thebe/EngineParts/ConstantsBuffer.cpp
+    Source/Thebe/EngineParts/ConstantsBuffer.h
     Source/Thebe/EngineParts/Fence.cpp
     Source/Thebe/EngineParts/Fence.h
+    Source/Thebe/EngineParts/Scene.cpp
+    Source/Thebe/EngineParts/Scene.h
+    Source/Thebe/EngineParts/CommandQueue.cpp
+    Source/Thebe/EngineParts/CommandQueue.h
+    Source/Thebe/EngineParts/CommandExecutor.cpp
+    Source/Thebe/EngineParts/CommandExecutor.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

@@ -42,6 +42,8 @@ namespace Thebe
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 
+		int GetCurrentBackBufferIndex();
+
 	private:
 		bool GetWindowDimensions(int& width, int& height);
 		bool RecreateRenderTargetViews();

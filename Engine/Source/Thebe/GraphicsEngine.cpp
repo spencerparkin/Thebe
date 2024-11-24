@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/Texture.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/Mesh.h"
+#include "Thebe/EngineParts/CommandExecutor.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -97,6 +98,14 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
+	this->commandExecutor.Set(new CommandExecutor());
+	this->commandExecutor->SetGraphicsEngine(this);
+	if (!this->commandExecutor->Setup(nullptr))
+	{
+		THEBE_LOG("Failed to setup command executor.");
+		return false;
+	}
+
 	// TODO: I'd eventually like to be able to add a shadow pass, but that's a long way off.
 
 	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
@@ -124,6 +133,7 @@ void GraphicsEngine::Shutdown()
 		renderPass->Shutdown();
 
 	this->renderPassArray.clear();
+	this->commandExecutor = nullptr;
 	this->device = nullptr;
 }
 
@@ -163,17 +173,25 @@ void GraphicsEngine::WaitForGPUIdle()
 {
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->WaitForCommandQueueComplete();
+
+	if (this->commandExecutor.Get())
+		this->commandExecutor->WaitForCommandQueueComplete();
 }
 
 void GraphicsEngine::Resize(int width, int height)
 {
+	SwapChain* swapChain = this->GetSwapChain();
+	if (swapChain)
+		swapChain->Resize(width, height);
+}
+
+SwapChain* GraphicsEngine::GetSwapChain()
+{
 	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
 	if (mainRenderPass)
-	{
-		auto swapChain = dynamic_cast<SwapChain*>(mainRenderPass->GetOutput());
-		if (swapChain)
-			swapChain->Resize(width, height);
-	}
+		return dynamic_cast<SwapChain*>(mainRenderPass->GetOutput());
+
+	return nullptr;
 }
 
 ID3D12Device* GraphicsEngine::GetDevice()
@@ -184,6 +202,11 @@ ID3D12Device* GraphicsEngine::GetDevice()
 IDXGIFactory4* GraphicsEngine::GetFactory()
 {
 	return this->factory.Get();
+}
+
+CommandExecutor* GraphicsEngine::GetCommandExecutor()
+{
+	return this->commandExecutor.Get();
 }
 
 bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags /*= 0*/)

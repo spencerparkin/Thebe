@@ -5,6 +5,7 @@
 namespace Thebe
 {
 	class VertexBuffer;
+	class IndexBuffer;
 	class Material;
 
 	/**
@@ -13,7 +14,6 @@ namespace Thebe
 	class THEBE_API Mesh : public Space
 	{
 	public:
-		// TODO: Can we handle dynamic as well as static meshes here?
 		Mesh();
 		virtual ~Mesh();
 

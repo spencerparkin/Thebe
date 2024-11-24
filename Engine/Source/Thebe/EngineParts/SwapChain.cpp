@@ -290,3 +290,8 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 	return true;
 }
+
+int SwapChain::GetCurrentBackBufferIndex()
+{
+	return this->swapChain->GetCurrentBackBufferIndex();
+}

@@ -204,6 +204,8 @@ namespace Thebe
 		int GetNumVertices() const { return (int)this->vertexArray.size(); }
 		int GetNumPolygons() const { return (int)this->polygonArray.size(); }
 
+		Vector3 CalcVertexAverage() const;
+
 	protected:
 
 		/**
