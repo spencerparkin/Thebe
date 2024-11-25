@@ -23,6 +23,7 @@ namespace Thebe
 
 	private:
 		Reference<VertexBuffer> vertexBuffer;
+		Reference<IndexBuffer> indexBuffer;
 		Reference<Material> material;
 	};
 }

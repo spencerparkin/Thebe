@@ -283,30 +283,78 @@ Buffer::Type Buffer::GetBufferType() const
 	UINT32 bufferSize = (UINT32)sizeValue->GetValue();
 	this->originalBuffer.resize(bufferSize);
 
-	auto dataValue = dynamic_cast<const JsonString*>(rootValue->GetValue("data"));
-	if (!dataValue)
-	{
-		THEBE_LOG("No data given.");
-		return false;
-	}
+	auto floatArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("float_array"));
+	auto intArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("int_array"));
 
-	std::filesystem::path bufferDataPath = dataValue->GetValue();
-	if (!graphicsEngine->ResolvePath(bufferDataPath, GraphicsEngine::RELATIVE_TO_ASSET_FOLDER))
+	if (floatArrayValue)
 	{
-		THEBE_LOG("Failed to resolve buffer data path: %s", bufferDataPath.c_str());
-		return false;
-	}
+		if (floatArrayValue->GetSize() * sizeof(float) != bufferSize)
+		{
+			THEBE_LOG("Float array size (%d) is inconsistent with the given buffer size (%d).", floatArrayValue->GetSize(), bufferSize);
+			return false;
+		}
 
-	std::ifstream fileStream;
-	fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
-	if (!fileStream.is_open())
+		auto floatBuffer = reinterpret_cast<float*>(this->originalBuffer.data());
+		for (int i = 0; i < floatArrayValue->GetSize(); i++)
+		{
+			auto floatValue = dynamic_cast<const JsonFloat*>(floatArrayValue->GetValue(i));
+			if (!floatValue)
+			{
+				THEBE_LOG("Expected float array entry to be a float value.");
+				return false;
+			}
+
+			floatBuffer[i] = floatValue->GetValue();
+		}
+	}
+	else if (intArrayValue)
 	{
-		THEBE_LOG("Failed to open file: %s", bufferDataPath.c_str());
-		return false;
-	}
+		if (intArrayValue->GetSize() * sizeof(int) != bufferSize)
+		{
+			THEBE_LOG("Integer array size (%d) is inconsistent with the given buffer size (%d).", intArrayValue->GetSize(), bufferSize);
+			return false;
+		}
 
-	fileStream.read((char*)this->originalBuffer.data(), bufferSize);
-	fileStream.close();
+		auto intBuffer = reinterpret_cast<int*>(this->originalBuffer.data());
+		for (int i = 0; i < intArrayValue->GetSize(); i++)
+		{
+			auto intValue = dynamic_cast<const JsonInt*>(intArrayValue->GetValue(i));
+			if (!intValue)
+			{
+				THEBE_LOG("Expected integer array entry to be an integer value.");
+				return false;
+			}
+
+			intBuffer[i] = (int)intValue->GetValue();
+		}
+	}
+	else
+	{
+		auto dataValue = dynamic_cast<const JsonString*>(rootValue->GetValue("data"));
+		if (!dataValue)
+		{
+			THEBE_LOG("No data given.");
+			return false;
+		}
+
+		std::filesystem::path bufferDataPath = dataValue->GetValue();
+		if (!graphicsEngine->ResolvePath(bufferDataPath, GraphicsEngine::RELATIVE_TO_ASSET_FOLDER))
+		{
+			THEBE_LOG("Failed to resolve buffer data path: %s", bufferDataPath.c_str());
+			return false;
+		}
+
+		std::ifstream fileStream;
+		fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
+		if (!fileStream.is_open())
+		{
+			THEBE_LOG("Failed to open file: %s", bufferDataPath.c_str());
+			return false;
+		}
+
+		fileStream.read((char*)this->originalBuffer.data(), bufferSize);
+		fileStream.close();
+	}
 
 	return true;
 }
