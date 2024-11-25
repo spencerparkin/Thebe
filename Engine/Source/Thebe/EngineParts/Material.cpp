@@ -18,3 +18,8 @@ Material::Material()
 /*virtual*/ void Material::Shutdown()
 {
 }
+
+void Material::Bind(ID3D12GraphicsCommandList* commandList)
+{
+	//commandList->SetPipelineState(...);
+}

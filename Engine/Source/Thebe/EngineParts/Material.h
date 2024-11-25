@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include <d3d12.h>
 
 namespace Thebe
 {
@@ -18,8 +19,10 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
+		void Bind(ID3D12GraphicsCommandList* commandList);
+
 	private:
-		// TODO: Own PSO and root signature.
+		// TODO: Own PSO, shaders, and root signature.
 		Reference<Texture> diffuseTexture;
 	};
 }

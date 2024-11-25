@@ -2,6 +2,7 @@
 
 #include "Thebe/Reference.h"
 #include "JsonValue.h"
+#include <filesystem>
 
 namespace Thebe
 {
@@ -18,14 +19,14 @@ namespace Thebe
 		virtual ~EnginePart();
 
 		void SetGraphicsEngine(GraphicsEngine* graphicsEngine);
-		bool GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine);
+		bool GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine) const;
 
 		virtual bool Setup() = 0;
 		virtual void Shutdown() = 0;
-		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue);
-		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath);
+		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const;
 
 	protected:
-		RefHandle graphicsEngineHandle;
+		mutable RefHandle graphicsEngineHandle;
 	};
 }

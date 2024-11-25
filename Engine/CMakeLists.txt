@@ -50,6 +50,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/CommandQueue.h
     Source/Thebe/EngineParts/CommandExecutor.cpp
     Source/Thebe/EngineParts/CommandExecutor.h
+    Source/Thebe/EngineParts/Instance.cpp
+    Source/Thebe/EngineParts/Instance.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

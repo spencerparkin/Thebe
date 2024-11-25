@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Thebe/EngineParts/Space.h"
+#include "Thebe/EngineParts/RenderObject.h"
 
 namespace Thebe
 {
@@ -11,7 +11,7 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class THEBE_API Mesh : public Space
+	class THEBE_API Mesh : public RenderObject
 	{
 	public:
 		Mesh();

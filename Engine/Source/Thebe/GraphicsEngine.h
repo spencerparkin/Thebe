@@ -69,8 +69,19 @@ namespace Thebe
 		SwapChain* GetSwapChain();
 		CommandExecutor* GetCommandExecutor();
 
-		bool LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
-		bool DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
+		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
+		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
+
+		enum ResolveMethod
+		{
+			RELATIVE_TO_EXECUTABLE,
+			RELATIVE_TO_ASSET_FOLDER
+		};
+
+		bool ResolvePath(std::filesystem::path& assetPath, ResolveMethod resolveMethod);
+		bool SetAssetFolder(std::filesystem::path assetFolder);
+		const std::filesystem::path& GetAssetFolder() const;
+		bool GetRelativeToAssetFolder(std::filesystem::path& assetPath);
 
 		UINT64 GetFrameCount();
 
@@ -93,6 +104,10 @@ namespace Thebe
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
 		Reference<CommandExecutor> commandExecutor;
+		std::filesystem::path assetFolder;
+		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
+
+		std::string MakeKey(const std::filesystem::path& assetPath);
 
 #if defined THEBE_LOG_FRAMERATE
 		double CalcFramerate();

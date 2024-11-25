@@ -1,0 +1,27 @@
+{
+	"data": "Cube\\Cube.vertex_buffer_data",
+	"element_desc_array":
+	[
+		{
+			"aligned_byte_offset": 0,
+			"format": 6,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "POSITION"
+		},
+		{
+			"aligned_byte_offset": 12,
+			"format": 6,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "NORMAL"
+		}
+	],
+	"size": 512,
+	"stride": 64,
+	"type": 1
+}

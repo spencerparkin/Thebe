@@ -4,11 +4,13 @@
 #include "Thebe/EngineParts/Material.h"
 #include "Thebe/EngineParts/Texture.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
+#include <ctype.h>
 #include <codecvt>
 
 using namespace Thebe;
@@ -131,7 +133,11 @@ void GraphicsEngine::Shutdown()
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Shutdown();
 
+	for (auto pair : this->enginePartCacheMap)
+		pair.second->Shutdown();
+
 	this->renderPassArray.clear();
+	this->enginePartCacheMap.clear();
 	this->commandExecutor = nullptr;
 	this->device = nullptr;
 }
@@ -215,19 +221,95 @@ CommandExecutor* GraphicsEngine::GetCommandExecutor()
 	return this->commandExecutor.Get();
 }
 
-bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags /*= 0*/)
+bool GraphicsEngine::ResolvePath(std::filesystem::path& assetPath, ResolveMethod resolveMethod)
+{
+	if (assetPath.is_relative())
+	{
+		if (resolveMethod == RELATIVE_TO_EXECUTABLE)
+		{
+			char fileName[MAX_PATH];
+			::GetModuleFileNameA(NULL, fileName, sizeof(fileName));
+
+			std::filesystem::path basePath(fileName);
+			basePath = basePath.parent_path();
+
+			std::filesystem::path resolvedPath;
+			while (std::distance(basePath.begin(), basePath.end()) > 0)
+			{
+				resolvedPath = basePath / assetPath;
+				if (std::filesystem::exists(resolvedPath))
+				{
+					assetPath = resolvedPath;
+					break;
+				}
+
+				basePath = basePath.parent_path();
+			}
+		}
+		else if (resolveMethod == RELATIVE_TO_ASSET_FOLDER)
+		{
+			assetPath = this->assetFolder / assetPath;
+		}
+	}
+
+	return std::filesystem::exists(assetPath);
+}
+
+bool GraphicsEngine::SetAssetFolder(std::filesystem::path assetFolder)
+{
+	if (assetFolder.is_relative() && !this->ResolvePath(assetFolder, RELATIVE_TO_EXECUTABLE))
+	{
+		THEBE_LOG("Could not locate folder: %s", assetFolder.c_str());
+		return false;
+	}
+
+	this->assetFolder = assetFolder;
+	return true;
+}
+
+const std::filesystem::path& GraphicsEngine::GetAssetFolder() const
+{
+	return this->assetFolder;
+}
+
+bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath)
+{
+	if (!assetPath.is_absolute())
+	{
+		THEBE_LOG("Expected given path to be absolute.");
+		return false;
+	}
+
+	assetPath = std::filesystem::relative(assetPath, this->assetFolder);
+	return true;
+}
+
+std::string GraphicsEngine::MakeKey(const std::filesystem::path& assetPath)
+{
+	std::string key = assetPath.lexically_normal().string();
+	std::transform(key.begin(), key.end(), key.begin(), [](unsigned char ch) { return std::tolower(ch); });
+	return key;
+}
+
+bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags /*= 0*/)
 {
 	using namespace ParseParty;
 
-	if ((flags & THEBE_LOAD_FLAG_DONT_CHECK_CACHE) == 0)
+	if (!this->ResolvePath(enginePartPath, RELATIVE_TO_ASSET_FOLDER))
 	{
-		// TODO: We need to first try to hit a cache.
+		THEBE_LOG("Failed to resolved path: %s", enginePartPath.c_str());
+		return false;
 	}
 
-	if (!std::filesystem::exists(enginePartPath))
+	if ((flags & THEBE_LOAD_FLAG_DONT_CHECK_CACHE) == 0)
 	{
-		THEBE_LOG("Can't load part, because file (%s) does not exist.", enginePartPath.c_str());
-		return false;
+		std::string key = this->MakeKey(enginePartPath);
+		auto iter = this->enginePartCacheMap.find(key);
+		if (iter != this->enginePartCacheMap.end())
+		{
+			enginePart.Set(iter->second);
+			return true;
+		}
 	}
 
 	std::ifstream fileStream;
@@ -258,9 +340,10 @@ bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& engineP
 		enginePart.Set(new Texture());
 	else if (ext == ".vertex_buffer")
 		enginePart.Set(new VertexBuffer());
+	else if (ext == ".index_buffer")
+		enginePart.Set(new IndexBuffer());
 	else if (ext == ".mesh")
 		enginePart.Set(new Mesh());
-	// TODO: Add Shader, PSO, RootSignature?
 
 	if (!enginePart.Get())
 	{
@@ -268,7 +351,16 @@ bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& engineP
 		return false;
 	}
 
-	if (!enginePart->LoadConfigurationFromJson(jsonRootValue.get()))
+	enginePart->SetGraphicsEngine(this);
+
+	std::filesystem::path relativePath = enginePartPath;
+	if (!this->GetRelativeToAssetFolder(relativePath))
+	{
+		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.c_str());
+		return false;
+	}
+
+	if (!enginePart->LoadConfigurationFromJson(jsonRootValue.get(), relativePath))
 	{
 		THEBE_LOG("Engine part failed to configure from JSON.");
 		return false;
@@ -282,18 +374,26 @@ bool GraphicsEngine::LoadEnginePartFromFile(const std::filesystem::path& engineP
 
 	if ((flags & THEBE_LOAD_FLAG_DONT_CACHE_PART) == 0)
 	{
-		// TODO: Insert the part in a cache we can check later.
+		std::string key = this->MakeKey(enginePartPath);
+		this->enginePartCacheMap.insert(std::pair(key, enginePart));
 	}
 
 	return true;
 }
 
-bool GraphicsEngine::DumpEnginePartToFile(const std::filesystem::path& enginePartPath, const EnginePart* enginePart, uint32_t flags /*= 0*/)
+bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags /*= 0*/)
 {
 	using namespace ParseParty;
 
+	std::filesystem::path relativePath = enginePartPath;
+	if (!this->GetRelativeToAssetFolder(relativePath))
+	{
+		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.c_str());
+		return false;
+	}
+
 	std::unique_ptr<JsonValue> jsonValue;
-	if (!enginePart->DumpConfigurationToJson(jsonValue) || !jsonValue.get())
+	if (!enginePart->DumpConfigurationToJson(jsonValue, relativePath) || !jsonValue.get())
 	{
 		THEBE_LOG("Failed to dump engine part configuration to JSON.");
 		return false;

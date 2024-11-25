@@ -53,6 +53,8 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
+		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const override;
 
 		std::vector<UINT8>& GetOriginalBuffer();
 		const std::vector<UINT8>& GetOriginalBuffer() const;
@@ -60,9 +62,9 @@ namespace Thebe
 		bool UpdateIfNecessary(ID3D12GraphicsCommandList* commandList);
 
 		UINT8* GetBufferPtr();
-		UINT32 GetBufferSize();
+		UINT32 GetBufferSize() const;
 		void SetBufferType(Type type);
-		Type GetBufferType();
+		Type GetBufferType() const;
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
 			const std::vector<Vector3>& pointArray,
@@ -76,8 +78,7 @@ namespace Thebe
 		ComPtr<ID3D12Resource> slowMemBuffer;
 		ComPtr<ID3D12Resource> fastMemBuffer;
 		UINT8* gpuBufferPtr;
-		UINT8* cpuBufferPtr;
-		UINT32 bufferSize;
+		std::unique_ptr<UINT8[]> cpuBuffer;
 		Type type;
 		UINT64 lastUpdateFrameCount;
 	};

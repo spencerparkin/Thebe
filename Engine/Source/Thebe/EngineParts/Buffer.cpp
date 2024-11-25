@@ -13,8 +13,6 @@ using namespace Thebe;
 Buffer::Buffer()
 {
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_COMMON;
-	this->bufferSize = 0;
-	this->cpuBufferPtr = nullptr;
 	this->gpuBufferPtr = nullptr;
 	this->type = Type::NONE;
 	this->lastUpdateFrameCount = -1L;
@@ -22,7 +20,7 @@ Buffer::Buffer()
 
 /*virtual*/ Buffer::~Buffer()
 {
-	delete[] this->cpuBufferPtr;
+	this->cpuBuffer.reset();
 }
 
 std::vector<UINT8>& Buffer::GetOriginalBuffer()
@@ -37,7 +35,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 /*virtual*/ bool Buffer::Setup()
 {
-	if (this->bufferSize > 0)
+	if (this->slowMemBuffer.Get() || this->fastMemBuffer.Get())
 	{
 		THEBE_LOG("Buffer already setup.");
 		return false;
@@ -57,15 +55,15 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	if (!device)
 		return false;
 
-	this->bufferSize = (UINT32)this->originalBuffer.size();
-	if (this->bufferSize == 0)
+	UINT32 bufferSize = (UINT32)this->originalBuffer.size();
+	if (bufferSize == 0)
 	{
 		THEBE_LOG("Can't create buffer of size zero.");
 		return false;
 	}
 
 	UINT32 i = (this->type == Type::DYNAMIC_N_BUFFER_METHOD) ? THEBE_NUM_SWAP_FRAMES : 1;
-	auto slowMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(this->bufferSize * i);
+	auto slowMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize * i);
 	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
 	HRESULT result = device->CreateCommittedResource(
 		&uploadHeapProps,
@@ -82,8 +80,8 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 	if (this->type == Type::DYNAMIC_N_BUFFER_METHOD)
 	{
-		this->cpuBufferPtr = new UINT8[this->bufferSize];
-		::memcpy(this->cpuBufferPtr, this->originalBuffer.data(), this->bufferSize);
+		this->cpuBuffer.reset(new UINT8[bufferSize]);
+		::memcpy(this->cpuBuffer.get(), this->originalBuffer.data(), bufferSize);
 	}
 
 	CD3DX12_RANGE readRange(0, 0);
@@ -96,14 +94,14 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 	if (this->type == Type::STATIC)
 	{
-		::memcpy(this->gpuBufferPtr, this->originalBuffer.data(), this->bufferSize);
+		::memcpy(this->gpuBufferPtr, this->originalBuffer.data(), bufferSize);
 		this->slowMemBuffer->Unmap(0, nullptr);
 		this->gpuBufferPtr = nullptr;
 	}
 
 	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
 	{
-		auto fastMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(this->bufferSize);
+		auto fastMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 		CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
 		result = device->CreateCommittedResource(
 			&defaultHeapProps,
@@ -129,7 +127,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 			return false;
 		}
 		
-		commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, this->bufferSize);
+		commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, bufferSize);
 
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 		commandList->ResourceBarrier(1, &barrier);
@@ -155,12 +153,12 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 /*virtual*/ void Buffer::Shutdown()
 {
-	delete[] this->cpuBufferPtr;
+	// Hmmm...I suppose we could issue GPU commands here to discard resources...
+
 	this->slowMemBuffer = nullptr;
 	this->fastMemBuffer = nullptr;
-	this->cpuBufferPtr = nullptr;
 	this->gpuBufferPtr = nullptr;
-	this->bufferSize = 0;
+	this->cpuBuffer.reset();
 	this->type = Type::STATIC;
 }
 
@@ -188,7 +186,8 @@ bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), this->resourceStateWhenRendering, D3D12_RESOURCE_STATE_COPY_DEST);
 			commandList->ResourceBarrier(1, &barrier);
 
-			commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, this->bufferSize);
+			UINT32 bufferSize = (UINT32)this->originalBuffer.size();
+			commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, bufferSize);
 
 			barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 			commandList->ResourceBarrier(1, &barrier);
@@ -197,16 +196,17 @@ bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 		}
 		case Type::DYNAMIC_N_BUFFER_METHOD:
 		{
-			if (!this->gpuBufferPtr || !this->cpuBufferPtr)
+			if (!this->gpuBufferPtr || !this->cpuBuffer.get())
 				return false;
 
 			SwapChain* swapChain = graphicsEngine->GetSwapChain();
 			if (!swapChain)
 				return false;
 
+			UINT32 bufferSize = (UINT32)this->originalBuffer.size();
 			UINT32 i = swapChain->GetCurrentBackBufferIndex();
-			UINT32 offset = i * this->bufferSize;
-			::memcpy(&this->gpuBufferPtr[offset], this->cpuBufferPtr, this->bufferSize);
+			UINT32 offset = i * bufferSize;
+			::memcpy(&this->gpuBufferPtr[offset], this->cpuBuffer.get(), bufferSize);
 
 			return true;
 		}
@@ -222,15 +222,15 @@ UINT8* Buffer::GetBufferPtr()
 	case Type::DYNAMIC_BARRIER_METHOD:
 		return this->gpuBufferPtr;
 	case Type::DYNAMIC_N_BUFFER_METHOD:
-		return this->cpuBufferPtr;
+		return this->cpuBuffer.get();
 	}
 
 	return nullptr;
 }
 
-UINT32 Buffer::GetBufferSize()
+UINT32 Buffer::GetBufferSize() const
 {
-	return this->bufferSize;
+	return (UINT32)this->originalBuffer.size();
 }
 
 void Buffer::SetBufferType(Type type)
@@ -238,9 +238,114 @@ void Buffer::SetBufferType(Type type)
 	this->type = type;
 }
 
-Buffer::Type Buffer::GetBufferType()
+Buffer::Type Buffer::GetBufferType() const
 {
 	return this->type;
+}
+
+/*virtual*/ bool Buffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+{
+	using namespace ParseParty;
+
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+	{
+		THEBE_LOG("Expected root JSON value to be an object.");
+		return false;
+	}
+
+	auto typeValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("type"));
+	if (!typeValue)
+	{
+		THEBE_LOG("No type given.");
+		return false;
+	}
+
+	this->type = (Type)typeValue->GetValue();
+
+	auto sizeValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("size"));
+	if (!sizeValue)
+	{
+		THEBE_LOG("No size given.");
+		return false;
+	}
+
+	if (sizeValue->GetValue() <= 0)
+	{
+		THEBE_LOG("Invalid buffer size: %d", sizeValue->GetValue());
+		return false;
+	}
+
+	UINT32 bufferSize = (UINT32)sizeValue->GetValue();
+	this->originalBuffer.resize(bufferSize);
+
+	auto dataValue = dynamic_cast<const JsonString*>(rootValue->GetValue("data"));
+	if (!dataValue)
+	{
+		THEBE_LOG("No data given.");
+		return false;
+	}
+
+	std::filesystem::path bufferDataPath = dataValue->GetValue();
+	if (!graphicsEngine->ResolvePath(bufferDataPath, GraphicsEngine::RELATIVE_TO_ASSET_FOLDER))
+	{
+		THEBE_LOG("Failed to resolve buffer data path: %s", bufferDataPath.c_str());
+		return false;
+	}
+
+	std::ifstream fileStream;
+	fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
+	if (!fileStream.is_open())
+	{
+		THEBE_LOG("Failed to open file: %s", bufferDataPath.c_str());
+		return false;
+	}
+
+	fileStream.read((char*)this->originalBuffer.data(), bufferSize);
+	fileStream.close();
+
+	return true;
+}
+
+/*virtual*/ bool Buffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+{
+	using namespace ParseParty;
+
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	auto rootValue = new JsonObject();
+	jsonValue.reset(rootValue);
+
+	rootValue->SetValue("type", new JsonInt(this->type));
+	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));
+
+	// TODO: May want to compress the buffer.
+
+	std::filesystem::path bufferDataPath = relativePath;
+	bufferDataPath.replace_extension(bufferDataPath.extension().string() + "_data");
+
+	rootValue->SetValue("data", new JsonString(bufferDataPath.string()));
+
+	bufferDataPath = graphicsEngine->GetAssetFolder() / bufferDataPath;
+
+	std::ofstream fileStream;
+	fileStream.open(bufferDataPath.c_str(), std::ios::out | std::ios::binary);
+	if (!fileStream.is_open())
+	{
+		THEBE_LOG("Failed to open file %s for writing binary.", bufferDataPath.c_str());
+		return false;
+	}
+
+	fileStream.write((const char*)this->originalBuffer.data(), this->originalBuffer.size());
+	fileStream.close();
+
+	return true;
 }
 
 /*static*/ bool Buffer::GenerateIndexAndVertexBuffersForConvexHull(
