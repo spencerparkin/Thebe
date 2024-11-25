@@ -41,9 +41,6 @@ TestApplication::TestApplication()
 
 		std::filesystem::path vertexBufferPath = this->graphicsEngine->GetAssetFolder() / "Cube/Cube.vertex_buffer";
 		this->graphicsEngine->DumpEnginePartToFile(vertexBufferPath, vertexBuffer, THEBE_DUMP_FLAG_CAN_OVERWRITE);
-
-		indexBuffer->Shutdown();
-		vertexBuffer->Shutdown();
 	}
 	*/
 

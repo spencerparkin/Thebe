@@ -21,7 +21,7 @@
 			"semantic_name": "NORMAL"
 		}
 	],
-	"size": 512,
-	"stride": 64,
+	"size": 192,
+	"stride": 24,
 	"type": 1
 }

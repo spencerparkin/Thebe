@@ -383,16 +383,10 @@ Buffer::Type Buffer::GetBufferType() const
 		return false;
 	}
 
-	struct Vertex
-	{
-		Vector3 point;
-		Vector3 normal;
-	};
-
 	vertexBuffer.Set(new VertexBuffer());
 	vertexBuffer->SetGraphicsEngine(graphicsEngine);
 	vertexBuffer->SetBufferType(Buffer::STATIC);
-	vertexBuffer->SetStride(sizeof(Vertex));
+	vertexBuffer->SetStride(6 * sizeof(float));
 	std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescArray = vertexBuffer->GetElementDescArray();
 	elementDescArray.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
 	elementDescArray.push_back({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
@@ -400,10 +394,20 @@ Buffer::Type Buffer::GetBufferType() const
 	Vector3 center = polygonMesh.CalcVertexAverage();
 	std::vector<UINT8>& originalVertexBuffer = vertexBuffer->GetOriginalBuffer();
 	const std::vector<Vector3>& vertexArray = polygonMesh.GetVertexArray();
-	originalVertexBuffer.resize(vertexArray.size() * sizeof(Vertex));
-	auto vertexBufferData = (Vertex*)originalVertexBuffer.data();
+	originalVertexBuffer.resize(vertexArray.size() * 6 * sizeof(float));
+	auto vertexBufferData = (float*)originalVertexBuffer.data();
 	for (int i = 0; i < (int)vertexArray.size(); i++)
-		vertexBufferData[i] = { vertexArray[i], (vertexArray[i] - center).Normalized() };
+	{
+		Vector3 point = vertexArray[i];
+		Vector3 normal = (point - center).Normalized();
+		float* vertex = &vertexBufferData[i * 6];
+		*vertex++ = (float)point.x;
+		*vertex++ = (float)point.y;
+		*vertex++ = (float)point.z;
+		*vertex++ = (float)normal.x;
+		*vertex++ = (float)normal.y;
+		*vertex++ = (float)normal.z;
+	}
 
 	if (!vertexBuffer->Setup())
 	{
