@@ -1,0 +1,8 @@
+{
+    "shader": "Shaders/BasicShader.shader",
+    "texture_map": {
+        "diffuse": "Textures/Spots.dds",
+        "normal": "Textures/Bumps.dds"
+    },
+    "alpha_blending": false
+}

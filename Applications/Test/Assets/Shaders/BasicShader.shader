@@ -3,7 +3,7 @@
         "objToProj": {
             "offset": 0,
             "size": 64,
-            "type": "float"
+            "type": "float4x4"
         }
     },
     "ps_entry_point": "PSMain",

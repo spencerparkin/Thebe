@@ -340,7 +340,7 @@ Buffer::Type Buffer::GetBufferType() const
 		std::filesystem::path bufferDataPath = dataValue->GetValue();
 		if (!graphicsEngine->ResolvePath(bufferDataPath, GraphicsEngine::RELATIVE_TO_ASSET_FOLDER))
 		{
-			THEBE_LOG("Failed to resolve buffer data path: %s", bufferDataPath.c_str());
+			THEBE_LOG("Failed to resolve buffer data path: %s", bufferDataPath.string().c_str());
 			return false;
 		}
 
@@ -348,7 +348,7 @@ Buffer::Type Buffer::GetBufferType() const
 		fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
 		if (!fileStream.is_open())
 		{
-			THEBE_LOG("Failed to open file: %s", bufferDataPath.c_str());
+			THEBE_LOG("Failed to open file: %s", bufferDataPath.string().c_str());
 			return false;
 		}
 
@@ -386,7 +386,7 @@ Buffer::Type Buffer::GetBufferType() const
 	fileStream.open(bufferDataPath.c_str(), std::ios::out | std::ios::binary);
 	if (!fileStream.is_open())
 	{
-		THEBE_LOG("Failed to open file %s for writing binary.", bufferDataPath.c_str());
+		THEBE_LOG("Failed to open file %s for writing binary.", bufferDataPath.string().c_str());
 		return false;
 	}
 

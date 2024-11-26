@@ -10,7 +10,9 @@ namespace Thebe
 	class MeshInstance;
 
 	/**
-	 *
+	 * Meshes are the fundamental rendering asset of the graphics engine.
+	 * Note that they cannot be drawn directly.  Rather, you must instantiate
+	 * the mesh using the @ref MeshInstance class.
 	 */
 	class THEBE_API Mesh : public EnginePart
 	{
@@ -20,15 +22,15 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-
-		/**
-		 * 
-		 */
-		bool Instantiate(Reference<MeshInstance>& meshInstance);
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
 
 	private:
 		Reference<VertexBuffer> vertexBuffer;
 		Reference<IndexBuffer> indexBuffer;
 		Reference<Material> material;
+		std::string name;
+		std::filesystem::path vertexBufferPath;
+		std::filesystem::path indexBufferPath;
+		std::filesystem::path materialPath;
 	};
 }

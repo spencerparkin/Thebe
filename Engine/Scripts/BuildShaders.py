@@ -95,12 +95,6 @@ def calculate_constant_buffer_layout(shader_data, assets_base_dir):
                 type_name = match.group(1)
                 var_name = match.group(2)
 
-                component_type = ''
-                if any([type_name == known_type for known_type in ['float', 'float2', 'float3', 'float4', 'float2x2', 'float3x3', 'float4x4']]):
-                    component_type = 'float'
-                if len(component_type) == 0:
-                    raise Exception('Could not decypher component type!')
-
                 size = size_map.get(type_name, -1)
                 if size == -1:
                     raise Exception('Size of type not known!')
@@ -113,7 +107,7 @@ def calculate_constant_buffer_layout(shader_data, assets_base_dir):
                 constant_data = {
                     'offset': current_offset,
                     'size': size,
-                    'type': component_type
+                    'type': type_name
                 }
                 constants_map[var_name] = constant_data
                 current_offset += size

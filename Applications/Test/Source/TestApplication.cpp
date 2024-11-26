@@ -1,7 +1,10 @@
 #include "TestApplication.h"
 #include "Thebe/EngineParts/SwapChain.h"
-#include "Thebe/EngineParts/IndexBuffer.h"
-#include "Thebe/EngineParts/VertexBuffer.h"
+//#include "Thebe/EngineParts/IndexBuffer.h"
+//#include "Thebe/EngineParts/VertexBuffer.h"
+//#include "Thebe/EngineParts/Shader.h"
+//#include "Thebe/EngineParts/Material.h"
+#include "Thebe/EngineParts/Mesh.h"
 
 TestApplication::TestApplication()
 {
@@ -20,6 +23,9 @@ TestApplication::TestApplication()
 
 	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
+
+	Thebe::Reference<Thebe::Mesh> cubeMesh;
+	this->graphicsEngine->LoadEnginePartFromFile("Cube/Cube.mesh", cubeMesh);
 
 	/*
 	std::vector<Thebe::Vector3> pointArray;

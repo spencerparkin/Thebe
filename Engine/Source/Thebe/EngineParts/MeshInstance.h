@@ -1,9 +1,12 @@
 #pragma once
 
 #include "Thebe/EngineParts/Space.h"
+#include <wrl.h>
 
 namespace Thebe
 {
+	using Microsoft::WRL::ComPtr;
+
 	class ConstantsBuffer;
 	class Mesh;
 
@@ -20,8 +23,12 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
 
+		void SetMesh(Mesh* mesh);
+		Mesh* GetMesh();
+
 	private:
 		Reference<Mesh> mesh;
 		Reference<ConstantsBuffer> constantsBuffer;
+		ComPtr<ID3D12PipelineState> pipelineState;
 	};
 }

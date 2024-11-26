@@ -26,9 +26,11 @@ namespace Thebe
 			enum Type
 			{
 				FLOAT,
-				VECTOR3,
-				MATRIX3X3,
-				MATRIX4X4
+				FLOAT2,
+				FLOAT3,
+				FLOAT2x2,
+				FLOAT3x3,
+				FLOAT4x4
 			};
 
 			Type type;
@@ -51,9 +53,10 @@ namespace Thebe
 
 	private:
 		ComPtr<ID3D12RootSignature> rootSignature;
-		ComPtr<ID3D12PipelineState> pipelineState;
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-		std::filesystem::path shaderFilePath;
+		ComPtr<ID3DBlob> vertesShaderBlob;
+		ComPtr<ID3DBlob> pixelShaderBlob;
+		std::filesystem::path vertesShaderBlobFile;
+		std::filesystem::path pixelShaderBlobFile;
 		std::vector<TextureAssociation> textureAssocArray;
 		std::vector<Parameter> parameterArray;
 	};

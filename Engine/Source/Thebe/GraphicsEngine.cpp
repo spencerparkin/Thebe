@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/Texture.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
+#include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Log.h"
@@ -259,7 +260,7 @@ bool GraphicsEngine::SetAssetFolder(std::filesystem::path assetFolder)
 {
 	if (assetFolder.is_relative() && !this->ResolvePath(assetFolder, RELATIVE_TO_EXECUTABLE))
 	{
-		THEBE_LOG("Could not locate folder: %s", assetFolder.c_str());
+		THEBE_LOG("Could not locate folder: %s", assetFolder.string().c_str());
 		return false;
 	}
 
@@ -297,7 +298,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 
 	if (!this->ResolvePath(enginePartPath, RELATIVE_TO_ASSET_FOLDER))
 	{
-		THEBE_LOG("Failed to resolved path: %s", enginePartPath.c_str());
+		THEBE_LOG("Failed to resolved path: %s", enginePartPath.string().c_str());
 		return false;
 	}
 
@@ -316,7 +317,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 	fileStream.open(enginePartPath.string(), std::ios::in);
 	if (!fileStream.is_open())
 	{
-		THEBE_LOG("Failed to open (for reading) the file: %s", enginePartPath.c_str());
+		THEBE_LOG("Failed to open (for reading) the file: %s", enginePartPath.string().c_str());
 		return false;
 	}
 
@@ -327,7 +328,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 	std::unique_ptr<JsonValue> jsonRootValue(JsonValue::ParseJson(jsonString, parseError));
 	if (!jsonRootValue.get())
 	{
-		THEBE_LOG("Json parse error in file: %s", enginePartPath.c_str());
+		THEBE_LOG("Json parse error in file: %s", enginePartPath.string().c_str());
 		THEBE_LOG("Json parse error: %s", parseError.c_str());
 		return false;
 	}
@@ -344,6 +345,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new IndexBuffer());
 	else if (ext == ".mesh")
 		enginePart.Set(new Mesh());
+	else if (ext == ".shader")
+		enginePart.Set(new Shader());
 
 	if (!enginePart.Get())
 	{
@@ -356,7 +359,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 	std::filesystem::path relativePath = enginePartPath;
 	if (!this->GetRelativeToAssetFolder(relativePath))
 	{
-		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.c_str());
+		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.string().c_str());
 		return false;
 	}
 
@@ -378,6 +381,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		this->enginePartCacheMap.insert(std::pair(key, enginePart));
 	}
 
+	THEBE_LOG("Loaded asset: %s", enginePartPath.string().c_str());
 	return true;
 }
 
@@ -388,7 +392,7 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 	std::filesystem::path relativePath = enginePartPath;
 	if (!this->GetRelativeToAssetFolder(relativePath))
 	{
-		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.c_str());
+		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.string().c_str());
 		return false;
 	}
 
@@ -403,13 +407,13 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 	{
 		if ((flags & THEBE_DUMP_FLAG_CAN_OVERWRITE) == 0)
 		{
-			THEBE_LOG("Cannot overwrite existing file: %s", enginePartPath.c_str());
+			THEBE_LOG("Cannot overwrite existing file: %s", enginePartPath.string().c_str());
 			return false;
 		}
 
 		if (!std::filesystem::remove(enginePartPath))
 		{
-			THEBE_LOG("Failed to delete file: %s", enginePartPath.c_str());
+			THEBE_LOG("Failed to delete file: %s", enginePartPath.string().c_str());
 			return false;
 		}
 	}
@@ -419,7 +423,7 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 	fileStream.open(enginePartPath.string(), std::ios::out);
 	if (!fileStream.is_open())
 	{
-		THEBE_LOG("Failed to open (for writing) the file: %s", enginePartPath.c_str());
+		THEBE_LOG("Failed to open (for writing) the file: %s", enginePartPath.string().c_str());
 		return false;
 	}
 

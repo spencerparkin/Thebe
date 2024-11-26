@@ -72,6 +72,17 @@ namespace Thebe
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
 
+		template<typename T>
+		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<T>& enginePartTyped, uint32_t flags = 0)
+		{
+			Reference<EnginePart> enginePart;
+			if (!this->LoadEnginePartFromFile(enginePartPath, enginePart, flags))
+				return false;
+
+			enginePartTyped.SafeSet(enginePart.Get());
+			return enginePartTyped.Get() ? true : true;
+		}
+
 		enum ResolveMethod
 		{
 			RELATIVE_TO_EXECUTABLE,
