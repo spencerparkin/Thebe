@@ -1,17 +1,18 @@
 #pragma once
 
-#include "Thebe/EngineParts/RenderObject.h"
+#include "Thebe/EnginePart.h"
 
 namespace Thebe
 {
 	class VertexBuffer;
 	class IndexBuffer;
 	class Material;
+	class MeshInstance;
 
 	/**
 	 *
 	 */
-	class THEBE_API Mesh : public RenderObject
+	class THEBE_API Mesh : public EnginePart
 	{
 	public:
 		Mesh();
@@ -19,7 +20,11 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
+
+		/**
+		 * 
+		 */
+		bool Instantiate(Reference<MeshInstance>& meshInstance);
 
 	private:
 		Reference<VertexBuffer> vertexBuffer;

@@ -32,6 +32,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Space.h
     Source/Thebe/EngineParts/SwapChain.cpp
     Source/Thebe/EngineParts/SwapChain.h
+    Source/Thebe/EngineParts/Shader.cpp
+    Source/Thebe/EngineParts/Shader.h
     Source/Thebe/EngineParts/Texture.cpp
     Source/Thebe/EngineParts/Texture.h
     Source/Thebe/EngineParts/Buffer.cpp
@@ -50,8 +52,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/CommandQueue.h
     Source/Thebe/EngineParts/CommandExecutor.cpp
     Source/Thebe/EngineParts/CommandExecutor.h
-    Source/Thebe/EngineParts/Instance.cpp
-    Source/Thebe/EngineParts/Instance.h
+    Source/Thebe/EngineParts/MeshInstance.cpp
+    Source/Thebe/EngineParts/MeshInstance.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

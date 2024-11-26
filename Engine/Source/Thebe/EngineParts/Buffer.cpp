@@ -178,8 +178,8 @@ bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 	{
 		case Type::STATIC:
 		{
-			THEBE_LOG("You cannot update a static buffer.");
-			return false;
+			// It's never necessary to update a static buffer, but there's no penalty for calling this function.
+			return true;
 		}
 		case Type::DYNAMIC_BARRIER_METHOD:
 		{

@@ -6,6 +6,7 @@
 namespace Thebe
 {
 	class Texture;
+	class Shader;
 
 	/**
 	 *
@@ -22,7 +23,7 @@ namespace Thebe
 		void Bind(ID3D12GraphicsCommandList* commandList);
 
 	private:
-		// TODO: Own PSO, shaders, and root signature.
-		Reference<Texture> diffuseTexture;
+		Reference<Shader> shader;
+		std::map<std::string, Reference<Texture>> textureMap;
 	};
 }

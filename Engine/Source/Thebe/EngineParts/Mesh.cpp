@@ -19,9 +19,7 @@ Mesh::Mesh()
 {
 }
 
-/*virtual*/ bool Mesh::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+bool Mesh::Instantiate(Reference<MeshInstance>& meshInstance)
 {
-	// TODO: Call commandList->SetPipelineState() with our material.
-
-	return true;
+	return false;
 }
