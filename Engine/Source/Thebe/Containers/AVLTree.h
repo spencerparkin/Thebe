@@ -22,8 +22,6 @@ namespace Thebe
 
 	/**
 	 * These are self-balancing binary trees invented by Adelson, Velsky and Landis.
-	 * I've added a partial-key look-up feature that I think will be useful in
-	 * managing a block heap.
 	 */
 	class THEBE_API AVLTree
 	{
@@ -92,6 +90,11 @@ namespace Thebe
 		 */
 		int GetNodeCount() const;
 
+		/**
+		 * Return the root of the binary tree.  Null is returned if the tree is empty.
+		 */
+		const AVLTreeNode* GetRootNode() const;
+
 	private:
 		AVLTreeNode* rootNode;
 		int nodeCount;
@@ -123,6 +126,9 @@ namespace Thebe
 		bool IsAVLTree() const;
 		void Hijack(AVLTreeNode* n, bool adopt);
 		AVLTreeNode* Find(const AVLTreeKey* key);
+		const AVLTreeNode* GetLeftNode() const;
+		const AVLTreeNode* GetRightNode() const;
+		const AVLTreeNode* GetParentNode() const;
 
 	private:
 		AVLTree* tree;

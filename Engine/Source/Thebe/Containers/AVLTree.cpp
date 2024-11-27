@@ -14,6 +14,11 @@ AVLTree::~AVLTree()
 {
 }
 
+const AVLTreeNode* AVLTree::GetRootNode() const
+{
+	return this->rootNode;
+}
+
 AVLTreeNode* AVLTree::FindNode(const AVLTreeKey* key)
 {
 	AVLTreeNode* node = this->rootNode;
@@ -190,6 +195,21 @@ AVLTreeNode::AVLTreeNode()
 
 AVLTreeNode::~AVLTreeNode()
 {
+}
+
+const AVLTreeNode* AVLTreeNode::GetLeftNode() const
+{
+	return this->leftNode;
+}
+
+const AVLTreeNode* AVLTreeNode::GetRightNode() const
+{
+	return this->rightNode;
+}
+
+const AVLTreeNode* AVLTreeNode::GetParentNode() const
+{
+	return this->parentNode;
 }
 
 AVLTreeNode* AVLTreeNode::Find(const AVLTreeKey* key)

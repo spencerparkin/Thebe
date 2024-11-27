@@ -2,7 +2,7 @@
 
 #include "Thebe/Common.h"
 #include "Thebe/Reference.h"
-#include "Thebe/Clock.h"
+#include "Thebe/Utilities/Clock.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>

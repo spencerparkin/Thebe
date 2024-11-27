@@ -10,8 +10,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
-    Source/Thebe/Clock.cpp
-    Source/Thebe/Clock.h
+    Source/Thebe/Utilities/Clock.cpp
+    Source/Thebe/Utilities/Clock.h
+    Source/Thebe/Utilities/BlockManager.cpp
+    Source/Thebe/Utilities/BlockManager.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp

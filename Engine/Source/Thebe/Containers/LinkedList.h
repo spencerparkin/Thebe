@@ -78,6 +78,9 @@ namespace Thebe
 		void Couple(LinkedListNode* beforeNode, LinkedListNode* afterNode);
 		void Decouple();
 
+		const LinkedListNode* GetPrevNode() const;
+		const LinkedListNode* GetNextNode() const;
+
 	private:
 		LinkedList* linkedList;
 		LinkedListNode* nextNode;

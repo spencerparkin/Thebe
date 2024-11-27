@@ -135,3 +135,13 @@ void LinkedListNode::Decouple()
 	this->nextNode = nullptr;
 	this->prevNode = nullptr;
 }
+
+const LinkedListNode* LinkedListNode::GetPrevNode() const
+{
+	return this->prevNode;
+}
+
+const LinkedListNode* LinkedListNode::GetNextNode() const
+{
+	return this->nextNode;
+}
