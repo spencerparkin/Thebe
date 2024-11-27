@@ -12,6 +12,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Log.h
     Source/Thebe/Clock.cpp
     Source/Thebe/Clock.h
+    Source/Thebe/Containers/AVLTree.cpp
+    Source/Thebe/Containers/AVLTree.h
+    Source/Thebe/Containers/LinkedList.cpp
+    Source/Thebe/Containers/LinkedList.h
     Source/Thebe/EnginePart.cpp
     Source/Thebe/EnginePart.h
     Source/Thebe/EngineParts/Camera.cpp
