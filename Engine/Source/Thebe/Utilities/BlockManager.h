@@ -102,7 +102,7 @@ namespace Thebe
 		// This container will maintain the physical order of the blocks in memory.
 		LinkedList blockList;
 
-		// This container will index the blocks in memory by size for quicker allocation.
-		AVLTree blockTree;
+		// This container will index the free blocks in memory by size for quicker allocation.
+		AVLTree freeBlockTree;
 	};
 }

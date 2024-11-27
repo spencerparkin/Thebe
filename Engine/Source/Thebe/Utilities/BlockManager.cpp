@@ -16,7 +16,7 @@ BlockManager::BlockManager()
 
 void BlockManager::Reset(uint64_t size)
 {
-	this->blockTree.Clear(false);
+	this->freeBlockTree.Clear(false);
 	this->blockList.Clear(true);
 
 	this->freeMemAvailable = size;
@@ -28,7 +28,7 @@ void BlockManager::Reset(uint64_t size)
 		blockNode->key.offset = 0;
 		blockNode->key.size = size;
 		this->blockList.InsertNodeAfter(blockNode);
-		this->blockTree.InsertNode(blockNode);
+		this->freeBlockTree.InsertNode(blockNode);
 	}
 }
 
@@ -38,14 +38,16 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 		return nullptr;
 
 	std::list<BlockNode*> queue;
-	queue.push_back((BlockNode*)this->blockTree.GetRootNode());
+	queue.push_back((BlockNode*)this->freeBlockTree.GetRootNode());
 	while (queue.size() > 0)
 	{
 		auto blockNode = (BlockNode*)queue.front();
 		queue.pop_front();
 
+		THEBE_ASSERT(blockNode->key.state == BlockKey::FREE);
+
 		uint64_t blockSize = blockNode->GetSize();
-		if (blockSize >= size && blockNode->key.state == BlockKey::FREE)
+		if (blockSize >= size)
 		{
 			uint64_t offsetStart = blockNode->GetOffset();
 			uint64_t offsetEnd = blockNode->GetOffset() + blockSize;
@@ -55,9 +57,10 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 				uint64_t leftMargin = offsetAligned - offsetStart;
 				uint64_t rightMargin = offsetEnd - (offsetAligned + size);
 
+				this->freeBlockTree.RemoveNode(blockNode);
+
 				if (leftMargin > 0)
 				{
-					this->blockTree.RemoveNode(blockNode);
 					auto newLeftNode = new BlockNode();
 					newLeftNode->blockManager = this;
 					newLeftNode->key.offset = offsetStart;
@@ -65,21 +68,18 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 					this->blockList.InsertNodeBefore(newLeftNode, blockNode);
 					blockNode->key.offset = offsetAligned;
 					blockNode->key.size -= leftMargin;
-					this->blockTree.InsertNode(blockNode);
-					this->blockTree.InsertNode(newLeftNode);
+					this->freeBlockTree.InsertNode(newLeftNode);
 				}
 
 				if (rightMargin > 0)
 				{
-					this->blockTree.RemoveNode(blockNode);
 					auto newRightNode = new BlockNode();
 					newRightNode->blockManager = this;
 					newRightNode->key.offset = offsetAligned + size;
 					newRightNode->key.size = rightMargin;
 					this->blockList.InsertNodeAfter(newRightNode, blockNode);
 					blockNode->key.size -= rightMargin;
-					this->blockTree.InsertNode(blockNode);
-					this->blockTree.InsertNode(newRightNode);
+					this->freeBlockTree.InsertNode(newRightNode);
 				}
 
 				THEBE_ASSERT(blockNode->GetSize() == size);
@@ -111,7 +111,8 @@ bool BlockManager::Deallocate(BlockNode* blockNode)
 		return false;
 
 	this->freeMemAvailable += blockNode->key.size;
-
+	blockNode->key.state = BlockKey::FREE;
+	
 	// If no two free blocks ever become adjacent within the heap,
 	// then we should never iterate these while loops more than once.
 	// Thus, I'm hopeful our time-complexity here is O(log N).
@@ -122,11 +123,9 @@ bool BlockManager::Deallocate(BlockNode* blockNode)
 		if (!leftBlockNode || leftBlockNode->key.state != BlockKey::FREE)
 			break;
 		
-		this->blockTree.RemoveNode(blockNode);
-		this->blockTree.RemoveNode(leftBlockNode);
+		this->freeBlockTree.RemoveNode(leftBlockNode);
 		blockNode->key.offset = leftBlockNode->key.offset;
 		blockNode->key.size += leftBlockNode->key.size;
-		this->blockTree.InsertNode(blockNode);
 		this->blockList.RemoveNode(leftBlockNode, true);
 	}
 
@@ -136,14 +135,13 @@ bool BlockManager::Deallocate(BlockNode* blockNode)
 		if (!rightBlockNode || rightBlockNode->key.state != BlockKey::FREE)
 			break;
 
-		this->blockTree.RemoveNode(blockNode);
-		this->blockTree.RemoveNode(rightBlockNode);
+		this->freeBlockTree.RemoveNode(rightBlockNode);
 		blockNode->key.size += rightBlockNode->key.size;
-		this->blockTree.InsertNode(blockNode);
 		this->blockList.RemoveNode(rightBlockNode, true);
 	}
 
-	blockNode->key.state = BlockKey::FREE;
+	this->freeBlockTree.InsertNode(blockNode);
+	
 	return true;
 }
 
