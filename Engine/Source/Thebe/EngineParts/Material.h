@@ -21,6 +21,8 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
 
+		Shader* GetShader();
+
 	private:
 		Reference<Shader> shader;
 		std::map<std::string, Reference<Texture>> textureMap;

@@ -20,6 +20,7 @@
 #define THEBE_DEGS_TO_RADS(x)	((x) * (M_PI / 180.0))
 #define THEBE_RADS_TO_DEGS(x)	((x) * (180.0 / M_PI))
 #define THEBE_IS_POW_TWO(x)		((x & (x - 1)) == 0)
+#define THEBE_ALIGNED(x, y)		(((x) + ((y) - 1)) & ~((y) - 1))
 
 #define THEBE_ASSERT			assert
 

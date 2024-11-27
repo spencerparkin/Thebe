@@ -97,3 +97,18 @@ Mesh::Mesh()
 
 	return true;
 }
+
+VertexBuffer* Mesh::GetVertexBuffer()
+{
+	return this->vertexBuffer;
+}
+
+IndexBuffer* Mesh::GetIndexBuffer()
+{
+	return this->indexBuffer;
+}
+
+Material* Mesh::GetMaterial()
+{
+	return this->material;
+}

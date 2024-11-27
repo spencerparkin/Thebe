@@ -33,6 +33,8 @@ namespace Thebe
 				FLOAT4x4
 			};
 
+			UINT32 GetSize() const;
+
 			Type type;
 			std::string name;
 			UINT32 offset;
@@ -50,6 +52,9 @@ namespace Thebe
 			UINT textureRegister;
 			UINT samplerRegister;
 		};
+
+		const std::vector<Parameter>& GetParameterArray() const;
+		const Parameter* FindParameter(const std::string& name) const;
 
 	private:
 		ComPtr<ID3D12RootSignature> rootSignature;

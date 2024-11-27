@@ -23,6 +23,7 @@ namespace Thebe
 	class EnginePart;
 	class SwapChain;
 	class CommandExecutor;
+	class DescriptorHeap;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -68,6 +69,7 @@ namespace Thebe
 		IDXGIFactory4* GetFactory();
 		SwapChain* GetSwapChain();
 		CommandExecutor* GetCommandExecutor();
+		DescriptorHeap* GetCbvDescriptorHeap();
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
@@ -115,6 +117,7 @@ namespace Thebe
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
 		Reference<CommandExecutor> commandExecutor;
+		Reference<DescriptorHeap> cbvDescriptorHeap;
 		std::filesystem::path assetFolder;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 

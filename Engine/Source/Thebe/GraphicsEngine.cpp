@@ -8,6 +8,7 @@
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/CommandExecutor.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -107,6 +108,19 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
+	this->cbvDescriptorHeap.Set(new DescriptorHeap());
+	this->cbvDescriptorHeap->SetGraphicsEngine(this);
+	D3D12_DESCRIPTOR_HEAP_DESC& cbvDescriptorHeapDesc = this->cbvDescriptorHeap->GetDescriptorHeapDesc();
+	cbvDescriptorHeapDesc.NumDescriptors = 512;
+	cbvDescriptorHeapDesc.NodeMask = 0;
+	cbvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	cbvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	if (!this->cbvDescriptorHeap->Setup())
+	{
+		THEBE_LOG("Failed to setup descriptor heap for constants buffer views.");
+		return false;
+	}
+
 	// TODO: I'd eventually like to be able to add a shadow pass, but that's a long way off.
 
 	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
@@ -137,9 +151,20 @@ void GraphicsEngine::Shutdown()
 	for (auto pair : this->enginePartCacheMap)
 		pair.second->Shutdown();
 
+	if (this->commandExecutor)
+	{
+		this->commandExecutor->Shutdown();
+		this->commandExecutor = nullptr;
+	}
+
+	if (this->cbvDescriptorHeap)
+	{
+		this->cbvDescriptorHeap->Shutdown();
+		this->cbvDescriptorHeap = nullptr;
+	}
+
 	this->renderPassArray.clear();
 	this->enginePartCacheMap.clear();
-	this->commandExecutor = nullptr;
 	this->device = nullptr;
 }
 
@@ -219,7 +244,12 @@ IDXGIFactory4* GraphicsEngine::GetFactory()
 
 CommandExecutor* GraphicsEngine::GetCommandExecutor()
 {
-	return this->commandExecutor.Get();
+	return this->commandExecutor;
+}
+
+DescriptorHeap* GraphicsEngine::GetCbvDescriptorHeap()
+{
+	return this->cbvDescriptorHeap;
 }
 
 bool GraphicsEngine::ResolvePath(std::filesystem::path& assetPath, ResolveMethod resolveMethod)

@@ -194,3 +194,32 @@ Shader::Shader()
 
 	return true;
 }
+
+UINT32 Shader::Parameter::GetSize() const
+{
+	switch (this->type)
+	{
+		case Type::FLOAT: return sizeof(float);
+		case Type::FLOAT2: return 2 * sizeof(float);
+		case Type::FLOAT3: return 3 * sizeof(float);
+		case Type::FLOAT2x2: return 2 * 2 * sizeof(float);
+		case Type::FLOAT3x3: return 3 * 3 * sizeof(float);
+		case Type::FLOAT4x4: return 4 * 4 * sizeof(float);
+	}
+
+	return 0;
+}
+
+const std::vector<Shader::Parameter>& Shader::GetParameterArray() const
+{
+	return this->parameterArray;
+}
+
+const Shader::Parameter* Shader::FindParameter(const std::string& name) const
+{
+	for (const Parameter& parameter : this->parameterArray)
+		if (parameter.name == name)
+			return &parameter;
+
+	return nullptr;
+}

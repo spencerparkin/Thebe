@@ -71,3 +71,8 @@ Material::Material()
 
 	return true;
 }
+
+Shader* Material::GetShader()
+{
+	return this->shader;
+}

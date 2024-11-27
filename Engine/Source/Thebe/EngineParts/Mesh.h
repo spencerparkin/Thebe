@@ -24,6 +24,10 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
 
+		VertexBuffer* GetVertexBuffer();
+		IndexBuffer* GetIndexBuffer();
+		Material* GetMaterial();
+
 	private:
 		Reference<VertexBuffer> vertexBuffer;
 		Reference<IndexBuffer> indexBuffer;
