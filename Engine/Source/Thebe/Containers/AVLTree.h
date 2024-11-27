@@ -7,6 +7,20 @@ namespace Thebe
 	class AVLTreeNode;
 
 	/**
+	 * This class is used to abstract away the notion of a key in a
+	 * self-balancing binary tree.  Derivatives must impliment the
+	 * comparison operators.
+	 */
+	class THEBE_API AVLTreeKey
+	{
+	public:
+		virtual bool IsLessThan(const AVLTreeKey* key) const = 0;
+		virtual bool IsGreaterThan(const AVLTreeKey* key) const = 0;
+		virtual bool IsEqualto(const AVLTreeKey* key) const = 0;
+		virtual bool IsNotEqualto(const AVLTreeKey* key) const = 0;
+	};
+
+	/**
 	 * These are self-balancing binary trees invented by Adelson, Velsky and Landis.
 	 * I've added a partial-key look-up feature that I think will be useful in
 	 * managing a block heap.
@@ -25,7 +39,7 @@ namespace Thebe
 		 * @param[in] key Nodes of the tree are compared against this key.
 		 * @return If found, the node with the given key is returned; null, otherwise.
 		 */
-		AVLTreeNode* FindNode(int key);
+		AVLTreeNode* FindNode(const AVLTreeKey* key);
 
 		/**
 		 * Insert the given node into this tree.  It is expected that
@@ -92,8 +106,10 @@ namespace Thebe
 		friend class AVLTree;
 
 	public:
-		AVLTreeNode(int key);
+		AVLTreeNode();
 		virtual ~AVLTreeNode();
+
+		virtual const AVLTreeKey* GetKey() const = 0;
 
 		bool RotateLeft();
 		bool RotateRight();
@@ -106,7 +122,7 @@ namespace Thebe
 		bool IsLeaf() const;
 		bool IsAVLTree() const;
 		void Hijack(AVLTreeNode* n, bool adopt);
-		AVLTreeNode* Find(int key);
+		AVLTreeNode* Find(const AVLTreeKey* key);
 
 	private:
 		AVLTree* tree;
@@ -114,7 +130,6 @@ namespace Thebe
 		AVLTreeNode* rightNode;
 		AVLTreeNode* parentNode;
 		int balanceFactor;
-		int key;
 		int maxDepth;
 	};
 }

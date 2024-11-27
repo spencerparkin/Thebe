@@ -14,12 +14,12 @@ AVLTree::~AVLTree()
 {
 }
 
-AVLTreeNode* AVLTree::FindNode(int key)
+AVLTreeNode* AVLTree::FindNode(const AVLTreeKey* key)
 {
 	AVLTreeNode* node = this->rootNode;
-	while (node && node->key != key)
+	while (node && node->GetKey()->IsNotEqualto(key))
 	{
-		if (key < node->key)
+		if (key->IsLessThan(node->GetKey()))
 			node = node->leftNode;
 		else
 			node = node->rightNode;
@@ -38,10 +38,10 @@ bool AVLTree::InsertNode(AVLTreeNode* givenNode)
 		AVLTreeNode* node = this->rootNode;
 		for (;;)
 		{
-			if (givenNode->key == node->key)
+			if (givenNode->GetKey()->IsEqualto(node->GetKey()))
 				return false;
 
-			if (givenNode->key < node->key)
+			if (givenNode->GetKey()->IsLessThan(node->GetKey()))
 			{
 				if (node->leftNode)
 					node = node->leftNode;
@@ -178,9 +178,8 @@ int AVLTree::GetNodeCount() const
 
 //------------------------------------ AVLTreeNode ------------------------------------
 
-AVLTreeNode::AVLTreeNode(int key)
+AVLTreeNode::AVLTreeNode()
 {
-	this->key = key;
 	this->leftNode = nullptr;
 	this->rightNode = nullptr;
 	this->parentNode = nullptr;
@@ -193,14 +192,14 @@ AVLTreeNode::~AVLTreeNode()
 {
 }
 
-AVLTreeNode* AVLTreeNode::Find(int key)
+AVLTreeNode* AVLTreeNode::Find(const AVLTreeKey* key)
 {
-	if (key < this->key)
+	if (key->IsLessThan(this->GetKey()))
 	{
 		if (this->leftNode)
 			return this->leftNode->Find(key);
 	}
-	else if (key > this->key)
+	else if (key->IsGreaterThan(this->GetKey()))
 	{
 		if (this->rightNode)
 			if (this->rightNode->Find(key));
