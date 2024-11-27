@@ -24,6 +24,8 @@ namespace Thebe
 	class SwapChain;
 	class CommandExecutor;
 	class DescriptorHeap;
+	class Material;
+	class VertexBuffer;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -98,6 +100,8 @@ namespace Thebe
 
 		UINT64 GetFrameCount();
 
+		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer);
+
 	private:
 
 		template<typename T>
@@ -120,8 +124,10 @@ namespace Thebe
 		Reference<DescriptorHeap> cbvDescriptorHeap;
 		std::filesystem::path assetFolder;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
+		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
 
-		std::string MakeKey(const std::filesystem::path& assetPath);
+		std::string MakeAssetKey(const std::filesystem::path& assetPath);
+		std::string MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer);
 
 #if defined THEBE_LOG_FRAMERATE
 		double CalcFramerate();

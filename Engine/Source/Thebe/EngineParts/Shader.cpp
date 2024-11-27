@@ -17,7 +17,7 @@ Shader::Shader()
 
 /*virtual*/ bool Shader::Setup()
 {
-	if (this->vertesShaderBlob.Get() || this->pixelShaderBlob.Get() || this->rootSignature.Get())
+	if (this->vertexShaderBlob.Get() || this->pixelShaderBlob.Get() || this->rootSignature.Get())
 	{
 		THEBE_LOG("Shader already setup.");
 		return false;
@@ -42,14 +42,14 @@ Shader::Shader()
 	std::wstring vsShaderObjFile = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(this->vertesShaderBlobFile.string());
 	std::wstring psShaderObjFile = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(this->pixelShaderBlobFile.string());
 
-	HRESULT result = D3DReadFileToBlob(vsShaderObjFile.c_str(), &this->vertesShaderBlob);
+	HRESULT result = D3DReadFileToBlob(vsShaderObjFile.c_str(), &this->vertexShaderBlob);
 	if (FAILED(result))
 	{
 		THEBE_LOG("Failed to read pixel shader blob file %s.  Error: 0x%08x", this->vertesShaderBlobFile.c_str(), result);
 		return false;
 	}
 
-	result = D3DReadFileToBlob(vsShaderObjFile.c_str(), &this->pixelShaderBlob);
+	result = D3DReadFileToBlob(psShaderObjFile.c_str(), &this->pixelShaderBlob);
 	if (FAILED(result))
 	{
 		THEBE_LOG("Failed to read pixel shader blob file %s.  Error: 0x%08x", this->pixelShaderBlobFile.c_str(), result);
@@ -73,11 +73,17 @@ Shader::Shader()
 	rootParameterArray[0].DescriptorTable.pDescriptorRanges = descriptorRangeArray.data();
 	rootParameterArray[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
+	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
 	D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
 	rootSignatureDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
 	rootSignatureDesc.Desc_1_1.NumParameters = (UINT)rootParameterArray.size();
 	rootSignatureDesc.Desc_1_1.pParameters = rootParameterArray.data();
-	rootSignatureDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	rootSignatureDesc.Desc_1_1.Flags = rootSignatureFlags;
 
 	// TODO: Use texture associations to add SRV thingies to root signature?
 	// TODO: Also need to add sampler description before we create the root signature.
@@ -103,7 +109,7 @@ Shader::Shader()
 
 /*virtual*/ void Shader::Shutdown()
 {
-	this->vertesShaderBlob = nullptr;
+	this->vertexShaderBlob = nullptr;
 	this->pixelShaderBlob = nullptr;
 	this->rootSignature = nullptr;
 }
@@ -222,4 +228,19 @@ const Shader::Parameter* Shader::FindParameter(const std::string& name) const
 			return &parameter;
 
 	return nullptr;
+}
+
+ID3D12RootSignature* Shader::GetRootSignature()
+{
+	return this->rootSignature.Get();
+}
+
+ID3DBlob* Shader::GetVertexShaderBlob()
+{
+	return this->vertexShaderBlob.Get();
+}
+
+ID3DBlob* Shader::GetPixelShaderBlob()
+{
+	return this->pixelShaderBlob.Get();
 }

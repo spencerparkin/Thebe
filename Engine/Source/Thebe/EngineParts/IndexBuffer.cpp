@@ -24,6 +24,11 @@ void IndexBuffer::SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology)
 	this->primitiveTopology = primitiveTopology;
 }
 
+D3D_PRIMITIVE_TOPOLOGY IndexBuffer::GetPrimitiveTopology() const
+{
+	return this->primitiveTopology;
+}
+
 /*virtual*/ bool IndexBuffer::Setup()
 {
 	if (this->primitiveTopology == D3D_PRIMITIVE_TOPOLOGY_UNDEFINED)

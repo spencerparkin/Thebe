@@ -22,6 +22,7 @@ namespace Thebe
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
 
 		Shader* GetShader();
+		D3D12_BLEND_DESC& GetBlendDesc();
 
 	private:
 		Reference<Shader> shader;

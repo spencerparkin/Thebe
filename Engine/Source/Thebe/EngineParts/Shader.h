@@ -56,9 +56,13 @@ namespace Thebe
 		const std::vector<Parameter>& GetParameterArray() const;
 		const Parameter* FindParameter(const std::string& name) const;
 
+		ID3D12RootSignature* GetRootSignature();
+		ID3DBlob* GetVertexShaderBlob();
+		ID3DBlob* GetPixelShaderBlob();
+
 	private:
 		ComPtr<ID3D12RootSignature> rootSignature;
-		ComPtr<ID3DBlob> vertesShaderBlob;
+		ComPtr<ID3DBlob> vertexShaderBlob;
 		ComPtr<ID3DBlob> pixelShaderBlob;
 		std::filesystem::path vertesShaderBlobFile;
 		std::filesystem::path pixelShaderBlobFile;

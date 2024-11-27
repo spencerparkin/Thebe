@@ -20,6 +20,7 @@ namespace Thebe
 
 		void SetFormat(DXGI_FORMAT format);
 		void SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology);
+		D3D_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const;
 
 	protected:
 		D3D12_INDEX_BUFFER_VIEW indexBufferView;

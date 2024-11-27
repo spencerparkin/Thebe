@@ -163,6 +163,7 @@ void GraphicsEngine::Shutdown()
 		this->cbvDescriptorHeap = nullptr;
 	}
 
+	this->pipelineStateCacheMap.clear();
 	this->renderPassArray.clear();
 	this->enginePartCacheMap.clear();
 	this->device = nullptr;
@@ -315,10 +316,58 @@ bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath)
 	return true;
 }
 
-std::string GraphicsEngine::MakeKey(const std::filesystem::path& assetPath)
+ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer)
+{
+	std::string key = this->MakePipelineStateKey(material, vertexBuffer);
+	auto iter = this->pipelineStateCacheMap.find(key);
+	if (iter != this->pipelineStateCacheMap.end())
+		return iter->second.Get();
+
+	THEBE_LOG("Creating new PSO: %s.", key.c_str());
+
+	const std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescriptionArray = vertexBuffer->GetElementDescArray();
+
+	Shader* shader = material->GetShader();
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+	psoDesc.InputLayout.NumElements = (UINT)elementDescriptionArray.size();
+	psoDesc.InputLayout.pInputElementDescs = elementDescriptionArray.data();
+	psoDesc.pRootSignature = shader->GetRootSignature();
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(shader->GetVertexShaderBlob());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(shader->GetPixelShaderBlob());
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+	psoDesc.BlendState = material->GetBlendDesc();
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.SampleDesc.Count = 1;
+
+	ComPtr<ID3D12PipelineState> pipelineState;
+	HRESULT result = this->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to create graphics pipeline state object.  Error: 0x%08x", result);
+		return nullptr;
+	}
+
+	this->pipelineStateCacheMap.insert(std::pair(key, pipelineState));
+	return pipelineState.Get();
+}
+
+std::string GraphicsEngine::MakeAssetKey(const std::filesystem::path& assetPath)
 {
 	std::string key = assetPath.lexically_normal().string();
 	std::transform(key.begin(), key.end(), key.begin(), [](unsigned char ch) { return std::tolower(ch); });
+	return key;
+}
+
+std::string GraphicsEngine::MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer)
+{
+	std::string key = std::format("{}_{}", material->GetHandle(), vertexBuffer->GetHandle());
 	return key;
 }
 
@@ -334,7 +383,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 
 	if ((flags & THEBE_LOAD_FLAG_DONT_CHECK_CACHE) == 0)
 	{
-		std::string key = this->MakeKey(enginePartPath);
+		std::string key = this->MakeAssetKey(enginePartPath);
 		auto iter = this->enginePartCacheMap.find(key);
 		if (iter != this->enginePartCacheMap.end())
 		{
@@ -407,7 +456,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 
 	if ((flags & THEBE_LOAD_FLAG_DONT_CACHE_PART) == 0)
 	{
-		std::string key = this->MakeKey(enginePartPath);
+		std::string key = this->MakeAssetKey(enginePartPath);
 		this->enginePartCacheMap.insert(std::pair(key, enginePart));
 	}
 

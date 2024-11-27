@@ -27,8 +27,8 @@ namespace Thebe
 		Mesh* GetMesh();
 
 	private:
+		ComPtr<ID3D12PipelineState> pipelineState;
 		Reference<Mesh> mesh;
 		Reference<ConstantsBuffer> constantsBuffer;
-		ComPtr<ID3D12PipelineState> pipelineState;
 	};
 }

@@ -7,10 +7,10 @@
         }
     },
     "ps_entry_point": "PSMain",
-    "ps_model": "ps_5_0",
+    "ps_model": "ps_6_5",
     "ps_shader_object": "Shaders/BasicShaderPS.dxbc",
     "shader_code": "Shaders/BasicShader.hlsl",
     "vs_entry_point": "VSMain",
-    "vs_model": "vs_5_0",
+    "vs_model": "vs_6_5",
     "vs_shader_object": "Shaders/BasicShaderVS.dxbc"
 }

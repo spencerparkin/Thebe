@@ -76,3 +76,8 @@ Shader* Material::GetShader()
 {
 	return this->shader;
 }
+
+D3D12_BLEND_DESC& Material::GetBlendDesc()
+{
+	return this->blendDesc;
+}

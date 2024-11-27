@@ -24,6 +24,7 @@ Scene::Scene()
 	// TODO: Resolve all object-to-world transforms in the scene hierarchy.
 	// TODO: Cull render objects that aren't in the view frustum.
 	// TODO: Render opaque objects before the transparent ones.
+	// TODO: Sort render by PSO to reduce number of context switches?
 
 	return true;
 }
