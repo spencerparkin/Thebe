@@ -212,6 +212,13 @@ BlockManager::BlockNode::BlockNode()
 	return &this->key;
 }
 
+/*virtual*/ void BlockManager::BlockNode::SetKey(const AVLTreeKey* givenKey)
+{
+	auto blockKey = (const BlockKey*)givenKey;
+	this->key.offset = blockKey->offset;
+	this->key.size = blockKey->size;
+}
+
 uint64_t BlockManager::BlockNode::GetOffset() const
 {
 	return this->key.offset;

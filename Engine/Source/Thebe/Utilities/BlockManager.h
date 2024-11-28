@@ -87,6 +87,7 @@ namespace Thebe
 			virtual ~BlockNode();
 
 			virtual const AVLTreeKey* GetKey() const override;
+			virtual void SetKey(const AVLTreeKey* givenKey) override;
 
 			uint64_t GetOffset() const;
 			uint64_t GetSize() const;

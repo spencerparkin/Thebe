@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/Common.h"
+#include <functional>
 
 namespace Thebe
 {
@@ -34,10 +35,10 @@ namespace Thebe
 		/**
 		 * Find and return the node in this tree with the given key.
 		 * 
-		 * @param[in] key Nodes of the tree are compared against this key.
+		 * @param[in] givenKey Nodes of the tree are compared against this key.
 		 * @return If found, the node with the given key is returned; null, otherwise.
 		 */
-		AVLTreeNode* FindNode(const AVLTreeKey* key);
+		AVLTreeNode* FindNode(const AVLTreeKey* givenKey);
 
 		/**
 		 * Insert the given node into this tree.  It is expected that
@@ -95,7 +96,19 @@ namespace Thebe
 		 */
 		const AVLTreeNode* GetRootNode() const;
 
+		/**
+		 * Visit all the nodes of the tree in order.  If the given
+		 * callback returns false, the traversal is prematurely
+		 * terminated.
+		 * 
+		 * @param[in] callback This function is called once per node of the tree.
+		 * @return True is returned if and only if the traversal explored the tree in its entirety.
+		 */
+		bool Traverse(std::function<bool(const AVLTreeNode*)> callback) const;
+
 	private:
+		void RebalanceAtNode(AVLTreeNode* node);
+
 		AVLTreeNode* rootNode;
 		int nodeCount;
 	};
@@ -113,19 +126,20 @@ namespace Thebe
 		virtual ~AVLTreeNode();
 
 		virtual const AVLTreeKey* GetKey() const = 0;
+		virtual void SetKey(const AVLTreeKey* givenKey) = 0;
 
 		bool RotateLeft();
 		bool RotateRight();
 		void UpdateBalanceFactor();
-		void UpdateBalanceFactorsToRoot();
 		void BalanceSubtree();
 		AVLTreeNode* Predecessor();
 		AVLTreeNode* Successor();
 		bool IsRoot() const;
 		bool IsLeaf() const;
 		bool IsAVLTree() const;
-		void Hijack(AVLTreeNode* n, bool adopt);
-		AVLTreeNode* Find(const AVLTreeKey* key);
+		void ReplaceWith(AVLTreeNode* n, bool adopt);
+		AVLTreeNode* Find(const AVLTreeKey* givenKey);
+		bool Traverse(std::function<bool(const AVLTreeNode*)> callback) const;
 		const AVLTreeNode* GetLeftNode() const;
 		const AVLTreeNode* GetRightNode() const;
 		const AVLTreeNode* GetParentNode() const;

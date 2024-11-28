@@ -1,10 +1,15 @@
 #include "Main.h"
 #include "TestApplication.h"
+#include "TestAVLTree.h"
 #include "Thebe/Log.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
 {
+#if false
+	TestAVLTree();
+#endif
+
 #if defined THEBE_LOGGING
 	Thebe::Reference<Thebe::Log> log(new Thebe::Log());
 	log->AddSink(new Thebe::LogConsoleSink());

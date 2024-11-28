@@ -19,12 +19,12 @@ const AVLTreeNode* AVLTree::GetRootNode() const
 	return this->rootNode;
 }
 
-AVLTreeNode* AVLTree::FindNode(const AVLTreeKey* key)
+AVLTreeNode* AVLTree::FindNode(const AVLTreeKey* givenKey)
 {
 	AVLTreeNode* node = this->rootNode;
-	while (node && node->GetKey()->IsNotEqualto(key))
+	while (node && node->GetKey()->IsNotEqualto(givenKey))
 	{
-		if (key->IsLessThan(node->GetKey()))
+		if (givenKey->IsLessThan(node->GetKey()))
 			node = node->leftNode;
 		else
 			node = node->rightNode;
@@ -70,12 +70,7 @@ bool AVLTree::InsertNode(AVLTreeNode* givenNode)
 
 		givenNode->parentNode = node;
 		
-		while (node)
-		{
-			node->UpdateBalanceFactor();
-			node->BalanceSubtree();
-			node = node->parentNode;
-		}
+		this->RebalanceAtNode(node);
 	}
 	else
 	{
@@ -99,38 +94,41 @@ bool AVLTree::RemoveNode(AVLTreeNode* givenNode, bool deleteNode /*= false*/)
 
 	if (givenNode->leftNode && givenNode->rightNode)
 	{
-		AVLTreeNode* node = nullptr;
-		
 		// This choice is arbitrary.
 #if true
-		node = givenNode->Predecessor();
+		AVLTreeNode* node = givenNode->Predecessor();
 #else
-		node = givenNode->Successor();
+		AVLTreeNode* node = givenNode->Successor();
 #endif
-
 		this->RemoveNode(node);
-		givenNode->Hijack(node, true);
+		givenNode->ReplaceWith(node, true);
 		node->UpdateBalanceFactor();
 	}
 	else
 	{
-		AVLTreeNode* node = (givenNode->leftNode ? givenNode->leftNode : givenNode->rightNode);
-		givenNode->Hijack(node, false);
-
-		for (node = givenNode->parentNode; node; node = node->parentNode)
-		{
-			node->UpdateBalanceFactor();
-			node->BalanceSubtree();
-		}
+		AVLTreeNode* node = givenNode->leftNode ? givenNode->leftNode : givenNode->rightNode;
+		givenNode->ReplaceWith(node, false);
+		this->RebalanceAtNode(givenNode->parentNode);
+		this->nodeCount--;
 	}
-
+	
 	givenNode->parentNode = nullptr;
 	givenNode->leftNode = nullptr;
 	givenNode->rightNode = nullptr;
 	if (deleteNode)
 		delete givenNode;
-	this->nodeCount--;
+
 	return true;
+}
+
+void AVLTree::RebalanceAtNode(AVLTreeNode* node)
+{
+	while (node)
+	{
+		node->UpdateBalanceFactor();
+		node->BalanceSubtree();
+		node = node->parentNode;
+	}
 }
 
 void AVLTree::Clear(bool deleteNodes /*= false*/)
@@ -181,6 +179,14 @@ int AVLTree::GetNodeCount() const
 	return this->nodeCount;
 }
 
+bool AVLTree::Traverse(std::function<bool(const AVLTreeNode*)> callback) const
+{
+	if (this->rootNode)
+		return this->rootNode->Traverse(callback);
+
+	return true;
+}
+
 //------------------------------------ AVLTreeNode ------------------------------------
 
 AVLTreeNode::AVLTreeNode()
@@ -212,17 +218,17 @@ const AVLTreeNode* AVLTreeNode::GetParentNode() const
 	return this->parentNode;
 }
 
-AVLTreeNode* AVLTreeNode::Find(const AVLTreeKey* key)
+AVLTreeNode* AVLTreeNode::Find(const AVLTreeKey* givenKey)
 {
-	if (key->IsLessThan(this->GetKey()))
+	if (givenKey->IsLessThan(this->GetKey()))
 	{
 		if (this->leftNode)
-			return this->leftNode->Find(key);
+			return this->leftNode->Find(givenKey);
 	}
-	else if (key->IsGreaterThan(this->GetKey()))
+	else if (givenKey->IsGreaterThan(this->GetKey()))
 	{
 		if (this->rightNode)
-			if (this->rightNode->Find(key));
+			if (this->rightNode->Find(givenKey));
 	}
 
 	return this;
@@ -275,7 +281,8 @@ bool AVLTreeNode::RotateLeft()
 	newRootNode->leftNode = oldRootNode;
 	oldRootNode->parentNode = newRootNode;
 
-	oldRootNode->UpdateBalanceFactorsToRoot();
+	oldRootNode->UpdateBalanceFactor();
+	newRootNode->UpdateBalanceFactor();
 	return true;
 }
 
@@ -315,7 +322,8 @@ bool AVLTreeNode::RotateRight()
 	newRootNode->rightNode = oldRootNode;
 	oldRootNode->parentNode = newRootNode;
 
-	oldRootNode->UpdateBalanceFactorsToRoot();
+	oldRootNode->UpdateBalanceFactor();
+	newRootNode->UpdateBalanceFactor();
 	return true;
 }
 
@@ -362,16 +370,6 @@ void AVLTreeNode::UpdateBalanceFactor(void)
 	{
 		this->maxDepth = 1;
 		this->balanceFactor = 0;
-	}
-}
-
-void AVLTreeNode::UpdateBalanceFactorsToRoot()
-{
-	AVLTreeNode* node = this;
-	while (node)
-	{
-		node->UpdateBalanceFactor();
-		node = node->parentNode;
 	}
 }
 
@@ -423,13 +421,15 @@ AVLTreeNode* AVLTreeNode::Successor(void)
 	return nodeA;
 }
 
-void AVLTreeNode::Hijack(AVLTreeNode* node, bool adopt)
+void AVLTreeNode::ReplaceWith(AVLTreeNode* node, bool adopt)
 {
 	if (node == this)
 		return;
 
 	if (node)
 	{
+		node->SetKey(this->GetKey());
+
 		if (adopt)
 		{
 			node->leftNode = this->leftNode;
@@ -444,7 +444,7 @@ void AVLTreeNode::Hijack(AVLTreeNode* node, bool adopt)
 		node->parentNode = parentNode;
 	}
 
-	if (parentNode)
+	if (this->parentNode)
 	{
 		if (this->parentNode->leftNode == this)
 			this->parentNode->leftNode = node;
@@ -460,4 +460,20 @@ bool AVLTreeNode::IsAVLTree(void) const
 	return this->balanceFactor >= -1 && this->balanceFactor <= 1 &&
 		(!this->leftNode || this->leftNode->IsAVLTree()) &&
 		(!this->rightNode || this->rightNode->IsAVLTree());
+}
+
+bool AVLTreeNode::Traverse(std::function<bool(const AVLTreeNode*)> callback) const
+{
+	if (this->leftNode)
+		if (!this->leftNode->Traverse(callback))
+			return false;
+
+	if (!callback(this))
+		return false;
+
+	if (this->rightNode)
+		if (!this->rightNode->Traverse(callback))
+			return false;
+
+	return true;
 }
