@@ -25,30 +25,8 @@ namespace Thebe
 		enum Type
 		{
 			NONE,
-
-			/**
-			 * The buffer is uploaded into fast GPU memory and cannot be changed.
-			 */
 			STATIC,
-
-			/**
-			 * Space is reserved in fast and slow GPU memory for the buffer, the
-			 * latter being mapped in CPU memory.  When an update is desired,
-			 * commands are issued that transfer the memory from the slow region
-			 * to the fast region of GPU memory.  Memory barriers provide the
-			 * needed synchronization between the CPU and GPU.
-			 */
-			DYNAMIC_BARRIER_METHOD,
-
-			/**
-			 * Enough space is reserved in slow GPU memory for N copies of the
-			 * buffer, where N is the number of swap-frames being used.  Space
-			 * is also reserved in CPU memory for the buffer, but only as much
-			 * as is required for a single copy.  When an update is desired,
-			 * the CPU buffer is copied into one of the N regions that the GPU
-			 * is guarenteed to not be reading from.
-			 */
-			DYNAMIC_N_BUFFER_METHOD
+			DYNAMIC
 		};
 
 		virtual bool Setup() override;
@@ -62,7 +40,7 @@ namespace Thebe
 		bool UpdateIfNecessary(ID3D12GraphicsCommandList* commandList);
 
 		UINT8* GetBufferPtr();
-		UINT32 GetBufferSize() const;
+		UINT64 GetBufferSize() const;
 		void SetBufferType(Type type);
 		Type GetBufferType() const;
 
@@ -74,12 +52,12 @@ namespace Thebe
 
 	protected:
 		std::vector<UINT8> originalBuffer;
-		D3D12_RESOURCE_STATES resourceStateWhenRendering;
-		ComPtr<ID3D12Resource> slowMemBuffer;
-		ComPtr<ID3D12Resource> fastMemBuffer;
-		UINT8* gpuBufferPtr;
-		std::unique_ptr<UINT8[]> cpuBuffer;
 		Type type;
+		UINT64 offsetAlignmentRequirement;
+		UINT64 sizeAlignmentRequirement;
+		D3D12_RESOURCE_STATES resourceStateWhenRendering;
+		ComPtr<ID3D12Resource> gpuBuffer;
+		UINT64 uploadBufferOffset;
 		UINT64 lastUpdateFrameCount;
 	};
 }

@@ -31,6 +31,9 @@ bool LinkedList::InsertNodeAfter(LinkedListNode* givenNode, LinkedListNode* befo
 			beforeNode = this->tailNode;
 
 		givenNode->Couple(beforeNode, beforeNode->nextNode);
+
+		if (this->tailNode->nextNode)
+			this->tailNode = this->tailNode->nextNode;
 	}
 
 	givenNode->linkedList = this;
@@ -54,6 +57,9 @@ bool LinkedList::InsertNodeBefore(LinkedListNode* givenNode, LinkedListNode* aft
 			afterNode = this->headNode;
 
 		givenNode->Couple(afterNode->prevNode, afterNode);
+
+		if (this->headNode->prevNode)
+			this->headNode = this->headNode->prevNode;
 	}
 
 	givenNode->linkedList = this;
@@ -76,7 +82,15 @@ bool LinkedList::RemoveNode(LinkedListNode* givenNode, bool deleteNode /*= false
 	givenNode->linkedList = nullptr;
 	if (deleteNode)
 		delete givenNode;
+	
 	this->nodeCount--;
+
+	if (this->nodeCount == 0)
+	{
+		this->headNode = nullptr;
+		this->tailNode = nullptr;
+	}
+
 	return true;
 }
 
@@ -111,11 +125,8 @@ LinkedListNode::LinkedListNode()
 
 void LinkedListNode::Couple(LinkedListNode* beforeNode, LinkedListNode* afterNode)
 {
-	if (beforeNode)
-		beforeNode->nextNode = this;
-
-	if (afterNode)
-		afterNode->prevNode = this;
+	this->prevNode = beforeNode;
+	this->nextNode = afterNode;
 
 	if (this->nextNode)
 		this->nextNode->prevNode = this;

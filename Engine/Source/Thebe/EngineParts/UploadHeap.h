@@ -28,6 +28,8 @@ namespace Thebe
 
 		void SetUploadBufferSize(UINT64 uploadBufferSize);
 		UINT8* GetUploadBufferPtr();
+		UINT8* GetAllocationPtr(UINT64 offset);
+		ID3D12Resource* GetUploadBuffer();
 
 	private:
 		UINT64 uploadBufferSize;

@@ -112,6 +112,7 @@ bool AVLTree::RemoveNode(AVLTreeNode* givenNode, bool deleteNode /*= false*/)
 	givenNode->parentNode = nullptr;
 	givenNode->leftNode = nullptr;
 	givenNode->rightNode = nullptr;
+	givenNode->tree = nullptr;
 	if (deleteNode)
 		delete givenNode;
 

@@ -11,6 +11,7 @@ ConstantsBuffer::ConstantsBuffer()
 
 /*virtual*/ ConstantsBuffer::~ConstantsBuffer()
 {
+	this->sizeAlignmentRequirement = 256;
 }
 
 void ConstantsBuffer::SetShader(Shader* shader)
@@ -26,8 +27,11 @@ void ConstantsBuffer::SetShader(Shader* shader)
 		return false;
 	}
 
-	this->SetBufferType(Buffer::DYNAMIC_BARRIER_METHOD);
+	this->SetBufferType(Buffer::DYNAMIC);
 
+	// Note that some error checking could be done here to make sure
+	// that each parameter satisfies the alignment and offset rules
+	// that are required.  My script does that for now.
 	const std::vector<Shader::Parameter>& parameterArray = this->shader->GetParameterArray();
 	UINT32 constantsBufferSize = 0;
 	for (const auto& parameter : parameterArray)
@@ -37,8 +41,7 @@ void ConstantsBuffer::SetShader(Shader* shader)
 			constantsBufferSize = size;
 	}
 
-	// Constants buffer sizes must be multiples of 256...I can't remember why.
-	constantsBufferSize = THEBE_ALIGNED(constantsBufferSize, 256);
+	constantsBufferSize = THEBE_ALIGNED(constantsBufferSize, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 	if (constantsBufferSize == 0)
 	{
 		THEBE_LOG("Failed to setup constants buffer.  Constants buffer size is zero.");
@@ -65,9 +68,9 @@ void ConstantsBuffer::SetShader(Shader* shader)
 		return false;
 	}
 
-	D3D12_RESOURCE_DESC resourceDesc = this->fastMemBuffer->GetDesc();
+	D3D12_RESOURCE_DESC resourceDesc = this->gpuBuffer->GetDesc();
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-	cbvDesc.BufferLocation = this->fastMemBuffer->GetGPUVirtualAddress();
+	cbvDesc.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = resourceDesc.Width;
 	graphicsEngine->GetDevice()->CreateConstantBufferView(&cbvDesc, this->cbvDescriptor.cpuHandle);
 

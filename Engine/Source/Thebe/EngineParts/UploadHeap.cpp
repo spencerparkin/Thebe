@@ -25,6 +25,16 @@ UINT8* UploadHeap::GetUploadBufferPtr()
 	return this->uploadBufferMapped;
 }
 
+UINT8* UploadHeap::GetAllocationPtr(UINT64 offset)
+{
+	return &this->uploadBufferMapped[offset];
+}
+
+ID3D12Resource* UploadHeap::GetUploadBuffer()
+{
+	return this->uploadBuffer.Get();
+}
+
 /*virtual*/ bool UploadHeap::Setup()
 {
 	if (this->uploadBuffer.Get())
@@ -110,6 +120,8 @@ bool UploadHeap::Deallocate(UINT64 offset)
 	}
 
 	BlockManager::BlockNode* blockNode = pair->second;
+	this->blockMap.erase(pair);
+
 	if (!this->blockManager.Deallocate(blockNode))
 	{
 		THEBE_LOG("Block manager rejected block node for deallocation.");

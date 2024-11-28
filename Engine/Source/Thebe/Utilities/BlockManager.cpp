@@ -57,7 +57,7 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 				uint64_t leftMargin = offsetAligned - offsetStart;
 				uint64_t rightMargin = offsetEnd - (offsetAligned + size);
 
-				this->freeBlockTree.RemoveNode(blockNode);
+				this->freeBlockTree.RemoveNode(blockNode, false);
 
 				if (leftMargin > 0)
 				{

@@ -3,6 +3,7 @@
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/EngineParts/UploadHeap.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 #include "Thebe/Math/PolygonMesh.h"
@@ -13,14 +14,17 @@ using namespace Thebe;
 Buffer::Buffer()
 {
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_COMMON;
-	this->gpuBufferPtr = nullptr;
 	this->type = Type::NONE;
 	this->lastUpdateFrameCount = -1L;
+	this->uploadBufferOffset = 0L;
+
+	// These alignment conventions are not well documented, but apparently well understood.
+	this->offsetAlignmentRequirement = 256;
+	this->sizeAlignmentRequirement = 256;
 }
 
 /*virtual*/ Buffer::~Buffer()
 {
-	this->cpuBuffer.reset();
 }
 
 std::vector<UINT8>& Buffer::GetOriginalBuffer()
@@ -35,7 +39,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 /*virtual*/ bool Buffer::Setup()
 {
-	if (this->slowMemBuffer.Get() || this->fastMemBuffer.Get())
+	if (this->gpuBuffer.Get())
 	{
 		THEBE_LOG("Buffer already setup.");
 		return false;
@@ -47,106 +51,81 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		return false;
 	}
 
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
-
-	ID3D12Device* device = graphicsEngine->GetDevice();
-	if (!device)
-		return false;
-
-	UINT32 bufferSize = (UINT32)this->originalBuffer.size();
+	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
 	if (bufferSize == 0)
 	{
 		THEBE_LOG("Can't create buffer of size zero.");
 		return false;
 	}
 
-	UINT32 i = (this->type == Type::DYNAMIC_N_BUFFER_METHOD) ? THEBE_NUM_SWAP_FRAMES : 1;
-	auto slowMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize * i);
-	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+	if (bufferSize % this->sizeAlignmentRequirement != 0)
+	{
+		THEBE_LOG("Buffer sizes should be multiples of %ull in this case.", this->sizeAlignmentRequirement);
+		return false;
+	}
+
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	UploadHeap* uploadHeap = graphicsEngine->GetUploadHeap();
+	if (!uploadHeap)
+		return false;
+
+	ID3D12Device* device = graphicsEngine->GetDevice();
+	if (!device)
+		return false;
+
+	if (!uploadHeap->Allocate(bufferSize, this->offsetAlignmentRequirement, this->uploadBufferOffset))
+	{
+		THEBE_LOG("Failed to allocate %ull bytes in upload heap.", bufferSize);
+		return false;
+	}
+
+	UINT8* uploadBuffer = uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
+	::memcpy(uploadBuffer, this->originalBuffer.data(), bufferSize);
+
+	auto gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+	CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
 	HRESULT result = device->CreateCommittedResource(
-		&uploadHeapProps,
+		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
-		&slowMemBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
+		&gpuBufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&this->slowMemBuffer));
+		IID_PPV_ARGS(&this->gpuBuffer));
 	if (FAILED(result))
 	{
-		THEBE_LOG("Failed to create buffer resource in slow GPU memory.  Error: 0x%08x", result);
+		THEBE_LOG("Failed to create GPU buffer.  Error: 0x%08x", result);
 		return false;
 	}
 
-	if (this->type == Type::DYNAMIC_N_BUFFER_METHOD)
-	{
-		this->cpuBuffer.reset(new UINT8[bufferSize]);
-		::memcpy(this->cpuBuffer.get(), this->originalBuffer.data(), bufferSize);
-	}
+	CommandExecutor* commandExecutor = graphicsEngine->GetCommandExecutor();
+	if (!commandExecutor)
+		return false;
 
-	CD3DX12_RANGE readRange(0, 0);
-	result = this->slowMemBuffer->Map(0, &readRange, reinterpret_cast<void**>(&this->gpuBufferPtr));
-	if (FAILED(result))
+	ComPtr<ID3D12GraphicsCommandList> commandList;
+	if(!commandExecutor->BeginRecording(commandList))
 	{
-		THEBE_LOG("Failed to map buffer into CPU memory.  Error: 0x%08x", result);
+		THEBE_LOG("Failed to start command-list recording.");
 		return false;
 	}
-
-	if (this->type == Type::STATIC)
-	{
-		::memcpy(this->gpuBufferPtr, this->originalBuffer.data(), bufferSize);
-		this->slowMemBuffer->Unmap(0, nullptr);
-		this->gpuBufferPtr = nullptr;
-	}
-
-	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
-	{
-		auto fastMemBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
-		result = device->CreateCommittedResource(
-			&defaultHeapProps,
-			D3D12_HEAP_FLAG_NONE,
-			&fastMemBufferDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			nullptr,
-			IID_PPV_ARGS(&this->fastMemBuffer));
-		if (FAILED(result))
-		{
-			THEBE_LOG("Failed to create buffer resource in fast GPU memory.  Error: 0x%08x", result);
-			return false;
-		}
-	
-		CommandExecutor* commandExecutor = graphicsEngine->GetCommandExecutor();
-		if (!commandExecutor)
-			return false;
-
-		ComPtr<ID3D12GraphicsCommandList> commandList;
-		if(!commandExecutor->BeginRecording(commandList))
-		{
-			THEBE_LOG("Failed to start command-list recording.");
-			return false;
-		}
 		
-		commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, bufferSize);
+	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
 
-		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
-		commandList->ResourceBarrier(1, &barrier);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
+	commandList->ResourceBarrier(1, &barrier);
 
-		if (this->type == Type::STATIC)
-		{
-			D3D12_DISCARD_REGION region{};
-			region.NumSubresources = 1;
-			commandList->DiscardResource(this->slowMemBuffer.Get(), &region);
-		}
+	if (!commandExecutor->EndRecording(commandList))
+		return false;
 
-		if (!commandExecutor->EndRecording(commandList))
-			return false;
-
-		commandExecutor->Execute();
-	}
+	commandExecutor->Execute();
 
 	if (this->type == Type::STATIC)
-		this->slowMemBuffer = nullptr;
+	{
+		uploadHeap->Deallocate(this->uploadBufferOffset);
+		this->uploadBufferOffset = 0L;
+	}
 
 	return true;
 }
@@ -156,82 +135,64 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	// Hmmm...I suppose we could issue GPU commands here to discard resources...
 	// See: commandList->DiscardResource(...)
 
-	this->slowMemBuffer = nullptr;
-	this->fastMemBuffer = nullptr;
-	this->gpuBufferPtr = nullptr;
-	this->cpuBuffer.reset();
-	this->type = Type::STATIC;
+	if (this->type == Type::DYNAMIC)
+	{
+		Reference<GraphicsEngine> graphicsEngine;
+		if (this->GetGraphicsEngine(graphicsEngine))
+		{
+			UploadHeap* uploadHeap = graphicsEngine->GetUploadHeap();
+			uploadHeap->Deallocate(this->uploadBufferOffset);
+		}
+	}
+
+	this->gpuBuffer = nullptr;
+	this->type = Type::NONE;
 }
 
 bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 {
+	// It's never necessary to update a static buffer, but there's no penalty for calling this function.
+	if (this->type != Type::DYNAMIC)
+		return true;
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
+	UploadHeap* uploadHeap = graphicsEngine->GetUploadHeap();
+
+	// We're potentially called multiple times in the course of building up a single frame, but we need only update once per frame.
 	UINT64 frameCount = graphicsEngine->GetFrameCount();
 	if (frameCount == this->lastUpdateFrameCount)
 		return true;
 
 	this->lastUpdateFrameCount = frameCount;
 
-	switch (this->type)
-	{
-		case Type::STATIC:
-		{
-			// It's never necessary to update a static buffer, but there's no penalty for calling this function.
-			return true;
-		}
-		case Type::DYNAMIC_BARRIER_METHOD:
-		{
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), this->resourceStateWhenRendering, D3D12_RESOURCE_STATE_COPY_DEST);
-			commandList->ResourceBarrier(1, &barrier);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), this->resourceStateWhenRendering, D3D12_RESOURCE_STATE_COPY_DEST);
+	commandList->ResourceBarrier(1, &barrier);
 
-			UINT32 bufferSize = (UINT32)this->originalBuffer.size();
-			commandList->CopyBufferRegion(this->fastMemBuffer.Get(), 0, this->slowMemBuffer.Get(), 0, bufferSize);
+	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
+	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
 
-			barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->fastMemBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
-			commandList->ResourceBarrier(1, &barrier);
+	barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
+	commandList->ResourceBarrier(1, &barrier);
 
-			return true;
-		}
-		case Type::DYNAMIC_N_BUFFER_METHOD:
-		{
-			if (!this->gpuBufferPtr || !this->cpuBuffer.get())
-				return false;
-
-			SwapChain* swapChain = graphicsEngine->GetSwapChain();
-			if (!swapChain)
-				return false;
-
-			UINT32 bufferSize = (UINT32)this->originalBuffer.size();
-			UINT32 i = swapChain->GetCurrentBackBufferIndex();
-			UINT32 offset = i * bufferSize;
-			::memcpy(&this->gpuBufferPtr[offset], this->cpuBuffer.get(), bufferSize);
-
-			return true;
-		}
-	}
-
-	return false;
+	return true;
 }
 
 UINT8* Buffer::GetBufferPtr()
 {
-	switch (this->type)
-	{
-	case Type::DYNAMIC_BARRIER_METHOD:
-		return this->gpuBufferPtr;
-	case Type::DYNAMIC_N_BUFFER_METHOD:
-		return this->cpuBuffer.get();
-	}
+	if (this->type != Type::DYNAMIC)
+		return nullptr;
 
-	return nullptr;
+	Reference<GraphicsEngine> graphicsEngine;
+	UploadHeap* uploadHeap = graphicsEngine->GetUploadHeap();
+	return uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
 }
 
-UINT32 Buffer::GetBufferSize() const
+UINT64 Buffer::GetBufferSize() const
 {
-	return (UINT32)this->originalBuffer.size();
+	return (UINT64)this->originalBuffer.size();
 }
 
 void Buffer::SetBufferType(Type type)

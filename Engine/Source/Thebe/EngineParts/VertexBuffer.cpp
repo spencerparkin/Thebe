@@ -7,6 +7,7 @@ VertexBuffer::VertexBuffer()
 {
 	::memset(&this->vertexBufferView, 0, sizeof(this->vertexBufferView));
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	this->sizeAlignmentRequirement = 1;
 }
 
 /*virtual*/ VertexBuffer::~VertexBuffer()
@@ -35,11 +36,7 @@ void VertexBuffer::SetStride(UINT32 stride)
 	if (!Buffer::Setup())
 		return false;
 
-	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
-		this->vertexBufferView.BufferLocation = this->fastMemBuffer->GetGPUVirtualAddress();
-	else
-		this->vertexBufferView.BufferLocation = this->slowMemBuffer->GetGPUVirtualAddress();
-
+	this->vertexBufferView.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
 	this->vertexBufferView.SizeInBytes = this->GetBufferSize();
 
 	return true;

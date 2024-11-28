@@ -8,6 +8,7 @@ IndexBuffer::IndexBuffer()
 	::memset(&this->indexBufferView, 0, sizeof(this->indexBufferView));
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_INDEX_BUFFER;
 	this->primitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+	this->sizeAlignmentRequirement = 1;
 }
 
 /*virtual*/ IndexBuffer::~IndexBuffer()
@@ -40,11 +41,7 @@ D3D_PRIMITIVE_TOPOLOGY IndexBuffer::GetPrimitiveTopology() const
 	if (!Buffer::Setup())
 		return false;
 
-	if (this->type == Type::STATIC || this->type == Type::DYNAMIC_BARRIER_METHOD)
-		this->indexBufferView.BufferLocation = this->fastMemBuffer->GetGPUVirtualAddress();
-	else
-		this->indexBufferView.BufferLocation = this->slowMemBuffer->GetGPUVirtualAddress();
-
+	this->indexBufferView.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
 	this->indexBufferView.SizeInBytes = this->GetBufferSize();
 
 	return true;
