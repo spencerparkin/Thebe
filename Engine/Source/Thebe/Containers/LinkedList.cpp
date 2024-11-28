@@ -70,7 +70,7 @@ bool LinkedList::RemoveNode(LinkedListNode* givenNode, bool deleteNode /*= false
 		this->headNode = this->headNode->nextNode;
 
 	if (this->tailNode == givenNode)
-		this->tailNode = this->headNode->prevNode;
+		this->tailNode = this->tailNode->prevNode;
 
 	givenNode->Decouple();
 	givenNode->linkedList = nullptr;

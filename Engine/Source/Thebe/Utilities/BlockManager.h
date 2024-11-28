@@ -67,6 +67,9 @@ namespace Thebe
 				FREE
 			};
 
+			uint64_t GetOffset() const;
+			uint64_t GetSize() const;
+
 		private:
 			BlockManager* blockManager;
 			uint64_t offset;
@@ -88,6 +91,8 @@ namespace Thebe
 
 			virtual const AVLTreeKey* GetKey() const override;
 			virtual void SetKey(const AVLTreeKey* givenKey) override;
+
+			Block* GetBlock();
 
 		private:
 			Block* block;

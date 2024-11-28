@@ -62,6 +62,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/MeshInstance.h
     Source/Thebe/EngineParts/DescriptorHeap.cpp
     Source/Thebe/EngineParts/DescriptorHeap.h
+    Source/Thebe/EngineParts/UploadHeap.cpp
+    Source/Thebe/EngineParts/UploadHeap.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

@@ -14,6 +14,7 @@
 #define THEBE_LOAD_FLAG_DONT_CHECK_CACHE				0x00000001
 #define THEBE_LOAD_FLAG_DONT_CACHE_PART					0x00000002
 #define THEBE_DUMP_FLAG_CAN_OVERWRITE					0x00000001
+#define THEBE_UPLOAD_HEAP_DEFAULT_SIZE					64 * 1024
 
 namespace Thebe
 {
@@ -26,6 +27,7 @@ namespace Thebe
 	class DescriptorHeap;
 	class Material;
 	class VertexBuffer;
+	class UploadHeap;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -72,6 +74,7 @@ namespace Thebe
 		SwapChain* GetSwapChain();
 		CommandExecutor* GetCommandExecutor();
 		DescriptorHeap* GetCbvDescriptorHeap();
+		UploadHeap* GetUploadHeap();
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
@@ -121,6 +124,7 @@ namespace Thebe
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderPass>> renderPassArray;
 		Reference<CommandExecutor> commandExecutor;
+		Reference<UploadHeap> uploadHeap;
 		Reference<DescriptorHeap> cbvDescriptorHeap;
 		std::filesystem::path assetFolder;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;

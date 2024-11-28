@@ -154,6 +154,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 /*virtual*/ void Buffer::Shutdown()
 {
 	// Hmmm...I suppose we could issue GPU commands here to discard resources...
+	// See: commandList->DiscardResource(...)
 
 	this->slowMemBuffer = nullptr;
 	this->fastMemBuffer = nullptr;

@@ -9,6 +9,7 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/EngineParts/UploadHeap.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -108,6 +109,15 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
+	this->uploadHeap.Set(new UploadHeap());
+	this->uploadHeap->SetGraphicsEngine(this);
+	this->uploadHeap->SetUploadBufferSize(THEBE_UPLOAD_HEAP_DEFAULT_SIZE);
+	if (!this->uploadHeap->Setup())
+	{
+		THEBE_LOG("Failed to setup the upload heap.");
+		return false;
+	}
+
 	this->cbvDescriptorHeap.Set(new DescriptorHeap());
 	this->cbvDescriptorHeap->SetGraphicsEngine(this);
 	D3D12_DESCRIPTOR_HEAP_DESC& cbvDescriptorHeapDesc = this->cbvDescriptorHeap->GetDescriptorHeapDesc();
@@ -166,6 +176,14 @@ void GraphicsEngine::Shutdown()
 	this->pipelineStateCacheMap.clear();
 	this->renderPassArray.clear();
 	this->enginePartCacheMap.clear();
+
+	// Do this almost last, because some shutdown routines may want to deallocate from the heap.
+	if (this->uploadHeap)
+	{
+		this->uploadHeap->Shutdown();
+		this->uploadHeap = nullptr;
+	}
+
 	this->device = nullptr;
 }
 
@@ -251,6 +269,11 @@ CommandExecutor* GraphicsEngine::GetCommandExecutor()
 DescriptorHeap* GraphicsEngine::GetCbvDescriptorHeap()
 {
 	return this->cbvDescriptorHeap;
+}
+
+UploadHeap* GraphicsEngine::GetUploadHeap()
+{
+	return this->uploadHeap;
 }
 
 bool GraphicsEngine::ResolvePath(std::filesystem::path& assetPath, ResolveMethod resolveMethod)

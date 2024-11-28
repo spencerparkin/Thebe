@@ -161,6 +161,16 @@ BlockManager::Block::Block(BlockManager* blockManager)
 {
 }
 
+uint64_t BlockManager::Block::GetOffset() const
+{
+	return this->offset;
+}
+
+uint64_t BlockManager::Block::GetSize() const
+{
+	return this->size;
+}
+
 /*virtual*/ bool BlockManager::Block::IsLessThan(const AVLTreeKey* key) const
 {
 	auto block = (const Block*)key;
@@ -218,4 +228,9 @@ BlockManager::BlockNode::BlockNode(Block* block)
 /*virtual*/ void BlockManager::BlockNode::SetKey(const AVLTreeKey* givenKey)
 {
 	this->block = (Block*)givenKey;
+}
+
+BlockManager::Block* BlockManager::BlockNode::GetBlock()
+{
+	return this->block;
 }
