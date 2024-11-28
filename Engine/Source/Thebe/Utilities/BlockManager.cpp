@@ -16,18 +16,18 @@ BlockManager::BlockManager()
 
 void BlockManager::Reset(uint64_t size)
 {
-	this->freeBlockTree.Clear(false);
+	this->freeBlockTree.Clear(true);	// Must clear tree before keys go stale.
 	this->blockList.Clear(true);
 
 	this->freeMemAvailable = size;
 
 	if (size > 0)
 	{
-		auto blockNode = new BlockNode();
-		blockNode->blockManager = this;
-		blockNode->key.offset = 0;
-		blockNode->key.size = size;
-		this->blockList.InsertNodeAfter(blockNode);
+		auto block = new Block(this);
+		block->offset = 0;
+		block->size = size;
+		this->blockList.InsertNodeAfter(block);
+		auto blockNode = new BlockNode(block);
 		this->freeBlockTree.InsertNode(blockNode);
 	}
 }
@@ -44,13 +44,13 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 		auto blockNode = (BlockNode*)queue.front();
 		queue.pop_front();
 
-		THEBE_ASSERT(blockNode->key.state == BlockKey::FREE);
+		auto block = (Block*)blockNode->GetKey();
+		THEBE_ASSERT(block->state == Block::FREE);
 
-		uint64_t blockSize = blockNode->GetSize();
-		if (blockSize >= size)
+		if (block->size >= size)
 		{
-			uint64_t offsetStart = blockNode->GetOffset();
-			uint64_t offsetEnd = blockNode->GetOffset() + blockSize;
+			uint64_t offsetStart = block->offset;
+			uint64_t offsetEnd = block->offset + block->size;
 			uint64_t offsetAligned = THEBE_ALIGNED(offsetStart, align);
 			if (offsetAligned + size <= offsetEnd)
 			{
@@ -61,30 +61,30 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 
 				if (leftMargin > 0)
 				{
-					auto newLeftNode = new BlockNode();
-					newLeftNode->blockManager = this;
-					newLeftNode->key.offset = offsetStart;
-					newLeftNode->key.size = leftMargin;
-					this->blockList.InsertNodeBefore(newLeftNode, blockNode);
-					blockNode->key.offset = offsetAligned;
-					blockNode->key.size -= leftMargin;
+					auto newLeftBlock = new Block(this);
+					newLeftBlock->offset = offsetStart;
+					newLeftBlock->size = leftMargin;
+					this->blockList.InsertNodeBefore(newLeftBlock, block);
+					block->offset = offsetAligned;
+					block->size -= leftMargin;
+					auto newLeftNode = new BlockNode(newLeftBlock);
 					this->freeBlockTree.InsertNode(newLeftNode);
 				}
 
 				if (rightMargin > 0)
 				{
-					auto newRightNode = new BlockNode();
-					newRightNode->blockManager = this;
-					newRightNode->key.offset = offsetAligned + size;
-					newRightNode->key.size = rightMargin;
-					this->blockList.InsertNodeAfter(newRightNode, blockNode);
-					blockNode->key.size -= rightMargin;
+					auto newRightBlock = new Block(this);
+					newRightBlock->offset = offsetAligned + size;
+					newRightBlock->size = rightMargin;
+					this->blockList.InsertNodeAfter(newRightBlock, block);
+					block->size -= rightMargin;
+					auto newRightNode = new BlockNode(newRightBlock);
 					this->freeBlockTree.InsertNode(newRightNode);
 				}
 
-				THEBE_ASSERT(blockNode->GetSize() == size);
-				blockNode->key.state = BlockKey::ALLOCATED;
-				this->freeMemAvailable -= blockNode->GetSize();
+				THEBE_ASSERT(block->size == size);
+				block->state = Block::ALLOCATED;
+				this->freeMemAvailable -= size;
 				return blockNode;
 			}
 		}
@@ -92,10 +92,10 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 		auto leftBlockNode = (BlockNode*)blockNode->GetRightNode();
 		auto rightBlockNode = (BlockNode*)blockNode->GetLeftNode();
 
-		if (leftBlockNode && leftBlockNode->GetSize() >= size)
+		if (leftBlockNode && leftBlockNode->block->size >= size)
 			queue.push_back(leftBlockNode);
 
-		if (rightBlockNode && rightBlockNode->GetSize() >= size)
+		if (rightBlockNode && rightBlockNode->block->size >= size)
 			queue.push_back(rightBlockNode);
 	}
 
@@ -104,103 +104,106 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 
 bool BlockManager::Deallocate(BlockNode* blockNode)
 {
-	if (blockNode->blockManager != this)
+	Block* block = blockNode->block;
+
+	if (block->blockManager != this || block->state != Block::ALLOCATED)
 		return false;
 
-	if (blockNode->key.state != BlockKey::ALLOCATED)
-		return false;
-
-	this->freeMemAvailable += blockNode->key.size;
-	blockNode->key.state = BlockKey::FREE;
+	this->freeMemAvailable += block->size;
+	block->state = Block::FREE;
 	
 	// If no two free blocks ever become adjacent within the heap,
 	// then we should never iterate these while loops more than once.
-	// Thus, I'm hopeful our time-complexity here is O(log N).
+	// Thus, I'm hopeful our time-complexity here is really O(log N).
 
 	while (true)
 	{
-		auto leftBlockNode = (BlockNode*)blockNode->GetPrevNode();
-		if (!leftBlockNode || leftBlockNode->key.state != BlockKey::FREE)
+		auto leftBlock = (Block*)block->GetPrevNode();
+		if (!leftBlock || leftBlock->state != Block::FREE)
 			break;
 		
-		this->freeBlockTree.RemoveNode(leftBlockNode);
-		blockNode->key.offset = leftBlockNode->key.offset;
-		blockNode->key.size += leftBlockNode->key.size;
-		this->blockList.RemoveNode(leftBlockNode, true);
+		block->offset = leftBlock->offset;
+		block->size += leftBlock->size;
+		auto leftBlockNode = this->freeBlockTree.FindNode(leftBlock);
+		THEBE_ASSERT(leftBlockNode != nullptr);
+		this->freeBlockTree.RemoveNode(leftBlockNode, true);	// Remove from tree before key goes stale.
+		this->blockList.RemoveNode(leftBlock, true);
 	}
 
 	while (true)
 	{
-		auto rightBlockNode = (BlockNode*)blockNode->GetNextNode();
-		if (!rightBlockNode || rightBlockNode->key.state != BlockKey::FREE)
+		auto rightBlock = (Block*)block->GetNextNode();
+		if (!rightBlock || rightBlock->state != Block::FREE)
 			break;
 
-		this->freeBlockTree.RemoveNode(rightBlockNode);
-		blockNode->key.size += rightBlockNode->key.size;
-		this->blockList.RemoveNode(rightBlockNode, true);
+		block->size += rightBlock->size;
+		auto rightBlockNode = this->freeBlockTree.FindNode(rightBlock);
+		THEBE_ASSERT(rightBlockNode != nullptr);
+		this->freeBlockTree.RemoveNode(rightBlockNode, true);	// Remove from tree before key goes stale.
+		this->blockList.RemoveNode(rightBlock, true);
 	}
 
 	this->freeBlockTree.InsertNode(blockNode);
-	
 	return true;
 }
 
-//------------------------------------- BlockManager::BlockKey -------------------------------------
+//------------------------------------- BlockManager::Block -------------------------------------
 
-BlockManager::BlockKey::BlockKey()
+BlockManager::Block::Block(BlockManager* blockManager)
 {
+	this->blockManager = blockManager;
 	this->offset = 0L;
 	this->size = 0L;
 	this->state = State::FREE;
 }
 
-/*virtual*/ BlockManager::BlockKey::~BlockKey()
+/*virtual*/ BlockManager::Block::~Block()
 {
 }
 
-/*virtual*/ bool BlockManager::BlockKey::IsLessThan(const AVLTreeKey* key) const
+/*virtual*/ bool BlockManager::Block::IsLessThan(const AVLTreeKey* key) const
 {
-	auto blockKey = (const BlockKey*)key;
+	auto block = (const Block*)key;
 
-	if (this->size < blockKey->size)
+	if (this->size < block->size)
 		return true;
 
-	if (this->size > blockKey->size)
+	if (this->size > block->size)
 		return false;
 
-	return this->offset < blockKey->offset;
+	return this->offset < block->offset;
 }
 
-/*virtual*/ bool BlockManager::BlockKey::IsGreaterThan(const AVLTreeKey* key) const
+/*virtual*/ bool BlockManager::Block::IsGreaterThan(const AVLTreeKey* key) const
 {
-	auto blockKey = (const BlockKey*)key;
+	auto block = (const Block*)key;
 
-	if (this->size > blockKey->size)
+	if (this->size > block->size)
 		return true;
 
-	if (this->size < blockKey->size)
+	if (this->size < block->size)
 		return false;
 
-	return this->offset > blockKey->offset;
+	return this->offset > block->offset;
 }
 
-/*virtual*/ bool BlockManager::BlockKey::IsEqualto(const AVLTreeKey* key) const
+/*virtual*/ bool BlockManager::Block::IsEqualto(const AVLTreeKey* key) const
 {
-	auto blockKey = (const BlockKey*)key;
+	auto block = (const Block*)key;
 
-	return this->size == blockKey->size && this->offset == blockKey->offset;
+	return this->size == block->size && this->offset == block->offset;
 }
 
-/*virtual*/ bool BlockManager::BlockKey::IsNotEqualto(const AVLTreeKey* key) const
+/*virtual*/ bool BlockManager::Block::IsNotEqualto(const AVLTreeKey* key) const
 {
 	return !this->IsEqualto(key);
 }
 
 //------------------------------------- BlockManager::BlockNode -------------------------------------
 
-BlockManager::BlockNode::BlockNode()
+BlockManager::BlockNode::BlockNode(Block* block)
 {
-	this->blockManager = nullptr;
+	this->block = block;
 }
 
 /*virtual*/ BlockManager::BlockNode::~BlockNode()
@@ -209,22 +212,10 @@ BlockManager::BlockNode::BlockNode()
 
 /*virtual*/ const AVLTreeKey* BlockManager::BlockNode::GetKey() const
 {
-	return &this->key;
+	return this->block;
 }
 
 /*virtual*/ void BlockManager::BlockNode::SetKey(const AVLTreeKey* givenKey)
 {
-	auto blockKey = (const BlockKey*)givenKey;
-	this->key.offset = blockKey->offset;
-	this->key.size = blockKey->size;
-}
-
-uint64_t BlockManager::BlockNode::GetOffset() const
-{
-	return this->key.offset;
-}
-
-uint64_t BlockManager::BlockNode::GetSize() const
-{
-	return this->key.size;
+	this->block = (Block*)givenKey;
 }

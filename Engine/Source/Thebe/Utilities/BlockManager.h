@@ -45,17 +45,16 @@ namespace Thebe
 		bool Deallocate(BlockNode* blockNode);
 
 		/**
-		 * In our case, the satilite data for a node is the key itself,
-		 * which represents of a sub-region of the entire block space.
+		 * 
 		 */
-		class THEBE_API BlockKey : public AVLTreeKey
+		class THEBE_API Block : public AVLTreeKey, public LinkedListNode
 		{
 			friend class BlockNode;
 			friend class BlockManager;
 
 		public:
-			BlockKey();
-			virtual ~BlockKey();
+			Block(BlockManager* blockManager);
+			virtual ~Block();
 
 			virtual bool IsLessThan(const AVLTreeKey* key) const override;
 			virtual bool IsGreaterThan(const AVLTreeKey* key) const override;
@@ -69,6 +68,7 @@ namespace Thebe
 			};
 
 		private:
+			BlockManager* blockManager;
 			uint64_t offset;
 			uint64_t size;
 			State state;
@@ -78,23 +78,19 @@ namespace Thebe
 		 * These are the units of allocation that can be taken out and
 		 * put back into the heap.
 		 */
-		class THEBE_API BlockNode : public LinkedListNode, public AVLTreeNode
+		class THEBE_API BlockNode : public AVLTreeNode
 		{
 			friend class BlockManager;
 
 		public:
-			BlockNode();
+			BlockNode(Block* block);
 			virtual ~BlockNode();
 
 			virtual const AVLTreeKey* GetKey() const override;
 			virtual void SetKey(const AVLTreeKey* givenKey) override;
 
-			uint64_t GetOffset() const;
-			uint64_t GetSize() const;
-
 		private:
-			BlockManager* blockManager;
-			BlockKey key;
+			Block* block;
 		};
 
 	private:
