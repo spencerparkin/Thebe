@@ -7,22 +7,20 @@ void TestAVLTree()
 	using namespace Thebe;
 
 	AVLTree tree;
-
-	std::random_device randomDevice;
-	std::mt19937 generator(randomDevice());
-
-	std::uniform_int_distribution<int> distribution(1, 100);
 	std::set<int> numberSet;
+	std::mt19937 generator;
+	std::uniform_int_distribution<int> distribution(1, 100);
 
 	for (int i = 0; i < 100; i++)
 	{
 		int number = distribution(generator);
 		tree.InsertNode(new Node(number));
 		numberSet.insert(number);
-	}
 
-	THEBE_ASSERT(numberSet.size() == tree.GetNodeCount());
-	THEBE_ASSERT(tree.IsAVLTree());
+		THEBE_ASSERT(numberSet.size() == tree.GetNodeCount(true));
+		THEBE_ASSERT(tree.IsAVLTree());
+		THEBE_ASSERT(tree.IsBinaryTree());
+	}
 
 	std::vector<int> numberArray;
 	for (int number : numberSet)
@@ -37,14 +35,14 @@ void TestAVLTree()
 
 	THEBE_ASSERT(traversed);
 
-	int j = tree.GetNodeCount() / 2;
-	for (int i = 0; i < j; i++)
+	while (tree.GetNodeCount() > 0)
+	{
 		tree.RemoveNode((AVLTreeNode*)tree.GetRootNode(), true);
 
-	THEBE_ASSERT(tree.IsAVLTree());
-
-	tree.Clear(true);
-	THEBE_ASSERT(tree.GetNodeCount() == 0);
+		THEBE_ASSERT(tree.IsAVLTree());
+		THEBE_ASSERT(tree.IsBinaryTree());
+		THEBE_ASSERT(tree.IsBinaryTree());
+	}
 }
 
 //------------------------------------- Key -------------------------------------

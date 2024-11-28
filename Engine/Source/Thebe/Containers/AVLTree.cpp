@@ -69,8 +69,7 @@ bool AVLTree::InsertNode(AVLTreeNode* givenNode)
 		}
 
 		givenNode->parentNode = node;
-		
-		this->RebalanceAtNode(node);
+		this->RebalanceAtNode(givenNode);
 	}
 	else
 	{
@@ -79,8 +78,6 @@ bool AVLTree::InsertNode(AVLTreeNode* givenNode)
 	}
 
 	givenNode->tree = this;
-	givenNode->leftNode = nullptr;
-	givenNode->rightNode = nullptr;
 	givenNode->maxDepth = 1;
 	givenNode->balanceFactor = 0;
 	this->nodeCount++;
@@ -126,8 +123,9 @@ void AVLTree::RebalanceAtNode(AVLTreeNode* node)
 	while (node)
 	{
 		node->UpdateBalanceFactor();
+		AVLTreeNode* parentNode = node->parentNode;
 		node->BalanceSubtree();
-		node = node->parentNode;
+		node = parentNode;
 	}
 }
 
@@ -169,13 +167,41 @@ AVLTreeNode* AVLTree::Maximum(void)
 bool AVLTree::IsAVLTree(void) const
 {
 	if (this->rootNode)
+	{
+		this->rootNode->UpdateBalanceFactorsRecursively();
+
 		return this->rootNode->IsAVLTree();
+	}
 
 	return true;
 }
 
-int AVLTree::GetNodeCount() const
+bool AVLTree::IsBinaryTree() const
 {
+	if (this->rootNode)
+		return this->rootNode->IsBinaryTree();
+
+	return true;
+}
+
+int AVLTree::GetNodeCount(bool walkTree /*= false*/) const
+{
+	if (walkTree)
+	{
+		int count = 0;
+
+		if (this->rootNode)
+		{
+			this->rootNode->Traverse([&count](const AVLTreeNode* node) -> bool
+				{
+					count++;
+					return true;
+				});
+		}
+
+		return count;
+	}
+
 	return this->nodeCount;
 }
 
@@ -239,7 +265,6 @@ bool AVLTreeNode::IsRoot(void) const
 	return this->parentNode ? false : true;
 }
 
-
 bool AVLTreeNode::IsLeaf(void) const
 {
 	return !(this->leftNode || this->rightNode);
@@ -283,6 +308,7 @@ bool AVLTreeNode::RotateLeft()
 
 	oldRootNode->UpdateBalanceFactor();
 	newRootNode->UpdateBalanceFactor();
+
 	return true;
 }
 
@@ -324,6 +350,7 @@ bool AVLTreeNode::RotateRight()
 
 	oldRootNode->UpdateBalanceFactor();
 	newRootNode->UpdateBalanceFactor();
+
 	return true;
 }
 
@@ -347,6 +374,8 @@ void AVLTreeNode::BalanceSubtree()
 
 void AVLTreeNode::UpdateBalanceFactor(void)
 {
+	// Here we assume that the balance factors and depth measurement of our children are already correct.
+
 	if (this->leftNode && this->rightNode)
 	{
 		if (this->leftNode->maxDepth > this->rightNode->maxDepth)
@@ -371,6 +400,17 @@ void AVLTreeNode::UpdateBalanceFactor(void)
 		this->maxDepth = 1;
 		this->balanceFactor = 0;
 	}
+}
+
+void AVLTreeNode::UpdateBalanceFactorsRecursively()
+{
+	if (this->leftNode)
+		this->leftNode->UpdateBalanceFactorsRecursively();
+
+	if (this->rightNode)
+		this->rightNode->UpdateBalanceFactorsRecursively();
+
+	this->UpdateBalanceFactor();
 }
 
 AVLTreeNode* AVLTreeNode::Predecessor(void)
@@ -421,6 +461,16 @@ AVLTreeNode* AVLTreeNode::Successor(void)
 	return nodeA;
 }
 
+const AVLTreeNode* AVLTreeNode::Predecessor() const
+{
+	return const_cast<AVLTreeNode*>(this)->Predecessor();
+}
+
+const AVLTreeNode* AVLTreeNode::Successor() const
+{
+	return const_cast<AVLTreeNode*>(this)->Successor();
+}
+
 void AVLTreeNode::ReplaceWith(AVLTreeNode* node, bool adopt)
 {
 	if (node == this)
@@ -457,9 +507,56 @@ void AVLTreeNode::ReplaceWith(AVLTreeNode* node, bool adopt)
 
 bool AVLTreeNode::IsAVLTree(void) const
 {
-	return this->balanceFactor >= -1 && this->balanceFactor <= 1 &&
-		(!this->leftNode || this->leftNode->IsAVLTree()) &&
-		(!this->rightNode || this->rightNode->IsAVLTree());
+	if (this->balanceFactor < -1 || this->balanceFactor > 1)
+		return false;
+
+	if (this->leftNode && !this->leftNode->IsAVLTree())
+		return false;
+	
+	if (this->rightNode && !this->rightNode->IsAVLTree())
+		return false;
+
+	return true;
+}
+
+bool AVLTreeNode::IsBinaryTree() const
+{
+	const AVLTreeKey* largestKey = nullptr;
+	const AVLTreeKey* smallestKey = nullptr;
+
+	if (this->leftNode)
+	{
+		this->leftNode->Traverse([&largestKey](const AVLTreeNode* node) -> bool
+			{
+				if (!largestKey || node->GetKey()->IsGreaterThan(largestKey))
+					largestKey = node->GetKey();
+				return true;
+			});
+	}
+
+	if (this->rightNode)
+	{
+		this->rightNode->Traverse([&smallestKey](const AVLTreeNode* node) -> bool
+			{
+				if (!smallestKey || node->GetKey()->IsLessThan(smallestKey))
+					smallestKey = node->GetKey();
+				return true;
+			});
+	}
+
+	if (largestKey && !largestKey->IsLessThan(this->GetKey()))
+		return false;
+
+	if (smallestKey && !smallestKey->IsGreaterThan(this->GetKey()))
+		return false;
+
+	if (this->leftNode && !this->leftNode->IsBinaryTree())
+		return false;
+
+	if (this->rightNode && !this->rightNode->IsBinaryTree())
+		return false;
+
+	return true;
 }
 
 bool AVLTreeNode::Traverse(std::function<bool(const AVLTreeNode*)> callback) const

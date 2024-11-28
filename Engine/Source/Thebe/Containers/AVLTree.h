@@ -87,9 +87,17 @@ namespace Thebe
 		bool IsAVLTree() const;
 
 		/**
-		 * Return the number of nodes in this tree.
+		 * For diagnostic purposes, verify that this tree maintains the
+		 * properties that every binary tree is defined to have.
 		 */
-		int GetNodeCount() const;
+		bool IsBinaryTree() const;
+
+		/**
+		 * Return the number of nodes in this tree.
+		 * 
+		 * @param walkTree This is only used for diagnostic purposes to see what the actual count is regardless of the cached count.
+		 */
+		int GetNodeCount(bool walkTree = false) const;
 
 		/**
 		 * Return the root of the binary tree.  Null is returned if the tree is empty.
@@ -131,12 +139,16 @@ namespace Thebe
 		bool RotateLeft();
 		bool RotateRight();
 		void UpdateBalanceFactor();
+		void UpdateBalanceFactorsRecursively();
 		void BalanceSubtree();
 		AVLTreeNode* Predecessor();
 		AVLTreeNode* Successor();
+		const AVLTreeNode* Predecessor() const;
+		const AVLTreeNode* Successor() const;
 		bool IsRoot() const;
 		bool IsLeaf() const;
 		bool IsAVLTree() const;
+		bool IsBinaryTree() const;
 		void ReplaceWith(AVLTreeNode* n, bool adopt);
 		AVLTreeNode* Find(const AVLTreeKey* givenKey);
 		bool Traverse(std::function<bool(const AVLTreeNode*)> callback) const;
