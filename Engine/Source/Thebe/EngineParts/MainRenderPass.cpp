@@ -43,8 +43,7 @@ void MainRenderPass::SetWindowHandle(HWND windowHandle)
 		return false;
 	}
 
-	this->output = swapChain.Get();
-
+	this->SetOutput(swapChain.Get());
 	return true;
 }
 

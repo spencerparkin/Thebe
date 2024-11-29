@@ -22,6 +22,7 @@ namespace Thebe
 		virtual void Shutdown() override;
 
 		D3D12_DESCRIPTOR_HEAP_DESC& GetDescriptorHeapDesc();
+		ID3D12DescriptorHeap* GetDescriptorHeap();
 
 		struct Descriptor
 		{

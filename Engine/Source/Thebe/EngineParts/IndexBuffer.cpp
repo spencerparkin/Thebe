@@ -30,6 +30,11 @@ D3D_PRIMITIVE_TOPOLOGY IndexBuffer::GetPrimitiveTopology() const
 	return this->primitiveTopology;
 }
 
+const D3D12_INDEX_BUFFER_VIEW* IndexBuffer::GetIndexBufferView() const
+{
+	return &this->indexBufferView;
+}
+
 /*virtual*/ bool IndexBuffer::Setup()
 {
 	if (this->primitiveTopology == D3D_PRIMITIVE_TOPOLOGY_UNDEFINED)
@@ -52,6 +57,41 @@ D3D_PRIMITIVE_TOPOLOGY IndexBuffer::GetPrimitiveTopology() const
 	Buffer::Shutdown();
 
 	::memset(&this->indexBufferView, 0, sizeof(this->indexBufferView));
+}
+
+UINT IndexBuffer::GetIndicesPerInstance() const
+{
+	if (this->primitiveTopology == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
+		return 3;
+
+	return 0;
+}
+
+UINT IndexBuffer::GetInstanceCount() const
+{
+	return this->GetIndexCount() / this->GetIndicesPerInstance();
+}
+
+UINT IndexBuffer::GetStride() const
+{
+	switch (this->indexBufferView.Format)
+	{
+	case DXGI_FORMAT_R16_UINT:
+		return 2;
+	case DXGI_FORMAT_R32_UINT:
+		return 4;
+	}
+
+	return 0;
+}
+
+UINT IndexBuffer::GetIndexCount() const
+{
+	UINT stride = this->GetStride();
+	if (stride == 0)
+		return 0;
+
+	return UINT(this->originalBuffer.size()) / stride;
 }
 
 /*virtual*/ bool IndexBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)

@@ -186,6 +186,7 @@ UINT8* Buffer::GetBufferPtr()
 		return nullptr;
 
 	Reference<GraphicsEngine> graphicsEngine;
+	this->GetGraphicsEngine(graphicsEngine);
 	UploadHeap* uploadHeap = graphicsEngine->GetUploadHeap();
 	return uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
 }

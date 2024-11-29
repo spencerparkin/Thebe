@@ -10,6 +10,8 @@
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/EngineParts/UploadHeap.h"
+#include "Thebe/EngineParts/RenderObject.h"
+#include "Thebe/EngineParts/Camera.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -192,8 +194,32 @@ UINT64 GraphicsEngine::GetFrameCount()
 	return this->frameCount;
 }
 
+void GraphicsEngine::SetInputToAllRenderPasses(RenderObject* renderObject)
+{
+	for (Reference<RenderPass>& renderPass : this->renderPassArray)
+		renderPass->SetInput(renderObject);
+}
+
+void GraphicsEngine::SetCameraForMainRenderPass(Camera* camera)
+{
+	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
+	if (mainRenderPass)
+		mainRenderPass->SetCamera(camera);
+}
+
+void GraphicsEngine::SetCameraForShadowPass(Camera* camera)
+{
+}
+
 void GraphicsEngine::Render()
 {
+	std::set<RenderObject*> renderObjectSet;
+	for (Reference<RenderPass>& renderPass : this->renderPassArray)
+		renderObjectSet.insert(renderPass->GetInput());
+
+	for (RenderObject* renderObject : renderObjectSet)
+		renderObject->PrepareForRender();
+
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Perform();
 
@@ -240,6 +266,17 @@ void GraphicsEngine::Resize(int width, int height)
 	SwapChain* swapChain = this->GetSwapChain();
 	if (swapChain)
 		swapChain->Resize(width, height);
+
+	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
+	if (mainRenderPass)
+	{
+		Camera* camera = mainRenderPass->GetCamera();
+		if (camera)
+		{
+			double aspectRatio = (height != 0) ? (double(width) / double(height)) : 1.0;
+			camera->UpdateProjection(aspectRatio);
+		}
+	}
 }
 
 SwapChain* GraphicsEngine::GetSwapChain()

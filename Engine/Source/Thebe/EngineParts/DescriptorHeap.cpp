@@ -62,6 +62,11 @@ D3D12_DESCRIPTOR_HEAP_DESC& DescriptorHeap::GetDescriptorHeapDesc()
 	return this->descriptorHeapDesc;
 }
 
+ID3D12DescriptorHeap* DescriptorHeap::GetDescriptorHeap()
+{
+	return this->descriptorHeap.Get();
+}
+
 bool DescriptorHeap::AllocDescriptor(Descriptor& descriptor)
 {
 	if (this->freeDescriptorsStack.size() == 0)

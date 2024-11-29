@@ -2,6 +2,7 @@
 
 #include "Thebe/EngineParts/Buffer.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/EngineParts/Shader.h"
 #include "Thebe/Math/Vector2.h"
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/Matrix2x2.h"
@@ -28,7 +29,12 @@ namespace Thebe
 		bool SetParameter(const std::string& name, const Matrix3x3& matrix);
 		bool SetParameter(const std::string& name, const Matrix4x4& matrix);
 
+		bool HasParameter(const std::string& name);
+		Shader::Parameter::Type GetParameterType(const std::string& name);
+
 		void SetShader(Shader* shader);
+
+		const DescriptorHeap::Descriptor& GetDescriptor() const;
 
 	private:
 		Reference<Shader> shader;

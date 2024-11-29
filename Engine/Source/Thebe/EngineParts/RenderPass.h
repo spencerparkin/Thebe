@@ -36,6 +36,11 @@ namespace Thebe
 
 		RenderObject* GetInput();
 		RenderTarget* GetOutput();
+		Camera* GetCamera();
+
+		void SetInput(RenderObject* renderObject);
+		void SetOutput(RenderTarget* renderTarget);
+		void SetCamera(Camera* camera);
 
 	protected:
 		Reference<RenderObject> input;

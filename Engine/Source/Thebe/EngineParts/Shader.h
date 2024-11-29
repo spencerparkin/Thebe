@@ -25,6 +25,7 @@ namespace Thebe
 		{
 			enum Type
 			{
+				UNKNOWN,
 				FLOAT,
 				FLOAT2,
 				FLOAT3,

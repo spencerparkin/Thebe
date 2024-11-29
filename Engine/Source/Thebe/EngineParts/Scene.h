@@ -18,8 +18,13 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
+		virtual void PrepareForRender() override;
+
+		void SetRootSpace(Space* space);
 
 	protected:
+		void GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera);
+
 		Reference<Space> rootSpace;
 	};
 }

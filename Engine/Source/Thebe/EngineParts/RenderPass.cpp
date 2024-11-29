@@ -139,3 +139,23 @@ RenderTarget* RenderPass::GetOutput()
 {
 	return this->output.Get();
 }
+
+Camera* RenderPass::GetCamera()
+{
+	return this->camera;
+}
+
+void RenderPass::SetInput(RenderObject* renderObject)
+{
+	this->input = renderObject;
+}
+
+void RenderPass::SetOutput(RenderTarget* renderTarget)
+{
+	this->output = renderTarget;
+}
+
+void RenderPass::SetCamera(Camera* camera)
+{
+	this->camera = camera;
+}

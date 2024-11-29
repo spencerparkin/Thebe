@@ -67,7 +67,6 @@ Shader::Shader()
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
 	rootParameterArray.resize(1);
-
 	rootParameterArray[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterArray[0].DescriptorTable.pDescriptorRanges = descriptorRangeArray.data();

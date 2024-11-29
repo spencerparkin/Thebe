@@ -84,13 +84,31 @@ void ConstantsBuffer::SetShader(Shader* shader)
 		Reference<GraphicsEngine> graphicsEngine;
 		if (this->GetGraphicsEngine(graphicsEngine))
 		{
-			// I'm not actually entirely sure that these can be re-used.  The DX12 API documentation doesn't make it clear at all.
 			DescriptorHeap* cbvDescriptorHeap = graphicsEngine->GetCbvDescriptorHeap();
 			cbvDescriptorHeap->FreeDescriptor(this->cbvDescriptor);
 		}
 	}
 
 	Buffer::Shutdown();
+}
+
+const DescriptorHeap::Descriptor& ConstantsBuffer::GetDescriptor() const
+{
+	return this->cbvDescriptor;
+}
+
+bool ConstantsBuffer::HasParameter(const std::string& name)
+{
+	return this->shader->FindParameter(name) ? true : false;
+}
+
+Shader::Parameter::Type ConstantsBuffer::GetParameterType(const std::string& name)
+{
+	const Shader::Parameter* parameter = this->shader->FindParameter(name);
+	if (!parameter)
+		return Shader::Parameter::Type::UNKNOWN;
+
+	return parameter->type;
 }
 
 bool ConstantsBuffer::SetParameter(const std::string& name, double scalar)

@@ -28,6 +28,8 @@ namespace Thebe
 	class Material;
 	class VertexBuffer;
 	class UploadHeap;
+	class RenderObject;
+	class Camera;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -75,6 +77,10 @@ namespace Thebe
 		CommandExecutor* GetCommandExecutor();
 		DescriptorHeap* GetCbvDescriptorHeap();
 		UploadHeap* GetUploadHeap();
+
+		void SetInputToAllRenderPasses(RenderObject* renderObject);
+		void SetCameraForMainRenderPass(Camera* camera);
+		void SetCameraForShadowPass(Camera* camera);
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);

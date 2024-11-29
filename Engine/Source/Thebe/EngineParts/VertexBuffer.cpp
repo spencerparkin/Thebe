@@ -19,6 +19,11 @@ void VertexBuffer::SetStride(UINT32 stride)
 	this->vertexBufferView.StrideInBytes = stride;
 }
 
+const D3D12_VERTEX_BUFFER_VIEW* VertexBuffer::GetVertexBufferView() const
+{
+	return &this->vertexBufferView;
+}
+
 /*virtual*/ bool VertexBuffer::Setup()
 {
 	if (this->elementDescArray.size() == 0)
