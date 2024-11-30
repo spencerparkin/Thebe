@@ -53,7 +53,7 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 
 		// However, we can only prune the left branch when the block size was too small.
 		auto block = (Block*)blockNode->GetKey();
-		if (block->size >= size)
+		if (block->size > size)
 			queue.push_back((BlockNode*)blockNode->GetLeftNode());
 	}
 
