@@ -37,6 +37,8 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 	if (this->freeMemAvailable == 0 || size > this->freeMemAvailable)
 		return nullptr;
 
+	// Note that without hurting the time-complexity of the algorithm, there
+	// is a conceivable way here to look for a block of best fit, I think.
 	for (auto blockNode = (BlockNode*)this->freeBlockTree.GetRootNode(); blockNode; blockNode = (BlockNode*)blockNode->GetRightNode())
 	{
 		auto block = (Block*)blockNode->GetKey();
