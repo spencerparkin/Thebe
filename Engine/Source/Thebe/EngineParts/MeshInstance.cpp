@@ -76,19 +76,22 @@ MeshInstance::MeshInstance()
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
+	const Matrix4x4& cameraToProjMatrix = camera->GetCameraToProjectionMatrix();
+
+	Matrix4x4 worldToCameraMatrix;
+	camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
+
+	Matrix4x4 objectToWorldMatrix;
+	this->objectToWorld.GetToMatrix(objectToWorldMatrix);
+
+	Matrix4x4 objectToCameraMatrix = worldToCameraMatrix * objectToWorldMatrix;
+	Matrix4x4 objectToProjMatrix = cameraToProjMatrix * objectToCameraMatrix;
+
 	if (this->constantsBuffer->GetParameterType("objToProj") == Shader::Parameter::Type::FLOAT4x4)
-	{
-		const Matrix4x4& cameraToProjMatrix = camera->GetCameraToProjectionMatrix();
-
-		Matrix4x4 worldToCameraMatrix;
-		camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
-
-		Matrix4x4 objectToWorldMatrix;
-		this->objectToWorld.GetToMatrix(objectToWorldMatrix);
-
-		Matrix4x4 objectToProjMatrix = cameraToProjMatrix * worldToCameraMatrix * objectToWorldMatrix;
 		this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
-	}
+
+	if (this->constantsBuffer->GetParameterType("objToCam") == Shader::Parameter::Type::FLOAT4x4)
+		this->constantsBuffer->SetParameter("objToCam", objectToCameraMatrix);
 
 	if (!this->constantsBuffer->UpdateIfNecessary(commandList))
 	{

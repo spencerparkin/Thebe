@@ -1,5 +1,10 @@
 {
     "constants": {
+        "objToCam": {
+            "offset": 64,
+            "size": 64,
+            "type": "float4x4"
+        },
         "objToProj": {
             "offset": 0,
             "size": 64,

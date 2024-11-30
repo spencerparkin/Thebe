@@ -3,7 +3,8 @@
 cbuffer Constants : register(b0)
 {
     float4x4 objToProj;
-    float pad[192];
+    float4x4 objToCam;
+    float pad[176];
 };
 
 struct VSInput
@@ -23,7 +24,7 @@ PSInput VSMain(VSInput input)
     PSInput output;
     
     output.position = mul(objToProj, float4(input.position, 1.0));
-    output.normal = float3(0.0, 0.0, 0.0);
+    output.normal = normalize(mul(objToCam, float4(input.normal, 0.0)).xyz);
     
     return output;
 }
