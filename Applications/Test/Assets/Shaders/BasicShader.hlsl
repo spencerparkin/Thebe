@@ -4,7 +4,6 @@ cbuffer Constants : register(b0)
 {
     float4x4 objToProj;
     float4x4 objToCam;
-    float pad[176];
 };
 
 struct VSInput
