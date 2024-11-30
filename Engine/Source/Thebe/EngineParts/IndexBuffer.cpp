@@ -59,19 +59,6 @@ const D3D12_INDEX_BUFFER_VIEW* IndexBuffer::GetIndexBufferView() const
 	::memset(&this->indexBufferView, 0, sizeof(this->indexBufferView));
 }
 
-UINT IndexBuffer::GetIndicesPerInstance() const
-{
-	if (this->primitiveTopology == D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
-		return 3;
-
-	return 0;
-}
-
-UINT IndexBuffer::GetInstanceCount() const
-{
-	return this->GetIndexCount() / this->GetIndicesPerInstance();
-}
-
 UINT IndexBuffer::GetStride() const
 {
 	switch (this->indexBufferView.Format)

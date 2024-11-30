@@ -23,8 +23,6 @@ namespace Thebe
 		D3D_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const;
 		const D3D12_INDEX_BUFFER_VIEW* GetIndexBufferView() const;
 
-		UINT GetIndicesPerInstance() const;
-		UINT GetInstanceCount() const;
 		UINT GetStride() const;
 		UINT GetIndexCount() const;
 

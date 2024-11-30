@@ -115,9 +115,8 @@ MeshInstance::MeshInstance()
 	commandList->IASetVertexBuffers(0, 1, vertexBuffer->GetVertexBufferView());
 	commandList->IASetPrimitiveTopology(indexBuffer->GetPrimitiveTopology());
 
-	UINT numIndicesPerInstance = indexBuffer->GetIndicesPerInstance();
-	UINT numInstances = indexBuffer->GetInstanceCount();
-	commandList->DrawIndexedInstanced(numIndicesPerInstance, numInstances, 0, 0, 0);
+	UINT numIndices = indexBuffer->GetIndexCount();
+	commandList->DrawIndexedInstanced(numIndices, 1, 0, 0, 0);
 
 	return true;
 }
