@@ -11,6 +11,7 @@ namespace Thebe
 
 	class IndexBuffer;
 	class VertexBuffer;
+	class TextureBuffer;
 
 	/**
 	 * This is the base class for constants buffers, index buffers and vertex buffers.
@@ -43,6 +44,7 @@ namespace Thebe
 		UINT64 GetBufferSize() const;
 		void SetBufferType(Type type);
 		Type GetBufferType() const;
+		D3D12_RESOURCE_DESC& GetResourceDesc();
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
 			const std::vector<Vector3>& pointArray,
@@ -50,9 +52,17 @@ namespace Thebe
 			Reference<IndexBuffer>& indexBuffer,
 			Reference<VertexBuffer>& vertexBuffer);
 
+		static bool GenerateCheckboardTextureBuffer(
+			UINT width,
+			UINT height,
+			UINT checkerSize,
+			GraphicsEngine* graphicsEngine,
+			Reference<TextureBuffer>& textureBuffer);
+
 	protected:
 		std::vector<UINT8> originalBuffer;
 		Type type;
+		D3D12_RESOURCE_DESC gpuBufferDesc;
 		UINT64 offsetAlignmentRequirement;
 		UINT64 sizeAlignmentRequirement;
 		D3D12_RESOURCE_STATES resourceStateWhenRendering;

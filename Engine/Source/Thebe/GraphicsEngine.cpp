@@ -2,7 +2,7 @@
 #include "Thebe/EngineParts/MainRenderPass.h"
 #include "Thebe/EngineParts/SwapChain.h"
 #include "Thebe/EngineParts/Material.h"
-#include "Thebe/EngineParts/Texture.h"
+#include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/Shader.h"
@@ -476,8 +476,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 	enginePart.Reset();
 	if (ext == ".material")
 		enginePart.Set(new Material());
-	else if (ext == ".texture")
-		enginePart.Set(new Texture());
+	else if (ext == ".texture_buffer")
+		enginePart.Set(new TextureBuffer());
 	else if (ext == ".vertex_buffer")
 		enginePart.Set(new VertexBuffer());
 	else if (ext == ".index_buffer")

@@ -3,5 +3,6 @@
 	"format": 57,
 	"primitive_topology": 4,
 	"size": 72,
-	"type": 1
+	"type": 1,
+    "dimensionality": "buffer"
 }

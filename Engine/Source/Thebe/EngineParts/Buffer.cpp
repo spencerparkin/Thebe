@@ -3,6 +3,7 @@
 #include "Thebe/EngineParts/CommandExecutor.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/UploadHeap.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
@@ -21,6 +22,18 @@ Buffer::Buffer()
 	// These alignment conventions are not well documented, but apparently well understood.
 	this->offsetAlignmentRequirement = 256;
 	this->sizeAlignmentRequirement = 256;
+
+	this->gpuBufferDesc.MipLevels = 1;
+	this->gpuBufferDesc.Alignment = 0;
+	this->gpuBufferDesc.Width = 0;
+	this->gpuBufferDesc.Height = 1;
+	this->gpuBufferDesc.DepthOrArraySize = 1;
+	this->gpuBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	this->gpuBufferDesc.SampleDesc.Count = 1;
+	this->gpuBufferDesc.SampleDesc.Quality = 0;
+	this->gpuBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	this->gpuBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_UNKNOWN;
 }
 
 /*virtual*/ Buffer::~Buffer()
@@ -64,6 +77,35 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		return false;
 	}
 
+	if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_UNKNOWN)
+	{
+		THEBE_LOG("Buffer resource dimension not specified.");
+		return false;
+	}
+
+	switch (this->gpuBufferDesc.Dimension)
+	{
+		case D3D12_RESOURCE_DIMENSION_BUFFER:
+		{
+			if (this->gpuBufferDesc.Width != bufferSize || this->gpuBufferDesc.Height != 1)
+			{
+				THEBE_LOG("Buffer description inconsistent with buffer size.");
+				THEBE_LOG("Buffer width is set to %ull, but buffer size is set to %ull.", this->gpuBufferDesc.Width, bufferSize);
+				return false;
+			}
+			break;
+		}
+		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+		{
+			break;
+		}
+		default:
+		{
+			THEBE_LOG("Resource dimension %d not yet supported.", this->gpuBufferDesc.Dimension);
+			return false;
+		}
+	}
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
@@ -85,12 +127,11 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	UINT8* uploadBuffer = uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
 	::memcpy(uploadBuffer, this->originalBuffer.data(), bufferSize);
 
-	auto gpuBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 	CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
 	HRESULT result = device->CreateCommittedResource(
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
-		&gpuBufferDesc,
+		&this->gpuBufferDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
 		IID_PPV_ARGS(&this->gpuBuffer));
@@ -110,8 +151,25 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		THEBE_LOG("Failed to start command-list recording.");
 		return false;
 	}
-		
-	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
+	
+	switch (this->gpuBufferDesc.Dimension)
+	{
+		case D3D12_RESOURCE_DIMENSION_BUFFER:
+		{
+			commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
+			break;
+		}
+		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+		{
+			// TODO: Call commandList->CopyTextureRegion(...);
+			break;
+		}
+		default:
+		{
+			THEBE_LOG("Dimension %d not supported yet.", this->gpuBufferDesc.Dimension);
+			break;
+		}
+	}
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 	commandList->ResourceBarrier(1, &barrier);
@@ -206,6 +264,11 @@ Buffer::Type Buffer::GetBufferType() const
 	return this->type;
 }
 
+D3D12_RESOURCE_DESC& Buffer::GetResourceDesc()
+{
+	return this->gpuBufferDesc;
+}
+
 /*virtual*/ bool Buffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
 {
 	using namespace ParseParty;
@@ -245,6 +308,44 @@ Buffer::Type Buffer::GetBufferType() const
 
 	UINT32 bufferSize = (UINT32)sizeValue->GetValue();
 	this->originalBuffer.resize(bufferSize);
+
+	auto dimensionalityValue = dynamic_cast<const JsonString*>(rootValue->GetValue("dimensionality"));
+	if (!dimensionalityValue)
+	{
+		THEBE_LOG("No dimentionality specified.");
+		return false;
+	}
+
+	std::string dimensionality = dimensionalityValue->GetValue();
+	if (dimensionality == "buffer")
+		this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	else if (dimensionality == "texture2D")
+		this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	else
+	{
+		THEBE_LOG("Unrecognized dimensionality: %s", dimensionality.c_str());
+		return false;
+	}
+
+	if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+	{
+		this->gpuBufferDesc.Width = bufferSize;
+	}
+	else if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+	{
+		auto widthValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("width"));
+		auto heightValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("height"));
+		auto pixelFormatValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("pixel_format"));
+		if (!(widthValue && heightValue && pixelFormatValue))
+		{
+			THEBE_LOG("Did not find width, height and pixel format values.");
+			return false;
+		}
+
+		this->gpuBufferDesc.Width = (UINT64)widthValue->GetValue();
+		this->gpuBufferDesc.Height = (UINT64)heightValue->GetValue();
+		this->gpuBufferDesc.Format = (DXGI_FORMAT)pixelFormatValue->GetValue();
+	}
 
 	auto floatArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("float_array"));
 	auto intArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("int_array"));
@@ -336,6 +437,27 @@ Buffer::Type Buffer::GetBufferType() const
 	rootValue->SetValue("type", new JsonInt(this->type));
 	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));
 
+	std::string dimensionality;
+	switch (this->gpuBufferDesc.Dimension)
+	{
+	case D3D12_RESOURCE_DIMENSION_BUFFER:
+		rootValue->SetValue("dimensionality", new JsonString("buffer"));
+		break;
+	case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+		rootValue->SetValue("dimensionality", new JsonString("texture2D"));
+		break;
+	default:
+		THEBE_LOG("Unrecognized dimensionality: %d", this->gpuBufferDesc.Dimension);
+		return false;
+	}
+
+	if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+	{
+		rootValue->SetValue("width", new JsonInt(this->gpuBufferDesc.Width));
+		rootValue->SetValue("height", new JsonInt(this->gpuBufferDesc.Height));
+		rootValue->SetValue("pixel_format", new JsonInt(this->gpuBufferDesc.Format));
+	}
+
 	// TODO: May want to compress the buffer.
 
 	std::filesystem::path bufferDataPath = relativePath;
@@ -388,6 +510,10 @@ Buffer::Type Buffer::GetBufferType() const
 		for (int j = 0; j < (int)polygon.vertexArray.size(); j++)
 			indexBufferData[i++] = (uint16_t)polygon.vertexArray[j];
 
+	D3D12_RESOURCE_DESC& indexBufferDesc = indexBuffer->GetResourceDesc();
+	indexBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	indexBufferDesc.Width = originalIndexBuffer.size();
+
 	if (!indexBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup index buffer.");
@@ -420,9 +546,59 @@ Buffer::Type Buffer::GetBufferType() const
 		*vertex++ = (float)normal.z;
 	}
 
+	D3D12_RESOURCE_DESC& vertexBufferDesc = vertexBuffer->GetResourceDesc();
+	vertexBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	vertexBufferDesc.Width = originalVertexBuffer.size();
+
 	if (!vertexBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup vertex buffer.");
+		return false;
+	}
+
+	return true;
+}
+
+/*static*/ bool Buffer::GenerateCheckboardTextureBuffer(
+	UINT width,
+	UINT height,
+	UINT checkerSize,
+	GraphicsEngine* graphicsEngine,
+	Reference<TextureBuffer>& textureBuffer)
+{
+	textureBuffer.Set(new TextureBuffer());
+	textureBuffer->SetGraphicsEngine(graphicsEngine);
+	textureBuffer->SetBufferType(Buffer::STATIC);
+
+	D3D12_RESOURCE_DESC& textureBufferDesc = textureBuffer->GetResourceDesc();
+	textureBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	textureBufferDesc.Width = width;
+	textureBufferDesc.Height = height;
+	textureBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	UINT bytesPerPixel = 4;
+	std::vector<UINT8>& originalTextureBuffer = textureBuffer->GetOriginalBuffer();
+	originalTextureBuffer.resize(width * height * bytesPerPixel);
+
+	for (UINT i = 0; i < width; i++)
+	{
+		for (UINT j = 0; j < height; j++)
+		{
+			UINT k = j * height + i;
+			UINT8* pixel = &originalTextureBuffer.data()[k * bytesPerPixel];
+			UINT x = i / checkerSize;
+			UINT y = j / checkerSize;
+			UINT component = ((x + y) % 2 == 0) ? 255 : 0;
+			pixel[0] = component;
+			pixel[1] = component;
+			pixel[2] = component;
+			pixel[3] = 255;
+		}
+	}
+
+	if (!textureBuffer->Setup())
+	{
+		THEBE_LOG("Failed to setup texture buffer.");
 		return false;
 	}
 

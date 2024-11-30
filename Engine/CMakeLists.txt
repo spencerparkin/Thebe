@@ -40,8 +40,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/SwapChain.h
     Source/Thebe/EngineParts/Shader.cpp
     Source/Thebe/EngineParts/Shader.h
-    Source/Thebe/EngineParts/Texture.cpp
-    Source/Thebe/EngineParts/Texture.h
+    Source/Thebe/EngineParts/TextureBuffer.cpp
+    Source/Thebe/EngineParts/TextureBuffer.h
     Source/Thebe/EngineParts/Buffer.cpp
     Source/Thebe/EngineParts/Buffer.h
     Source/Thebe/EngineParts/VertexBuffer.cpp

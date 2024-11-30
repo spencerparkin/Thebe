@@ -52,6 +52,10 @@ void ConstantsBuffer::SetShader(Shader* shader)
 	this->originalBuffer.resize(constantsBufferSize);
 	::ZeroMemory(this->originalBuffer.data(), constantsBufferSize);
 
+	D3D12_RESOURCE_DESC& bufferDesc = this->GetResourceDesc();
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = this->originalBuffer.size();
+
 	if (!Buffer::Setup())
 	{
 		THEBE_LOG("Failed to setup constants buffer.");
