@@ -38,56 +38,73 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 		return nullptr;
 
 	// Note that without hurting the time-complexity of the algorithm, there
-	// is a conceivable way here to look for a block of best fit, I think.
-	for (auto blockNode = (BlockNode*)this->freeBlockTree.GetRootNode(); blockNode; blockNode = (BlockNode*)blockNode->GetRightNode())
+	// is conceivably a way here to look for a block of best fit, I think.
+	std::list<BlockNode*> queue;
+	queue.push_back((BlockNode*)this->freeBlockTree.GetRootNode());
+	while (queue.size() > 0)
 	{
+		BlockNode* blockNode = queue.front();
+		queue.pop_front();
+		if (this->TryAllocate(blockNode, size, align))
+			return blockNode;
+
+		// We always unconditionally go down the right branch.
+		queue.push_back((BlockNode*)blockNode->GetRightNode());
+
+		// However, we can only prune the left branch when the block size was too small.
 		auto block = (Block*)blockNode->GetKey();
-		THEBE_ASSERT(block->state == Block::FREE);
-
 		if (block->size >= size)
-		{
-			uint64_t offsetStart = block->offset;
-			uint64_t offsetEnd = block->offset + block->size;
-			uint64_t offsetAligned = THEBE_ALIGNED(offsetStart, align);
-			if (offsetAligned + size <= offsetEnd)
-			{
-				uint64_t leftMargin = offsetAligned - offsetStart;
-				uint64_t rightMargin = offsetEnd - (offsetAligned + size);
-
-				this->freeBlockTree.RemoveNode(blockNode, false);
-
-				if (leftMargin > 0)
-				{
-					auto newLeftBlock = new Block(this);
-					newLeftBlock->offset = offsetStart;
-					newLeftBlock->size = leftMargin;
-					this->blockList.InsertNodeBefore(newLeftBlock, block);
-					block->offset = offsetAligned;
-					block->size -= leftMargin;
-					auto newLeftNode = new BlockNode(newLeftBlock);
-					this->freeBlockTree.InsertNode(newLeftNode);
-				}
-
-				if (rightMargin > 0)
-				{
-					auto newRightBlock = new Block(this);
-					newRightBlock->offset = offsetAligned + size;
-					newRightBlock->size = rightMargin;
-					this->blockList.InsertNodeAfter(newRightBlock, block);
-					block->size -= rightMargin;
-					auto newRightNode = new BlockNode(newRightBlock);
-					this->freeBlockTree.InsertNode(newRightNode);
-				}
-
-				THEBE_ASSERT(block->size == size);
-				block->state = Block::ALLOCATED;
-				this->freeMemAvailable -= size;
-				return blockNode;
-			}
-		}
+			queue.push_back((BlockNode*)blockNode->GetLeftNode());
 	}
 
 	return nullptr;
+}
+
+bool BlockManager::TryAllocate(BlockNode* blockNode, uint64_t size, uint64_t align)
+{
+	auto block = (Block*)blockNode->GetKey();
+	THEBE_ASSERT(block->state == Block::FREE);
+	if (block->size < size)
+		return false;
+
+	uint64_t offsetStart = block->offset;
+	uint64_t offsetEnd = block->offset + block->size;
+	uint64_t offsetAligned = THEBE_ALIGNED(offsetStart, align);
+	if (offsetAligned + size > offsetEnd)
+		return false;
+
+	uint64_t leftMargin = offsetAligned - offsetStart;
+	uint64_t rightMargin = offsetEnd - (offsetAligned + size);
+
+	this->freeBlockTree.RemoveNode(blockNode, false);
+
+	if (leftMargin > 0)
+	{
+		auto newLeftBlock = new Block(this);
+		newLeftBlock->offset = offsetStart;
+		newLeftBlock->size = leftMargin;
+		this->blockList.InsertNodeBefore(newLeftBlock, block);
+		block->offset = offsetAligned;
+		block->size -= leftMargin;
+		auto newLeftNode = new BlockNode(newLeftBlock);
+		this->freeBlockTree.InsertNode(newLeftNode);
+	}
+
+	if (rightMargin > 0)
+	{
+		auto newRightBlock = new Block(this);
+		newRightBlock->offset = offsetAligned + size;
+		newRightBlock->size = rightMargin;
+		this->blockList.InsertNodeAfter(newRightBlock, block);
+		block->size -= rightMargin;
+		auto newRightNode = new BlockNode(newRightBlock);
+		this->freeBlockTree.InsertNode(newRightNode);
+	}
+
+	THEBE_ASSERT(block->size == size);
+	block->state = Block::ALLOCATED;
+	this->freeMemAvailable -= size;
+	return true;
 }
 
 bool BlockManager::Deallocate(BlockNode* blockNode)

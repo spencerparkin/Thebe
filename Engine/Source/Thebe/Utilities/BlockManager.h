@@ -104,6 +104,8 @@ namespace Thebe
 		};
 
 	private:
+		bool TryAllocate(BlockNode* blockNode, uint64_t size, uint64_t align);
+
 		uint64_t freeMemAvailable;
 
 		// This container will maintain the physical order of the blocks in memory.
