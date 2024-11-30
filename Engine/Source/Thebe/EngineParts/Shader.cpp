@@ -62,7 +62,7 @@ Shader::Shader()
 	descriptorRangeArray[0].BaseShaderRegister = 0;
 	descriptorRangeArray[0].NumDescriptors = 1;
 	descriptorRangeArray[0].RegisterSpace = 0;
-	descriptorRangeArray[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
+	descriptorRangeArray[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
 	descriptorRangeArray[0].OffsetInDescriptorsFromTableStart = 0;
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;

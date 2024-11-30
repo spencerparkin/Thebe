@@ -7,6 +7,7 @@ using namespace Thebe;
 
 ConstantsBuffer::ConstantsBuffer()
 {
+	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 }
 
 /*virtual*/ ConstantsBuffer::~ConstantsBuffer()

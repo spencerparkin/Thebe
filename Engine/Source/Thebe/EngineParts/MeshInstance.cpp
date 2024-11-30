@@ -102,7 +102,7 @@ MeshInstance::MeshInstance()
 	VertexBuffer* vertexBuffer = this->mesh->GetVertexBuffer();
 
 	commandList->SetGraphicsRootSignature(shader->GetRootSignature());
-	
+
 	ID3D12DescriptorHeap* cbvDescriptorHeap = graphicsEngine->GetCbvDescriptorHeap()->GetDescriptorHeap();
 	commandList->SetDescriptorHeaps(1, &cbvDescriptorHeap);		// It's unfortunately we can't do this once before all render objects render.  Why not?
 
