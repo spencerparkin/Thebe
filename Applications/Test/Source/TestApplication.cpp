@@ -49,7 +49,7 @@ TestApplication::TestApplication()
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 5.0, -10.0);
+	cameraToWorld.translation.SetComponents(0.0, 5.0, 10.0);
 
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);

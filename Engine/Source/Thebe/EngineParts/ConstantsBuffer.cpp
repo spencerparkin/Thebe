@@ -165,8 +165,8 @@ bool ConstantsBuffer::SetParameter(const std::string& name, const Matrix2x2& mat
 
 	float floatArray[] =
 	{
-		(float)matrix.ele[0][0], (float)matrix.ele[0][1],
-		(float)matrix.ele[1][0], (float)matrix.ele[1][1]
+		(float)matrix.ele[0][0], (float)matrix.ele[1][0],
+		(float)matrix.ele[0][1], (float)matrix.ele[1][1]
 	};
 	::memcpy(&this->GetBufferPtr()[parameter->offset], floatArray, sizeof(floatArray));
 	return true;
@@ -183,9 +183,9 @@ bool ConstantsBuffer::SetParameter(const std::string& name, const Matrix3x3& mat
 
 	float floatArray[] =
 	{
-		(float)matrix.ele[0][0], (float)matrix.ele[0][1], (float)matrix.ele[0][2],
-		(float)matrix.ele[1][0], (float)matrix.ele[1][1], (float)matrix.ele[1][2],
-		(float)matrix.ele[2][0], (float)matrix.ele[2][1], (float)matrix.ele[2][2]
+		(float)matrix.ele[0][0], (float)matrix.ele[1][0], (float)matrix.ele[2][0],
+		(float)matrix.ele[0][1], (float)matrix.ele[1][1], (float)matrix.ele[2][1],
+		(float)matrix.ele[0][2], (float)matrix.ele[1][2], (float)matrix.ele[2][2]
 	};
 	::memcpy(&this->GetBufferPtr()[parameter->offset], floatArray, sizeof(floatArray));
 	return true;
@@ -202,10 +202,10 @@ bool ConstantsBuffer::SetParameter(const std::string& name, const Matrix4x4& mat
 
 	float floatArray[] =
 	{
-		(float)matrix.ele[0][0], (float)matrix.ele[0][1], (float)matrix.ele[0][2], (float)matrix.ele[0][3],
-		(float)matrix.ele[1][0], (float)matrix.ele[1][1], (float)matrix.ele[1][2], (float)matrix.ele[1][3],
-		(float)matrix.ele[2][0], (float)matrix.ele[2][1], (float)matrix.ele[2][2], (float)matrix.ele[2][3],
-		(float)matrix.ele[3][0], (float)matrix.ele[3][1], (float)matrix.ele[3][2], (float)matrix.ele[3][3]
+		(float)matrix.ele[0][0], (float)matrix.ele[1][0], (float)matrix.ele[2][0], (float)matrix.ele[3][0],
+		(float)matrix.ele[0][1], (float)matrix.ele[1][1], (float)matrix.ele[2][1], (float)matrix.ele[3][1],
+		(float)matrix.ele[0][2], (float)matrix.ele[1][2], (float)matrix.ele[2][2], (float)matrix.ele[3][2],
+		(float)matrix.ele[0][3], (float)matrix.ele[1][3], (float)matrix.ele[2][3], (float)matrix.ele[3][3]
 	};
 	::memcpy(&this->GetBufferPtr()[parameter->offset], floatArray, sizeof(floatArray));
 	return true;
