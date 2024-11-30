@@ -37,13 +37,8 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 	if (this->freeMemAvailable == 0 || size > this->freeMemAvailable)
 		return nullptr;
 
-	std::list<BlockNode*> queue;
-	queue.push_back((BlockNode*)this->freeBlockTree.GetRootNode());
-	while (queue.size() > 0)
+	for (auto blockNode = (BlockNode*)this->freeBlockTree.GetRootNode(); blockNode; blockNode = (BlockNode*)blockNode->GetRightNode())
 	{
-		auto blockNode = (BlockNode*)queue.front();
-		queue.pop_front();
-
 		auto block = (Block*)blockNode->GetKey();
 		THEBE_ASSERT(block->state == Block::FREE);
 
@@ -88,15 +83,6 @@ BlockManager::BlockNode* BlockManager::Allocate(uint64_t size, uint64_t align)
 				return blockNode;
 			}
 		}
-
-		auto leftBlockNode = (BlockNode*)blockNode->GetRightNode();
-		auto rightBlockNode = (BlockNode*)blockNode->GetLeftNode();
-
-		if (leftBlockNode && leftBlockNode->block->size >= size)
-			queue.push_back(leftBlockNode);
-
-		if (rightBlockNode && rightBlockNode->block->size >= size)
-			queue.push_back(rightBlockNode);
 	}
 
 	return nullptr;
