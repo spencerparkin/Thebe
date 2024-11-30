@@ -45,6 +45,11 @@ namespace Thebe
 		bool Deallocate(BlockNode* blockNode);
 
 		/**
+		 * Run through the internal data-structure and make sure it's valid.
+		 */
+		bool ConsistencyCheckPasses() const;
+
+		/**
 		 * 
 		 */
 		class THEBE_API Block : public AVLTreeKey, public LinkedListNode

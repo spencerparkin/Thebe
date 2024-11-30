@@ -57,6 +57,12 @@ namespace Thebe
 		 */
 		int GetNodeCount() const;
 
+		LinkedListNode* GetHeadNode();
+		LinkedListNode* GetTailNode();
+
+		const LinkedListNode* GetHeadNode() const;
+		const LinkedListNode* GetTailNode() const;
+
 	private:
 		LinkedListNode* headNode;
 		LinkedListNode* tailNode;
@@ -77,6 +83,9 @@ namespace Thebe
 
 		void Couple(LinkedListNode* beforeNode, LinkedListNode* afterNode);
 		void Decouple();
+
+		LinkedListNode* GetPrevNode();
+		LinkedListNode* GetNextNode();
 
 		const LinkedListNode* GetPrevNode() const;
 		const LinkedListNode* GetNextNode() const;

@@ -135,6 +135,46 @@ bool BlockManager::Deallocate(BlockNode* blockNode)
 	return true;
 }
 
+bool BlockManager::ConsistencyCheckPasses() const
+{
+	if (!this->freeBlockTree.IsBinaryTree())
+		return false;
+
+	if (!this->freeBlockTree.IsAVLTree())
+		return false;
+
+	uint32_t freeBlockCount = 0;
+	for (const Block* block = (const Block*)this->blockList.GetHeadNode(); block; block = (const Block*)block->GetNextNode())
+		if (block->state == Block::FREE)
+			freeBlockCount++;
+
+	if (freeBlockCount != this->freeBlockTree.GetNodeCount())
+		return false;
+
+	uint64_t byteCount = 0;
+	for (const Block* block = (const Block*)this->blockList.GetHeadNode(); block; block = (const Block*)block->GetNextNode())
+		if (block->state == Block::FREE)
+			byteCount += block->size;
+
+	if (byteCount != this->freeMemAvailable)
+		return false;
+
+	const Block* blockA = (const Block*)this->blockList.GetHeadNode();
+	while (blockA)
+	{
+		const Block* blockB = (const Block*)blockA->GetNextNode();
+		if (!blockB)
+			break;
+
+		if (blockA->offset + blockA->size != blockB->offset)
+			return false;
+
+		blockA = blockB;
+	}
+
+	return true;
+}
+
 //------------------------------------- BlockManager::Block -------------------------------------
 
 BlockManager::Block::Block(BlockManager* blockManager)

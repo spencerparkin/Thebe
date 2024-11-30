@@ -15,6 +15,26 @@ LinkedList::LinkedList()
 {
 }
 
+LinkedListNode* LinkedList::GetHeadNode()
+{
+	return this->headNode;
+}
+
+LinkedListNode* LinkedList::GetTailNode()
+{
+	return this->tailNode;
+}
+
+const LinkedListNode* LinkedList::GetHeadNode() const
+{
+	return this->headNode;
+}
+
+const LinkedListNode* LinkedList::GetTailNode() const
+{
+	return this->tailNode;
+}
+
 bool LinkedList::InsertNodeAfter(LinkedListNode* givenNode, LinkedListNode* beforeNode /*= nullptr*/)
 {
 	if (givenNode->linkedList)
@@ -145,6 +165,16 @@ void LinkedListNode::Decouple()
 
 	this->nextNode = nullptr;
 	this->prevNode = nullptr;
+}
+
+LinkedListNode* LinkedListNode::GetPrevNode()
+{
+	return this->prevNode;
+}
+
+LinkedListNode* LinkedListNode::GetNextNode()
+{
+	return this->nextNode;
 }
 
 const LinkedListNode* LinkedListNode::GetPrevNode() const
