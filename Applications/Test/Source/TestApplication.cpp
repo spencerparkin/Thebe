@@ -31,17 +31,26 @@ TestApplication::TestApplication()
 
 	Transform childToParent;
 	childToParent.matrix.SetIdentity();
-	childToParent.translation.SetComponents(0.0, 5.0, 0.0);
+	
+	Reference<MeshInstance> cubeMeshInstanceA(new MeshInstance());
+	cubeMeshInstanceA->SetGraphicsEngine(this->graphicsEngine);
+	cubeMeshInstanceA->SetMesh(cubeMesh);
+	childToParent.translation.SetComponents(-2.0, 0.0, 0.0);
+	cubeMeshInstanceA->SetChildToParentTransform(childToParent);
+	if (!cubeMeshInstanceA->Setup())
+		return false;
 
-	Reference<MeshInstance> cubeMeshInstance(new MeshInstance());
-	cubeMeshInstance->SetGraphicsEngine(this->graphicsEngine);
-	cubeMeshInstance->SetMesh(cubeMesh);
-	cubeMeshInstance->SetChildToParentTransform(childToParent);
-	if (!cubeMeshInstance->Setup())
+	Reference<MeshInstance> cubeMeshInstanceB(new MeshInstance());
+	cubeMeshInstanceB->SetGraphicsEngine(this->graphicsEngine);
+	cubeMeshInstanceB->SetMesh(cubeMesh);
+	childToParent.translation.SetComponents(2.0, 0.0, 0.0);
+	cubeMeshInstanceB->SetChildToParentTransform(childToParent);
+	if (!cubeMeshInstanceB->Setup())
 		return false;
 
 	Reference<Space> worldSpace(new Space());
-	worldSpace->AddSubSpace(cubeMeshInstance);
+	worldSpace->AddSubSpace(cubeMeshInstanceA);
+	worldSpace->AddSubSpace(cubeMeshInstanceB);
 
 	Reference<Scene> scene(new Scene());
 	scene->SetRootSpace(worldSpace);
@@ -49,7 +58,7 @@ TestApplication::TestApplication()
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 5.0, 10.0);
+	cameraToWorld.translation.SetComponents(0.0, 0.0, 10.0);
 
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
