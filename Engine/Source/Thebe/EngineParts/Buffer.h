@@ -12,6 +12,7 @@ namespace Thebe
 	class IndexBuffer;
 	class VertexBuffer;
 	class TextureBuffer;
+	class UploadHeap;
 
 	/**
 	 * This is the base class for constants buffers, index buffers and vertex buffers.
@@ -45,6 +46,7 @@ namespace Thebe
 		void SetBufferType(Type type);
 		Type GetBufferType() const;
 		D3D12_RESOURCE_DESC& GetResourceDesc();
+		const D3D12_RESOURCE_DESC& GetResourceDesc() const;
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
 			const std::vector<Vector3>& pointArray,
@@ -52,7 +54,7 @@ namespace Thebe
 			Reference<IndexBuffer>& indexBuffer,
 			Reference<VertexBuffer>& vertexBuffer);
 
-		static bool GenerateCheckboardTextureBuffer(
+		static bool GenerateCheckerboardTextureBuffer(
 			UINT width,
 			UINT height,
 			UINT checkerSize,
@@ -60,6 +62,11 @@ namespace Thebe
 			Reference<TextureBuffer>& textureBuffer);
 
 	protected:
+		virtual bool ValidateBufferDescription();
+		virtual UINT64 GetUploadHeapAllocationSize(ID3D12Device* device);
+		virtual bool CopyDataToUploadHeap(UINT8* uploadBuffer, ID3D12Device* device);
+		virtual void CopyDataFromUploadHeapToDefaultHeap(UploadHeap* uploadHeap, ID3D12GraphicsCommandList* commandList, ID3D12Device* device);
+
 		std::vector<UINT8> originalBuffer;
 		Type type;
 		D3D12_RESOURCE_DESC gpuBufferDesc;

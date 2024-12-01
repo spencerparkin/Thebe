@@ -83,28 +83,8 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		return false;
 	}
 
-	switch (this->gpuBufferDesc.Dimension)
-	{
-		case D3D12_RESOURCE_DIMENSION_BUFFER:
-		{
-			if (this->gpuBufferDesc.Width != bufferSize || this->gpuBufferDesc.Height != 1)
-			{
-				THEBE_LOG("Buffer description inconsistent with buffer size.");
-				THEBE_LOG("Buffer width is set to %ull, but buffer size is set to %ull.", this->gpuBufferDesc.Width, bufferSize);
-				return false;
-			}
-			break;
-		}
-		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-		{
-			break;
-		}
-		default:
-		{
-			THEBE_LOG("Resource dimension %d not yet supported.", this->gpuBufferDesc.Dimension);
-			return false;
-		}
-	}
+	if (!this->ValidateBufferDescription())
+		return false;
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -117,15 +97,6 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	ID3D12Device* device = graphicsEngine->GetDevice();
 	if (!device)
 		return false;
-
-	if (!uploadHeap->Allocate(bufferSize, this->offsetAlignmentRequirement, this->uploadBufferOffset))
-	{
-		THEBE_LOG("Failed to allocate %ull bytes in upload heap.", bufferSize);
-		return false;
-	}
-
-	UINT8* uploadBuffer = uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
-	::memcpy(uploadBuffer, this->originalBuffer.data(), bufferSize);
 
 	CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
 	HRESULT result = device->CreateCommittedResource(
@@ -141,6 +112,25 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		return false;
 	}
 
+	UINT64 numBytesToAllocateInUploadHeap = this->GetUploadHeapAllocationSize(device);
+	if (numBytesToAllocateInUploadHeap == 0)
+	{
+		THEBE_LOG("Failed to determine the amount of memory needed in the upload heap.");
+		return false;
+	}
+
+	if (!uploadHeap->Allocate(numBytesToAllocateInUploadHeap, this->offsetAlignmentRequirement, this->uploadBufferOffset))
+	{
+		THEBE_LOG("Failed to allocate %ull bytes in upload heap.", bufferSize);
+		return false;
+	}
+
+	UINT8* uploadBuffer = uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
+	THEBE_ASSERT(uploadBuffer != nullptr);
+
+	if (!this->CopyDataToUploadHeap(uploadBuffer, device))
+		return false;
+
 	CommandExecutor* commandExecutor = graphicsEngine->GetCommandExecutor();
 	if (!commandExecutor)
 		return false;
@@ -152,24 +142,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		return false;
 	}
 	
-	switch (this->gpuBufferDesc.Dimension)
-	{
-		case D3D12_RESOURCE_DIMENSION_BUFFER:
-		{
-			commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
-			break;
-		}
-		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-		{
-			// TODO: Call commandList->CopyTextureRegion(...);
-			break;
-		}
-		default:
-		{
-			THEBE_LOG("Dimension %d not supported yet.", this->gpuBufferDesc.Dimension);
-			break;
-		}
-	}
+	this->CopyDataFromUploadHeapToDefaultHeap(uploadHeap, commandList.Get(), device);
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 	commandList->ResourceBarrier(1, &barrier);
@@ -186,6 +159,42 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	}
 
 	return true;
+}
+
+/*virtual*/ bool Buffer::ValidateBufferDescription()
+{
+	if (this->gpuBufferDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
+	{
+		THEBE_LOG("Expected resource dimension to be BUFFER.");
+		return false;
+	}
+
+	if (this->gpuBufferDesc.Width != (UINT64)this->originalBuffer.size() || this->gpuBufferDesc.Height != 1)
+	{
+		THEBE_LOG("Buffer description inconsistent with buffer size.");
+		THEBE_LOG("Buffer width is set to %ull, but buffer size is set to %ull.", this->gpuBufferDesc.Width, UINT64(this->originalBuffer.size()));
+		return false;
+	}
+	
+	return true;
+}
+
+/*virtual*/ UINT64 Buffer::GetUploadHeapAllocationSize(ID3D12Device* device)
+{
+	return (UINT64)this->originalBuffer.size();
+}
+
+/*virtual*/ bool Buffer::CopyDataToUploadHeap(UINT8* uploadBuffer, ID3D12Device* device)
+{
+	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
+	::memcpy(uploadBuffer, this->originalBuffer.data(), bufferSize);
+	return true;
+}
+
+/*virtual*/ void Buffer::CopyDataFromUploadHeapToDefaultHeap(UploadHeap* uploadHeap, ID3D12GraphicsCommandList* commandList, ID3D12Device* device)
+{
+	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
+	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
 }
 
 /*virtual*/ void Buffer::Shutdown()
@@ -229,8 +238,7 @@ bool Buffer::UpdateIfNecessary(ID3D12GraphicsCommandList* commandList)
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), this->resourceStateWhenRendering, D3D12_RESOURCE_STATE_COPY_DEST);
 	commandList->ResourceBarrier(1, &barrier);
 
-	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
-	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
+	this->CopyDataFromUploadHeapToDefaultHeap(uploadHeap, commandList, graphicsEngine->GetDevice());
 
 	barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 	commandList->ResourceBarrier(1, &barrier);
@@ -265,6 +273,11 @@ Buffer::Type Buffer::GetBufferType() const
 }
 
 D3D12_RESOURCE_DESC& Buffer::GetResourceDesc()
+{
+	return this->gpuBufferDesc;
+}
+
+const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 {
 	return this->gpuBufferDesc;
 }
@@ -559,7 +572,7 @@ D3D12_RESOURCE_DESC& Buffer::GetResourceDesc()
 	return true;
 }
 
-/*static*/ bool Buffer::GenerateCheckboardTextureBuffer(
+/*static*/ bool Buffer::GenerateCheckerboardTextureBuffer(
 	UINT width,
 	UINT height,
 	UINT checkerSize,
@@ -584,7 +597,7 @@ D3D12_RESOURCE_DESC& Buffer::GetResourceDesc()
 	{
 		for (UINT j = 0; j < height; j++)
 		{
-			UINT k = j * height + i;
+			UINT k = j * width + i;
 			UINT8* pixel = &originalTextureBuffer.data()[k * bytesPerPixel];
 			UINT x = i / checkerSize;
 			UINT y = j / checkerSize;

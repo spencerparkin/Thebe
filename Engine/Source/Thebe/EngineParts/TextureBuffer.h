@@ -21,5 +21,13 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const override;
+
+	protected:
+		virtual bool ValidateBufferDescription() override;
+		virtual UINT64 GetUploadHeapAllocationSize(ID3D12Device* device) override;
+		virtual bool CopyDataToUploadHeap(UINT8* uploadBuffer, ID3D12Device* device) override;
+		virtual void CopyDataFromUploadHeapToDefaultHeap(UploadHeap* uploadHeap, ID3D12GraphicsCommandList* commandList, ID3D12Device* device) override;
+
+		UINT64 GetBytesPerPixel();
 	};
 }
