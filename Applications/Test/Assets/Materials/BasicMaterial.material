@@ -1,8 +1,7 @@
 {
     "shader": "Shaders/BasicShader.shader",
     "texture_map": {
-        "diffuse": "Textures/Spots.dds",
-        "normal": "Textures/Bumps.dds"
+        "diffuse": "Textures/CheckerboardTexture.texture_buffer"
     },
     "alpha_blending": false
 }

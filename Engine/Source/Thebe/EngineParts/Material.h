@@ -27,6 +27,7 @@ namespace Thebe
 	private:
 		Reference<Shader> shader;
 		std::map<std::string, Reference<Texture>> textureMap;
+		std::map<std::string, std::string> textureFileMap;
 		D3D12_BLEND_DESC blendDesc;
 		std::filesystem::path shaderPath;
 	};

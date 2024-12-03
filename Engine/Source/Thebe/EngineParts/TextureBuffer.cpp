@@ -24,6 +24,13 @@ TextureBuffer::TextureBuffer()
 	return true;
 }
 
+/*virtual*/ void TextureBuffer::Shutdown()
+{
+	Buffer::Shutdown();
+
+	// TODO: Deallocate the SRV.
+}
+
 /*virtual*/ bool TextureBuffer::ValidateBufferDescription()
 {
 	if (this->gpuBufferDesc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D)
@@ -118,13 +125,37 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	commandList->CopyTextureRegion(&destinationCopyLocation, 0, 0, 0, &sourceCopyLocation, nullptr);
 }
 
-/*virtual*/ void TextureBuffer::Shutdown()
-{
-	Buffer::Shutdown();
-}
-
 /*virtual*/ bool TextureBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
 {
+	using namespace ParseParty;
+
+	if (!Buffer::LoadConfigurationFromJson(jsonValue, relativePath))
+		return false;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+		return false;
+
+	auto widthValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("width"));
+	auto heightValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("height"));
+	if (!widthValue || !heightValue)
+	{
+		THEBE_LOG("Both height and width not present in JSON data.");
+		return false;
+	}
+
+	auto pixelFormatValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("pixel_format"));
+	if (!pixelFormatValue)
+	{
+		THEBE_LOG("No pixel format found.");
+		return false;
+	}
+
+	D3D12_RESOURCE_DESC& resourceDesc = this->GetResourceDesc();
+	resourceDesc.Width = (UINT64)widthValue->GetValue();
+	resourceDesc.Height = (UINT64)heightValue->GetValue();
+	resourceDesc.Format = (DXGI_FORMAT)pixelFormatValue->GetValue();
+
 	return true;
 }
 
