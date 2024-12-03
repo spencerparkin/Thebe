@@ -1,4 +1,5 @@
 {
+    "name": "CheckerboardTexture",
 	"data": "Textures\\CheckerboardTexture.texture_buffer_data",
 	"dimensionality": "texture2D",
 	"height": 200,

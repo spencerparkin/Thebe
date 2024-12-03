@@ -24,6 +24,8 @@ namespace Thebe
 		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetElementDescArray() const;
 		const D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() const;
 
+		void ClearElementDescriptionArray();
+
 	protected:
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 		std::vector<D3D12_INPUT_ELEMENT_DESC> elementDescArray;

@@ -8,7 +8,10 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 #include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/Vector2.h"
 #include <d3dx12.h>
+#include <locale>
+#include <codecvt>
 
 using namespace Thebe;
 
@@ -48,6 +51,11 @@ std::vector<UINT8>& Buffer::GetOriginalBuffer()
 const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 {
 	return this->originalBuffer;
+}
+
+void Buffer::SetName(const std::string& name)
+{
+	this->name = name;
 }
 
 /*virtual*/ bool Buffer::Setup()
@@ -110,6 +118,17 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	{
 		THEBE_LOG("Failed to create GPU buffer.  Error: 0x%08x", result);
 		return false;
+	}
+
+	if (this->name.length() > 0)
+	{
+		std::wstring nameWide = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(this->name);
+		result = this->gpuBuffer->SetName(nameWide.c_str());
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to name buffer.  Error: 0x%08x", result);
+			return false;
+		}
 	}
 
 	UINT64 numBytesToAllocateInUploadHeap = this->GetUploadHeapAllocationSize(device);
@@ -301,6 +320,12 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		THEBE_LOG("Expected root JSON value to be an object.");
 		return false;
 	}
+
+	auto nameValue = dynamic_cast<const JsonString*>(rootValue->GetValue("name"));
+	if (nameValue)
+		this->name = nameValue->GetValue();
+	else
+		this->name = "";
 
 	auto typeValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("type"));
 	if (!typeValue)
@@ -538,30 +563,35 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		return false;
 	}
 
+	int floatsPerVertex = 8;
 	vertexBuffer.Set(new VertexBuffer());
 	vertexBuffer->SetGraphicsEngine(graphicsEngine);
 	vertexBuffer->SetBufferType(Buffer::STATIC);
-	vertexBuffer->SetStride(6 * sizeof(float));
+	vertexBuffer->SetStride(floatsPerVertex * sizeof(float));
 	std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescArray = vertexBuffer->GetElementDescArray();
 	elementDescArray.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
 	elementDescArray.push_back({ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+	elementDescArray.push_back({ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
 
 	Vector3 center = polygonMesh.CalcVertexAverage();
 	std::vector<UINT8>& originalVertexBuffer = vertexBuffer->GetOriginalBuffer();
 	const std::vector<Vector3>& vertexArray = polygonMesh.GetVertexArray();
-	originalVertexBuffer.resize(vertexArray.size() * 6 * sizeof(float));
+	originalVertexBuffer.resize(vertexArray.size() * floatsPerVertex * sizeof(float));
 	auto vertexBufferData = (float*)originalVertexBuffer.data();
 	for (int i = 0; i < (int)vertexArray.size(); i++)
 	{
 		Vector3 point = vertexArray[i];
 		Vector3 normal = (point - center).Normalized();
-		float* vertex = &vertexBufferData[i * 6];
+		Vector2 texCoord((point.x + 1.0) / 2.0, (point.y + 1.0) / 2.0);
+		float* vertex = &vertexBufferData[i * floatsPerVertex];
 		*vertex++ = (float)point.x;
 		*vertex++ = (float)point.y;
 		*vertex++ = (float)point.z;
 		*vertex++ = (float)normal.x;
 		*vertex++ = (float)normal.y;
 		*vertex++ = (float)normal.z;
+		*vertex++ = (float)texCoord.x;
+		*vertex++ = (float)texCoord.y;
 	}
 
 	D3D12_RESOURCE_DESC& vertexBufferDesc = vertexBuffer->GetResourceDesc();

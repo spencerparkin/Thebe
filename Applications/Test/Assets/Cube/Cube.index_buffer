@@ -1,8 +1,8 @@
 {
 	"data": "Cube\\Cube.index_buffer_data",
+	"dimensionality": "buffer",
 	"format": 57,
 	"primitive_topology": 4,
 	"size": 72,
-	"type": 1,
-    "dimensionality": "buffer"
+	"type": 1
 }

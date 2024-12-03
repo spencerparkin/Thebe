@@ -12,6 +12,7 @@ VertexBuffer::VertexBuffer()
 
 /*virtual*/ VertexBuffer::~VertexBuffer()
 {
+	this->ClearElementDescriptionArray();
 }
 
 void VertexBuffer::SetStride(UINT32 stride)
@@ -52,6 +53,15 @@ const D3D12_VERTEX_BUFFER_VIEW* VertexBuffer::GetVertexBufferView() const
 	Buffer::Shutdown();
 
 	::memset(&this->vertexBufferView, 0, sizeof(this->vertexBufferView));
+
+	this->ClearElementDescriptionArray();
+}
+
+void VertexBuffer::ClearElementDescriptionArray()
+{
+	for (D3D12_INPUT_ELEMENT_DESC& elementDesc : this->elementDescArray)
+		delete[] elementDesc.SemanticName;
+
 	this->elementDescArray.clear();
 }
 
@@ -131,15 +141,10 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 		auto semanticNameValue = dynamic_cast<const JsonString*>(elementDescValue->GetValue("semantic_name"));
 		if (semanticNameValue)
 		{
-			if (semanticNameValue->GetValue() == "POSITION")
-				elementDesc.SemanticName = "POSITION";
-			else if (semanticNameValue->GetValue() == "NORMAL")
-				elementDesc.SemanticName = "NORMAL";
-			else
-			{
-				THEBE_LOG("Did not recognize semantic name: %s", semanticNameValue->GetValue().c_str());
-				return false;
-			}
+			std::string semanticName = semanticNameValue->GetValue();
+			char* semanticNameBuffer = new char[semanticName.length() + 1];
+			strcpy(semanticNameBuffer, semanticName.c_str());
+			elementDesc.SemanticName = semanticNameBuffer;
 		}
 
 		this->elementDescArray.push_back(elementDesc);

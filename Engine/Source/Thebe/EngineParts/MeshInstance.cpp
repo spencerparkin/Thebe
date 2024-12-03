@@ -53,6 +53,7 @@ MeshInstance::MeshInstance()
 	this->constantsBuffer.Set(new ConstantsBuffer());
 	this->constantsBuffer->SetGraphicsEngine(graphicsEngine);
 	this->constantsBuffer->SetShader(shader);
+	this->constantsBuffer->SetName("ConstantsBuffer");
 	if (!this->constantsBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup constants buffer for mesh instance.");

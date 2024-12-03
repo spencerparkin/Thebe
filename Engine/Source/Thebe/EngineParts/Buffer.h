@@ -49,6 +49,7 @@ namespace Thebe
 		Type GetBufferType() const;
 		D3D12_RESOURCE_DESC& GetResourceDesc();
 		const D3D12_RESOURCE_DESC& GetResourceDesc() const;
+		void SetName(const std::string& name);
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
 			const std::vector<Vector3>& pointArray,
@@ -78,5 +79,6 @@ namespace Thebe
 		ComPtr<ID3D12Resource> gpuBuffer;
 		UINT64 uploadBufferOffset;
 		UINT64 lastUpdateFrameCount;
+		std::string name;
 	};
 }
