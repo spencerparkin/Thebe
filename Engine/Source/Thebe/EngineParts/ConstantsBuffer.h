@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Thebe/EngineParts/Buffer.h"
-#include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/Math/Vector2.h"
 #include "Thebe/Math/Vector3.h"
@@ -21,6 +20,7 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
+		virtual bool CreateResourceView(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, ID3D12Device* device) override;
 
 		bool SetParameter(const std::string& name, double scalar);
 		bool SetParameter(const std::string& name, const Vector2& vector);
@@ -34,10 +34,7 @@ namespace Thebe
 
 		void SetShader(Shader* shader);
 
-		const DescriptorHeap::Descriptor& GetDescriptor() const;
-
 	private:
 		Reference<Shader> shader;
-		DescriptorHeap::Descriptor cbvDescriptor;
 	};
 }

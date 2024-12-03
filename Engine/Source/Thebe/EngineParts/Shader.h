@@ -41,19 +41,6 @@ namespace Thebe
 			UINT32 offset;
 		};
 
-		struct TextureAssociation
-		{
-			enum Type
-			{
-				DIFFUSE,
-				NORMAL
-			};
-
-			Type type;
-			UINT textureRegister;
-			UINT samplerRegister;
-		};
-
 		const std::vector<Parameter>& GetParameterArray() const;
 		const Parameter* FindParameter(const std::string& name) const;
 
@@ -61,13 +48,14 @@ namespace Thebe
 		ID3DBlob* GetVertexShaderBlob();
 		ID3DBlob* GetPixelShaderBlob();
 
+		std::string GetTextureUsageForRegister(UINT registerNumber);
+
 	private:
 		ComPtr<ID3D12RootSignature> rootSignature;
 		ComPtr<ID3DBlob> vertexShaderBlob;
 		ComPtr<ID3DBlob> pixelShaderBlob;
 		std::filesystem::path vertesShaderBlobFile;
 		std::filesystem::path pixelShaderBlobFile;
-		std::vector<TextureAssociation> textureAssocArray;
 		std::vector<Parameter> parameterArray;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EngineParts/Space.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
 #include <wrl.h>
 
 namespace Thebe
@@ -30,5 +31,6 @@ namespace Thebe
 		ComPtr<ID3D12PipelineState> pipelineState;
 		Reference<Mesh> mesh;
 		Reference<ConstantsBuffer> constantsBuffer;
+		DescriptorHeap::DescriptorSet csuDescriptorSet;
 	};
 }

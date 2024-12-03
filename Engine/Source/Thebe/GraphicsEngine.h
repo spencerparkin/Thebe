@@ -75,7 +75,7 @@ namespace Thebe
 		IDXGIFactory4* GetFactory();
 		SwapChain* GetSwapChain();
 		CommandExecutor* GetCommandExecutor();
-		DescriptorHeap* GetCbvDescriptorHeap();
+		DescriptorHeap* GetCSUDescriptorHeap();
 		UploadHeap* GetUploadHeap();
 
 		void SetInputToAllRenderPasses(RenderObject* renderObject);
@@ -131,7 +131,7 @@ namespace Thebe
 		std::vector<Reference<RenderPass>> renderPassArray;
 		Reference<CommandExecutor> commandExecutor;
 		Reference<UploadHeap> uploadHeap;
-		Reference<DescriptorHeap> cbvDescriptorHeap;
+		Reference<DescriptorHeap> csuDescriptorHeap;
 		std::filesystem::path assetFolder;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;

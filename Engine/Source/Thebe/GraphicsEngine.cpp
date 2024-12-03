@@ -120,16 +120,16 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
-	this->cbvDescriptorHeap.Set(new DescriptorHeap());
-	this->cbvDescriptorHeap->SetGraphicsEngine(this);
-	D3D12_DESCRIPTOR_HEAP_DESC& cbvDescriptorHeapDesc = this->cbvDescriptorHeap->GetDescriptorHeapDesc();
-	cbvDescriptorHeapDesc.NumDescriptors = 512;
-	cbvDescriptorHeapDesc.NodeMask = 0;
-	cbvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	cbvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	if (!this->cbvDescriptorHeap->Setup())
+	this->csuDescriptorHeap.Set(new DescriptorHeap());
+	this->csuDescriptorHeap->SetGraphicsEngine(this);
+	D3D12_DESCRIPTOR_HEAP_DESC& csuDescriptorHeapDesc = this->csuDescriptorHeap->GetDescriptorHeapDesc();
+	csuDescriptorHeapDesc.NumDescriptors = 512;
+	csuDescriptorHeapDesc.NodeMask = 0;
+	csuDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	csuDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	if (!this->csuDescriptorHeap->Setup())
 	{
-		THEBE_LOG("Failed to setup descriptor heap for constants buffer views.");
+		THEBE_LOG("Failed to setup descriptor heap.");
 		return false;
 	}
 
@@ -169,10 +169,10 @@ void GraphicsEngine::Shutdown()
 		this->commandExecutor = nullptr;
 	}
 
-	if (this->cbvDescriptorHeap)
+	if (this->csuDescriptorHeap)
 	{
-		this->cbvDescriptorHeap->Shutdown();
-		this->cbvDescriptorHeap = nullptr;
+		this->csuDescriptorHeap->Shutdown();
+		this->csuDescriptorHeap = nullptr;
 	}
 
 	this->pipelineStateCacheMap.clear();
@@ -303,9 +303,9 @@ CommandExecutor* GraphicsEngine::GetCommandExecutor()
 	return this->commandExecutor;
 }
 
-DescriptorHeap* GraphicsEngine::GetCbvDescriptorHeap()
+DescriptorHeap* GraphicsEngine::GetCSUDescriptorHeap()
 {
-	return this->cbvDescriptorHeap;
+	return this->csuDescriptorHeap;
 }
 
 UploadHeap* GraphicsEngine::GetUploadHeap()

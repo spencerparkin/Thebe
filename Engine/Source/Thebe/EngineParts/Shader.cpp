@@ -57,20 +57,41 @@ Shader::Shader()
 	}
 
 	std::vector<D3D12_DESCRIPTOR_RANGE1> descriptorRangeArray;
-	descriptorRangeArray.resize(1);
+	descriptorRangeArray.resize(2);
 	descriptorRangeArray[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	descriptorRangeArray[0].BaseShaderRegister = 0;
 	descriptorRangeArray[0].NumDescriptors = 1;
 	descriptorRangeArray[0].RegisterSpace = 0;
 	descriptorRangeArray[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
-	descriptorRangeArray[0].OffsetInDescriptorsFromTableStart = 0;
+	descriptorRangeArray[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	descriptorRangeArray[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRangeArray[1].BaseShaderRegister = 0;
+	descriptorRangeArray[1].NumDescriptors = 1;
+	descriptorRangeArray[1].RegisterSpace = 0;
+	descriptorRangeArray[1].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
+	descriptorRangeArray[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
 	rootParameterArray.resize(1);
 	rootParameterArray[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = (UINT)descriptorRangeArray.size();
 	rootParameterArray[0].DescriptorTable.pDescriptorRanges = descriptorRangeArray.data();
 	rootParameterArray[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	samplerDesc.MipLODBias = 0;
+	samplerDesc.MaxAnisotropy = 0;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	samplerDesc.ShaderRegister = 0;
+	samplerDesc.RegisterSpace = 0;
+	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -82,10 +103,9 @@ Shader::Shader()
 	rootSignatureDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
 	rootSignatureDesc.Desc_1_1.NumParameters = (UINT)rootParameterArray.size();
 	rootSignatureDesc.Desc_1_1.pParameters = rootParameterArray.data();
+	rootSignatureDesc.Desc_1_1.NumStaticSamplers = 1;
+	rootSignatureDesc.Desc_1_1.pStaticSamplers = &samplerDesc;
 	rootSignatureDesc.Desc_1_1.Flags = rootSignatureFlags;
-
-	// TODO: Use texture associations to add SRV thingies to root signature?
-	// TODO: Also need to add sampler description before we create the root signature.
 
 	ComPtr<ID3DBlob> signatureBlob, errorBob;
 	result = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signatureBlob, &errorBob);
@@ -111,6 +131,20 @@ Shader::Shader()
 	this->vertexShaderBlob = nullptr;
 	this->pixelShaderBlob = nullptr;
 	this->rootSignature = nullptr;
+}
+
+std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
+{
+	// This knowledge is hard-coded for now, but perhaps it's something
+	// that should be exposed in the JSON, because it's part of how
+	// the shader was authored.
+	switch (registerNumber)
+	{
+	case 0:
+		return "diffuse";
+	}
+
+	return "?";
 }
 
 /*virtual*/ bool Shader::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)

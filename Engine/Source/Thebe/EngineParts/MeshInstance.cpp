@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
+#include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -37,8 +38,17 @@ MeshInstance::MeshInstance()
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
+	ID3D12Device* device = graphicsEngine->GetDevice();
+
 	Material* material = this->mesh->GetMaterial();
 	Shader* shader = material->GetShader();
+
+	DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
+	if (!csuDescriptorHeap->AllocDescriptorSet(1 + material->GetNumTextures(), this->csuDescriptorSet))
+	{
+		THEBE_LOG("Failed to allocate descriptor set for mesh instance.");
+		return false;
+	}
 
 	this->constantsBuffer.Set(new ConstantsBuffer());
 	this->constantsBuffer->SetGraphicsEngine(graphicsEngine);
@@ -47,6 +57,25 @@ MeshInstance::MeshInstance()
 	{
 		THEBE_LOG("Failed to setup constants buffer for mesh instance.");
 		return false;
+	}
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE handle;
+	this->csuDescriptorSet.GetCpuHandle(0, handle);
+	if (!this->constantsBuffer->CreateResourceView(handle, device))
+		return false;
+
+	for (UINT i = 1; i <= material->GetNumTextures(); i++)
+	{
+		TextureBuffer* texture = material->GetTextureForRegister(i - 1);
+		if (!texture)
+		{
+			THEBE_LOG("Failed to get texture for register %d.", i - 1);
+			return false;
+		}
+
+		this->csuDescriptorSet.GetCpuHandle(i, handle);
+		if (!texture->CreateResourceView(handle, device))
+			return false;
 	}
 
 	this->pipelineState = graphicsEngine->GetOrCreatePipelineState(material, this->mesh->GetVertexBuffer());
@@ -65,6 +94,13 @@ MeshInstance::MeshInstance()
 	{
 		this->constantsBuffer->Shutdown();
 		this->constantsBuffer = nullptr;
+	}
+
+	Reference<GraphicsEngine> graphicsEngine;
+	if (this->GetGraphicsEngine(graphicsEngine))
+	{
+		DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
+		csuDescriptorHeap->FreeDescriptorSet(this->csuDescriptorSet);
 	}
 
 	this->pipelineState = nullptr;
@@ -106,11 +142,9 @@ MeshInstance::MeshInstance()
 
 	commandList->SetGraphicsRootSignature(shader->GetRootSignature());
 
-	ID3D12DescriptorHeap* cbvDescriptorHeap = graphicsEngine->GetCbvDescriptorHeap()->GetDescriptorHeap();
-	commandList->SetDescriptorHeaps(1, &cbvDescriptorHeap);		// It's unfortunately we can't do this once before all render objects render.  Why not?
-
-	const DescriptorHeap::Descriptor& cbvDescriptor = this->constantsBuffer->GetDescriptor();
-	commandList->SetGraphicsRootDescriptorTable(0, cbvDescriptor.gpuHandle);
+	CD3DX12_GPU_DESCRIPTOR_HANDLE handle;
+	this->csuDescriptorSet.GetGpuHandle(0, handle);
+	commandList->SetGraphicsRootDescriptorTable(0, handle);
 
 	commandList->SetPipelineState(this->pipelineState.Get());
 	

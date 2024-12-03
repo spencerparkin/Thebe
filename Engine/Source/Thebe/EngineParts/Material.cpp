@@ -119,3 +119,22 @@ D3D12_BLEND_DESC& Material::GetBlendDesc()
 {
 	return this->blendDesc;
 }
+
+UINT Material::GetNumTextures()
+{
+	return (UINT)this->textureMap.size();
+}
+
+TextureBuffer* Material::GetTextureForRegister(UINT i)
+{
+	if (!this->shader.Get())
+		return nullptr;
+
+	std::string textureUsage = this->shader->GetTextureUsageForRegister(i);
+	auto iter = this->textureMap.find(textureUsage);
+	if (iter == this->textureMap.end())
+		return nullptr;
+
+	TextureBuffer* texture = iter->second.Get();
+	return texture;
+}

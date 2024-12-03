@@ -4,11 +4,7 @@
 
 using namespace Thebe;
 
-DescriptorHeap::Descriptor::Descriptor()
-{
-	this->heapHandle = THEBE_INVALID_REF_HANDLE;
-	this->i = 0;
-}
+//------------------------------------- DescriptorHeap -------------------------------------
 
 DescriptorHeap::DescriptorHeap()
 {
@@ -44,17 +40,16 @@ DescriptorHeap::DescriptorHeap()
 		return false;
 	}
 
-	this->freeDescriptorsStack.resize(this->descriptorHeapDesc.NumDescriptors);
-	for (UINT i = 0; i < this->descriptorHeapDesc.NumDescriptors; i++)
-		this->freeDescriptorsStack[i] = this->descriptorHeapDesc.NumDescriptors - 1 - i;
-
+	this->blockMap.clear();
+	this->blockManager.Reset(this->descriptorHeapDesc.NumDescriptors);
 	return true;
 }
 
 /*virtual*/ void DescriptorHeap::Shutdown()
 {
 	this->descriptorHeap = nullptr;
-	this->freeDescriptorsStack.clear();
+	this->blockManager.Reset(0);
+	this->blockMap.clear();
 }
 
 D3D12_DESCRIPTOR_HEAP_DESC& DescriptorHeap::GetDescriptorHeapDesc()
@@ -67,11 +62,12 @@ ID3D12DescriptorHeap* DescriptorHeap::GetDescriptorHeap()
 	return this->descriptorHeap.Get();
 }
 
-bool DescriptorHeap::AllocDescriptor(Descriptor& descriptor)
+bool DescriptorHeap::AllocDescriptorSet(UINT numDescriptors, DescriptorSet& descriptorSet)
 {
-	if (this->freeDescriptorsStack.size() == 0)
+	BlockManager::BlockNode* blockNode = this->blockManager.Allocate(numDescriptors, 1);
+	if (!blockNode)
 	{
-		THEBE_LOG("Ran out of descriptors in descriptor heap.");
+		THEBE_LOG("Failed to allocate %d descriptors.", numDescriptors);
 		return false;
 	}
 
@@ -79,52 +75,89 @@ bool DescriptorHeap::AllocDescriptor(Descriptor& descriptor)
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
-	descriptor.i = this->freeDescriptorsStack.back();
-	this->freeDescriptorsStack.pop_back();
-
-	UINT descriptorSize = graphicsEngine->GetDevice()->GetDescriptorHandleIncrementSize(this->descriptorHeapDesc.Type);
+	descriptorSet.offset = blockNode->GetBlock()->GetOffset();
+	descriptorSet.size = numDescriptors;
+	descriptorSet.descriptorSize = graphicsEngine->GetDevice()->GetDescriptorHandleIncrementSize(this->descriptorHeapDesc.Type);
 	
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(this->descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(this->descriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-	gpuHandle.Offset(descriptor.i, descriptorSize);
-	cpuHandle.Offset(descriptor.i, descriptorSize);
+	gpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
+	cpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
 
-	descriptor.gpuHandle = gpuHandle;
-	descriptor.cpuHandle = cpuHandle;
+	descriptorSet.gpuHandle = gpuHandle;
+	descriptorSet.cpuHandle = cpuHandle;
 
-	descriptor.heapHandle = this->GetHandle();
+	descriptorSet.heapHandle = this->GetHandle();
+
+	this->blockMap.insert(std::pair(descriptorSet.offset, blockNode));
 
 	return true;
 }
 
-bool DescriptorHeap::FreeDescriptor(Descriptor& descriptor)
+bool DescriptorHeap::FreeDescriptorSet(DescriptorSet& descriptorSet)
 {
-	if (descriptor.heapHandle == THEBE_INVALID_REF_HANDLE)
+	if (descriptorSet.heapHandle == THEBE_INVALID_REF_HANDLE)
 	{
-		THEBE_LOG("Can't free descriptor that's already freed.");
+		THEBE_LOG("Can't free descriptor set that's already freed.");
 		return false;
 	}
 
-	if (this->freeDescriptorsStack.size() == this->descriptorHeapDesc.NumDescriptors)
+	if (descriptorSet.heapHandle != this->GetHandle())
 	{
-		THEBE_LOG("Can't free a descriptor in a heap that's full.");
+		THEBE_LOG("Tried to free descriptor set in the wrong descriptor heap.");
 		return false;
 	}
 
-	if (descriptor.heapHandle != this->GetHandle())
+	auto iter = this->blockMap.find(descriptorSet.offset);
+	if (iter == this->blockMap.end())
 	{
-		THEBE_LOG("Tried to free descriptor in the wrong descriptor heap.");
+		THEBE_LOG("Did not find block for descriptor set offset.");
 		return false;
 	}
 
-	if (descriptor.i >= this->descriptorHeapDesc.NumDescriptors)
+	BlockManager::BlockNode* blockNode = iter->second;
+	if (!this->blockManager.Deallocate(blockNode))
 	{
-		THEBE_LOG("Given descriptor for free is corrupt.");
+		THEBE_LOG("Block manager for descriptor heap failed to deallocate block.");
 		return false;
 	}
 
-	this->freeDescriptorsStack.push_back(descriptor.i);
-	descriptor.heapHandle = THEBE_INVALID_REF_HANDLE;
+	this->blockMap.erase(iter);
+
+	descriptorSet.offset = 0;
+	descriptorSet.size = 0;
+	descriptorSet.heapHandle = THEBE_INVALID_REF_HANDLE;
+
+	return true;
+}
+
+//------------------------------------- DescriptorHeap::DescriptorSet -------------------------------------
+
+DescriptorHeap::DescriptorSet::DescriptorSet()
+{
+	this->heapHandle = THEBE_INVALID_REF_HANDLE;
+	this->offset = 0;
+	this->size = 0;
+	this->descriptorSize = 0;
+}
+
+bool DescriptorHeap::DescriptorSet::GetCpuHandle(UINT i, CD3DX12_CPU_DESCRIPTOR_HANDLE& handle) const
+{
+	if (i >= this->size)
+		return false;
+
+	handle = this->cpuHandle;
+	handle.Offset(i, this->descriptorSize);
+	return true;
+}
+
+bool DescriptorHeap::DescriptorSet::GetGpuHandle(UINT i, CD3DX12_GPU_DESCRIPTOR_HANDLE& handle) const
+{
+	if (i >= this->size)
+		return false;
+
+	handle = this->gpuHandle;
+	handle.Offset(i, this->descriptorSize);
 	return true;
 }

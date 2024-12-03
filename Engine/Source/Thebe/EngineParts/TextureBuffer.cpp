@@ -19,16 +19,24 @@ TextureBuffer::TextureBuffer()
 	if (!Buffer::Setup())
 		return false;
 
-	// TODO: Allocate and setup SRV.
-
 	return true;
 }
 
 /*virtual*/ void TextureBuffer::Shutdown()
 {
 	Buffer::Shutdown();
+}
 
-	// TODO: Deallocate the SRV.
+/*virtual*/ bool TextureBuffer::CreateResourceView(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, ID3D12Device* device)
+{
+	D3D12_RESOURCE_DESC resourceDesc = this->gpuBuffer->GetDesc();
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = resourceDesc.Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	device->CreateShaderResourceView(this->gpuBuffer.Get(), &srvDesc, handle);
+	return true;
 }
 
 /*virtual*/ bool TextureBuffer::ValidateBufferDescription()

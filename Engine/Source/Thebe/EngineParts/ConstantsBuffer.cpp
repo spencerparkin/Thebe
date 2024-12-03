@@ -62,44 +62,22 @@ void ConstantsBuffer::SetShader(Shader* shader)
 		return false;
 	}
 
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
-
-	DescriptorHeap* cbvDescriptorHeap = graphicsEngine->GetCbvDescriptorHeap();
-	if (!cbvDescriptorHeap->AllocDescriptor(this->cbvDescriptor))
-	{
-		THEBE_LOG("Failed to allocated descriptor from CBV descriptor heap.");
-		return false;
-	}
-
-	D3D12_RESOURCE_DESC resourceDesc = this->gpuBuffer->GetDesc();
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-	cbvDesc.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
-	cbvDesc.SizeInBytes = resourceDesc.Width;
-	graphicsEngine->GetDevice()->CreateConstantBufferView(&cbvDesc, this->cbvDescriptor.cpuHandle);
-
 	return true;
 }
 
 /*virtual*/ void ConstantsBuffer::Shutdown()
 {
-	if (this->cbvDescriptor.heapHandle != THEBE_INVALID_REF_HANDLE)
-	{
-		Reference<GraphicsEngine> graphicsEngine;
-		if (this->GetGraphicsEngine(graphicsEngine))
-		{
-			DescriptorHeap* cbvDescriptorHeap = graphicsEngine->GetCbvDescriptorHeap();
-			cbvDescriptorHeap->FreeDescriptor(this->cbvDescriptor);
-		}
-	}
-
 	Buffer::Shutdown();
 }
 
-const DescriptorHeap::Descriptor& ConstantsBuffer::GetDescriptor() const
+/*virtual*/ bool ConstantsBuffer::CreateResourceView(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, ID3D12Device* device)
 {
-	return this->cbvDescriptor;
+	D3D12_RESOURCE_DESC resourceDesc = this->gpuBuffer->GetDesc();
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
+	cbvDesc.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = resourceDesc.Width;
+	device->CreateConstantBufferView(&cbvDesc, handle);
+	return true;
 }
 
 bool ConstantsBuffer::HasParameter(const std::string& name)

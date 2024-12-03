@@ -161,6 +161,11 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	return true;
 }
 
+/*virtual*/ bool Buffer::CreateResourceView(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, ID3D12Device* device)
+{
+	return false;
+}
+
 /*virtual*/ bool Buffer::ValidateBufferDescription()
 {
 	if (this->gpuBufferDesc.Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)

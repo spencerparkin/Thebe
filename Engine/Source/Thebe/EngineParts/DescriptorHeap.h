@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include "Thebe/Utilities/BlockManager.h"
 #include <d3d12.h>
 #include <d3dx12.h>
 #include <wrl.h>
@@ -24,22 +25,33 @@ namespace Thebe
 		D3D12_DESCRIPTOR_HEAP_DESC& GetDescriptorHeapDesc();
 		ID3D12DescriptorHeap* GetDescriptorHeap();
 
-		struct Descriptor
+		// These descriptors are guarenteed to be contiguous in memory.
+		struct DescriptorSet
 		{
-			Descriptor();
+			friend class DescriptorHeap;
 
+		public:
+			DescriptorSet();
+
+			bool GetCpuHandle(UINT i, CD3DX12_CPU_DESCRIPTOR_HANDLE& handle) const;
+			bool GetGpuHandle(UINT i, CD3DX12_GPU_DESCRIPTOR_HANDLE& handle) const;
+
+		private:
 			CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 			CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-			UINT i;
+			UINT64 offset;
+			UINT64 size;
+			UINT descriptorSize;
 			RefHandle heapHandle;
 		};
 
-		bool AllocDescriptor(Descriptor& descriptor);
-		bool FreeDescriptor(Descriptor& descriptor);
+		bool AllocDescriptorSet(UINT numDescriptors, DescriptorSet& descriptorSet);
+		bool FreeDescriptorSet(DescriptorSet& descriptorSet);
 
 	private:
 		D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc;
 		ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-		std::vector<UINT> freeDescriptorsStack;
+		BlockManager blockManager;
+		std::map<UINT64, BlockManager::BlockNode*> blockMap;
 	};
 }

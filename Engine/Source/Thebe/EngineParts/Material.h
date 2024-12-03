@@ -5,7 +5,7 @@
 
 namespace Thebe
 {
-	class Texture;
+	class TextureBuffer;
 	class Shader;
 
 	/**
@@ -23,10 +23,12 @@ namespace Thebe
 
 		Shader* GetShader();
 		D3D12_BLEND_DESC& GetBlendDesc();
+		UINT GetNumTextures();
+		TextureBuffer* GetTextureForRegister(UINT i);
 
 	private:
 		Reference<Shader> shader;
-		std::map<std::string, Reference<Texture>> textureMap;
+		std::map<std::string, Reference<TextureBuffer>> textureMap;
 		std::map<std::string, std::string> textureFileMap;
 		D3D12_BLEND_DESC blendDesc;
 		std::filesystem::path shaderPath;

@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -67,12 +68,12 @@ RenderPass::RenderPass()
 		return false;
 	}
 
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
 	if (!this->commandList.Get())
 	{
-		Reference<GraphicsEngine> graphicsEngine;
-		if (!this->GetGraphicsEngine(graphicsEngine))
-			return false;
-		 
 		result = graphicsEngine->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&this->commandList));
 		if (FAILED(result))
 		{
@@ -100,6 +101,9 @@ RenderPass::RenderPass()
 	
 	if (this->input.Get())
 	{
+		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
+		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
+
 		if (!this->input->Render(this->commandList.Get(), this->camera.Get()))
 		{
 			THEBE_LOG("Render failed.");
