@@ -10,6 +10,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
+    Source/Thebe/FreeCam.cpp
+    Source/Thebe/FreeCam.h
+    Source/Thebe/XBoxController.cpp
+    Source/Thebe/XBoxController.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
@@ -128,7 +132,6 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(ThebeGraphicsEngine PUBLIC
         THEBE_LOGGING
-        THEBE_LOG_FRAMERATE
     )
 endif()
 
@@ -136,6 +139,7 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib
     dxgi.lib
     d3dcompiler.lib
+    Xinput9_1_0.lib
     ParseParty
 )
 

@@ -46,7 +46,7 @@ TestApplication::TestApplication()
 #endif
 
 	Reference<Scene> scene;
-	if (!graphicsEngine->LoadEnginePartFromFile(R"(E:\ENG_DEV\Thebe\Applications\Test\Assets\Scenes\Test.scene)", scene))
+	if (!graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Test.scene)", scene))
 		return false;
 
 	graphicsEngine->SetInputToAllRenderPasses(scene);
@@ -58,6 +58,8 @@ TestApplication::TestApplication()
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	graphicsEngine->SetCameraForMainRenderPass(this->camera);
+
+	this->freeCam.SetCamera(this->camera);
 
 	return true;
 }
@@ -76,6 +78,7 @@ TestApplication::TestApplication()
 /*virtual*/ LRESULT TestApplication::OnPaint(WPARAM wParam, LPARAM lParam)
 {
 	this->graphicsEngine->Render();
+	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
 	return 0;
 }
 

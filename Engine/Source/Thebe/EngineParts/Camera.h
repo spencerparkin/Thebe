@@ -24,6 +24,7 @@ namespace Thebe
 		virtual bool CanSee(const RenderObject* renderObject) const;
 
 		void SetCameraToWorldTransform(const Transform& cameraToWorld);
+		const Transform& GetCameraToWorldTransform() const;
 		void SetCameraToProjectionMatrix(const Matrix4x4& cameraToProjection);
 		const Matrix4x4& GetCameraToProjectionMatrix() const;
 		const Transform& GetWorldToCameraTransform() const;

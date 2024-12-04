@@ -13,7 +13,7 @@
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/Scene.h"
-#include "Log.h"
+#include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
 #include <ctype.h>
@@ -24,6 +24,7 @@ using namespace Thebe;
 GraphicsEngine::GraphicsEngine()
 {
 	this->frameCount = 0L;
+	this->deltaTimeSeconds = 0.0;
 }
 
 /*virtual*/ GraphicsEngine::~GraphicsEngine()
@@ -147,9 +148,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 	this->renderPassArray.push_back(mainRenderPass.Get());
 
-#if defined THEBE_LOG_FRAMERATE
 	this->clock.Reset();
-#endif //THEBE_LOG_FRAMERATE
 
 	return true;
 }
@@ -195,6 +194,11 @@ UINT64 GraphicsEngine::GetFrameCount()
 	return this->frameCount;
 }
 
+double GraphicsEngine::GetDeltaTime()
+{
+	return this->deltaTimeSeconds;
+}
+
 void GraphicsEngine::SetInputToAllRenderPasses(RenderObject* renderObject)
 {
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
@@ -225,18 +229,16 @@ void GraphicsEngine::Render()
 		renderPass->Perform();
 
 	this->frameCount++;
+	this->deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
 
-#if defined THEBE_LOG_FRAMERATE
-	double deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
+#if defined _DEBUG
 	this->frameTimeList.push_back(deltaTimeSeconds);
 	while (this->frameTimeList.size() > THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION)
 		this->frameTimeList.pop_front();
 	if ((this->frameCount % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
 		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
-#endif //THEBE_LOG_FRAMERATE
+#endif //_DEBUG
 }
-
-#if defined THEBE_LOG_FRAMERATE
 
 double GraphicsEngine::CalcFramerate()
 {
@@ -250,8 +252,6 @@ double GraphicsEngine::CalcFramerate()
 	averageFrameTimeSeconds /= double(this->frameTimeList.size());
 	return 1.0 / averageFrameTimeSeconds;
 }
-
-#endif //THEBE_LOG_FRAMERATE
 
 void GraphicsEngine::WaitForGPUIdle()
 {

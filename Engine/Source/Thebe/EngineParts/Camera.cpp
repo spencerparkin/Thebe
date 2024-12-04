@@ -27,6 +27,11 @@ void Camera::SetCameraToWorldTransform(const Transform& cameraToWorld)
 	this->worldToCamera.Invert(this->cameraToWorld);
 }
 
+const Transform& Camera::GetCameraToWorldTransform() const
+{
+	return this->cameraToWorld;
+}
+
 void Camera::SetCameraToProjectionMatrix(const Matrix4x4& cameraToProjection)
 {
 	this->cameraToProjection = cameraToProjection;

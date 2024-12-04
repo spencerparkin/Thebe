@@ -108,6 +108,7 @@ namespace Thebe
 		bool GetRelativeToAssetFolder(std::filesystem::path& assetPath);
 
 		UINT64 GetFrameCount();
+		double GetDeltaTime();
 
 		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer);
 
@@ -139,12 +140,10 @@ namespace Thebe
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		std::string MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer);
 
-#if defined THEBE_LOG_FRAMERATE
 		double CalcFramerate();
 		Clock clock;
 		std::list<double> frameTimeList;
-#endif //THEBE_LOG_FRAMERATE
-
 		UINT64 frameCount;
+		double deltaTimeSeconds;
 	};
 }
