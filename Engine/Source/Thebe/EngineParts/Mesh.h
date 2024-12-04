@@ -27,6 +27,7 @@ namespace Thebe
 		VertexBuffer* GetVertexBuffer();
 		IndexBuffer* GetIndexBuffer();
 		Material* GetMaterial();
+		const std::filesystem::path& GetMeshPath() const;
 
 	private:
 		Reference<VertexBuffer> vertexBuffer;
@@ -36,5 +37,6 @@ namespace Thebe
 		std::filesystem::path vertexBufferPath;
 		std::filesystem::path indexBufferPath;
 		std::filesystem::path materialPath;
+		std::filesystem::path meshPath;
 	};
 }

@@ -59,6 +59,8 @@ Mesh::Mesh()
 {
 	using namespace ParseParty;
 
+	this->meshPath = relativePath;
+
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
 	if (!rootValue)
 	{
@@ -111,4 +113,9 @@ IndexBuffer* Mesh::GetIndexBuffer()
 Material* Mesh::GetMaterial()
 {
 	return this->material;
+}
+
+const std::filesystem::path& Mesh::GetMeshPath() const
+{
+	return this->meshPath;
 }

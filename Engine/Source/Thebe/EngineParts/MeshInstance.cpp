@@ -220,8 +220,8 @@ Mesh* MeshInstance::GetMesh()
 	if (!rootValue)
 		return false;
 
-	if (!mesh.Get())
-		return false;
+	if (this->mesh.Get() && this->meshPath.empty())
+		const_cast<MeshInstance*>(this)->meshPath = this->mesh->GetMeshPath();
 
 	if (this->meshPath.empty())
 	{
