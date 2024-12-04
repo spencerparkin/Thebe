@@ -45,35 +45,10 @@ TestApplication::TestApplication()
 	this->graphicsEngine->DumpEnginePartToFile(R"(E:\ENG_DEV\Thebe\Applications\Test\Assets\Cube\Cube.vertex_buffer)", vertexBuffer.Get(), THEBE_DUMP_FLAG_CAN_OVERWRITE);
 #endif
 
-	Reference<Mesh> cubeMesh;
-	if (!this->graphicsEngine->LoadEnginePartFromFile("Cube/Cube.mesh", cubeMesh))
+	Reference<Scene> scene;
+	if (!graphicsEngine->LoadEnginePartFromFile(R"(E:\ENG_DEV\Thebe\Applications\Test\Assets\Scenes\Test.scene)", scene))
 		return false;
 
-	Transform childToParent;
-	childToParent.matrix.SetIdentity();
-	
-	Reference<MeshInstance> cubeMeshInstanceA(new MeshInstance());
-	cubeMeshInstanceA->SetGraphicsEngine(this->graphicsEngine);
-	cubeMeshInstanceA->SetMesh(cubeMesh);
-	childToParent.translation.SetComponents(-2.0, 0.0, 0.0);
-	cubeMeshInstanceA->SetChildToParentTransform(childToParent);
-	if (!cubeMeshInstanceA->Setup())
-		return false;
-
-	Reference<MeshInstance> cubeMeshInstanceB(new MeshInstance());
-	cubeMeshInstanceB->SetGraphicsEngine(this->graphicsEngine);
-	cubeMeshInstanceB->SetMesh(cubeMesh);
-	childToParent.translation.SetComponents(2.0, 0.0, 0.0);
-	cubeMeshInstanceB->SetChildToParentTransform(childToParent);
-	if (!cubeMeshInstanceB->Setup())
-		return false;
-
-	Reference<Space> worldSpace(new Space());
-	worldSpace->AddSubSpace(cubeMeshInstanceA);
-	worldSpace->AddSubSpace(cubeMeshInstanceB);
-
-	Reference<Scene> scene(new Scene());
-	scene->SetRootSpace(worldSpace);
 	graphicsEngine->SetInputToAllRenderPasses(scene);
 
 	Transform cameraToWorld;

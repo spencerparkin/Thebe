@@ -20,23 +20,40 @@ MeshInstance::MeshInstance()
 {
 }
 
+void MeshInstance::SetMeshMesh(std::filesystem::path& meshPath)
+{
+	this->meshPath = meshPath;
+}
+
 /*virtual*/ bool MeshInstance::Setup()
 {
+	if (!Space::Setup())
+		return false;
+
 	if (this->constantsBuffer.Get() || this->pipelineState.Get())
 	{
 		THEBE_LOG("Mesh instance already setup.");
 		return false;
 	}
 
-	if (!this->mesh.Get())
-	{
-		THEBE_LOG("No mesh set for instantiation.");
-		return false;
-	}
-
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
+
+	if (!this->mesh.Get())
+	{
+		if (this->meshPath.empty())
+		{
+			THEBE_LOG("No mesh path set for mesh instance.");
+			return false;
+		}
+
+		if (!graphicsEngine->LoadEnginePartFromFile(this->meshPath, this->mesh))
+		{
+			THEBE_LOG("Failed to load mesh for mesh instance.");
+			return false;
+		}
+	}
 
 	ID3D12Device* device = graphicsEngine->GetDevice();
 
@@ -167,4 +184,52 @@ void MeshInstance::SetMesh(Mesh* mesh)
 Mesh* MeshInstance::GetMesh()
 {
 	return this->mesh;
+}
+
+/*virtual*/ bool MeshInstance::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+{
+	using namespace ParseParty;
+
+	if (!Space::LoadConfigurationFromJson(jsonValue, relativePath))
+		return false;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+		return false;
+
+	auto meshInstanceValue = dynamic_cast<const JsonString*>(rootValue->GetValue("mesh_instance"));
+	if (!meshInstanceValue)
+	{
+		THEBE_LOG("No mesh instance specified.");
+		return false;
+	}
+
+	this->meshPath = meshInstanceValue->GetValue();
+
+	return true;
+}
+
+/*virtual*/ bool MeshInstance::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+{
+	using namespace ParseParty;
+
+	if (!Space::DumpConfigurationToJson(jsonValue, relativePath))
+		return false;
+
+	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
+	if (!rootValue)
+		return false;
+
+	if (!mesh.Get())
+		return false;
+
+	if (this->meshPath.empty())
+	{
+		THEBE_LOG("Can't dump mesh instance if no mesh path set.");
+		return false;
+	}
+
+	rootValue->SetValue("mesh_instance", new JsonString(this->meshPath.string().c_str()));
+
+	return true;
 }

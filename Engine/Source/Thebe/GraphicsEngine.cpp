@@ -12,6 +12,7 @@
 #include "Thebe/EngineParts/UploadHeap.h"
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/Scene.h"
 #include "Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -486,6 +487,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new Mesh());
 	else if (ext == ".shader")
 		enginePart.Set(new Shader());
+	else if (ext == ".scene")
+		enginePart.Set(new Scene());
 
 	if (!enginePart.Get())
 	{

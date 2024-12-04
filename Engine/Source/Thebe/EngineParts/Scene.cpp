@@ -1,6 +1,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 
@@ -14,11 +15,22 @@ Scene::Scene()
 
 /*virtual*/ bool Scene::Setup()
 {
+	if (this->rootSpace)
+	{
+		if (!this->rootSpace->Setup())
+			return false;
+	}
+
 	return true;
 }
 
 /*virtual*/ void Scene::Shutdown()
 {
+	if (this->rootSpace)
+	{
+		this->rootSpace->Shutdown();
+		this->rootSpace = nullptr;
+	}
 }
 
 /*virtual*/ void Scene::PrepareForRender()
@@ -77,4 +89,59 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 			renderObject->AppendAllChildRenderObjects(queue);
 		}
 	}
+}
+
+/*virtual*/ bool Scene::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+{
+	using namespace ParseParty;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+	{
+		THEBE_LOG("Expected root of JSON to be an object.");
+		return false;
+	}
+
+	auto spaceValue = dynamic_cast<const JsonObject*>(rootValue->GetValue("root"));
+	if (!spaceValue)
+	{
+		THEBE_LOG("No root space value found.");
+		return false;
+	}
+
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	this->rootSpace.Set(Space::Factory(spaceValue));
+	this->rootSpace->SetGraphicsEngine(graphicsEngine);
+	if (!this->rootSpace->LoadConfigurationFromJson(spaceValue, relativePath))
+	{
+		THEBE_LOG("Root space value failed to load configuration.");
+		return false;
+	}
+
+	return true;
+}
+
+/*virtual*/ bool Scene::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+{
+	using namespace ParseParty;
+
+	auto rootValue = new JsonObject();
+	jsonValue.reset(rootValue);
+
+	if (this->rootSpace)
+	{
+		std::unique_ptr<JsonValue> spaceValue;
+		if (!this->rootSpace->DumpConfigurationToJson(spaceValue, relativePath))
+		{
+			THEBE_LOG("Failed to dump root space.");
+			return false;
+		}
+
+		rootValue->SetValue("root", spaceValue.release());
+	}
+
+	return true;
 }

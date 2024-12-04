@@ -14,6 +14,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
     Source/Thebe/Utilities/BlockManager.h
+    Source/Thebe/Utilities/JsonHelper.cpp
+    Source/Thebe/Utilities/JsonHelper.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp

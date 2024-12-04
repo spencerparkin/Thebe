@@ -14,6 +14,10 @@ namespace Thebe
 		Space();
 		virtual ~Space();
 
+		virtual bool Setup() override;
+		virtual void Shutdown() override;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
+		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList) override;
 
@@ -23,6 +27,8 @@ namespace Thebe
 		void ClearAllSubSpaces();
 
 		std::vector<Reference<Space>>& GetSubSpaceArray();
+
+		static Space* Factory(const ParseParty::JsonObject* jsonObject);
 
 	protected:
 		Transform childToParent;
