@@ -131,7 +131,33 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	csuDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	if (!this->csuDescriptorHeap->Setup())
 	{
-		THEBE_LOG("Failed to setup descriptor heap.");
+		THEBE_LOG("Failed to CSU setup descriptor heap.");
+		return false;
+	}
+
+	this->rtvDescriptorHeap.Set(new DescriptorHeap());
+	this->rtvDescriptorHeap->SetGraphicsEngine(this);
+	D3D12_DESCRIPTOR_HEAP_DESC& rtvDescriptorHeapDesc = this->rtvDescriptorHeap->GetDescriptorHeapDesc();
+	rtvDescriptorHeapDesc.NumDescriptors = 32;
+	rtvDescriptorHeapDesc.NodeMask = 0;
+	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	if (!this->rtvDescriptorHeap->Setup())
+	{
+		THEBE_LOG("Failed to setup RTV descriptor heap.");
+		return false;
+	}
+
+	this->dsvDescriptorHeap.Set(new DescriptorHeap());
+	this->dsvDescriptorHeap->SetGraphicsEngine(this);
+	D3D12_DESCRIPTOR_HEAP_DESC& dsvDescriptorHeapDesc = this->dsvDescriptorHeap->GetDescriptorHeapDesc();
+	dsvDescriptorHeapDesc.NumDescriptors = 32;
+	dsvDescriptorHeapDesc.NodeMask = 0;
+	dsvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	if (!this->dsvDescriptorHeap->Setup())
+	{
+		THEBE_LOG("Failed to create DSV descriptor heap.");
 		return false;
 	}
 
@@ -169,17 +195,31 @@ void GraphicsEngine::Shutdown()
 		this->commandExecutor = nullptr;
 	}
 
+	this->pipelineStateCacheMap.clear();
+	this->renderPassArray.clear();
+	this->enginePartCacheMap.clear();
+
+	// Shutdown heaps last of all, because the shutdown of other things may
+	// want to deallocate out of these heaps.
+
 	if (this->csuDescriptorHeap)
 	{
 		this->csuDescriptorHeap->Shutdown();
 		this->csuDescriptorHeap = nullptr;
 	}
 
-	this->pipelineStateCacheMap.clear();
-	this->renderPassArray.clear();
-	this->enginePartCacheMap.clear();
+	if (this->rtvDescriptorHeap)
+	{
+		this->rtvDescriptorHeap->Shutdown();
+		this->rtvDescriptorHeap = nullptr;
+	}
 
-	// Do this almost last, because some shutdown routines may want to deallocate from the heap.
+	if (this->dsvDescriptorHeap)
+	{
+		this->dsvDescriptorHeap->Shutdown();
+		this->dsvDescriptorHeap = nullptr;
+	}
+
 	if (this->uploadHeap)
 	{
 		this->uploadHeap->Shutdown();
@@ -307,6 +347,16 @@ CommandExecutor* GraphicsEngine::GetCommandExecutor()
 DescriptorHeap* GraphicsEngine::GetCSUDescriptorHeap()
 {
 	return this->csuDescriptorHeap;
+}
+
+DescriptorHeap* GraphicsEngine::GetRTVDescriptorHeap()
+{
+	return this->rtvDescriptorHeap;
+}
+
+DescriptorHeap* GraphicsEngine::GetDSVDescriptorHeap()
+{
+	return this->dsvDescriptorHeap;
 }
 
 UploadHeap* GraphicsEngine::GetUploadHeap()

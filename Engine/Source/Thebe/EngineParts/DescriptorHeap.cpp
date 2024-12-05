@@ -161,3 +161,8 @@ bool DescriptorHeap::DescriptorSet::GetGpuHandle(UINT i, CD3DX12_GPU_DESCRIPTOR_
 	handle.Offset(i, this->descriptorSize);
 	return true;
 }
+
+bool DescriptorHeap::DescriptorSet::IsAllocated() const
+{
+	return this->heapHandle != THEBE_INVALID_REF_HANDLE;
+}

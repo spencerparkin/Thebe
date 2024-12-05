@@ -36,6 +36,8 @@ namespace Thebe
 			bool GetCpuHandle(UINT i, CD3DX12_CPU_DESCRIPTOR_HANDLE& handle) const;
 			bool GetGpuHandle(UINT i, CD3DX12_GPU_DESCRIPTOR_HANDLE& handle) const;
 
+			bool IsAllocated() const;
+
 		private:
 			CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 			CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle;

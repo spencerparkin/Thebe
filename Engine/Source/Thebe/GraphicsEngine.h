@@ -76,6 +76,8 @@ namespace Thebe
 		SwapChain* GetSwapChain();
 		CommandExecutor* GetCommandExecutor();
 		DescriptorHeap* GetCSUDescriptorHeap();
+		DescriptorHeap* GetRTVDescriptorHeap();
+		DescriptorHeap* GetDSVDescriptorHeap();
 		UploadHeap* GetUploadHeap();
 
 		void SetInputToAllRenderPasses(RenderObject* renderObject);
@@ -133,6 +135,8 @@ namespace Thebe
 		Reference<CommandExecutor> commandExecutor;
 		Reference<UploadHeap> uploadHeap;
 		Reference<DescriptorHeap> csuDescriptorHeap;
+		Reference<DescriptorHeap> rtvDescriptorHeap;
+		Reference<DescriptorHeap> dsvDescriptorHeap;
 		std::filesystem::path assetFolder;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;

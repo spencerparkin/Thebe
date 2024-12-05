@@ -105,25 +105,15 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		}
 	}
 
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
-	rtvHeapDesc.NumDescriptors = THEBE_NUM_SWAP_FRAMES;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	result = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&this->rtvHeap));
-	if (FAILED(result))
+	if (!graphicsEngine->GetRTVDescriptorHeap()->AllocDescriptorSet(THEBE_NUM_SWAP_FRAMES, this->rtvDescriptorSet))
 	{
-		THEBE_LOG("Failed to create RTV descriptor heap.  Error: 0x%08x", result);
+		THEBE_LOG("Failed to allocate RTV descriptor set for swap chain.");
 		return false;
 	}
 
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
-	dsvHeapDesc.NumDescriptors = THEBE_NUM_SWAP_FRAMES;
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	result = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&this->dsvHeap));
-	if (FAILED(result))
+	if (!graphicsEngine->GetDSVDescriptorHeap()->AllocDescriptorSet(THEBE_NUM_SWAP_FRAMES, this->dsvDescriptorSet))
 	{
-		THEBE_LOG("Failed to create DSV descriptor heap.  Error: 0x%08x", result);
+		THEBE_LOG("Failed to allocate DSV descriptor set for swap chain.");
 		return false;
 	}
 
@@ -144,6 +134,16 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 
 /*virtual*/ void SwapChain::Shutdown()
 {
+	Reference<GraphicsEngine> graphicsEngine;
+	if (this->GetGraphicsEngine(graphicsEngine))
+	{
+		if (this->rtvDescriptorSet.IsAllocated())
+			graphicsEngine->GetRTVDescriptorHeap()->FreeDescriptorSet(this->rtvDescriptorSet);
+
+		if (this->dsvDescriptorSet.IsAllocated())
+			graphicsEngine->GetDSVDescriptorHeap()->FreeDescriptorSet(this->dsvDescriptorSet);
+	}
+
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
 		Frame& frame = this->frameArray[i];
@@ -153,19 +153,10 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		frame.depthBuffer = nullptr;
 		frame.commandAllocator = nullptr;
 	}
-
-	this->rtvHeap = nullptr;
-	this->dsvHeap = nullptr;
 }
 
 bool SwapChain::RecreateViews(ID3D12Device* device)
 {
-	UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(this->rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
-	UINT dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE csvHandle(this->dsvHeap->GetCPUDescriptorHandleForHeapStart());
-
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
 		Frame& frame = this->frameArray[i];
@@ -185,11 +176,13 @@ bool SwapChain::RecreateViews(ID3D12Device* device)
 		wsprintfW(depthBufferName, L"Depth Render Target %d", i);
 		frame.depthBuffer->SetName(depthBufferName);
 
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+		this->rtvDescriptorSet.GetCpuHandle(i, rtvHandle);
 		device->CreateRenderTargetView(frame.renderTarget.Get(), nullptr, rtvHandle);
-		device->CreateDepthStencilView(frame.depthBuffer.Get(), nullptr, csvHandle);
 
-		rtvHandle.Offset(1, rtvDescriptorSize);
-		csvHandle.Offset(1, dsvDescriptorSize);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+		this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
+		device->CreateDepthStencilView(frame.depthBuffer.Get(), nullptr, dsvHandle);
 	}
 
 	return true;
@@ -350,11 +343,11 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame.renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	commandList->ResourceBarrier(1, &barrier);
 
-	UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(this->rtvHeap->GetCPUDescriptorHandleForHeapStart(), i, rtvDescriptorSize);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+	this->rtvDescriptorSet.GetCpuHandle(i, rtvHandle);
 
-	UINT dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(this->dsvHeap->GetCPUDescriptorHandleForHeapStart(), i, dsvDescriptorSize);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
 
 	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);

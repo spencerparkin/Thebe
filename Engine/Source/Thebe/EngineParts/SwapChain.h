@@ -2,6 +2,7 @@
 
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/Fence.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
 #include <Windows.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
@@ -59,9 +60,9 @@ namespace Thebe
 		};
 
 		Frame frameArray[THEBE_NUM_SWAP_FRAMES];
-		ComPtr<ID3D12DescriptorHeap> rtvHeap;
-		ComPtr<ID3D12DescriptorHeap> dsvHeap;
 		CD3DX12_VIEWPORT viewport;
 		CD3DX12_RECT scissorRect;
+		DescriptorHeap::DescriptorSet rtvDescriptorSet;
+		DescriptorHeap::DescriptorSet dsvDescriptorSet;
 	};
 }
