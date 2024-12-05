@@ -50,6 +50,8 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 	this->viewport.TopLeftY = 0;
 	this->viewport.Width = width;
 	this->viewport.Height = height;
+	this->viewport.MinDepth = 0.0;
+	this->viewport.MaxDepth = 1.0;
 
 	this->scissorRect.left = 0;
 	this->scissorRect.right = width;
