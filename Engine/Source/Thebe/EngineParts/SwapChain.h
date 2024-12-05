@@ -43,7 +43,8 @@ namespace Thebe
 
 	private:
 		bool GetWindowDimensions(int& width, int& height);
-		bool RecreateRenderTargetViews();
+		bool ResizeDepthBuffers(int width, int height, ID3D12Device* device);
+		bool RecreateViews(ID3D12Device* device);
 
 		HWND windowHandle;
 		ID3D12CommandQueue* commandQueueForSwapChainCreate;
@@ -52,12 +53,14 @@ namespace Thebe
 		struct Frame
 		{
 			ComPtr<ID3D12Resource> renderTarget;
+			ComPtr<ID3D12Resource> depthBuffer;
 			ComPtr<ID3D12CommandAllocator> commandAllocator;
 			Reference<Fence> fence;
 		};
 
 		Frame frameArray[THEBE_NUM_SWAP_FRAMES];
 		ComPtr<ID3D12DescriptorHeap> rtvHeap;
+		ComPtr<ID3D12DescriptorHeap> dsvHeap;
 		CD3DX12_VIEWPORT viewport;
 		CD3DX12_RECT scissorRect;
 	};

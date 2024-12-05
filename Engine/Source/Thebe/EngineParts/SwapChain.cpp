@@ -103,7 +103,35 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		}
 	}
 
-	if (!this->RecreateRenderTargetViews())
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
+	rtvHeapDesc.NumDescriptors = THEBE_NUM_SWAP_FRAMES;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	result = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&this->rtvHeap));
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to create RTV descriptor heap.  Error: 0x%08x", result);
+		return false;
+	}
+
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+	dsvHeapDesc.NumDescriptors = THEBE_NUM_SWAP_FRAMES;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	result = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&this->dsvHeap));
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to create DSV descriptor heap.  Error: 0x%08x", result);
+		return false;
+	}
+
+	if (!this->ResizeDepthBuffers(width, height, device))
+	{
+		THEBE_LOG("Failed to create depth bufferes.");
+		return false;
+	}
+
+	if (!this->RecreateViews(device))
 	{
 		THEBE_LOG("Failed to create render target views into each swap-frame.");
 		return false;
@@ -120,53 +148,93 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		frame.fence->Shutdown();
 		frame.fence = nullptr;
 		frame.renderTarget = nullptr;
+		frame.depthBuffer = nullptr;
 		frame.commandAllocator = nullptr;
 	}
 
 	this->rtvHeap = nullptr;
+	this->dsvHeap = nullptr;
 }
 
-bool SwapChain::RecreateRenderTargetViews()
+bool SwapChain::RecreateViews(ID3D12Device* device)
 {
-	this->rtvHeap = nullptr;
-
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
-
-	ID3D12Device* device = graphicsEngine->GetDevice();
-
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
-	rtvHeapDesc.NumDescriptors = THEBE_NUM_SWAP_FRAMES;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	HRESULT result = device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&this->rtvHeap));
-	if (FAILED(result))
-	{
-		THEBE_LOG("Failed to create RTV descriptor heap.  Error: 0x%08x", result);
-		return false;
-	}
-
 	UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(this->rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	UINT dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE csvHandle(this->dsvHeap->GetCPUDescriptorHandleForHeapStart());
+
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
 		Frame& frame = this->frameArray[i];
 
-		result = this->swapChain->GetBuffer(i, IID_PPV_ARGS(&frame.renderTarget));
+		HRESULT result = this->swapChain->GetBuffer(i, IID_PPV_ARGS(&frame.renderTarget));
 		if (FAILED(result))
 		{
 			THEBE_LOG("Failed to get render target for frame %d.  Error: 0x%08x", i, result);
 			return false;
 		}
 
-		wchar_t renderTargetName[512];
+		wchar_t renderTargetName[128];
 		wsprintfW(renderTargetName, L"Swap Frame Render Target %d", i);
 		frame.renderTarget->SetName(renderTargetName);
 
+		wchar_t depthBufferName[128];
+		wsprintfW(depthBufferName, L"Depth Render Target %d", i);
+		frame.depthBuffer->SetName(depthBufferName);
+
 		device->CreateRenderTargetView(frame.renderTarget.Get(), nullptr, rtvHandle);
+		device->CreateDepthStencilView(frame.depthBuffer.Get(), nullptr, csvHandle);
 
 		rtvHandle.Offset(1, rtvDescriptorSize);
+		csvHandle.Offset(1, dsvDescriptorSize);
+	}
+
+	return true;
+}
+
+bool SwapChain::ResizeDepthBuffers(int width, int height, ID3D12Device* device)
+{
+	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
+	{
+		Frame& frame = this->frameArray[i];
+		
+		frame.depthBuffer = nullptr;
+
+		D3D12_HEAP_PROPERTIES heapProps{};
+		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+		D3D12_RESOURCE_DESC depthBufferDesc{};
+		depthBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		depthBufferDesc.Alignment = 0;
+		depthBufferDesc.Width = width;
+		depthBufferDesc.Height = height;
+		depthBufferDesc.DepthOrArraySize = 1;
+		depthBufferDesc.MipLevels = 1;
+		depthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		depthBufferDesc.SampleDesc.Count = 1;
+		depthBufferDesc.SampleDesc.Quality = 0;
+		depthBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		depthBufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+		D3D12_CLEAR_VALUE clearValue{};
+		clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+		clearValue.DepthStencil.Depth = 1.0f;
+		clearValue.DepthStencil.Stencil = 0;
+
+		HRESULT result = device->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&depthBufferDesc,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE,
+			&clearValue,
+			IID_PPV_ARGS(&frame.depthBuffer));
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to create depth buffer %d.", i);
+			return false;
+		}
 	}
 
 	return true;
@@ -205,7 +273,10 @@ bool SwapChain::Resize(int width, int height)
 		return false;
 	}
 
-	if (!this->RecreateRenderTargetViews())
+	if (!this->ResizeDepthBuffers(width, height, graphicsEngine->GetDevice()))
+		return false;
+
+	if (!this->RecreateViews(graphicsEngine->GetDevice()))
 		return false;
 
 	this->viewport.TopLeftX = 0;
@@ -253,7 +324,7 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	THEBE_ASSERT(0 <= i && i < THEBE_NUM_SWAP_FRAMES);
 	Frame& frame = this->frameArray[i];
 
-	// Internally, I wonder if this enqueues some commands on the command list.  When the swap-chain was
+	// Internally, I wonder if this enqueues some commands on the command queue.  When the swap-chain was
 	// created, we had to pass the creation function a pointer to the command queue.
 	HRESULT result = this->swapChain->Present(1, 0);
 
@@ -280,10 +351,14 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	UINT rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(this->rtvHeap->GetCPUDescriptorHandleForHeapStart(), i, rtvDescriptorSize);
 
+	UINT dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(this->dsvHeap->GetCPUDescriptorHandleForHeapStart(), i, dsvDescriptorSize);
+
 	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 	commandList->RSSetViewports(1, &this->viewport);
 	commandList->RSSetScissorRects(1, &this->scissorRect);
