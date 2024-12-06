@@ -425,6 +425,11 @@ bool GraphicsEngine::AddAssetFolder(std::filesystem::path assetFolder)
 	return true;
 }
 
+void GraphicsEngine::RemoveAllAssetFolders()
+{
+	this->assetFolderList.clear();
+}
+
 const std::list<std::filesystem::path>& GraphicsEngine::GetAssetFolderList() const
 {
 	return this->assetFolderList;
