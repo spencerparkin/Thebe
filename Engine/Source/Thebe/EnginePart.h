@@ -23,8 +23,8 @@ namespace Thebe
 
 		virtual bool Setup() = 0;
 		virtual void Shutdown() = 0;
-		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath);
-		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath);
+		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const;
 
 	protected:
 		mutable RefHandle graphicsEngineHandle;

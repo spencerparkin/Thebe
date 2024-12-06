@@ -81,11 +81,11 @@ UINT IndexBuffer::GetIndexCount() const
 	return UINT(this->originalBuffer.size()) / stride;
 }
 
-/*virtual*/ bool IndexBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool IndexBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
-	if (!Buffer::LoadConfigurationFromJson(jsonValue, relativePath))
+	if (!Buffer::LoadConfigurationFromJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
@@ -113,11 +113,11 @@ UINT IndexBuffer::GetIndexCount() const
 	return true;
 }
 
-/*virtual*/ bool IndexBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool IndexBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
-	if (!Buffer::DumpConfigurationToJson(jsonValue, relativePath))
+	if (!Buffer::DumpConfigurationToJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());

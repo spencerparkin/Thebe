@@ -57,7 +57,7 @@ Material::Material()
 	this->textureFileMap.clear();
 }
 
-/*virtual*/ bool Material::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Material::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 

@@ -107,9 +107,10 @@ namespace Thebe
 		};
 
 		bool ResolvePath(std::filesystem::path& assetPath, ResolveMethod resolveMethod);
-		bool SetAssetFolder(std::filesystem::path assetFolder);
-		const std::filesystem::path& GetAssetFolder() const;
-		bool GetRelativeToAssetFolder(std::filesystem::path& assetPath);
+		bool AddAssetFolder(std::filesystem::path assetFolder);
+		void RemoveAllAssetFolders();
+		const std::list<std::filesystem::path>& GetAssetFolderList() const;
+		bool GetRelativeToAssetFolder(std::filesystem::path& assetPath, std::filesystem::path* assetFolderUsed = nullptr);
 
 		UINT64 GetFrameCount();
 		double GetDeltaTime();
@@ -139,7 +140,7 @@ namespace Thebe
 		Reference<DescriptorHeap> csuDescriptorHeap;
 		Reference<DescriptorHeap> rtvDescriptorHeap;
 		Reference<DescriptorHeap> dsvDescriptorHeap;
-		std::filesystem::path assetFolder;
+		std::list<std::filesystem::path> assetFolderList;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
 

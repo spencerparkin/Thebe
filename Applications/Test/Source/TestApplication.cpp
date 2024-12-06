@@ -22,7 +22,7 @@ TestApplication::TestApplication()
 {
 	this->graphicsEngine.Set(new Thebe::GraphicsEngine());
 
-	if (!this->graphicsEngine->SetAssetFolder("Applications/Test/Assets"))
+	if (!this->graphicsEngine->AddAssetFolder("Engine/Assets"))
 		return false;
 
 	if (!this->graphicsEngine->Setup(this->windowHandle))

@@ -28,13 +28,13 @@ bool EnginePart::GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine) co
 	return graphicsEngine.Get() ? true : false;
 }
 
-/*virtual*/ bool EnginePart::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool EnginePart::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	THEBE_LOG("Config loading not supported.");
 	return false;
 }
 
-/*virtual*/ bool EnginePart::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool EnginePart::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	THEBE_LOG("Config dumping not supported.");
 	return false;

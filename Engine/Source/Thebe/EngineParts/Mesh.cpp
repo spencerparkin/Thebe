@@ -55,11 +55,16 @@ Mesh::Mesh()
 	this->material = nullptr;
 }
 
-/*virtual*/ bool Mesh::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Mesh::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
-	this->meshPath = relativePath;
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	this->meshPath = assetPath;
+	graphicsEngine->GetRelativeToAssetFolder(this->meshPath);
 
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
 	if (!rootValue)

@@ -91,7 +91,7 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 	}
 }
 
-/*virtual*/ bool Scene::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Scene::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
@@ -115,7 +115,7 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 
 	this->rootSpace.Set(Space::Factory(spaceValue));
 	this->rootSpace->SetGraphicsEngine(graphicsEngine);
-	if (!this->rootSpace->LoadConfigurationFromJson(spaceValue, relativePath))
+	if (!this->rootSpace->LoadConfigurationFromJson(spaceValue, assetPath))
 	{
 		THEBE_LOG("Root space value failed to load configuration.");
 		return false;
@@ -124,7 +124,7 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 	return true;
 }
 
-/*virtual*/ bool Scene::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool Scene::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
@@ -134,7 +134,7 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 	if (this->rootSpace)
 	{
 		std::unique_ptr<JsonValue> spaceValue;
-		if (!this->rootSpace->DumpConfigurationToJson(spaceValue, relativePath))
+		if (!this->rootSpace->DumpConfigurationToJson(spaceValue, assetPath))
 		{
 			THEBE_LOG("Failed to dump root space.");
 			return false;

@@ -35,7 +35,7 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 	this->subSpaceArray.clear();
 }
 
-/*virtual*/ bool Space::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Space::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
@@ -71,7 +71,7 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 
 			Reference<Space> space(Factory(childObject));
 			space->SetGraphicsEngine(graphicsEngine);
-			if (!space->LoadConfigurationFromJson(childObject, relativePath))
+			if (!space->LoadConfigurationFromJson(childObject, assetPath))
 				return false;
 
 			this->subSpaceArray.push_back(space);
@@ -89,7 +89,7 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 	return new Space();
 }
 
-/*virtual*/ bool Space::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool Space::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
@@ -104,7 +104,7 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 	for (const Space* subSpace : this->subSpaceArray)
 	{
 		std::unique_ptr<JsonValue> childValue;
-		if (!subSpace->DumpConfigurationToJson(childValue, relativePath))
+		if (!subSpace->DumpConfigurationToJson(childValue, assetPath))
 			return false;
 
 		childrenValue->PushValue(childValue.release());

@@ -306,7 +306,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 	return this->gpuBufferDesc;
 }
 
-/*virtual*/ bool Buffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Buffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
@@ -466,7 +466,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 	return true;
 }
 
-/*virtual*/ bool Buffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool Buffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
@@ -503,12 +503,8 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 
 	// TODO: May want to compress the buffer.
 
-	std::filesystem::path bufferDataPath = relativePath;
+	std::filesystem::path bufferDataPath = assetPath;
 	bufferDataPath.replace_extension(bufferDataPath.extension().string() + "_data");
-
-	rootValue->SetValue("data", new JsonString(bufferDataPath.string()));
-
-	bufferDataPath = graphicsEngine->GetAssetFolder() / bufferDataPath;
 
 	std::ofstream fileStream;
 	fileStream.open(bufferDataPath.c_str(), std::ios::out | std::ios::binary);
@@ -520,6 +516,11 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 
 	fileStream.write((const char*)this->originalBuffer.data(), this->originalBuffer.size());
 	fileStream.close();
+
+	if (!graphicsEngine->GetRelativeToAssetFolder(bufferDataPath))
+		return false;
+
+	rootValue->SetValue("data", new JsonString(bufferDataPath.string()));
 
 	return true;
 }

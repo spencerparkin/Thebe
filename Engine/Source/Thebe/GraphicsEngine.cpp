@@ -401,14 +401,19 @@ bool GraphicsEngine::ResolvePath(std::filesystem::path& assetPath, ResolveMethod
 		}
 		else if (resolveMethod == RELATIVE_TO_ASSET_FOLDER)
 		{
-			assetPath = this->assetFolder / assetPath;
+			for (const std::filesystem::path& assetFolder : this->assetFolderList)
+			{
+				assetPath = assetFolder / assetPath;
+				if (std::filesystem::exists(assetPath))
+					break;
+			}
 		}
 	}
 
 	return std::filesystem::exists(assetPath);
 }
 
-bool GraphicsEngine::SetAssetFolder(std::filesystem::path assetFolder)
+bool GraphicsEngine::AddAssetFolder(std::filesystem::path assetFolder)
 {
 	if (assetFolder.is_relative() && !this->ResolvePath(assetFolder, RELATIVE_TO_EXECUTABLE))
 	{
@@ -416,24 +421,32 @@ bool GraphicsEngine::SetAssetFolder(std::filesystem::path assetFolder)
 		return false;
 	}
 
-	this->assetFolder = assetFolder;
+	this->assetFolderList.push_back(assetFolder);
 	return true;
 }
 
-const std::filesystem::path& GraphicsEngine::GetAssetFolder() const
+const std::list<std::filesystem::path>& GraphicsEngine::GetAssetFolderList() const
 {
-	return this->assetFolder;
+	return this->assetFolderList;
 }
 
-bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath)
+bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, std::filesystem::path* assetFolderUsed /*= nullptr*/)
 {
 	if (!assetPath.is_absolute())
 	{
-		THEBE_LOG("Expected given path to be absolute.");
+		THEBE_LOG("Expected given path (%s) to be absolute.", assetPath.string().c_str());
 		return false;
 	}
 
-	assetPath = std::filesystem::relative(assetPath, this->assetFolder);
+	for (auto assetFolderUsed : this->assetFolderList)
+	{
+		std::error_code error;
+		assetPath = std::filesystem::relative(assetPath, assetFolderUsed, error);
+		if (!error)
+			return true;
+	}
+	
+	THEBE_LOG("Failed to get path (%s) relative to a configured asset folder.", assetPath.string().c_str());
 	return true;
 }
 
@@ -561,14 +574,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 
 	enginePart->SetGraphicsEngine(this);
 
-	std::filesystem::path relativePath = enginePartPath;
-	if (!this->GetRelativeToAssetFolder(relativePath))
-	{
-		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.string().c_str());
-		return false;
-	}
-
-	if (!enginePart->LoadConfigurationFromJson(jsonRootValue.get(), relativePath))
+	if (!enginePart->LoadConfigurationFromJson(jsonRootValue.get(), enginePartPath))
 	{
 		THEBE_LOG("Engine part failed to configure from JSON.");
 		return false;
@@ -594,15 +600,8 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 {
 	using namespace ParseParty;
 
-	std::filesystem::path relativePath = enginePartPath;
-	if (!this->GetRelativeToAssetFolder(relativePath))
-	{
-		THEBE_LOG("Failed to get path (%s) relative to asset folder (%s).", enginePartPath.c_str(), this->assetFolder.string().c_str());
-		return false;
-	}
-
 	std::unique_ptr<JsonValue> jsonValue;
-	if (!enginePart->DumpConfigurationToJson(jsonValue, relativePath) || !jsonValue.get())
+	if (!enginePart->DumpConfigurationToJson(jsonValue, enginePartPath) || !jsonValue.get())
 	{
 		THEBE_LOG("Failed to dump engine part configuration to JSON.");
 		return false;

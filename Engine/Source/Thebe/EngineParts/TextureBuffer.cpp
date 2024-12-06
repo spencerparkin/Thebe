@@ -133,11 +133,11 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	commandList->CopyTextureRegion(&destinationCopyLocation, 0, 0, 0, &sourceCopyLocation, nullptr);
 }
 
-/*virtual*/ bool TextureBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool TextureBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
-	if (!Buffer::LoadConfigurationFromJson(jsonValue, relativePath))
+	if (!Buffer::LoadConfigurationFromJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
@@ -167,11 +167,11 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	return true;
 }
 
-/*virtual*/ bool TextureBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool TextureBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
-	if (!Buffer::DumpConfigurationToJson(jsonValue, relativePath))
+	if (!Buffer::DumpConfigurationToJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());

@@ -75,11 +75,11 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 	return this->elementDescArray;
 }
 
-/*virtual*/ bool VertexBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool VertexBuffer::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
-	if (!Buffer::LoadConfigurationFromJson(jsonValue, relativePath))
+	if (!Buffer::LoadConfigurationFromJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
@@ -153,11 +153,11 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 	return true;
 }
 
-/*virtual*/ bool VertexBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool VertexBuffer::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
-	if (!Buffer::DumpConfigurationToJson(jsonValue, relativePath))
+	if (!Buffer::DumpConfigurationToJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());

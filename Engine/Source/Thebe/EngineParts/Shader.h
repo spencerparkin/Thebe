@@ -19,7 +19,7 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath) override;
+		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 
 		struct Parameter
 		{

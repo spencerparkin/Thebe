@@ -36,7 +36,7 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 
 	this->frame = new GraphicsToolFrame(wxPoint(10, 10), wxSize(1200, 800));
 
-	this->graphicsEngine->SetAssetFolder("Applications/Test/Assets");	// TODO: Not sure how to handle pathing.  Figure it out.
+	this->graphicsEngine->AddAssetFolder("Engine/Assets");
 
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))

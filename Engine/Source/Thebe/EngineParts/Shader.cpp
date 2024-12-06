@@ -147,7 +147,7 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 	return "?";
 }
 
-/*virtual*/ bool Shader::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool Shader::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 

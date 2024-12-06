@@ -186,11 +186,11 @@ Mesh* MeshInstance::GetMesh()
 	return this->mesh;
 }
 
-/*virtual*/ bool MeshInstance::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& relativePath)
+/*virtual*/ bool MeshInstance::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;
 
-	if (!Space::LoadConfigurationFromJson(jsonValue, relativePath))
+	if (!Space::LoadConfigurationFromJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
@@ -209,11 +209,11 @@ Mesh* MeshInstance::GetMesh()
 	return true;
 }
 
-/*virtual*/ bool MeshInstance::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& relativePath) const
+/*virtual*/ bool MeshInstance::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
 	using namespace ParseParty;
 
-	if (!Space::DumpConfigurationToJson(jsonValue, relativePath))
+	if (!Space::DumpConfigurationToJson(jsonValue, assetPath))
 		return false;
 
 	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
