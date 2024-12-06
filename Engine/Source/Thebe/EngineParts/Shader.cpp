@@ -151,6 +151,9 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 {
 	using namespace ParseParty;
 
+	if (!EnginePart::LoadConfigurationFromJson(jsonValue, assetPath))
+		return false;
+
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
 	if (!rootValue)
 	{
@@ -228,8 +231,6 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 
 	this->vertesShaderBlobFile = vertexShaderBlobFileValue->GetValue();
 	this->pixelShaderBlobFile = pixelShaderBlobFileValue->GetValue();
-
-	// TODO: Read in texture associations.  These are needed to help create our root signature.
 
 	return true;
 }

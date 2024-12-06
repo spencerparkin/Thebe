@@ -59,6 +59,9 @@ Mesh::Mesh()
 {
 	using namespace ParseParty;
 
+	if (!EnginePart::LoadConfigurationFromJson(jsonValue, assetPath))
+		return false;
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;

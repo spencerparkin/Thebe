@@ -53,11 +53,6 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	return this->originalBuffer;
 }
 
-void Buffer::SetName(const std::string& name)
-{
-	this->name = name;
-}
-
 /*virtual*/ bool Buffer::Setup()
 {
 	if (this->gpuBuffer.Get())
@@ -310,6 +305,9 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 {
 	using namespace ParseParty;
 
+	if (!EnginePart::LoadConfigurationFromJson(jsonValue, assetPath))
+		return false;
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
@@ -320,12 +318,6 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		THEBE_LOG("Expected root JSON value to be an object.");
 		return false;
 	}
-
-	auto nameValue = dynamic_cast<const JsonString*>(rootValue->GetValue("name"));
-	if (nameValue)
-		this->name = nameValue->GetValue();
-	else
-		this->name = "";
 
 	auto typeValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("type"));
 	if (!typeValue)
@@ -470,12 +462,16 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 {
 	using namespace ParseParty;
 
+	if (!EnginePart::DumpConfigurationToJson(jsonValue, assetPath))
+		return false;
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
-	auto rootValue = new JsonObject();
-	jsonValue.reset(rootValue);
+	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
+	if (!rootValue)
+		return false;
 
 	rootValue->SetValue("type", new JsonInt(this->type));
 	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));

@@ -4,7 +4,7 @@
 #include "Thebe/Reference.h"
 
 #if defined THEBE_LOGGING
-#	define THEBE_LOG(msg, ...)			do { if (Log::Get()) Log::Get()->Print(msg, __VA_ARGS__); } while(false)
+#	define THEBE_LOG(msg, ...)			do { if (Thebe::Log::Get()) Thebe::Log::Get()->Print(msg, __VA_ARGS__); } while(false)
 #else
 #	define THEBE_LOG(msg, ...)
 #endif

@@ -7,6 +7,8 @@ set(GRAPHICS_TOOL_SOURCES
     Source/Frame.h
     Source/Canvas.cpp
     Source/Canvas.h
+    Source/SceneBuilder.cpp
+    Source/SceneBuilder.h
 )
 
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GRAPHICS_TOOL_SOURCES})

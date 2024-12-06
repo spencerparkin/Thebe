@@ -1,6 +1,7 @@
 #include "Frame.h"
 #include "Canvas.h"
 #include "App.h"
+#include "SceneBuilder.h"
 #include "Thebe/EngineParts/Scene.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -59,6 +60,22 @@ GraphicsToolCanvas* GraphicsToolFrame::GetCanvas()
 
 void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 {
+	wxFileDialog inputFileDialog(this, "Choose input file.", wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
+	if (inputFileDialog.ShowModal() != wxID_OK)
+		return;
+
+	wxDirDialog outputFolderDialog(this, "Specify output folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
+	if (outputFolderDialog.ShowModal() != wxID_OK)
+		return;
+
+	std::filesystem::path inputSceneFile((const char*)inputFileDialog.GetPath().c_str());
+	std::filesystem::path outputAssetsFolder((const char*)outputFolderDialog.GetPath().c_str());
+
+	SceneBuilder sceneBuilder;
+	if (!sceneBuilder.BuildScene(inputSceneFile, outputAssetsFolder))
+		wxMessageBox("Scene build failed!", "Error!", wxICON_ERROR | wxOK, this);
+	else
+		wxMessageBox("Scene build succeeded!", "Success!", wxICON_INFORMATION | wxOK, this);
 }
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)

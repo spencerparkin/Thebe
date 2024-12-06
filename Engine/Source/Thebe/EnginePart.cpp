@@ -13,6 +13,16 @@ EnginePart::EnginePart()
 {
 }
 
+void EnginePart::SetName(const std::string& name)
+{
+	this->name = name;
+}
+
+const std::string& EnginePart::GetName() const
+{
+	return this->name;
+}
+
 void EnginePart::SetGraphicsEngine(GraphicsEngine* graphicsEngine)
 {
 	this->graphicsEngineHandle = graphicsEngine->GetHandle();
@@ -30,12 +40,33 @@ bool EnginePart::GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine) co
 
 /*virtual*/ bool EnginePart::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
-	THEBE_LOG("Config loading not supported.");
+	using namespace ParseParty;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+	{
+		THEBE_LOG("Expected root JSON value to be an object.");
+		return false;
+	}
+
+	auto nameValue = dynamic_cast<const JsonString*>(rootValue->GetValue("name"));
+	if (nameValue)
+		this->name = nameValue->GetValue();
+	else
+		this->name = "";
+
 	return false;
 }
 
 /*virtual*/ bool EnginePart::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
 {
-	THEBE_LOG("Config dumping not supported.");
-	return false;
+	using namespace ParseParty;
+
+	auto rootValue = new JsonObject();
+	jsonValue.reset(rootValue);
+
+	if (this->name.length() > 0)
+		rootValue->SetValue("name", new JsonString(this->name.c_str()));
+
+	return true;
 }

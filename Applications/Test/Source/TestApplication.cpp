@@ -28,23 +28,6 @@ TestApplication::TestApplication()
 	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
 
-#if 0
-	std::vector<Vector3> pointArray;
-	pointArray.push_back(Vector3(-1.0, -1.0, -1.0));
-	pointArray.push_back(Vector3(-1.0, -1.0, 1.0));
-	pointArray.push_back(Vector3(-1.0, 1.0, -1.0));
-	pointArray.push_back(Vector3(-1.0, 1.0, 1.0));
-	pointArray.push_back(Vector3(1.0, -1.0, -1.0));
-	pointArray.push_back(Vector3(1.0, -1.0, 1.0));
-	pointArray.push_back(Vector3(1.0, 1.0, -1.0));
-	pointArray.push_back(Vector3(1.0, 1.0, 1.0));
-	Reference<IndexBuffer> indexBuffer;
-	Reference<VertexBuffer> vertexBuffer;
-	Buffer::GenerateIndexAndVertexBuffersForConvexHull(pointArray, this->graphicsEngine.Get(), indexBuffer, vertexBuffer);
-	this->graphicsEngine->DumpEnginePartToFile(R"(E:\ENG_DEV\Thebe\Applications\Test\Assets\Cube\Cube.index_buffer)", indexBuffer.Get(), THEBE_DUMP_FLAG_CAN_OVERWRITE);
-	this->graphicsEngine->DumpEnginePartToFile(R"(E:\ENG_DEV\Thebe\Applications\Test\Assets\Cube\Cube.vertex_buffer)", vertexBuffer.Get(), THEBE_DUMP_FLAG_CAN_OVERWRITE);
-#endif
-
 	Reference<Scene> scene;
 	if (!graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Test.scene)", scene))
 		return false;

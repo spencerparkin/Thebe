@@ -95,6 +95,9 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 {
 	using namespace ParseParty;
 
+	if (!RenderObject::LoadConfigurationFromJson(jsonValue, assetPath))
+		return false;
+
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
 	if (!rootValue)
 	{
@@ -128,8 +131,12 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 {
 	using namespace ParseParty;
 
-	auto rootValue = new JsonObject();
-	jsonValue.reset(rootValue);
+	if (!RenderObject::DumpConfigurationToJson(jsonValue, assetPath))
+		return false;
+
+	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
+	if (!rootValue)
+		return false;
 
 	if (this->rootSpace)
 	{

@@ -61,6 +61,9 @@ Material::Material()
 {
 	using namespace ParseParty;
 
+	if (!EnginePart::LoadConfigurationFromJson(jsonValue, assetPath))
+		return false;
+
 	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
 	if (!rootValue)
 	{
