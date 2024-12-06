@@ -260,7 +260,8 @@ void GraphicsEngine::Render()
 {
 	std::set<RenderObject*> renderObjectSet;
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderObjectSet.insert(renderPass->GetInput());
+		if (renderPass->GetInput())
+			renderObjectSet.insert(renderPass->GetInput());
 
 	for (RenderObject* renderObject : renderObjectSet)
 		renderObject->PrepareForRender();
