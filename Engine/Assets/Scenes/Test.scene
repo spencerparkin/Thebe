@@ -56,7 +56,7 @@
 				[
 
 				],
-				"mesh_instance": "Cube\\Cube.mesh"
+				"mesh_instance": "Meshes\\Cube.mesh"
 			},
 			{
 				"child_to_parent_transform":
@@ -87,7 +87,7 @@
 				[
 
 				],
-				"mesh_instance": "Cube\\Cube.mesh"
+				"mesh_instance": "Meshes\\Cube.mesh"
 			}
 		]
 	}

@@ -1,0 +1,6 @@
+{
+    "name": "Cube",
+    "index_buffer": "Buffers/Cube.index_buffer",
+    "vertex_buffer": "Buffers/Cube.vertex_buffer",
+    "material": "Materials/BasicMaterial.material"
+}
