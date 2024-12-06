@@ -1,6 +1,8 @@
 #include "App.h"
 #include "Frame.h"
 #include "Canvas.h"
+#include "Thebe/Math/Transform.h"
+#include "Thebe/EngineParts/Camera.h"
 #include <wx/image.h>
 
 wxIMPLEMENT_APP(GraphicsToolApp);
@@ -20,6 +22,11 @@ Thebe::GraphicsEngine* GraphicsToolApp::GetGraphicsEngine()
 	return this->graphicsEngine.Get();
 }
 
+Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
+{
+	return &this->freeCam;
+}
+
 /*virtual*/ bool GraphicsToolApp::OnInit(void)
 {
 	if (!wxApp::OnInit())
@@ -29,11 +36,24 @@ Thebe::GraphicsEngine* GraphicsToolApp::GetGraphicsEngine()
 
 	this->frame = new GraphicsToolFrame(wxPoint(10, 10), wxSize(1200, 800));
 
+	this->graphicsEngine->SetAssetFolder("Applications/Test/Assets");	// TODO: Not sure how to handle pathing.  Figure it out.
+
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))
 		return false;
 
+	Thebe::Transform cameraToWorld;
+	cameraToWorld.matrix.SetIdentity();
+	cameraToWorld.translation.SetComponents(0.0, 0.0, 10.0);
+
+	Thebe::Reference<Thebe::Camera> camera;
+	camera.Set(new Thebe::PerspectiveCamera());
+	camera->SetCameraToWorldTransform(cameraToWorld);
+	this->graphicsEngine->SetCameraForMainRenderPass(camera);
+
 	this->frame->Show();
+
+	this->freeCam.SetCamera(camera);
 
 	return true;
 }

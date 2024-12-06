@@ -1,8 +1,13 @@
 #include "Frame.h"
 #include "Canvas.h"
+#include "App.h"
+#include "Thebe/EngineParts/Scene.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
+#include <filesystem>
 
 GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Graphics Tool", pos, size), timer(this, ID_Timer)
 {
@@ -52,6 +57,25 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)
 {
+	wxFileDialog fileDialog(this, "Choose scene file to open.", wxEmptyString, wxEmptyString, "(*.scene)|*.scene", wxFD_FILE_MUST_EXIST);
+	if (fileDialog.ShowModal() != wxID_OK)
+		return;
+
+	std::filesystem::path sceneFilePath((const char*)fileDialog.GetPath().c_str());
+
+	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	graphicsEngine->WaitForGPUIdle();
+
+	graphicsEngine->PurgeCache();
+
+	Thebe::Reference<Thebe::Scene> scene;
+	if (!graphicsEngine->LoadEnginePartFromFile(sceneFilePath, scene))
+	{
+		wxMessageBox("Failed to load scene: " + fileDialog.GetFilename(), "Error!", wxICON_ERROR | wxOK);
+		return;
+	}
+
+	graphicsEngine->SetInputToAllRenderPasses(scene.Get());
 }
 
 void GraphicsToolFrame::OnAbout(wxCommandEvent& event)
@@ -72,6 +96,8 @@ void GraphicsToolFrame::OnExit(wxCommandEvent& event)
 void GraphicsToolFrame::OnTimer(wxTimerEvent& event)
 {
 	this->canvas->Refresh();
+	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
+	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 }
 
 void GraphicsToolFrame::OnUpdateUI(wxUpdateUIEvent& event)

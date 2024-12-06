@@ -179,25 +179,34 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	return true;
 }
 
+void GraphicsEngine::PurgeCache()
+{
+	this->SetInputToAllRenderPasses(nullptr);
+
+	for (auto pair : this->enginePartCacheMap)
+		pair.second->Shutdown();
+
+	this->enginePartCacheMap.clear();
+}
+
 void GraphicsEngine::Shutdown()
 {
 	this->WaitForGPUIdle();
 
+	this->PurgeCache();
+
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
 		renderPass->Shutdown();
 
-	for (auto pair : this->enginePartCacheMap)
-		pair.second->Shutdown();
+	this->renderPassArray.clear();
+
+	this->pipelineStateCacheMap.clear();
 
 	if (this->commandExecutor)
 	{
 		this->commandExecutor->Shutdown();
 		this->commandExecutor = nullptr;
 	}
-
-	this->pipelineStateCacheMap.clear();
-	this->renderPassArray.clear();
-	this->enginePartCacheMap.clear();
 
 	// Shutdown heaps last of all, because the shutdown of other things may
 	// want to deallocate out of these heaps.

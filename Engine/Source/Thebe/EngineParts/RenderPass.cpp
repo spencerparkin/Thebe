@@ -99,7 +99,7 @@ RenderPass::RenderPass()
 		return false;
 	}
 	
-	if (this->input.Get())
+	if (this->input.Get() && this->camera.Get())
 	{
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);

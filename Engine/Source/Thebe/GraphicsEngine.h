@@ -98,6 +98,8 @@ namespace Thebe
 			return enginePartTyped.Get() ? true : true;
 		}
 
+		void PurgeCache();
+
 		enum ResolveMethod
 		{
 			RELATIVE_TO_EXECUTABLE,
