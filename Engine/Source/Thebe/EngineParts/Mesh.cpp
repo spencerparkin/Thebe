@@ -101,9 +101,23 @@ Mesh::Mesh()
 	this->vertexBufferPath = vertexBufferValue->GetValue();
 	this->materialPath = materialValue->GetValue();
 
-	auto nameValue = dynamic_cast<const JsonString*>(rootValue->GetValue("name"));
-	if (nameValue)
-		this->name = nameValue->GetValue();
+	return true;
+}
+
+/*virtual*/ bool Mesh::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
+{
+	using namespace ParseParty;
+
+	if (!EnginePart::DumpConfigurationToJson(jsonValue, assetPath))
+		return false;
+
+	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
+	if (!rootValue)
+		return false;
+
+	rootValue->SetValue("index_buffer", new JsonString(this->indexBufferPath.string().c_str()));
+	rootValue->SetValue("vertex_buffer", new JsonString(this->vertexBufferPath.string().c_str()));
+	rootValue->SetValue("material_buffer", new JsonString(this->materialPath.string().c_str()));
 
 	return true;
 }
@@ -126,4 +140,19 @@ Material* Mesh::GetMaterial()
 const std::filesystem::path& Mesh::GetMeshPath() const
 {
 	return this->meshPath;
+}
+
+void Mesh::SetVertexBufferPath(const std::filesystem::path& vertexBufferPath)
+{
+	this->vertexBufferPath = vertexBufferPath;
+}
+
+void Mesh::SetIndexBufferPath(const std::filesystem::path& indexBufferPath)
+{
+	this->indexBufferPath = indexBufferPath;
+}
+
+void Mesh::SetMaterialPath(const std::filesystem::path& materialPath)
+{
+	this->materialPath = materialPath;
 }

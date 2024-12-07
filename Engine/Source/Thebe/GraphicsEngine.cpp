@@ -447,12 +447,12 @@ bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, 
 	{
 		std::error_code error;
 		assetPath = std::filesystem::relative(assetPath, assetFolderUsed, error);
-		if (!error)
+		if (error.value() == 0)
 			return true;
 	}
 	
 	THEBE_LOG("Failed to get path (%s) relative to a configured asset folder.", assetPath.string().c_str());
-	return true;
+	return false;
 }
 
 ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer)

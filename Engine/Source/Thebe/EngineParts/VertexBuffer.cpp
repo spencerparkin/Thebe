@@ -12,7 +12,6 @@ VertexBuffer::VertexBuffer()
 
 /*virtual*/ VertexBuffer::~VertexBuffer()
 {
-	this->ClearElementDescriptionArray();
 }
 
 void VertexBuffer::SetStride(UINT32 stride)
@@ -54,14 +53,6 @@ const D3D12_VERTEX_BUFFER_VIEW* VertexBuffer::GetVertexBufferView() const
 
 	::memset(&this->vertexBufferView, 0, sizeof(this->vertexBufferView));
 
-	this->ClearElementDescriptionArray();
-}
-
-void VertexBuffer::ClearElementDescriptionArray()
-{
-	for (D3D12_INPUT_ELEMENT_DESC& elementDesc : this->elementDescArray)
-		delete[] elementDesc.SemanticName;
-
 	this->elementDescArray.clear();
 }
 
@@ -102,6 +93,7 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 		return false;
 	}
 
+	this->semanticNameHeap.Reset();
 	this->elementDescArray.clear();
 	for (int i = 0; i < elementDescArrayValue->GetSize(); i++)
 	{
@@ -142,7 +134,7 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 		if (semanticNameValue)
 		{
 			std::string semanticName = semanticNameValue->GetValue();
-			char* semanticNameBuffer = new char[semanticName.length() + 1];
+			char* semanticNameBuffer = (char*)this->semanticNameHeap.Allocate(semanticName.length() + 1, 1);
 			strcpy(semanticNameBuffer, semanticName.c_str());
 			elementDesc.SemanticName = semanticNameBuffer;
 		}

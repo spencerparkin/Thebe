@@ -20,6 +20,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Utilities/BlockManager.h
     Source/Thebe/Utilities/JsonHelper.cpp
     Source/Thebe/Utilities/JsonHelper.h
+    Source/Thebe/Utilities/ScratchHeap.cpp
+    Source/Thebe/Utilities/ScratchHeap.h
+    Source/Thebe/Utilities/StackHeap.cpp
+    Source/Thebe/Utilities/StackHeap.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp
