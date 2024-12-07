@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Tube001.index_buffer",
+	"material_buffer": "Materials\\Tube.material",
+	"name": "Tube001",
+	"vertex_buffer": "Buffers\\Tube001.vertex_buffer"
+}

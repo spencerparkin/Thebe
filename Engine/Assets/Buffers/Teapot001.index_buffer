@@ -1,0 +1,9 @@
+{
+	"data": "Buffers\\Teapot001.index_buffer_data",
+	"dimensionality": "buffer",
+	"format": 42,
+	"name": "Teapot001_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 49152,
+	"type": 0
+}

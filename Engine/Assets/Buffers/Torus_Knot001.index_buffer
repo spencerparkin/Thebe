@@ -1,0 +1,9 @@
+{
+	"data": "Buffers\\Torus_Knot001.index_buffer_data",
+	"dimensionality": "buffer",
+	"format": 42,
+	"name": "Torus_Knot001_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 34560,
+	"type": 0
+}

@@ -1,0 +1,9 @@
+{
+	"data": "Buffers\\Torus001.index_buffer_data",
+	"dimensionality": "buffer",
+	"format": 42,
+	"name": "Torus001_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 6912,
+	"type": 0
+}

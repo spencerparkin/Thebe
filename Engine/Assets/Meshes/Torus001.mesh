@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Torus001.index_buffer",
+	"material_buffer": "Materials\\Torus.material",
+	"name": "Torus001",
+	"vertex_buffer": "Buffers\\Torus001.vertex_buffer"
+}

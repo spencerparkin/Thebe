@@ -1,0 +1,37 @@
+{
+	"data": "Buffers\\Tube001.vertex_buffer_data",
+	"dimensionality": "buffer",
+	"element_desc_array":
+	[
+		{
+			"aligned_byte_offset": 0,
+			"format": 6,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "POSITION"
+		},
+		{
+			"aligned_byte_offset": -1,
+			"format": 6,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "NORMAL"
+		},
+		{
+			"aligned_byte_offset": -1,
+			"format": 16,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "TEXCOORD"
+		}
+	],
+	"size": 41472,
+	"stride": 32,
+	"type": 1
+}
