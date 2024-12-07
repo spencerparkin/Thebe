@@ -1,7 +1,6 @@
 #pragma once
 
 #include <wx/app.h>
-#include <wx/config.h>
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/FreeCam.h"
 
@@ -18,13 +17,11 @@ public:
 
 	Thebe::GraphicsEngine* GetGraphicsEngine();
 	Thebe::FreeCam* GetFreeCam();
-	wxConfig* GetConfig();
 
 private:
 	GraphicsToolFrame* frame;
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::FreeCam freeCam;
-	wxConfig* config;
 };
 
 wxDECLARE_APP(GraphicsToolApp);

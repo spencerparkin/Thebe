@@ -15,8 +15,6 @@ public:
 	{
 		ID_BuildScene = wxID_HIGHEST,
 		ID_PreviewScene,
-		ID_AddAssetFolder,
-		ID_RemoveAllAssetFolders,
 		ID_About,
 		ID_Exit,
 		ID_Timer
@@ -32,8 +30,6 @@ private:
 	void OnTimer(wxTimerEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
-	void OnAddAssetFolder(wxCommandEvent& event);
-	void OnRemoveAllAssetFolders(wxCommandEvent& event);
 
 	GraphicsToolCanvas* canvas;
 	wxTimer timer;
