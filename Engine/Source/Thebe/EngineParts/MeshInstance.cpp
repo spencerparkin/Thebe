@@ -20,7 +20,7 @@ MeshInstance::MeshInstance()
 {
 }
 
-void MeshInstance::SetMeshMesh(std::filesystem::path& meshPath)
+void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 {
 	this->meshPath = meshPath;
 }

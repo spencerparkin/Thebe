@@ -26,7 +26,7 @@ namespace Thebe
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera) override;
 
-		void SetMeshMesh(std::filesystem::path& meshPath);
+		void SetMeshPath(std::filesystem::path& meshPath);
 		void SetMesh(Mesh* mesh);
 		Mesh* GetMesh();
 

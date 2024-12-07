@@ -11,11 +11,16 @@ SceneBuilder::SceneBuilder()
 {
 }
 
-bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile, const std::filesystem::path& outputAssetsFolder)
+void SceneBuilder::SetAssetsFolder(const std::filesystem::path& outputAssetsFolder)
+{
+	this->outputAssetsFolder = outputAssetsFolder;
+}
+
+bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 {
 	THEBE_LOG("Building scene!");
 	THEBE_LOG("Input file: %s", inputSceneFile.string().c_str());
-	THEBE_LOG("Output assets folder: %s", outputAssetsFolder.string().c_str());
+	THEBE_LOG("Output assets folder: %s", this->outputAssetsFolder.string().c_str());
 
 	this->importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1.0);
 
@@ -32,7 +37,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile, const
 	outputScene->SetRootSpace(outputRootNode);
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
-	std::filesystem::path outputSceneFile = outputAssetsFolder / "Scenes" / inputSceneFile.filename();
+	std::filesystem::path outputSceneFile = this->outputAssetsFolder / "Scenes" / inputSceneFile.filename();
 	outputSceneFile.replace_extension(".scene");
 	if (!graphicsEngine->DumpEnginePartToFile(outputSceneFile, outputScene, THEBE_DUMP_FLAG_CAN_OVERWRITE))
 	{
@@ -59,11 +64,45 @@ Thebe::Reference<Thebe::Space> SceneBuilder::GenerateSceneTree(const aiNode* inp
 	for (int i = 0; i < (int)inputParentNode->mNumMeshes; i++)
 	{
 		const aiMesh* inputMesh = this->importer.GetScene()->mMeshes[inputParentNode->mMeshes[i]];
-
-		// TODO: Process the mesh here.
+		Thebe::Reference<Thebe::MeshInstance> meshInstance = this->GenerateMeshInstance(inputMesh);
+		outputParentNode->AddSubSpace(meshInstance);
 	}
 
 	return outputParentNode;
+}
+
+Thebe::Reference<Thebe::MeshInstance> SceneBuilder::GenerateMeshInstance(const aiMesh* inputMesh)
+{
+	Thebe::Reference<Thebe::MeshInstance> outputMeshInstance(new Thebe::MeshInstance());
+
+	std::string inputMeshName(inputMesh->mName.C_Str());
+	std::string outputMeshName = inputMeshName + ".mesh";
+
+	std::string inputSceneName(this->importer.GetScene()->mName.C_Str());
+	if (inputSceneName.length() > 0)
+		outputMeshName = inputSceneName + "_" + outputMeshName;
+
+	outputMeshName = this->NoSpaces(outputMeshName);
+	std::filesystem::path meshPath = std::filesystem::path("Meshes") / outputMeshName;
+	outputMeshInstance->SetMeshPath(meshPath);
+
+	return outputMeshInstance;
+}
+
+std::string SceneBuilder::NoSpaces(const std::string& givenString)
+{
+	std::string resultString = givenString;
+
+	while (true)
+	{
+		size_t pos = resultString.find(' ');
+		if (pos == std::string::npos)
+			break;
+
+		resultString.replace(pos, 1, "_");
+	}
+
+	return resultString;
 }
 
 Thebe::Transform SceneBuilder::MakeTransform(const aiMatrix4x4& givenMatrix)
