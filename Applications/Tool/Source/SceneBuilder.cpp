@@ -25,7 +25,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	THEBE_LOG("Output assets folder: %s", this->outputAssetsFolder.string().c_str());
 
 	this->inputSceneFileFolder = inputSceneFile.parent_path();
-	this->builtTextures.clear();
+	this->texturesToBuildSet.clear();
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->RemoveAllAssetFolders();
@@ -96,6 +96,23 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		}
 	}
 
+	for (const std::filesystem::path& inputTexturePath : this->texturesToBuildSet)
+	{
+		Thebe::Reference<Thebe::TextureBuffer> outputTexture = this->GenerateTextureBuffer(inputTexturePath);
+		if (!outputTexture.Get())
+		{
+			THEBE_LOG("Failed to generate texture: %s", inputTexturePath.string().c_str());
+			return Thebe::Reference<Thebe::Material>();
+		}
+
+		std::filesystem::path outputTexturePath = (this->outputAssetsFolder / this->GenerateTextureBufferPath(inputTexturePath)).lexically_normal();
+		if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputTexturePath, outputTexture, THEBE_DUMP_FLAG_CAN_OVERWRITE))
+		{
+			THEBE_LOG("Failed to dump texture: %s", outputTexturePath.string().c_str());
+			return Thebe::Reference<Thebe::Material>();
+		}
+	}
+
 	return true;
 }
 
@@ -114,30 +131,10 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 	{
 		outputMaterial->SetShaderPath("Shaders/BasicShader.shader");
 
-		std::filesystem::path inputDiffuseTexturePath = this->inputSceneFileFolder / inputDiffuseTexture.C_Str();
-		inputDiffuseTexturePath = inputDiffuseTexturePath.lexically_normal();
-
+		std::filesystem::path inputDiffuseTexturePath = (this->inputSceneFileFolder / inputDiffuseTexture.C_Str()).lexically_normal();
+		this->texturesToBuildSet.insert(inputDiffuseTexturePath);
 		std::filesystem::path outputDiffuseTexturePath = this->GenerateTextureBufferPath(inputDiffuseTexturePath);
 		outputMaterial->SetTexturePath("diffuse", outputDiffuseTexturePath);
-
-		outputDiffuseTexturePath = (this->outputAssetsFolder / outputDiffuseTexturePath).lexically_normal();
-		if (this->builtTextures.find(outputDiffuseTexturePath) == this->builtTextures.end())
-		{
-			this->builtTextures.insert(outputDiffuseTexturePath);
-
-			Thebe::Reference<Thebe::TextureBuffer> outputDiffuseTexture = this->GenerateTextureBuffer(inputDiffuseTexturePath);
-			if (!outputDiffuseTexture.Get())
-			{
-				THEBE_LOG("Failed to generate texture: %s", inputDiffuseTexturePath.string().c_str());
-				return Thebe::Reference<Thebe::Material>();
-			}
-
-			if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputDiffuseTexturePath, outputDiffuseTexture, THEBE_DUMP_FLAG_CAN_OVERWRITE))
-			{
-				THEBE_LOG("Failed to dump texture: %s", outputDiffuseTexturePath.string().c_str());
-				return Thebe::Reference<Thebe::Material>();
-			}
-		}
 	}
 
 	return outputMaterial;
