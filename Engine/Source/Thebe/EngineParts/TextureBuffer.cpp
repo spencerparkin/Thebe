@@ -178,6 +178,7 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	if (!rootValue)
 		return false;
 
+	// TODO: This is redundant.  Fix it.
 	const D3D12_RESOURCE_DESC& resourceDesc = this->GetResourceDesc();
 	rootValue->SetValue("width", new JsonInt(resourceDesc.Width));
 	rootValue->SetValue("height", new JsonInt(resourceDesc.Height));

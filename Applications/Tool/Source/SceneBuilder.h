@@ -6,12 +6,14 @@
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
+#include "Thebe/EngineParts/Material.h"
 #include "Thebe/Math/Transform.h"
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/Vector2.h"
 #include "Thebe/Math/Quaternion.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <set>
 
 class SceneBuilder
 {
@@ -29,6 +31,8 @@ private:
 	Thebe::Reference<Thebe::Mesh> GenerateMesh(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::VertexBuffer> GenerateVertexBuffer(const aiMesh* inputMesh);
+	Thebe::Reference<Thebe::Material> GenerateMaterial(const aiMaterial* inputMaterial);
+	Thebe::Reference<Thebe::TextureBuffer> GenerateTextureBuffer(const std::filesystem::path& inputTexturePath);
 
 	Thebe::Transform MakeTransform(const aiMatrix4x4& givenMatrix);
 	Thebe::Vector3 MakeVector(const aiVector3D& givenVector);
@@ -42,7 +46,10 @@ private:
 	std::filesystem::path GenerateMaterialPath(const aiMaterial* inputMaterial);
 	std::filesystem::path GenerateIndexBufferPath(const aiMesh* inputMesh);
 	std::filesystem::path GenerateVertexBufferPath(const aiMesh* inputMesh);
+	std::filesystem::path GenerateTextureBufferPath(const std::filesystem::path& inputTexturePath);
 
 	Assimp::Importer importer;
 	std::filesystem::path outputAssetsFolder;
+	std::filesystem::path inputSceneFileFolder;
+	std::set<std::filesystem::path> builtTextures;
 };

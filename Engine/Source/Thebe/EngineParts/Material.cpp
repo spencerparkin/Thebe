@@ -32,7 +32,7 @@ Material::Material()
 	for (auto pair : this->textureFileMap)
 	{
 		const std::string& textureUsage = pair.first;
-		const std::string& textureFilePath = pair.second;
+		const std::filesystem::path& textureFilePath = pair.second;
 		
 		Reference<TextureBuffer> texture;
 		if (!graphicsEngine->LoadEnginePartFromFile(textureFilePath, texture))
@@ -111,6 +111,51 @@ Material::Material()
 	}
 
 	return true;
+}
+
+/*virtual*/ bool Material::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const
+{
+	using namespace ParseParty;
+
+	if (!EnginePart::DumpConfigurationToJson(jsonValue, assetPath))
+		return false;
+
+	auto rootValue = dynamic_cast<JsonObject*>(jsonValue.get());
+	if (!rootValue)
+		return false;
+
+	rootValue->SetValue("shader", new JsonString(this->shaderPath.string()));
+	rootValue->SetValue("alpha_blending", new JsonBool(this->blendDesc.RenderTarget[0].BlendEnable == TRUE));
+
+	auto textureMapValue = new JsonObject();
+	rootValue->SetValue("texture_map", textureMapValue);
+
+	for (auto pair : this->textureFileMap)
+	{
+		const std::string& textureUsage = pair.first;
+		const std::filesystem::path& textureFilePath = pair.second;
+		textureMapValue->SetValue(textureUsage, new JsonString(textureFilePath.string()));
+	}
+
+	return true;
+}
+
+void Material::SetShaderPath(const std::filesystem::path& shaderPath)
+{
+	this->shaderPath = shaderPath;
+}
+
+void Material::SetTexturePath(const std::string& textureUsage, const std::filesystem::path& texturePath)
+{
+	if (this->textureFileMap.find(textureUsage) != this->textureFileMap.end())
+		this->textureFileMap.erase(textureUsage);
+
+	this->textureFileMap.insert(std::pair(textureUsage, texturePath));
+}
+
+void Material::ClearAllTexturePaths()
+{
+	this->textureFileMap.clear();
 }
 
 Shader* Material::GetShader()

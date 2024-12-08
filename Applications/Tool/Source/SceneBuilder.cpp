@@ -3,6 +3,7 @@
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include <assimp/postprocess.h>
+#include <wx/image.h>
 
 SceneBuilder::SceneBuilder()
 {
@@ -22,6 +23,9 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	THEBE_LOG("Building scene!");
 	THEBE_LOG("Input file: %s", inputSceneFile.string().c_str());
 	THEBE_LOG("Output assets folder: %s", this->outputAssetsFolder.string().c_str());
+
+	this->inputSceneFileFolder = inputSceneFile.parent_path();
+	this->builtTextures.clear();
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->RemoveAllAssetFolders();
@@ -76,10 +80,113 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 
 	for (int i = 0; i < (int)inputScene->mNumMaterials; i++)
 	{
-		//...
+		const aiMaterial* inputMaterial = inputScene->mMaterials[i];
+		Thebe::Reference<Thebe::Material> outputMaterial = this->GenerateMaterial(inputMaterial);
+		if (!outputMaterial.Get())
+		{
+			THEBE_LOG("Failed to generate material %d.", i);
+			return false;
+		}
+
+		std::filesystem::path outputMaterialFile = this->outputAssetsFolder / this->GenerateMaterialPath(inputMaterial);
+		if (!graphicsEngine->DumpEnginePartToFile(outputMaterialFile, outputMaterial, THEBE_DUMP_FLAG_CAN_OVERWRITE))
+		{
+			THEBE_LOG("Failed to dump material %d.", i);
+			return false;
+		}
 	}
 
 	return true;
+}
+
+Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMaterial* inputMaterial)
+{
+	Thebe::Reference<Thebe::Material> outputMaterial(new Thebe::Material());
+	outputMaterial->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
+	outputMaterial->SetName(inputMaterial->GetName().C_Str());
+
+	aiString inputDiffuseTexture;
+	if (AI_SUCCESS != aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE_DIFFUSE(0), &inputDiffuseTexture))
+	{
+		outputMaterial->SetShaderPath("Shaders/FlatShader.shader");
+	}
+	else
+	{
+		outputMaterial->SetShaderPath("Shaders/BasicShader.shader");
+
+		std::filesystem::path inputDiffuseTexturePath = this->inputSceneFileFolder / inputDiffuseTexture.C_Str();
+		inputDiffuseTexturePath = inputDiffuseTexturePath.lexically_normal();
+
+		std::filesystem::path outputDiffuseTexturePath = this->GenerateTextureBufferPath(inputDiffuseTexturePath);
+		outputMaterial->SetTexturePath("diffuse", outputDiffuseTexturePath);
+
+		outputDiffuseTexturePath = (this->outputAssetsFolder / outputDiffuseTexturePath).lexically_normal();
+		if (this->builtTextures.find(outputDiffuseTexturePath) == this->builtTextures.end())
+		{
+			this->builtTextures.insert(outputDiffuseTexturePath);
+
+			Thebe::Reference<Thebe::TextureBuffer> outputDiffuseTexture = this->GenerateTextureBuffer(inputDiffuseTexturePath);
+			if (!outputDiffuseTexture.Get())
+			{
+				THEBE_LOG("Failed to generate texture: %s", inputDiffuseTexturePath.string().c_str());
+				return Thebe::Reference<Thebe::Material>();
+			}
+
+			if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputDiffuseTexturePath, outputDiffuseTexture, THEBE_DUMP_FLAG_CAN_OVERWRITE))
+			{
+				THEBE_LOG("Failed to dump texture: %s", outputDiffuseTexturePath.string().c_str());
+				return Thebe::Reference<Thebe::Material>();
+			}
+		}
+	}
+
+	return outputMaterial;
+}
+
+Thebe::Reference<Thebe::TextureBuffer> SceneBuilder::GenerateTextureBuffer(const std::filesystem::path& inputTexturePath)
+{
+	Thebe::Reference<Thebe::TextureBuffer> outputTexture(new Thebe::TextureBuffer());
+	outputTexture->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
+	outputTexture->SetName(inputTexturePath.stem().string());
+	outputTexture->SetBufferType(Thebe::Buffer::STATIC);
+
+	wxImage inputImage;
+	if (!inputImage.LoadFile(inputTexturePath.string().c_str()))
+	{
+		THEBE_LOG("Failed to load file: %s", inputTexturePath.string().c_str());
+		return Thebe::Reference<Thebe::TextureBuffer>();
+	}
+
+	D3D12_RESOURCE_DESC& gpuBufferDesc = outputTexture->GetResourceDesc();
+	gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	gpuBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gpuBufferDesc.MipLevels = 1;
+	gpuBufferDesc.Width = inputImage.GetWidth();
+	gpuBufferDesc.Height = inputImage.GetHeight();
+
+	UINT bytesPerInputColorPixel = 3;
+	UINT bytesPerInputAlphaPixel = 1;
+	std::vector<UINT8>& outputBuffer = outputTexture->GetOriginalBuffer();
+	outputBuffer.resize(inputImage.GetWidth() * inputImage.GetHeight() * outputTexture->GetBytesPerPixel());
+	for (UINT i = 0; i < (UINT)inputImage.GetHeight(); i++)
+	{
+		for (UINT j = 0; j < (UINT)inputImage.GetWidth(); j++)
+		{
+			UINT pixelOffset = i * inputImage.GetWidth() + j;
+
+			const unsigned char* inputColor = &inputImage.GetData()[pixelOffset * bytesPerInputColorPixel];
+			const unsigned char* inputAlpha = inputImage.HasAlpha() ? &inputImage.GetAlpha()[pixelOffset * bytesPerInputAlphaPixel] : nullptr;
+
+			UINT8* outputPixel = &outputBuffer.data()[pixelOffset * outputTexture->GetBytesPerPixel()];
+
+			outputPixel[0] = inputColor[0];
+			outputPixel[1] = inputColor[1];
+			outputPixel[2] = inputColor[2];
+			outputPixel[3] = inputAlpha ? inputAlpha[0] : 0;
+		}
+	}
+
+	return outputTexture;
 }
 
 Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh)
@@ -335,6 +442,15 @@ std::filesystem::path SceneBuilder::GenerateVertexBufferPath(const aiMesh* input
 	outputVertexBufferName = this->NoSpaces(this->PrefixWithSceneName(outputVertexBufferName));
 	std::filesystem::path outputVertexBufferPath = std::filesystem::path("Buffers") / outputVertexBufferName;
 	return outputVertexBufferPath;
+}
+
+std::filesystem::path SceneBuilder::GenerateTextureBufferPath(const std::filesystem::path& inputTexturePath)
+{
+	std::string inputTextureName(inputTexturePath.stem().string());
+	std::string outputTextureName = inputTextureName + ".texture_buffer";
+	outputTextureName = this->NoSpaces(this->PrefixWithSceneName(outputTextureName));
+	std::filesystem::path outputTexturePath = std::filesystem::path("Textures") / outputTextureName;
+	return outputTexturePath;
 }
 
 std::string SceneBuilder::NoSpaces(const std::string& givenString)
