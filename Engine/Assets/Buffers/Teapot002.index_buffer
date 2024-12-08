@@ -1,6 +1,5 @@
 {
 	"data": "Buffers\\Teapot002.index_buffer_data",
-	"dimensionality": "buffer",
 	"format": 42,
 	"name": "Teapot002_IndexBuffer",
 	"primitive_topology": 4,

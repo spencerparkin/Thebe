@@ -1,6 +1,5 @@
 {
 	"data": "Textures\\Star.texture_buffer_data",
-	"dimensionality": "texture2D",
 	"height": 512,
 	"name": "Star",
 	"pixel_format": 28,

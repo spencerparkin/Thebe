@@ -1,6 +1,5 @@
 {
 	"data": "Textures\\Grass.texture_buffer_data",
-	"dimensionality": "texture2D",
 	"height": 200,
 	"name": "Grass",
 	"pixel_format": 28,
