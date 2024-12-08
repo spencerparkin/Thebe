@@ -1,0 +1,9 @@
+{
+	"alpha_blending": false,
+	"name": "Tube",
+	"shader": "Shaders/BasicShader.shader",
+	"texture_map":
+	{
+		"diffuse": "Textures\\Star.texture_buffer"
+	}
+}

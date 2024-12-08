@@ -1,0 +1,9 @@
+{
+	"alpha_blending": false,
+	"name": "Torus",
+	"shader": "Shaders/BasicShader.shader",
+	"texture_map":
+	{
+		"diffuse": "Textures\\Stupid.texture_buffer"
+	}
+}

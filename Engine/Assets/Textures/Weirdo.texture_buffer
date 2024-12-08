@@ -1,0 +1,10 @@
+{
+	"data": "Textures\\Weirdo.texture_buffer_data",
+	"dimensionality": "texture2D",
+	"height": 512,
+	"name": "Weirdo",
+	"pixel_format": 28,
+	"size": 1048576,
+	"type": 1,
+	"width": 512
+}

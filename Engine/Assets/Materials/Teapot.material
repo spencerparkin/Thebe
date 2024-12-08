@@ -1,0 +1,9 @@
+{
+	"alpha_blending": false,
+	"name": "Teapot",
+	"shader": "Shaders/BasicShader.shader",
+	"texture_map":
+	{
+		"diffuse": "Textures\\Ugly.texture_buffer"
+	}
+}
