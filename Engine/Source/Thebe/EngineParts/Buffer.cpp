@@ -344,43 +344,9 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 	UINT32 bufferSize = (UINT32)sizeValue->GetValue();
 	this->originalBuffer.resize(bufferSize);
 
-	auto dimensionalityValue = dynamic_cast<const JsonString*>(rootValue->GetValue("dimensionality"));
-	if (!dimensionalityValue)
-	{
-		THEBE_LOG("No dimentionality specified.");
-		return false;
-	}
-
-	std::string dimensionality = dimensionalityValue->GetValue();
-	if (dimensionality == "buffer")
-		this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	else if (dimensionality == "texture2D")
-		this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	else
-	{
-		THEBE_LOG("Unrecognized dimensionality: %s", dimensionality.c_str());
-		return false;
-	}
-
-	if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
-	{
-		this->gpuBufferDesc.Width = bufferSize;
-	}
-	else if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-	{
-		auto widthValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("width"));
-		auto heightValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("height"));
-		auto pixelFormatValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("pixel_format"));
-		if (!(widthValue && heightValue && pixelFormatValue))
-		{
-			THEBE_LOG("Did not find width, height and pixel format values.");
-			return false;
-		}
-
-		this->gpuBufferDesc.Width = (UINT64)widthValue->GetValue();
-		this->gpuBufferDesc.Height = (UINT64)heightValue->GetValue();
-		this->gpuBufferDesc.Format = (DXGI_FORMAT)pixelFormatValue->GetValue();
-	}
+	this->gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	this->gpuBufferDesc.Width = this->GetBufferSize();
+	this->gpuBufferDesc.Height = 1;
 
 	auto floatArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("float_array"));
 	auto intArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("int_array"));
@@ -443,6 +409,8 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 			return false;
 		}
 
+		// TODO: May want to decompress the buffer.
+
 		std::ifstream fileStream;
 		fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
 		if (!fileStream.is_open())
@@ -475,27 +443,6 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 
 	rootValue->SetValue("type", new JsonInt(this->type));
 	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));
-
-	std::string dimensionality;
-	switch (this->gpuBufferDesc.Dimension)
-	{
-	case D3D12_RESOURCE_DIMENSION_BUFFER:
-		rootValue->SetValue("dimensionality", new JsonString("buffer"));
-		break;
-	case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-		rootValue->SetValue("dimensionality", new JsonString("texture2D"));
-		break;
-	default:
-		THEBE_LOG("Unrecognized dimensionality: %d", this->gpuBufferDesc.Dimension);
-		return false;
-	}
-
-	if (this->gpuBufferDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-	{
-		rootValue->SetValue("width", new JsonInt(this->gpuBufferDesc.Width));
-		rootValue->SetValue("height", new JsonInt(this->gpuBufferDesc.Height));
-		rootValue->SetValue("pixel_format", new JsonInt(this->gpuBufferDesc.Format));
-	}
 
 	// TODO: May want to compress the buffer.
 

@@ -160,6 +160,7 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	}
 
 	D3D12_RESOURCE_DESC& resourceDesc = this->GetResourceDesc();
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resourceDesc.Width = (UINT64)widthValue->GetValue();
 	resourceDesc.Height = (UINT64)heightValue->GetValue();
 	resourceDesc.Format = (DXGI_FORMAT)pixelFormatValue->GetValue();
@@ -178,7 +179,6 @@ UINT64 TextureBuffer::GetBytesPerPixel()
 	if (!rootValue)
 		return false;
 
-	// TODO: This is redundant.  Fix it.
 	const D3D12_RESOURCE_DESC& resourceDesc = this->GetResourceDesc();
 	rootValue->SetValue("width", new JsonInt(resourceDesc.Width));
 	rootValue->SetValue("height", new JsonInt(resourceDesc.Height));
