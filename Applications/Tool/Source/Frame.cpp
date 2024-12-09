@@ -59,7 +59,7 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 	if (inputFileDialog.ShowModal() != wxID_OK)
 		return;
 
-	wxDirDialog outputFolderDialog(this, "Specify output folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
+	wxDirDialog outputFolderDialog(this, "Specify output assets folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
 	if (outputFolderDialog.ShowModal() != wxID_OK)
 		return;
 
@@ -82,12 +82,18 @@ void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)
 
 	std::filesystem::path sceneFilePath((const char*)fileDialog.GetPath().c_str());
 
-	// TODO: May need to setup asset folders here before we continue.  Just ask the user if necessary in some cases.
+	wxDirDialog inputFolderDialog(this, "Specify input assets folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
+	if (inputFolderDialog.ShowModal() != wxID_OK)
+		return;
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->WaitForGPUIdle();
-
 	graphicsEngine->PurgeCache();
+
+	std::filesystem::path inputAssetsFolder((const char*)inputFolderDialog.GetPath().c_str());
+
+	graphicsEngine->RemoveAllAssetFolders();
+	graphicsEngine->AddAssetFolder(inputAssetsFolder);
 
 	Thebe::Reference<Thebe::Scene> scene;
 	if (!graphicsEngine->LoadEnginePartFromFile(sceneFilePath, scene))

@@ -238,6 +238,7 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 {
 	Thebe::Reference<Thebe::VertexBuffer> outputVertexBuffer(new Thebe::VertexBuffer());
 	outputVertexBuffer->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
+	outputVertexBuffer->SetBufferType(Thebe::Buffer::STATIC);
 
 	D3D12_RESOURCE_DESC& gpuBufferDesc = outputVertexBuffer->GetResourceDesc();
 	gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -340,6 +341,7 @@ Thebe::Reference<Thebe::IndexBuffer> SceneBuilder::GenerateIndexBuffer(const aiM
 {
 	Thebe::Reference<Thebe::IndexBuffer> outputIndexBuffer(new Thebe::IndexBuffer());
 	outputIndexBuffer->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
+	outputIndexBuffer->SetBufferType(Thebe::Buffer::STATIC);
 
 	D3D12_RESOURCE_DESC& gpuBufferDesc = outputIndexBuffer->GetResourceDesc();
 	gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;

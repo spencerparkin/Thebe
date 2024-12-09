@@ -6,15 +6,15 @@
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int cmdShow)
 {
-#if false
-	TestAVLTree();
-#endif
-
 #if defined THEBE_LOGGING
 	Thebe::Reference<Thebe::Log> log(new Thebe::Log());
 	log->AddSink(new Thebe::LogConsoleSink());
 	Thebe::Log::Set(log);
 #endif //THEBE_LOGGING
+
+#if false
+	TestAVLTree();
+#endif
 
 	TestApplication app;
 

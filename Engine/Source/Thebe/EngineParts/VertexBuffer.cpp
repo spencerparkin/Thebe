@@ -8,6 +8,7 @@ VertexBuffer::VertexBuffer()
 	::memset(&this->vertexBufferView, 0, sizeof(this->vertexBufferView));
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 	this->sizeAlignmentRequirement = 1;
+	this->semanticNameHeap.SetSize(5 * 1024);
 }
 
 /*virtual*/ VertexBuffer::~VertexBuffer()

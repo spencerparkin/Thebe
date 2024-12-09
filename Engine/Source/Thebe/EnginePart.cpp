@@ -55,7 +55,7 @@ bool EnginePart::GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine) co
 	else
 		this->name = "";
 
-	return false;
+	return true;
 }
 
 /*virtual*/ bool EnginePart::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const

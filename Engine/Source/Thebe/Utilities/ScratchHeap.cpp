@@ -29,7 +29,7 @@ void ScratchHeap::Reset()
 uint8_t* ScratchHeap::Allocate(uint64_t size, uint64_t align)
 {
 	uint64_t blockStart = THEBE_ALIGNED(this->offset, align);
-	uint64_t blockEnd = blockStart = size;
+	uint64_t blockEnd = blockStart + size;
 	if (blockEnd > this->GetSize())
 		return nullptr;
 

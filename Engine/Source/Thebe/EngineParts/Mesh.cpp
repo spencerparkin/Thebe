@@ -117,7 +117,7 @@ Mesh::Mesh()
 
 	rootValue->SetValue("index_buffer", new JsonString(this->indexBufferPath.string().c_str()));
 	rootValue->SetValue("vertex_buffer", new JsonString(this->vertexBufferPath.string().c_str()));
-	rootValue->SetValue("material_buffer", new JsonString(this->materialPath.string().c_str()));
+	rootValue->SetValue("material", new JsonString(this->materialPath.string().c_str()));
 
 	return true;
 }
