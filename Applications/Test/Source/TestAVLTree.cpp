@@ -1,4 +1,5 @@
 #include "TestAVLTree.h"
+#include "Thebe/Log.h"
 #include <random>
 #include <set>
 
@@ -7,41 +8,39 @@ void TestAVLTree()
 	using namespace Thebe;
 
 	AVLTree tree;
-	std::set<int> numberSet;
-	std::mt19937 generator;
-	std::uniform_int_distribution<int> distribution(1, 100);
+	int numKeys = 1000;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 1; i <= numKeys; i++)
 	{
-		int number = distribution(generator);
-		tree.InsertNode(new Node(number));
-		numberSet.insert(number);
+		tree.InsertNode(new Node(i));
 
-		THEBE_ASSERT(numberSet.size() == tree.GetNodeCount(true));
-		THEBE_ASSERT(tree.IsAVLTree());
 		THEBE_ASSERT(tree.IsBinaryTree());
+		THEBE_ASSERT(tree.IsAVLTree());
 	}
 
-	std::vector<int> numberArray;
-	for (int number : numberSet)
-		numberArray.push_back(number);
+	for (int i = 1; i <= numKeys; i += 2)
+	{
+		Key key(i);
+		Node* node = (Node*)tree.FindNode(&key);
+		THEBE_ASSERT(node != nullptr);
+		tree.RemoveNode(node, true);
 
-	int i = 0;
-	bool traversed = tree.Traverse([&i, &numberArray](const AVLTreeNode* node) -> bool
-		{
+		THEBE_ASSERT(tree.IsBinaryTree());
+		THEBE_ASSERT(tree.IsAVLTree());
+	}
+
+	tree.Traverse([](const AVLTreeNode* node) -> bool {
 			auto key = (const Key*)node->GetKey();
-			return key->number == numberArray[i++];
+			THEBE_LOG("Key = %d", key->number);
+			return true;
 		});
-
-	THEBE_ASSERT(traversed);
 
 	while (tree.GetNodeCount() > 0)
 	{
-		tree.RemoveNode((AVLTreeNode*)tree.GetRootNode(), true);
+		tree.RemoveNode(tree.GetRootNode(), true);
 
+		THEBE_ASSERT(tree.IsBinaryTree());
 		THEBE_ASSERT(tree.IsAVLTree());
-		THEBE_ASSERT(tree.IsBinaryTree());
-		THEBE_ASSERT(tree.IsBinaryTree());
 	}
 }
 

@@ -14,7 +14,7 @@ AVLTree::~AVLTree()
 {
 }
 
-const AVLTreeNode* AVLTree::GetRootNode() const
+AVLTreeNode* AVLTree::GetRootNode()
 {
 	return this->rootNode;
 }
@@ -97,14 +97,57 @@ bool AVLTree::RemoveNode(AVLTreeNode* givenNode, bool deleteNode /*= false*/)
 #else
 		AVLTreeNode* node = givenNode->Successor();
 #endif
-		this->RemoveNode(node);
-		givenNode->ReplaceWith(node, true);
-		node->UpdateBalanceFactor();
+		this->RemoveNode(node, false);
+
+		AVLTreeNode** branchPtr = nullptr;
+		if (givenNode->parentNode)
+		{
+			if (givenNode->parentNode->leftNode == givenNode)
+				branchPtr = &givenNode->parentNode->leftNode;
+			else if (givenNode->parentNode->rightNode == givenNode)
+				branchPtr = &givenNode->parentNode->rightNode;
+			else
+				THEBE_ASSERT(false);
+		}
+
+		node->parentNode = givenNode->parentNode;
+		node->leftNode = givenNode->leftNode;
+		node->rightNode = givenNode->rightNode;
+		if (node->leftNode)
+			node->leftNode->parentNode = node;
+		if (node->rightNode)
+			node->rightNode->parentNode = node;
+		node->tree = this;
+
+		if (branchPtr)
+			*branchPtr = node;
+		else
+			this->rootNode = node;
+
+		this->RebalanceAtNode(node);
 	}
 	else
 	{
+		AVLTreeNode** branchPtr = nullptr;
+		if (givenNode->parentNode)
+		{
+			if (givenNode->parentNode->leftNode == givenNode)
+				branchPtr = &givenNode->parentNode->leftNode;
+			else if (givenNode->parentNode->rightNode == givenNode)
+				branchPtr = &givenNode->parentNode->rightNode;
+			else
+				THEBE_ASSERT(false);
+		}
+
 		AVLTreeNode* node = givenNode->leftNode ? givenNode->leftNode : givenNode->rightNode;
-		givenNode->ReplaceWith(node, false);
+		if (node)
+			node->parentNode = givenNode->parentNode;
+
+		if (branchPtr)
+			*branchPtr = node;
+		else
+			this->rootNode = node;
+
 		this->RebalanceAtNode(givenNode->parentNode);
 		this->nodeCount--;
 	}
@@ -230,17 +273,17 @@ AVLTreeNode::~AVLTreeNode()
 {
 }
 
-const AVLTreeNode* AVLTreeNode::GetLeftNode() const
+AVLTreeNode* AVLTreeNode::GetLeftNode()
 {
 	return this->leftNode;
 }
 
-const AVLTreeNode* AVLTreeNode::GetRightNode() const
+AVLTreeNode* AVLTreeNode::GetRightNode()
 {
 	return this->rightNode;
 }
 
-const AVLTreeNode* AVLTreeNode::GetParentNode() const
+AVLTreeNode* AVLTreeNode::GetParentNode()
 {
 	return this->parentNode;
 }
@@ -460,50 +503,6 @@ AVLTreeNode* AVLTreeNode::Successor(void)
 	}
 
 	return nodeA;
-}
-
-const AVLTreeNode* AVLTreeNode::Predecessor() const
-{
-	return const_cast<AVLTreeNode*>(this)->Predecessor();
-}
-
-const AVLTreeNode* AVLTreeNode::Successor() const
-{
-	return const_cast<AVLTreeNode*>(this)->Successor();
-}
-
-void AVLTreeNode::ReplaceWith(AVLTreeNode* node, bool adopt)
-{
-	if (node == this)
-		return;
-
-	if (node)
-	{
-		node->SetKey(this->GetKey());
-
-		if (adopt)
-		{
-			node->leftNode = this->leftNode;
-			node->rightNode = this->rightNode;
-
-			if (this->leftNode)
-				this->leftNode->parentNode = node;
-			if (this->rightNode)
-				this->rightNode->parentNode = node;
-		}
-
-		node->parentNode = parentNode;
-	}
-
-	if (this->parentNode)
-	{
-		if (this->parentNode->leftNode == this)
-			this->parentNode->leftNode = node;
-		else
-			this->parentNode->rightNode = node;
-	}
-	else
-		this->tree->rootNode = node;
 }
 
 bool AVLTreeNode::IsAVLTree(void) const

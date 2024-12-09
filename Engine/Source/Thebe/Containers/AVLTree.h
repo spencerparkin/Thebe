@@ -58,8 +58,8 @@ namespace Thebe
 		 * the given node is not a member of this tree.
 		 * 
 		 * @param[in,out] givenNode This is the node to be removed from this tree.
-		 * @param[in] If true, the given node is also deleted.
-		 * @REturn True is returned on success; false, otherwise.
+		 * @param[in] deleteNode If true, the given node is also deleted.
+		 * @return True is returned on success; false, otherwise.
 		 */
 		bool RemoveNode(AVLTreeNode* givenNode, bool deleteNode = false);
 
@@ -102,7 +102,7 @@ namespace Thebe
 		/**
 		 * Return the root of the binary tree.  Null is returned if the tree is empty.
 		 */
-		const AVLTreeNode* GetRootNode() const;
+		AVLTreeNode* GetRootNode();
 
 		/**
 		 * Visit all the nodes of the tree in order.  If the given
@@ -143,18 +143,15 @@ namespace Thebe
 		void BalanceSubtree();
 		AVLTreeNode* Predecessor();
 		AVLTreeNode* Successor();
-		const AVLTreeNode* Predecessor() const;
-		const AVLTreeNode* Successor() const;
 		bool IsRoot() const;
 		bool IsLeaf() const;
 		bool IsAVLTree() const;
 		bool IsBinaryTree() const;
-		void ReplaceWith(AVLTreeNode* n, bool adopt);
 		AVLTreeNode* Find(const AVLTreeKey* givenKey);
 		bool Traverse(std::function<bool(const AVLTreeNode*)> callback) const;
-		const AVLTreeNode* GetLeftNode() const;
-		const AVLTreeNode* GetRightNode() const;
-		const AVLTreeNode* GetParentNode() const;
+		AVLTreeNode* GetLeftNode();
+		AVLTreeNode* GetRightNode();
+		AVLTreeNode* GetParentNode();
 
 	private:
 		AVLTree* tree;
