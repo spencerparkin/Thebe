@@ -4,5 +4,5 @@
 	"name": "Torus_Knot001_IndexBuffer",
 	"primitive_topology": 4,
 	"size": 34560,
-	"type": 0
+	"type": 1
 }

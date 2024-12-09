@@ -4,5 +4,5 @@
 	"name": "Tube001_IndexBuffer",
 	"primitive_topology": 4,
 	"size": 5184,
-	"type": 0
+	"type": 1
 }

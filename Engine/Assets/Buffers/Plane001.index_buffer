@@ -4,5 +4,5 @@
 	"name": "Plane001_IndexBuffer",
 	"primitive_topology": 4,
 	"size": 384,
-	"type": 0
+	"type": 1
 }

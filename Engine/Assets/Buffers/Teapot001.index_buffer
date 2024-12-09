@@ -4,5 +4,5 @@
 	"name": "Teapot001_IndexBuffer",
 	"primitive_topology": 4,
 	"size": 49152,
-	"type": 0
+	"type": 1
 }
