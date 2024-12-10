@@ -435,6 +435,24 @@ const std::list<std::filesystem::path>& GraphicsEngine::GetAssetFolderList() con
 	return this->assetFolderList;
 }
 
+bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)
+{
+	if (!assetPath.is_absolute())
+		return false;
+
+	assetsFolder = assetPath;
+
+	while (std::distance(assetsFolder.begin(), assetsFolder.end()) > 0)
+	{
+		if (assetsFolder.stem().string() == "Assets")
+			return true;
+
+		assetsFolder = assetsFolder.parent_path();
+	}
+
+	return false;
+}
+
 bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, std::filesystem::path* assetFolderUsed /*= nullptr*/)
 {
 	if (!assetPath.is_absolute())

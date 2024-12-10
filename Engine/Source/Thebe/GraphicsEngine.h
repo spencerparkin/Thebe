@@ -111,6 +111,7 @@ namespace Thebe
 		void RemoveAllAssetFolders();
 		const std::list<std::filesystem::path>& GetAssetFolderList() const;
 		bool GetRelativeToAssetFolder(std::filesystem::path& assetPath, std::filesystem::path* assetFolderUsed = nullptr);
+		bool GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder);
 
 		UINT64 GetFrameCount();
 		double GetDeltaTime();

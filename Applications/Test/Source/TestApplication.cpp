@@ -29,14 +29,14 @@ TestApplication::TestApplication()
 		return false;
 
 	Reference<Scene> scene;
-	if (!graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Test.scene)", scene))
+	if (!graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Silly.scene)", scene))
 		return false;
 
 	graphicsEngine->SetInputToAllRenderPasses(scene);
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 0.0, 10.0);
+	cameraToWorld.translation.SetComponents(0.0, 20.0, 50.0);
 
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);

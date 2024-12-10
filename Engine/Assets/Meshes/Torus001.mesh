@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Torus001.index_buffer",
-	"material": "Materials\\Torus.material",
+	"material": "Materials\\RevineRock.material",
 	"name": "Torus001",
 	"vertex_buffer": "Buffers\\Torus001.vertex_buffer"
 }

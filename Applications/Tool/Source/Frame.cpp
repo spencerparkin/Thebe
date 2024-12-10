@@ -9,6 +9,7 @@
 #include <wx/filedlg.h>
 #include <wx/msgdlg.h>
 #include <wx/dirdlg.h>
+#include <wx/busyinfo.h>
 #include <filesystem>
 
 GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Graphics Tool", pos, size), timer(this, ID_Timer)
@@ -59,16 +60,24 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 	if (inputFileDialog.ShowModal() != wxID_OK)
 		return;
 
-	wxDirDialog outputFolderDialog(this, "Specify output assets folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
-	if (outputFolderDialog.ShowModal() != wxID_OK)
-		return;
-
+	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	std::filesystem::path inputSceneFile((const char*)inputFileDialog.GetPath().c_str());
-	std::filesystem::path outputAssetsFolder((const char*)outputFolderDialog.GetPath().c_str());
+	std::filesystem::path outputAssetsFolder;
+	if (!graphicsEngine->GleanAssetsFolderFromPath(inputSceneFile, outputAssetsFolder))
+	{
+		wxMessageBox(wxString::Format("Could not glean assets folder from file path: %s", inputSceneFile.string().c_str()), "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
 
 	SceneBuilder sceneBuilder;
 	sceneBuilder.SetAssetsFolder(outputAssetsFolder);
-	if (!sceneBuilder.BuildScene(inputSceneFile))
+	bool sceneBuilt = false;
+	{
+		wxBusyCursor busyCursor;
+		sceneBuilt = sceneBuilder.BuildScene(inputSceneFile);
+	}
+
+	if (!sceneBuilt)
 		wxMessageBox("Scene build failed!", "Error!", wxICON_ERROR | wxOK, this);
 	else
 		wxMessageBox("Scene build succeeded!", "Success!", wxICON_INFORMATION | wxOK, this);
@@ -80,18 +89,17 @@ void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)
 	if (fileDialog.ShowModal() != wxID_OK)
 		return;
 
-	std::filesystem::path sceneFilePath((const char*)fileDialog.GetPath().c_str());
-
-	wxDirDialog inputFolderDialog(this, "Specify input assets folder location.", wxEmptyString, wxDD_DIR_MUST_EXIST);
-	if (inputFolderDialog.ShowModal() != wxID_OK)
-		return;
-
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	std::filesystem::path sceneFilePath((const char*)fileDialog.GetPath().c_str());
+	std::filesystem::path inputAssetsFolder;
+	if (!graphicsEngine->GleanAssetsFolderFromPath(sceneFilePath, inputAssetsFolder))
+	{
+		wxMessageBox(wxString::Format("Could not glean assets folder from file path: %s", sceneFilePath.string().c_str()), "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
+	
 	graphicsEngine->WaitForGPUIdle();
 	graphicsEngine->PurgeCache();
-
-	std::filesystem::path inputAssetsFolder((const char*)inputFolderDialog.GetPath().c_str());
-
 	graphicsEngine->RemoveAllAssetFolders();
 	graphicsEngine->AddAssetFolder(inputAssetsFolder);
 

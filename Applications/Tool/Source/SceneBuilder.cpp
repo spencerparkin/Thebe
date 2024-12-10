@@ -123,11 +123,7 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 	outputMaterial->SetName(inputMaterial->GetName().C_Str());
 
 	aiString inputDiffuseTexture;
-	if (AI_SUCCESS != aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE_DIFFUSE(0), &inputDiffuseTexture))
-	{
-		outputMaterial->SetShaderPath("Shaders/FlatShader.shader");
-	}
-	else
+	if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), &inputDiffuseTexture))
 	{
 		outputMaterial->SetShaderPath("Shaders/BasicShader.shader");
 
@@ -135,6 +131,68 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 		this->texturesToBuildSet.insert(inputDiffuseTexturePath);
 		std::filesystem::path outputDiffuseTexturePath = this->GenerateTextureBufferPath(inputDiffuseTexturePath);
 		outputMaterial->SetTexturePath("diffuse", outputDiffuseTexturePath);
+	}
+	else
+	{
+		aiString inputAlbedoTexture;
+		if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_BASE_COLOR, 0), &inputAlbedoTexture))
+		{
+			outputMaterial->SetShaderPath("Shader/PBRShader.shader");
+
+			std::filesystem::path inputAlbedoTexturePath = (this->inputSceneFileFolder / inputAlbedoTexture.C_Str()).lexically_normal();
+			this->texturesToBuildSet.insert(inputAlbedoTexturePath);
+			std::filesystem::path outputAlbedoTexturePath = this->GenerateTextureBufferPath(inputAlbedoTexturePath);
+			outputMaterial->SetTexturePath("albedo", outputAlbedoTexturePath);
+
+			aiString inputAmbientOcclusionTexture;
+			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_AMBIENT_OCCLUSION, 0), &inputAmbientOcclusionTexture))
+			{
+				std::filesystem::path inputAmbientOcclusionTexturePath = (this->inputSceneFileFolder / inputAmbientOcclusionTexture.C_Str()).lexically_normal();
+				this->texturesToBuildSet.insert(inputAmbientOcclusionTexturePath);
+				std::filesystem::path outputAmbientOcclusionTexturePath = this->GenerateTextureBufferPath(inputAmbientOcclusionTexturePath);
+				outputMaterial->SetTexturePath("ambient_occlusion", outputAmbientOcclusionTexturePath);
+			}
+
+			aiString inputHeightTexture;
+			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_HEIGHT, 0), &inputHeightTexture))
+			{
+				std::filesystem::path inputHeightTexturePath = (this->inputSceneFileFolder / inputHeightTexture.C_Str()).lexically_normal();
+				this->texturesToBuildSet.insert(inputHeightTexturePath);
+				std::filesystem::path outputHeightTexturePath = this->GenerateTextureBufferPath(inputHeightTexturePath);
+				outputMaterial->SetTexturePath("height", outputHeightTexturePath);
+			}
+
+			aiString inputMetalicTexture;
+			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_METALNESS, 0), &inputMetalicTexture))
+			{
+				std::filesystem::path inputMetalicTexturePath = (this->inputSceneFileFolder / inputMetalicTexture.C_Str()).lexically_normal();
+				this->texturesToBuildSet.insert(inputMetalicTexturePath);
+				std::filesystem::path outputMetalicTexturePath = this->GenerateTextureBufferPath(inputMetalicTexturePath);
+				outputMaterial->SetTexturePath("metalic", outputMetalicTexturePath);
+			}
+
+			aiString inputNormalTexture;
+			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_NORMAL_CAMERA, 0), &inputNormalTexture))
+			{
+				std::filesystem::path inputNormalTexturePath = (this->inputSceneFileFolder / inputNormalTexture.C_Str()).lexically_normal();
+				this->texturesToBuildSet.insert(inputNormalTexturePath);
+				std::filesystem::path outputNormalTexturePath = this->GenerateTextureBufferPath(inputNormalTexturePath);
+				outputMaterial->SetTexturePath("normal", outputNormalTexturePath);
+			}
+
+			aiString inputRoughnessTexture;
+			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE_ROUGHNESS, 0), &inputRoughnessTexture))
+			{
+				std::filesystem::path inputRoughnessTexturePath = (this->inputSceneFileFolder / inputRoughnessTexture.C_Str()).lexically_normal();
+				this->texturesToBuildSet.insert(inputRoughnessTexturePath);
+				std::filesystem::path outputRoughnessTexturePath = this->GenerateTextureBufferPath(inputRoughnessTexturePath);
+				outputMaterial->SetTexturePath("roughness", outputRoughnessTexturePath);
+			}
+		}
+		else
+		{
+			outputMaterial->SetShaderPath("Shaders/FlatShader.shader");
+		}
 	}
 
 	return outputMaterial;
@@ -445,10 +503,14 @@ std::filesystem::path SceneBuilder::GenerateVertexBufferPath(const aiMesh* input
 
 std::filesystem::path SceneBuilder::GenerateTextureBufferPath(const std::filesystem::path& inputTexturePath)
 {
+	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	std::filesystem::path relativeInputTexturePath = inputTexturePath;
+	bool found = graphicsEngine->GetRelativeToAssetFolder(relativeInputTexturePath);
+	THEBE_ASSERT(found);
 	std::string inputTextureName(inputTexturePath.stem().string());
 	std::string outputTextureName = inputTextureName + ".texture_buffer";
 	outputTextureName = this->NoSpaces(this->PrefixWithSceneName(outputTextureName));
-	std::filesystem::path outputTexturePath = std::filesystem::path("Textures") / outputTextureName;
+	std::filesystem::path outputTexturePath = relativeInputTexturePath.parent_path() / outputTextureName;
 	return outputTexturePath;
 }
 
