@@ -1,7 +1,7 @@
 {
 	"alpha_blending": false,
 	"name": "RevineRock",
-	"shader": "Shader/PBRShader.shader",
+	"shader": "Shaders/PBRShader.shader",
 	"texture_map":
 	{
 		"albedo": "Textures\\RavineRock\\ravine-rock1_albedo.texture_buffer",

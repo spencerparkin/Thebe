@@ -137,7 +137,7 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 		aiString inputAlbedoTexture;
 		if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_BASE_COLOR, 0), &inputAlbedoTexture))
 		{
-			outputMaterial->SetShaderPath("Shader/PBRShader.shader");
+			outputMaterial->SetShaderPath("Shaders/PBRShader.shader");
 
 			std::filesystem::path inputAlbedoTexturePath = (this->inputSceneFileFolder / inputAlbedoTexture.C_Str()).lexically_normal();
 			this->texturesToBuildSet.insert(inputAlbedoTexturePath);
