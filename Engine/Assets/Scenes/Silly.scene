@@ -452,6 +452,127 @@
 					}
 				],
 				"name": "Plane001_$AssimpFbx$_PreRotation"
+			},
+			{
+				"child_to_parent_transform":
+				{
+					"matrix":
+					{
+						"elements":
+						[
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000
+						]
+					},
+					"translation":
+					{
+						"x": -48.589737,
+						"y": 28.357582,
+						"z": -24.466560
+					}
+				},
+				"children":
+				[
+					{
+						"child_to_parent_transform":
+						{
+							"matrix":
+							{
+								"elements":
+								[
+									1.000000,
+									0.000000,
+									0.000000,
+									0.000000,
+									-0.000000,
+									1.000000,
+									0.000000,
+									-1.000000,
+									-0.000000
+								]
+							},
+							"translation":
+							{
+								"x": 0.000000,
+								"y": 0.000000,
+								"z": 0.000000
+							}
+						},
+						"children":
+						[
+							{
+								"child_to_parent_transform":
+								{
+									"matrix":
+									{
+										"elements":
+										[
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000
+										]
+									},
+									"translation":
+									{
+										"x": 0.000000,
+										"y": 0.000000,
+										"z": 0.000000
+									}
+								},
+								"children":
+								[
+									{
+										"child_to_parent_transform":
+										{
+											"matrix":
+											{
+												"elements":
+												[
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000
+												]
+											},
+											"translation":
+											{
+												"x": 0.000000,
+												"y": 0.000000,
+												"z": 0.000000
+											}
+										},
+										"children":
+										[
+
+										],
+										"mesh_instance": "Meshes\\Sphere001.mesh"
+									}
+								],
+								"name": "Sphere001"
+							}
+						],
+						"name": "Sphere001_$AssimpFbx$_PreRotation"
+					}
+				],
+				"name": "Sphere001_$AssimpFbx$_Translation"
 			}
 		],
 		"name": "RootNode"
