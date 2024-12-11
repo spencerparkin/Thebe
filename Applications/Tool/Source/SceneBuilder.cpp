@@ -341,7 +341,8 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 		strideInBytes += 3 * sizeof(float);
 
 		D3D12_INPUT_ELEMENT_DESC tangentElementDesc{};
-		tangentElementDesc.SemanticName = "TEXCOORD1";
+		tangentElementDesc.SemanticName = "TEXCOORD";
+		tangentElementDesc.SemanticIndex = 1;
 		tangentElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 		tangentElementDesc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 		tangentElementDesc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;

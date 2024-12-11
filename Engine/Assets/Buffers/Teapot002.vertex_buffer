@@ -35,8 +35,8 @@
 			"input_slot": 0,
 			"input_slot_class": 0,
 			"instance_data_step_rate": 0,
-			"semantic_index": 0,
-			"semantic_name": "TEXCOORD1"
+			"semantic_index": 1,
+			"semantic_name": "TEXCOORD"
 		}
 	],
 	"size": 589824,
