@@ -1,5 +1,7 @@
 // PBRShader.hlsl
 
+// Helpful resource: https://www.youtube.com/watch?v=XK_p2MxGBQs
+
 cbuffer Constants : register(b0)
 {
     float4x4 objToProj;
