@@ -21,8 +21,8 @@ namespace Thebe
 		void SetGraphicsEngine(GraphicsEngine* graphicsEngine);
 		bool GetGraphicsEngine(Reference<GraphicsEngine>& graphicsEngine) const;
 
-		virtual bool Setup() = 0;
-		virtual void Shutdown() = 0;
+		virtual bool Setup();
+		virtual void Shutdown();
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath);
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const;
 

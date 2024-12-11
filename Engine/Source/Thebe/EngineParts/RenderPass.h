@@ -13,6 +13,7 @@ namespace Thebe
 	class RenderObject;
 	class RenderTarget;
 	class Camera;
+	class Light;
 
 	/**
 	 * Render passes are used to render their configured input (typically a hierarchy of space
@@ -37,15 +38,18 @@ namespace Thebe
 		RenderObject* GetInput();
 		RenderTarget* GetOutput();
 		Camera* GetCamera();
+		Light* GetLight();
 
 		void SetInput(RenderObject* renderObject);
 		void SetOutput(RenderTarget* renderTarget);
 		void SetCamera(Camera* camera);
+		void SetLight(Light* light);
 
 	protected:
 		Reference<RenderObject> input;
 		Reference<RenderTarget> output;
 		Reference<Camera> camera;
+		Reference<Light> light;
 		ComPtr<ID3D12GraphicsCommandList> commandList;
 	};
 }

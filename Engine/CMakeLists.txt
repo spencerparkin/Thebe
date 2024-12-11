@@ -74,6 +74,12 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/DescriptorHeap.h
     Source/Thebe/EngineParts/UploadHeap.cpp
     Source/Thebe/EngineParts/UploadHeap.h
+    Source/Thebe/EngineParts/Light.cpp
+    Source/Thebe/EngineParts/Light.h
+    Source/Thebe/EngineParts/SpotLight.cpp
+    Source/Thebe/EngineParts/SpotLight.h
+    Source/Thebe/EngineParts/DirectionalLight.cpp
+    Source/Thebe/EngineParts/DirectionalLight.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

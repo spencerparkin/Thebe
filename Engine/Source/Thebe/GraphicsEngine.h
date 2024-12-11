@@ -30,6 +30,7 @@ namespace Thebe
 	class UploadHeap;
 	class RenderObject;
 	class Camera;
+	class Light;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -82,6 +83,7 @@ namespace Thebe
 
 		void SetInputToAllRenderPasses(RenderObject* renderObject);
 		void SetCameraForMainRenderPass(Camera* camera);
+		void SetLightForMainRenderPass(Light* light);
 		void SetCameraForShadowPass(Camera* camera);
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);

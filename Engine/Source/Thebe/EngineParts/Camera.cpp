@@ -82,3 +82,45 @@ Frustum& PerspectiveCamera::GetFrustum()
 {
 	return this->frustum;
 }
+
+//---------------------------------- OrthographicCamera ----------------------------------
+
+OrthographicCamera::OrthographicCamera()
+{
+	this->params.width = 10.0;
+	this->params.height = 10.0;
+	this->params.nearClip = 0.001;
+	this->params.farClip = 10000.0;
+}
+
+/*virtual*/ OrthographicCamera::~OrthographicCamera()
+{
+}
+
+/*virtual*/ void OrthographicCamera::UpdateProjection(double aspectRatio)
+{
+	Params adjustedParams = this->params;
+
+	if (aspectRatio != 0.0)
+	{
+		double currentAspectRatio = adjustedParams.width / adjustedParams.height;
+
+		if (aspectRatio > currentAspectRatio)
+			adjustedParams.width += adjustedParams.height * aspectRatio - adjustedParams.width;
+		else if (aspectRatio < currentAspectRatio)
+			adjustedParams.height += adjustedParams.width / aspectRatio - adjustedParams.height;
+	}
+
+	this->cameraToProjection.SetOrthographicProjection(adjustedParams.width, adjustedParams.height, adjustedParams.nearClip, adjustedParams.farClip);
+}
+
+/*virtual*/ bool OrthographicCamera::CanSee(const RenderObject* renderObject) const
+{
+	// TODO: Write this.
+	return true;
+}
+
+OrthographicCamera::Params& OrthographicCamera::GetParams()
+{
+	return this->params;
+}

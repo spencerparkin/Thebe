@@ -367,6 +367,15 @@ bool Matrix4x4::OrthonormalizeOrientation()
 	return true;
 }
 
+void Matrix4x4::SetOrthographicProjection(double width, double height, double nearClip, double farClip)
+{
+	this->SetIdentity();
+	this->ele[0][0] = 2.0 / width;
+	this->ele[1][1] = 2.0 / height;
+	this->ele[2][2] = -1.0 / (farClip - nearClip);
+	this->ele[2][3] = -nearClip / (farClip - nearClip);
+}
+
 void Matrix4x4::Dump(std::ostream& stream) const
 {
 	for (int i = 0; i < 4; i++)

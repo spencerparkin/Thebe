@@ -45,12 +45,38 @@ namespace Thebe
 		PerspectiveCamera();
 		virtual ~PerspectiveCamera();
 
-		virtual void UpdateProjection(double aspectRatio);
-		virtual bool CanSee(const RenderObject* renderObject) const;
+		virtual void UpdateProjection(double aspectRatio) override;
+		virtual bool CanSee(const RenderObject* renderObject) const override;
 
 		Frustum& GetFrustum();
 
 	private:
 		Frustum frustum;
+	};
+
+	/**
+	 * 
+	 */
+	class THEBE_API OrthographicCamera : public Camera
+	{
+	public:
+		OrthographicCamera();
+		virtual ~OrthographicCamera();
+
+		virtual void UpdateProjection(double aspectRatio) override;
+		virtual bool CanSee(const RenderObject* renderObject) const override;
+
+		struct Params
+		{
+			double width;
+			double height;
+			double nearClip;
+			double farClip;
+		};
+
+		Params& GetParams();
+
+	private:
+		Params params;
 	};
 }

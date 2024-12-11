@@ -9,7 +9,7 @@ FreeCam::FreeCam() : controller(0)
 {
 	this->controller.AddButtonHandler(this);
 	this->strafeMode = StrafeMode::XZ_PLANE;
-	this->moveSpeed = 10.0;
+	this->moveSpeed = 40.0;
 	this->rotationSpeed = 1.5;
 }
 

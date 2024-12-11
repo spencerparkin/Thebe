@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/Light.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
@@ -44,6 +45,12 @@ RenderPass::RenderPass()
 	{
 		this->camera->Shutdown();
 		this->camera = nullptr;
+	}
+
+	if (this->light)
+	{
+		this->light->Shutdown();
+		this->light = nullptr;
 	}
 }
 
@@ -104,9 +111,9 @@ RenderPass::RenderPass()
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
 
-		RenderObject::RenderContext context;
+		RenderObject::RenderContext context{};
 		context.camera = this->camera.Get();
-		// TODO: Add one or more lights to the context?
+		context.light = this->light.Get();
 
 		if (!this->input->Render(this->commandList.Get(), &context))
 		{
@@ -140,17 +147,22 @@ RenderPass::RenderPass()
 
 RenderObject* RenderPass::GetInput()
 {
-	return this->input.Get();
+	return this->input;
 }
 
 RenderTarget* RenderPass::GetOutput()
 {
-	return this->output.Get();
+	return this->output;
 }
 
 Camera* RenderPass::GetCamera()
 {
 	return this->camera;
+}
+
+Light* RenderPass::GetLight()
+{
+	return this->light;
 }
 
 void RenderPass::SetInput(RenderObject* renderObject)
@@ -166,4 +178,9 @@ void RenderPass::SetOutput(RenderTarget* renderTarget)
 void RenderPass::SetCamera(Camera* camera)
 {
 	this->camera = camera;
+}
+
+void RenderPass::SetLight(Light* light)
+{
+	this->light = light;
 }

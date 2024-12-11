@@ -59,6 +59,8 @@ namespace Thebe
 		void operator=(const Matrix4x4& matrix);
 		void operator=(const Matrix3x3& matrix);
 
+		void SetOrthographicProjection(double width, double height, double nearClip, double farClip);
+
 		void Dump(std::ostream& stream) const;
 		void Restore(std::istream& stream);
 

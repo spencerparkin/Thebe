@@ -13,6 +13,15 @@ EnginePart::EnginePart()
 {
 }
 
+/*virtual*/ bool EnginePart::Setup()
+{
+	return true;
+}
+
+/*virtual*/ void EnginePart::Shutdown()
+{
+}
+
 void EnginePart::SetName(const std::string& name)
 {
 	this->name = name;

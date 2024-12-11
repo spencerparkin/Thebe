@@ -9,6 +9,7 @@
 namespace Thebe
 {
 	class Camera;
+	class Light;
 
 	/**
 	 * 
@@ -22,7 +23,7 @@ namespace Thebe
 		struct RenderContext
 		{
 			Camera* camera;
-			// TODO: Own one or more lights here.
+			Light* light;
 		};
 
 		virtual bool Setup() override;

@@ -261,8 +261,16 @@ void GraphicsEngine::SetCameraForMainRenderPass(Camera* camera)
 		mainRenderPass->SetCamera(camera);
 }
 
+void GraphicsEngine::SetLightForMainRenderPass(Light* light)
+{
+	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
+	if (mainRenderPass)
+		mainRenderPass->SetLight(light);
+}
+
 void GraphicsEngine::SetCameraForShadowPass(Camera* camera)
 {
+	//...
 }
 
 void GraphicsEngine::Render()
@@ -478,7 +486,10 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 	std::string key = this->MakePipelineStateKey(material, vertexBuffer);
 	auto iter = this->pipelineStateCacheMap.find(key);
 	if (iter != this->pipelineStateCacheMap.end())
+	{
+		THEBE_LOG("Reusing old PSO: %s.", key.c_str());
 		return iter->second.Get();
+	}
 
 	THEBE_LOG("Creating new PSO: %s.", key.c_str());
 
@@ -547,6 +558,7 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		auto iter = this->enginePartCacheMap.find(key);
 		if (iter != this->enginePartCacheMap.end())
 		{
+			THEBE_LOG("Got asset %s from cache.", enginePartPath.string().c_str());
 			enginePart.Set(iter->second);
 			return true;
 		}

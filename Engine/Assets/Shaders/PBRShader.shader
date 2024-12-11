@@ -1,16 +1,21 @@
 {
     "constants": {
-        "objToCam": {
-            "offset": 64,
-            "size": 64,
-            "type": "float4x4"
+        "lightColor": {
+            "offset": 144,
+            "size": 12,
+            "type": "float3"
         },
         "objToProj": {
             "offset": 0,
             "size": 64,
             "type": "float4x4"
         },
-        "unitLightDir": {
+        "objToWorld": {
+            "offset": 64,
+            "size": 64,
+            "type": "float4x4"
+        },
+        "unitWorldLightDir": {
             "offset": 128,
             "size": 12,
             "type": "float3"

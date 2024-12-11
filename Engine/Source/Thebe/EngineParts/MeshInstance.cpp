@@ -7,6 +7,7 @@
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
+#include "Thebe/EngineParts/Light.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -146,6 +147,12 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	if (this->constantsBuffer->GetParameterType("objToCam") == Shader::Parameter::Type::FLOAT4x4)
 		this->constantsBuffer->SetParameter("objToCam", objectToCameraMatrix);
+
+	if (this->constantsBuffer->GetParameterType("objToWorld") == Shader::Parameter::Type::FLOAT4x4)
+		this->constantsBuffer->SetParameter("objToWorld", objectToWorldMatrix);
+
+	if (context->light)
+		context->light->SetShaderParameters(this->constantsBuffer);
 
 	if (!this->constantsBuffer->UpdateIfNecessary(commandList))
 	{

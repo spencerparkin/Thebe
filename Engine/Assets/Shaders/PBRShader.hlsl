@@ -5,8 +5,9 @@
 cbuffer Constants : register(b0)
 {
     float4x4 objToProj;
-    float4x4 objToCam;
-    float3 unitLightDir;
+    float4x4 objToWorld;
+    float3 unitWorldLightDir;
+    float3 lightColor;
 };
 
 SamplerState generalSampler : register(s0);
@@ -18,27 +19,29 @@ Texture2D normalTexture : register(t3);
 
 struct VSInput
 {
-    float3 position : POSITION;
-    float3 normal : NORMAL;
+    float3 objPosition : POSITION;
+    float3 objNormal : NORMAL;
+    float3 objTangent : TEXCOORD1;
     float2 texCoords : TEXCOORD;
-    float3 tangent : TEXCOORD1;
 };
 
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float3 normal : NORMAL;
+    float4 projPosition : SV_POSITION;
+    float3 worldPosition : POSITION;
+    float3 worldNormal : NORMAL;
+    float3 worldTangent : TEXCOORD1;
     float2 texCoords : TEXCOORD;
-    float3 tangent : TEXCOORD1;
 };
 
 PSInput VSMain(VSInput input)
 {
     PSInput output;
     
-    output.position = mul(objToProj, float4(input.position, 1.0));
-    output.normal = normalize(mul(objToCam, float4(input.normal, 0.0)).xyz);
-    output.tangent = normalize(mul(objToCam, float4(input.tangent, 0.0)).xyz);
+    output.projPosition = mul(objToProj, float4(input.objPosition, 1.0));
+    output.worldPosition = mul(objToWorld, float4(input.objPosition, 1.0)).xyz;
+    output.worldNormal = normalize(mul(objToWorld, float4(input.objNormal, 0.0)).xyz);
+    output.worldTangent = normalize(mul(objToWorld, float4(input.objTangent, 0.0)).xyz);
     output.texCoords = input.texCoords;
     
     return output;
@@ -46,5 +49,9 @@ PSInput VSMain(VSInput input)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return albedoTexture.Sample(generalSampler, input.texCoords);
+    //...
+
+    //return albedoTexture.Sample(generalSampler, input.texCoords);
+    
+    return float4(1.0, 0.0, 0.0, 1.0);
 }
