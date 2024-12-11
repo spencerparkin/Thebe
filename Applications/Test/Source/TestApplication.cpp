@@ -40,7 +40,7 @@ TestApplication::TestApplication()
 	// Load and configure a light source.
 	Reference<DirectionalLight> light(new DirectionalLight());
 	Transform lightToWorld;
-	lightToWorld.LookAt(Vector3(-50.0, -50.0, 100.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
+	lightToWorld.LookAt(Vector3(50.0, 100.0, 50.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
 	light->SetLightToWorldTransform(lightToWorld);
 	graphicsEngine->SetLightForMainRenderPass(light);
 

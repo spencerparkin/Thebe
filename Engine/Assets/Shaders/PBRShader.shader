@@ -15,6 +15,11 @@
             "size": 64,
             "type": "float4x4"
         },
+        "unitWorldCamDir": {
+            "offset": 160,
+            "size": 12,
+            "type": "float3"
+        },
         "unitWorldLightDir": {
             "offset": 128,
             "size": 12,

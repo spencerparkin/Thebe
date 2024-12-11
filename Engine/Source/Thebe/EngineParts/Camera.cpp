@@ -1,4 +1,5 @@
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/ConstantsBuffer.h"
 
 using namespace Thebe;
 
@@ -54,6 +55,16 @@ const Transform& Camera::GetWorldToCameraTransform() const
 
 /*virtual*/ void Camera::UpdateProjection(double aspectRatio)
 {
+}
+
+/*virtual*/ bool Camera::SetShaderParameters(ConstantsBuffer* constantsBuffer)
+{
+	if (constantsBuffer->GetParameterType("unitWorldCamDir") != Shader::Parameter::FLOAT3)
+		return false;
+
+	Vector3 unitWorldCameraDirection = this->cameraToWorld.matrix.GetColumnVector(2);
+	constantsBuffer->SetParameter("unitWorldCamDir", unitWorldCameraDirection);
+	return true;
 }
 
 //---------------------------------- PerspectiveCamera ----------------------------------

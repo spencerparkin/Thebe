@@ -57,19 +57,27 @@ Shader::Shader()
 	}
 
 	std::vector<D3D12_DESCRIPTOR_RANGE1> descriptorRangeArray;
-	descriptorRangeArray.resize(2);
+	descriptorRangeArray.resize(1 + this->textureRegisterMap.size());
+
 	descriptorRangeArray[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	descriptorRangeArray[0].BaseShaderRegister = 0;
 	descriptorRangeArray[0].NumDescriptors = 1;
 	descriptorRangeArray[0].RegisterSpace = 0;
 	descriptorRangeArray[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
 	descriptorRangeArray[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	descriptorRangeArray[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	descriptorRangeArray[1].BaseShaderRegister = 0;
-	descriptorRangeArray[1].NumDescriptors = 1;
-	descriptorRangeArray[1].RegisterSpace = 0;
-	descriptorRangeArray[1].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-	descriptorRangeArray[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	int i = 1;
+	for (const auto& pair : this->textureRegisterMap)
+	{
+		UINT registerNumber = pair.first;
+		D3D12_DESCRIPTOR_RANGE1& descriptorRange = descriptorRangeArray[i++];
+		descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		descriptorRange.BaseShaderRegister = registerNumber;
+		descriptorRange.NumDescriptors = 1;
+		descriptorRange.RegisterSpace = 0;
+		descriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
+		descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	}
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
 	rootParameterArray.resize(1);

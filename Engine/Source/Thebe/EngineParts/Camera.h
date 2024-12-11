@@ -8,6 +8,7 @@
 namespace Thebe
 {
 	class RenderObject;
+	class ConstantsBuffer;
 
 	/**
 	 * 
@@ -22,6 +23,7 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual void UpdateProjection(double aspectRatio);
 		virtual bool CanSee(const RenderObject* renderObject) const;
+		virtual bool SetShaderParameters(ConstantsBuffer* constantsBuffer);
 
 		void SetCameraToWorldTransform(const Transform& cameraToWorld);
 		const Transform& GetCameraToWorldTransform() const;

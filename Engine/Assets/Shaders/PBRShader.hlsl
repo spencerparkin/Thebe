@@ -8,6 +8,7 @@ cbuffer Constants : register(b0)
     float4x4 objToWorld;
     float3 unitWorldLightDir;
     float3 lightColor;
+    float3 unitWorldCamDir;
 };
 
 SamplerState generalSampler : register(s0);
@@ -49,9 +50,13 @@ PSInput VSMain(VSInput input)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    //...
+    float3 worldBinormal = cross(input.worldNormal, input.worldTangent);
+    float3x3 tanToWorld = float3x3(input.worldTangent, worldBinormal, input.worldNormal);
+    float3 unitWorldSurfaceNormal = mul(tanToWorld, normalTexture.Sample(generalSampler, input.texCoords).xyz);
 
-    //return albedoTexture.Sample(generalSampler, input.texCoords);
+    float3 lightFactor = dot(unitWorldSurfaceNormal, unitWorldLightDir) * lightColor;
+
+    float3 surfaceColor = albedoTexture.Sample(generalSampler, input.texCoords).xyz;
     
-    return float4(1.0, 0.0, 0.0, 1.0);
+    return float4(surfaceColor * lightFactor, 1.0);
 }

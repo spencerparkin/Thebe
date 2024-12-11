@@ -131,6 +131,9 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
+	if (!context || !context->camera)
+		return false;
+
 	const Matrix4x4& cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
 
 	Matrix4x4 worldToCameraMatrix;
@@ -150,6 +153,8 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	if (this->constantsBuffer->GetParameterType("objToWorld") == Shader::Parameter::Type::FLOAT4x4)
 		this->constantsBuffer->SetParameter("objToWorld", objectToWorldMatrix);
+
+	context->camera->SetShaderParameters(this->constantsBuffer);
 
 	if (context->light)
 		context->light->SetShaderParameters(this->constantsBuffer);
