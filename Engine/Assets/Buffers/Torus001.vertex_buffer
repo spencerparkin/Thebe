@@ -28,9 +28,18 @@
 			"instance_data_step_rate": 0,
 			"semantic_index": 0,
 			"semantic_name": "TEXCOORD"
+		},
+		{
+			"aligned_byte_offset": -1,
+			"format": 6,
+			"input_slot": 0,
+			"input_slot_class": 0,
+			"instance_data_step_rate": 0,
+			"semantic_index": 0,
+			"semantic_name": "TEXCOORD0"
 		}
 	],
-	"size": 55296,
-	"stride": 32,
+	"size": 82944,
+	"stride": 48,
 	"type": 1
 }

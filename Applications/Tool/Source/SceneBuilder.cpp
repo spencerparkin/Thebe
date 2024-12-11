@@ -336,6 +336,18 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 		outputElementDescArray.push_back(texCoordElementDesc);
 	}
 
+	if (inputMesh->HasTangentsAndBitangents())
+	{
+		strideInBytes += 3 * sizeof(float);
+
+		D3D12_INPUT_ELEMENT_DESC tangentElementDesc{};
+		tangentElementDesc.SemanticName = "TEXCOORD0";
+		tangentElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		tangentElementDesc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+		tangentElementDesc.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+		outputElementDescArray.push_back(tangentElementDesc);
+	}
+
 	if (inputMesh->HasVertexColors(0))
 	{
 		strideInBytes += 4 * sizeof(float);
