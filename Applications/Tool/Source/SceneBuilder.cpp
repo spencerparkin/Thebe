@@ -394,6 +394,14 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 			*outputComponent++ = (float)inputTexCoords.y;
 		}
 
+		if (inputMesh->HasTangentsAndBitangents())
+		{
+			const aiVector3D& inputTangents = inputMesh->mTangents[i];
+			*outputComponent++ = (float)inputTangents.x;
+			*outputComponent++ = (float)inputTangents.y;
+			*outputComponent++ = (float)inputTangents.z;
+		}
+
 		if (inputMesh->HasVertexColors(0))
 		{
 			const aiColor4D& inputColor = inputMesh->mColors[0][i];
