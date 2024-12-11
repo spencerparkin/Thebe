@@ -19,9 +19,15 @@ namespace Thebe
 		RenderObject();
 		virtual ~RenderObject();
 
+		struct RenderContext
+		{
+			Camera* camera;
+			// TODO: Own one or more lights here.
+		};
+
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool Render(ID3D12GraphicsCommandList* commandList, Camera* camera);
+		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context);
 		virtual void PrepareForRender();
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList);
 		virtual uint32_t GetRenderOrder() const;

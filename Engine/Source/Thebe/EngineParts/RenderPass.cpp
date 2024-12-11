@@ -104,7 +104,11 @@ RenderPass::RenderPass()
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
 
-		if (!this->input->Render(this->commandList.Get(), this->camera.Get()))
+		RenderObject::RenderContext context;
+		context.camera = this->camera.Get();
+		// TODO: Add one or more lights to the context?
+
+		if (!this->input->Render(this->commandList.Get(), &context))
 		{
 			THEBE_LOG("Render failed.");
 			return false;

@@ -35,7 +35,7 @@ void RenderObject::SetFlags(uint32_t flags)
 	return 0;
 }
 
-/*virtual*/ bool RenderObject::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+/*virtual*/ bool RenderObject::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	return true;
 }

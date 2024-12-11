@@ -135,16 +135,11 @@ Shader::Shader()
 
 std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 {
-	// This knowledge is hard-coded for now, but perhaps it's something
-	// that should be exposed in the JSON, because it's part of how
-	// the shader was authored.
-	switch (registerNumber)
-	{
-	case 0:
-		return "diffuse";
-	}
+	auto pair = this->textureRegisterMap.find(registerNumber);
+	if (pair == this->textureRegisterMap.end())
+		return "?";
 
-	return "?";
+	return pair->second;
 }
 
 /*virtual*/ bool Shader::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
@@ -159,6 +154,24 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 	{
 		THEBE_LOG("Expected root of JSON to be an object.");
 		return false;
+	}
+
+	auto textureRegisterMapValue = dynamic_cast<const JsonObject*>(rootValue->GetValue("texture_register_map"));
+	if (textureRegisterMapValue)
+	{
+		this->textureRegisterMap.clear();
+		for (const auto& textureRegisterValue : *textureRegisterMapValue)
+		{
+			const std::string& textureUsage = textureRegisterValue.first;
+			auto registerValue = dynamic_cast<const JsonInt*>(textureRegisterValue.second);
+			if (!registerValue)
+			{
+				THEBE_LOG("Expected each texture register entry to be an integer.");
+				return false;
+			}
+
+			this->textureRegisterMap.insert(std::pair((UINT)registerValue->GetValue(), textureUsage));
+		}
 	}
 
 	this->parameterArray.clear();

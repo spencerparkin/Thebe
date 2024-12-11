@@ -124,16 +124,16 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	this->pipelineState = nullptr;
 }
 
-/*virtual*/ bool MeshInstance::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+/*virtual*/ bool MeshInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
-	const Matrix4x4& cameraToProjMatrix = camera->GetCameraToProjectionMatrix();
+	const Matrix4x4& cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
 
 	Matrix4x4 worldToCameraMatrix;
-	camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
+	context->camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
 
 	Matrix4x4 objectToWorldMatrix;
 	this->objectToWorld.GetToMatrix(objectToWorldMatrix);

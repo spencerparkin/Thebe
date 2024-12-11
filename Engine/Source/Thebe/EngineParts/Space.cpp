@@ -126,7 +126,7 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 		renderObjectList.push_back(space);
 }
 
-/*virtual*/ bool Space::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+/*virtual*/ bool Space::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	return true;
 }

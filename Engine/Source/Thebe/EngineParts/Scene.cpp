@@ -43,10 +43,10 @@ Scene::Scene()
 	}
 }
 
-/*virtual*/ bool Scene::Render(ID3D12GraphicsCommandList* commandList, Camera* camera)
+/*virtual*/ bool Scene::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	std::list<RenderObject*> renderObjectList;
-	this->GatherVisibleRenderObjects(renderObjectList, camera);
+	this->GatherVisibleRenderObjects(renderObjectList, context->camera);
 
 	// This ensures that opaque objects are render before those with some amount of transparency.
 	// We might also try to use this mechanism to sort by PSO to reduce PSO switching.
@@ -58,7 +58,7 @@ Scene::Scene()
 		});
 
 	for (RenderObject* renderObject : renderObjectList)
-		if (!renderObject->Render(commandList, camera))
+		if (!renderObject->Render(commandList, context))
 			return false;
 
 	return true;

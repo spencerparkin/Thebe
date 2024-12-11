@@ -3,6 +3,7 @@
 #include "Thebe/EnginePart.h"
 #include <d3d12.h>
 #include <wrl.h>
+#include <map>
 
 namespace Thebe
 {
@@ -57,5 +58,6 @@ namespace Thebe
 		std::filesystem::path vertesShaderBlobFile;
 		std::filesystem::path pixelShaderBlobFile;
 		std::vector<Parameter> parameterArray;
+		std::map<UINT, std::string> textureRegisterMap;
 	};
 }
