@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Torus_Knot001.index_buffer",
-	"material": "Materials\\Knot.material",
+	"material": "Materials\\TexturedAluminum.material",
 	"name": "Torus Knot001",
 	"vertex_buffer": "Buffers\\Torus_Knot001.vertex_buffer"
 }

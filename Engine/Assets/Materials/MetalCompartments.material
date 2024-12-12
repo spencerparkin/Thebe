@@ -1,0 +1,12 @@
+{
+	"alpha_blending": false,
+	"name": "MetalCompartments",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\MetalCompartments\\metal-compartments_albedo.texture_buffer",
+		"metalic": "Textures\\MetalCompartments\\metal-compartments_metallic.texture_buffer",
+		"normal": "Textures\\MetalCompartments\\metal-compartments_normal-dx.texture_buffer",
+		"roughness": "Textures\\MetalCompartments\\metal-compartments_roughness.texture_buffer"
+	}
+}

@@ -1,9 +1,0 @@
-{
-	"alpha_blending": false,
-	"name": "Grass",
-	"shader": "Shaders/BasicShader.shader",
-	"texture_map":
-	{
-		"diffuse": "Textures\\Grass.texture_buffer"
-	}
-}

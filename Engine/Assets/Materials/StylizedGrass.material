@@ -1,0 +1,12 @@
+{
+	"alpha_blending": false,
+	"name": "StylizedGrass",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\StylizedGrass\\stylized-grass1_albedo.texture_buffer",
+		"metalic": "Textures\\StylizedGrass\\stylized-grass1_metallic.texture_buffer",
+		"normal": "Textures\\StylizedGrass\\stylized-grass1_normal-dx.texture_buffer",
+		"roughness": "Textures\\StylizedGrass\\stylized-grass1_roughness.texture_buffer"
+	}
+}

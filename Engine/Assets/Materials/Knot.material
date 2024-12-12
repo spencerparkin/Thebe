@@ -1,9 +1,0 @@
-{
-	"alpha_blending": false,
-	"name": "Knot",
-	"shader": "Shaders/BasicShader.shader",
-	"texture_map":
-	{
-		"diffuse": "Textures\\Weirdo.texture_buffer"
-	}
-}

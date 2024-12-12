@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Plane001.index_buffer",
-	"material": "Materials\\Grass.material",
+	"material": "Materials\\StylizedGrass.material",
 	"name": "Plane001",
 	"vertex_buffer": "Buffers\\Plane001.vertex_buffer"
 }

@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Teapot001.index_buffer",
-	"material": "Materials\\Teapot.material",
+	"material": "Materials\\SpeckledRust.material",
 	"name": "Teapot001",
 	"vertex_buffer": "Buffers\\Teapot001.vertex_buffer"
 }
