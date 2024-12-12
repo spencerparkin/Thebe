@@ -97,10 +97,14 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 baseColor = albedoTexture.Sample(generalSampler, input.texCoords).rgb;
     
     // Calculate our surface normal using the normal map.
+#if true
     float3 worldBinormal = cross(normalize(input.worldNormal), normalize(input.worldTangent));
     float3x3 tanToWorld = float3x3(input.worldTangent, worldBinormal, input.worldNormal);
     float3 unitTanSurfaceNormal = normalize(normalTexture.Sample(generalSampler, input.texCoords).xyz);
     float3 unitWorldSurfaceNormal = mul(unitTanSurfaceNormal, tanToWorld);
+#else
+    float3 unitWorldSurfaceNormal = normalize(input.worldNormal);
+#endif
     
     // Pre-compute some dot-products that we'll use later.
     float3 halfwayVector = normalize(unitWorldLightDir + unitWorldViewDir);
@@ -111,7 +115,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     
     // Calculate our light intensity.
     // TODO: For spot-lights, an inverse square law would need to be taken into account here.
-    float3 lightIntensity = lightColor;
+    float3 lightIntensity = 10.0 * lightColor;      // TODO: Not sure what the scale of the light intensity is.  What is it?
     
     // Calculate statistical percentage of surface area in the fragment containing microfacets that alignw ith the half-way vector.
     // These facets are going to contribute most to the specular highlight on the surface.
@@ -123,8 +127,8 @@ float4 PSMain(PSInput input) : SV_TARGET
     // Calculate the percentage of the light that is reflected (as apposed to refracted).
     float3 F = Fernel(halfwayVectorDotViewDir, baseColor, metalness);
     
-    // Calculate the Cook-Torrance BRDF.  Note that the F and F-1 terms give us the conservation of energy property.
-    float3 diffusePart = (baseColor / PI) * (F - float3(1.0, 1.0, 1.0)) * (1.0 - metalness);    // Metals are just reflective.
+    // Calculate the Cook-Torrance BRDF.  Note that the F and 1-F terms give us the conservation of energy property.
+    float3 diffusePart = (baseColor / PI) * (float3(1.0, 1.0, 1.0) - F) * (1.0 - metalness); // Metals are just reflective.
     float3 specularPart = D * F * G / (4.0 * viewDirDotSurfaceNormal * lightDirDotSurfaceNormal);
     float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
     
