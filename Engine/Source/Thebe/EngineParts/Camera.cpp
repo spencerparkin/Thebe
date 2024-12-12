@@ -59,11 +59,10 @@ const Transform& Camera::GetWorldToCameraTransform() const
 
 /*virtual*/ bool Camera::SetShaderParameters(ConstantsBuffer* constantsBuffer)
 {
-	if (constantsBuffer->GetParameterType("unitWorldCamDir") != Shader::Parameter::FLOAT3)
+	if (constantsBuffer->GetParameterType("worldViewPos") != Shader::Parameter::FLOAT3)
 		return false;
 
-	Vector3 unitWorldCameraDirection = this->cameraToWorld.matrix.GetColumnVector(2);
-	constantsBuffer->SetParameter("unitWorldCamDir", unitWorldCameraDirection);
+	constantsBuffer->SetParameter("worldViewPos", this->cameraToWorld.translation);
 	return true;
 }
 

@@ -36,23 +36,17 @@ double SpotLight::GetConeAngle() const
 	if (!Light::SetShaderParameters(constantsBuffer))
 		return false;
 
-	if (constantsBuffer->GetParameterType("worldLightPosition") != Shader::Parameter::FLOAT3)
-		return false;
-
 	const Transform& cameraToWorld = this->camera->GetCameraToWorldTransform();
-	constantsBuffer->SetParameter("worldLightPosition", cameraToWorld.translation);
-
-	if (constantsBuffer->GetParameterType("worldUnitLightDirection") != Shader::Parameter::FLOAT3)
+	if (!constantsBuffer->SetParameter("worldLightPos", cameraToWorld.translation))
 		return false;
 
-	// Notice that for convenience in the shader, this points toward (not away) from the light source.
-	Vector3 worldUnitLightDirection = cameraToWorld.matrix.GetColumnVector(2);
-	constantsBuffer->SetParameter("worldUnitLightDirection", worldUnitLightDirection);
-
-	if (constantsBuffer->GetParameterType("lightConeAngle") != Shader::Parameter::FLOAT)
+	if (!constantsBuffer->SetParameter("lightDistanceInfinite", 0.0))
 		return false;
 
-	constantsBuffer->SetParameter("lightConeAngle", this->coneAngle);
+	constantsBuffer->SetParameter("worldLightDir", Vector3(0.0, 0.0, 0.0));
+
+	if (!constantsBuffer->SetParameter("lightConeAngle", this->coneAngle))
+		return false;
 
 	return true;
 }

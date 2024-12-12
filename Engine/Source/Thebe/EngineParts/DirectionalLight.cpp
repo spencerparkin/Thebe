@@ -22,13 +22,17 @@ DirectionalLight::DirectionalLight()
 	if (!Light::SetShaderParameters(constantsBuffer))
 		return false;
 
-	if (constantsBuffer->GetParameterType("unitWorldLightDir") != Shader::Parameter::FLOAT3)
+	// For convenience in the shader, this points toward the light, not away from it.
+	const Transform& cameraToWorld = this->camera->GetCameraToWorldTransform();
+	Vector3 worldLightDir = cameraToWorld.matrix.GetColumnVector(2);
+	if (!constantsBuffer->SetParameter("worldLightDir", worldLightDir))
 		return false;
 
-	// Note that here, for the convenience of the shader, the given light direction vector points toward (not away from) the light source.
-	const Transform& cameraToWorld = this->camera->GetCameraToWorldTransform();
-	Vector3 worldUnitLightDirection = cameraToWorld.matrix.GetColumnVector(2);
-	constantsBuffer->SetParameter("unitWorldLightDir", worldUnitLightDirection);
+	if (!constantsBuffer->SetParameter("lightDistanceInfinite", 1.0))
+		return false;
+
+	if (constantsBuffer->GetParameterType("worldLightPos") == Shader::Parameter::FLOAT3)
+		constantsBuffer->SetParameter("worldLightPos", Vector3(0.0, 0.0, 0.0));
 
 	return true;
 }

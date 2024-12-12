@@ -30,7 +30,6 @@ namespace Thebe
 		void SetCameraToProjectionMatrix(const Matrix4x4& cameraToProjection);
 		const Matrix4x4& GetCameraToProjectionMatrix() const;
 		const Transform& GetWorldToCameraTransform() const;
-		Frustum& GetFrustum();
 
 	protected:
 		Transform cameraToWorld;

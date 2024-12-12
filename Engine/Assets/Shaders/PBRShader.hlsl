@@ -4,9 +4,11 @@ cbuffer Constants : register(b0)
 {
     float4x4 objToProj;
     float4x4 objToWorld;
-    float3 unitWorldLightDir;
+    float3 worldViewPos;
+    float3 worldLightPos;
+    float3 worldLightDir;
+    float lightDistanceInfinite;        // This is a binary (0 or 1) value.
     float3 lightColor;
-    float3 unitWorldCamDir;
 };
 
 static const float PI = 3.1415926536;
@@ -49,17 +51,84 @@ PSInput VSMain(VSInput input)
     return output;
 }
 
+// This is the Trowbridge-Reitz GGX normal distribution function.
+float NormalDistribution(float halfwayVectorDotSurfaceNormal, float roughness)
+{
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float denomFactor = halfwayVectorDotSurfaceNormal * halfwayVectorDotSurfaceNormal * (alpha2 - 1.0) + 1.0;
+    return alpha2 / (PI * denomFactor * denomFactor);
+}
+
+// This is Smith's helper method for getting the Schlick GGX approximation.
+float GeometryHelper(float dotProduct, float roughness)
+{
+    float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
+    return dotProduct / (dotProduct * (1.0 - k) + k);
+}
+
+// This is the Schlick GGX approximation.
+float Geometry(float viewDirDotSurfaceNormal, float lightDirDotSurfaceNormal, float roughness)
+{
+    return GeometryHelper(viewDirDotSurfaceNormal, roughness) * GeometryHelper(lightDirDotSurfaceNormal, roughness);
+}
+
+// This is the Schlick approximation to the Frenel function.  Note that metalness is typically 0.0 or 1.0, but nothing inbetween.
+float3 Fernel(float halfwayVectorDotViewDir, float3 baseColor, float metalness)
+{
+    // We use 0.04 as an average base reflectivity for all dielectrics (non-metals.)
+    float3 F0 = float3(0.04, 0.04, 0.04);
+    
+    // Calculate the base reflectivity of the surface.  For metals, this is just the base color.
+    F0 = lerp(F0, baseColor, metalness);
+    
+    // Approximate the Fernel effect.  Things viewed from lower angles of incidence have higher reflectivity, I think.
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - halfwayVectorDotViewDir, 0.0, 1.0), 5.0);
+}
+
+// See: https://learnopengl.com/PBR/Theory
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    float3 worldBinormal = cross(input.worldNormal, input.worldTangent);
+    // Calculate some stuff we'll need later.
+    float3 unitWorldLightDir = normalize(lerp(worldLightPos - input.worldPosition, worldLightDir, lightDistanceInfinite));
+    float3 unitWorldViewDir = normalize(worldViewPos - input.worldPosition);
+    float roughness = roughnessTexture.Sample(generalSampler, input.texCoords).r;
+    float metalness = metalicTexture.Sample(generalSampler, input.texCoords).r;
+    float3 baseColor = albedoTexture.Sample(generalSampler, input.texCoords).rgb;
+    
+    // Calculate our surface normal using the normal map.
+    float3 worldBinormal = cross(normalize(input.worldNormal), normalize(input.worldTangent));
     float3x3 tanToWorld = float3x3(input.worldTangent, worldBinormal, input.worldNormal);
     float3 unitTanSurfaceNormal = normalize(normalTexture.Sample(generalSampler, input.texCoords).xyz);
     float3 unitWorldSurfaceNormal = mul(unitTanSurfaceNormal, tanToWorld);
     
+    // Pre-compute some dot-products that we'll use later.
+    float3 halfwayVector = normalize(unitWorldLightDir + unitWorldViewDir);
+    float halfwayVectorDotSurfaceNormal = max(dot(halfwayVector, unitWorldSurfaceNormal), 0.0);
+    float halfwayVectorDotViewDir = max(dot(halfwayVector, unitWorldViewDir), 0.0);
+    float viewDirDotSurfaceNormal = max(dot(unitWorldViewDir, unitWorldSurfaceNormal), 0.0);
+    float lightDirDotSurfaceNormal = max(dot(unitWorldLightDir, unitWorldSurfaceNormal), 0.0);
+    
+    // Calculate our light intensity.
     // TODO: For spot-lights, an inverse square law would need to be taken into account here.
     float3 lightIntensity = lightColor;
     
-    float3 visibleColor = lightIntensity * max(dot(unitWorldSurfaceNormal, unitWorldLightDir), 0.0);
+    // Calculate statistical percentage of surface area in the fragment containing microfacets that alignw ith the half-way vector.
+    // These facets are going to contribute most to the specular highlight on the surface.
+    float D = NormalDistribution(halfwayVectorDotSurfaceNormal, roughness);
+    
+    // Calculate statistical percentage of light rays occluded by microfacets, or microfacets shadowed by other microfacets.
+    float G = Geometry(viewDirDotSurfaceNormal, lightDirDotSurfaceNormal, roughness);
+    
+    // Calculate the percentage of the light that is reflected (as apposed to refracted).
+    float3 F = Fernel(halfwayVectorDotViewDir, baseColor, metalness);
+    
+    // Calculate the Cook-Torrance BRDF.  Note that the F and F-1 terms give us the conservation of energy property.
+    float3 diffusePart = (baseColor / PI) * (F - float3(1.0, 1.0, 1.0)) * (1.0 - metalness);    // Metals are just reflective.
+    float3 specularPart = D * F * G / (4.0 * viewDirDotSurfaceNormal * lightDirDotSurfaceNormal);
+    float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
+    
+    // TODO: HDR or gamma correction?
     
     return float4(visibleColor, 1.0);
 }
