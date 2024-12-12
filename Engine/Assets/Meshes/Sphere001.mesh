@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Sphere001.index_buffer",
-	"material": "Materials\\RevineRock.material",
+	"material": "Materials\\TexturedAluminum.material",
 	"name": "Sphere001",
 	"vertex_buffer": "Buffers\\Sphere001.vertex_buffer"
 }

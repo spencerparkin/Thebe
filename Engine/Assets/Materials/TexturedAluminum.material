@@ -1,0 +1,12 @@
+{
+	"alpha_blending": false,
+	"name": "TexturedAluminum",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\TexturedAluminum\\textured-aluminum_albedo.texture_buffer",
+		"metalic": "Textures\\TexturedAluminum\\textured-aluminum_metallic.texture_buffer",
+		"normal": "Textures\\TexturedAluminum\\textured-aluminum_normal-dx.texture_buffer",
+		"roughness": "Textures\\TexturedAluminum\\textured-aluminum_roughness.texture_buffer"
+	}
+}

@@ -1,0 +1,9 @@
+{
+	"data": "Textures\\SpeckledRust\\speckled-rust_albedo.texture_buffer_data",
+	"height": 2048,
+	"name": "speckled-rust_albedo",
+	"pixel_format": 28,
+	"size": 16777216,
+	"type": 1,
+	"width": 2048
+}
