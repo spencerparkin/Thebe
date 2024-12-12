@@ -1,0 +1,8 @@
+{
+	"data": "Buffers\\Box001.index_buffer_data",
+	"format": 42,
+	"name": "Box001_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 144,
+	"type": 1
+}

@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Sphere002.index_buffer",
+	"material": "Materials\\RibbedChippedMetal.material",
+	"name": "Sphere002",
+	"vertex_buffer": "Buffers\\Sphere002.vertex_buffer"
+}

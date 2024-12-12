@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Box002.index_buffer",
+	"material": "Materials\\RevineRock.material",
+	"name": "Box002",
+	"vertex_buffer": "Buffers\\Box002.vertex_buffer"
+}

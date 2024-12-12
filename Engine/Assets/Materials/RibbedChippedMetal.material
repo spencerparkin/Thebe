@@ -1,0 +1,12 @@
+{
+	"alpha_blending": false,
+	"name": "RibbedChippedMetal",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\RibbedChippedMetal\\ribbed-chipped-metal_albedo.texture_buffer",
+		"metalic": "Textures\\RibbedChippedMetal\\ribbed-chipped-metal_metallic.texture_buffer",
+		"normal": "Textures\\RibbedChippedMetal\\ribbed-chipped-metal_normal-dx.texture_buffer",
+		"roughness": "Textures\\RibbedChippedMetal\\ribbed-chipped-metal_roughness.texture_buffer"
+	}
+}
