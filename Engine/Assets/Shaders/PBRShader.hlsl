@@ -129,7 +129,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     
     // Calculate the Cook-Torrance BRDF.  Note that the F and 1-F terms give us the conservation of energy property.
     float3 diffusePart = (baseColor / PI) * (float3(1.0, 1.0, 1.0) - F) * (1.0 - metalness); // Metals are just reflective.
-    float3 specularPart = D * F * G / (4.0 * viewDirDotSurfaceNormal * lightDirDotSurfaceNormal);
+    float3 specularPart = D * F * G / (4.0 * max(viewDirDotSurfaceNormal * lightDirDotSurfaceNormal, 0.001));
     float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
     
     // TODO: HDR or gamma correction?
