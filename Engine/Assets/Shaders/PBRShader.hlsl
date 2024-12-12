@@ -80,7 +80,7 @@ float3 Fernel(float halfwayVectorDotViewDir, float3 baseColor, float metalness)
     float3 F0 = float3(0.04, 0.04, 0.04);
     
     // Calculate the base reflectivity of the surface.  For metals, this is just the base color.
-    F0 = lerp(F0, baseColor, metalness);
+    F0 = lerp(F0, baseColor, metalness);        // TODO: Should we scale the base color by an ambient light color here or an environment map color here instead?
     
     // Approximate the Fernel effect.  Things viewed from lower angles of incidence have higher reflectivity, I think.
     return F0 + (1.0 - F0) * pow(clamp(1.0 - halfwayVectorDotViewDir, 0.0, 1.0), 5.0);
@@ -133,6 +133,9 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
     
     // TODO: HDR or gamma correction?
+    
+    // TODO: I think the metalic parts will look wrong until there's either some ambient
+    //       light added to the scene or I'm doing some sort of environment mapping.
     
     return float4(visibleColor, 1.0);
 }
