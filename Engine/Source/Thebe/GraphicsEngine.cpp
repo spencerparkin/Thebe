@@ -267,6 +267,11 @@ UINT64 GraphicsEngine::GetFrameCount()
 	return this->frameCount;
 }
 
+UINT GraphicsEngine::GetFrameIndex()
+{
+	return UINT(this->frameCount % UINT64(THEBE_NUM_SWAP_FRAMES));
+}
+
 double GraphicsEngine::GetDeltaTime()
 {
 	return this->deltaTimeSeconds;

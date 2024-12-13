@@ -28,17 +28,10 @@ namespace Thebe
 
 		bool Resize(int width, int height);
 
-		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue) override;
-		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue) override;
-
-		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
-		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
-
-		int GetCurrentBackBufferIndex();
-
 	protected:
-
-		virtual bool GetRenderContext(RenderObject::RenderContext& context) override;
+		virtual bool PreRender(RenderObject::RenderContext& context) override;
+		virtual bool PostRender() override;
+		virtual void PreSignal() override;
 
 		bool GetWindowDimensions(int& width, int& height);
 		bool ResizeDepthBuffers(int width, int height, ID3D12Device* device);
@@ -54,12 +47,10 @@ namespace Thebe
 		};
 
 		virtual Frame* NewFrame() override;
-		virtual UINT GetCurrentFrame() override;
 
 		CD3DX12_VIEWPORT viewport;
 		CD3DX12_RECT scissorRect;
 		DescriptorHeap::DescriptorSet rtvDescriptorSet;
 		DescriptorHeap::DescriptorSet dsvDescriptorSet;
-		UINT currentFrame;
 	};
 }

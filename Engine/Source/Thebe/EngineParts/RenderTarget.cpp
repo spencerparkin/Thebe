@@ -71,71 +71,35 @@ RenderTarget::RenderTarget()
 	CommandQueue::Shutdown();
 }
 
-/*virtual*/ ID3D12CommandAllocator* RenderTarget::AcquireCommandAllocator(ID3D12CommandQueue* commandQueue)
-{
-	UINT i = this->GetCurrentFrame();
-	THEBE_ASSERT(0 <= i && i < (UINT)this->frameArray.size());
-	Frame* frame = this->frameArray[i];
-
-	// Make sure the GPU is done with the command allocator before we return it to the caller.
-	frame->fence->WaitForSignalIfNecessary();
-
-	return frame->commandAllocator.Get();
-}
-
-/*virtual*/ void RenderTarget::ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue)
-{
-	UINT i = this->GetCurrentFrame();
-	THEBE_ASSERT(0 <= i && i < (UINT)this->frameArray.size());
-	Frame* frame = this->frameArray[i];
-	frame->fence->EnqueueSignal(commandQueue);
-}
-
-/*virtual*/ bool RenderTarget::PreRender(ID3D12GraphicsCommandList* commandList)
-{
-	return true;
-}
-
-/*virtual*/ bool RenderTarget::PostRender(ID3D12GraphicsCommandList* commandList)
-{
-	return true;
-}
-
-/*virtual*/ bool RenderTarget::GetRenderContext(RenderObject::RenderContext& context)
+/*virtual*/ bool RenderTarget::PreRender(RenderObject::RenderContext& context)
 {
 	return false;
 }
 
-/*virtual*/ RenderObject* RenderTarget::GetRenderObject()
+/*virtual*/ bool RenderTarget::PostRender()
 {
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return nullptr;
-
-	return graphicsEngine->GetRenderObject();
+	return false;
 }
 
 /*virtual*/ bool RenderTarget::Render()
 {
-	// Note that this call should stall if necessary until the returned command allocator can safely be reset.
-	// A command allocator cannot be reset while the GPU is still executing commands that were allocated with it.
-	ID3D12CommandAllocator* commandAllocator = this->AcquireCommandAllocator(this->commandQueue.Get());
-	if (!commandAllocator)
-	{
-		THEBE_LOG("Command allocator could not be acquired.");
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
-	}
 
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	THEBE_ASSERT(0 <= frameIndex && frameIndex < (UINT)this->frameArray.size());
+	Frame* frame = this->frameArray[frameIndex];
+
+	// Make sure the GPU is done with the command allocator before we reset it.
+	frame->fence->WaitForSignalIfNecessary();
+	ID3D12CommandAllocator* commandAllocator = frame->commandAllocator.Get();
 	HRESULT result = commandAllocator->Reset();
 	if (FAILED(result))
 	{
 		THEBE_LOG("Failed to reset command allocator.");
 		return false;
 	}
-
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
 
 	if (!this->commandList.Get())
 	{
@@ -158,18 +122,18 @@ RenderTarget::RenderTarget()
 		}
 	}
 
-	if (!this->PreRender(this->commandList.Get()))
+	RenderObject::RenderContext context{};
+	if (!this->PreRender(context))
 	{
 		THEBE_LOG("Pre-render failed.");
 		return false;
 	}
-
-	RenderObject* renderObject = this->GetRenderObject();
-	RenderObject::RenderContext context{};
-	if (renderObject && this->GetRenderContext(context))
+	
+	RenderObject* renderObject = graphicsEngine->GetRenderObject();
+	if (renderObject)
 	{
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
-		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
+		this->commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
 
 		if (!renderObject->Render(this->commandList.Get(), &context))
 		{
@@ -178,7 +142,7 @@ RenderTarget::RenderTarget()
 		}
 	}
 
-	if (!this->PostRender(this->commandList.Get()))
+	if (!this->PostRender())
 	{
 		THEBE_LOG("Post-render failed.");
 		return false;
@@ -195,8 +159,15 @@ RenderTarget::RenderTarget()
 	ID3D12CommandList* commandListArray[] = { this->commandList.Get() };
 	this->commandQueue->ExecuteCommandLists(_countof(commandListArray), commandListArray);
 
-	// Indicate that we no longer need the command allocator.
-	this->ReleaseCommandAllocator(commandAllocator, this->commandQueue.Get());
+	// Let a derived class enqueue anything they wish before we enqueue a
+	// fence signal to mark the true end of our present use of the queue.
+	this->PreSignal();
+
+	frame->fence->EnqueueSignal(this->commandQueue.Get());
 
 	return true;
+}
+
+/*virtual*/ void RenderTarget::PreSignal()
+{
 }

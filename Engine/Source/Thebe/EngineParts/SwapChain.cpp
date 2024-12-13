@@ -7,7 +7,6 @@ using namespace Thebe;
 SwapChain::SwapChain()
 {
 	this->windowHandle = NULL;
-	this->currentFrame = 0;
 }
 
 /*virtual*/ SwapChain::~SwapChain()
@@ -142,17 +141,6 @@ void SwapChain::SetWindowHandle(HWND windowHandle)
 	}
 
 	RenderTarget::Shutdown();
-}
-
-/*virtual*/ bool SwapChain::GetRenderContext(RenderObject::RenderContext& context)
-{
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
-
-	context.camera = graphicsEngine->GetCamera();
-	context.light = graphicsEngine->GetLight();
-	return true;
 }
 
 bool SwapChain::RecreateViews(ID3D12Device* device)
@@ -300,69 +288,62 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	return true;
 }
 
-/*virtual*/ UINT SwapChain::GetCurrentFrame()
-{
-	return this->currentFrame;
-}
-
-/*virtual*/ ID3D12CommandAllocator* SwapChain::AcquireCommandAllocator(ID3D12CommandQueue* commandQueue)
-{
-	this->currentFrame = this->swapChain->GetCurrentBackBufferIndex();
-
-	return RenderTarget::AcquireCommandAllocator(commandQueue);
-}
-
-/*virtual*/ void SwapChain::ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue)
+/*virtual*/ void SwapChain::PreSignal()
 {
 	// This must be done before a signal is enqueued, probably because this also uses the queue.
 	// Note that calling this will change the return value of GetCurrentBackBufferIndex().
 	HRESULT result = this->swapChain->Present(1, 0);
-
-	RenderTarget::ReleaseCommandAllocator(commandAllocator, commandQueue);
+	THEBE_ASSERT(SUCCEEDED(result));
 }
 
-/*virtual*/ bool SwapChain::PreRender(ID3D12GraphicsCommandList* commandList)
+/*virtual*/ bool SwapChain::PreRender(RenderObject::RenderContext& context)
 {
-	auto frame = (SwapFrame*)this->frameArray[this->currentFrame];
-
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
+	THEBE_ASSERT(graphicsEngine->GetFrameIndex() == this->swapChain->GetCurrentBackBufferIndex());
+
+	context.camera = graphicsEngine->GetCamera();
+	context.light = graphicsEngine->GetLight();
+
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	auto frame = (SwapFrame*)this->frameArray[frameIndex];
+
 	ID3D12Device* device = graphicsEngine->GetDevice();
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	commandList->ResourceBarrier(1, &barrier);
+	this->commandList->ResourceBarrier(1, &barrier);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-	this->rtvDescriptorSet.GetCpuHandle(this->currentFrame, rtvHandle);
+	this->rtvDescriptorSet.GetCpuHandle(frameIndex, rtvHandle);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	this->dsvDescriptorSet.GetCpuHandle(this->currentFrame, dsvHandle);
+	this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
 
 	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	this->commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	this->commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	this->commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-	commandList->RSSetViewports(1, &this->viewport);
-	commandList->RSSetScissorRects(1, &this->scissorRect);
+	this->commandList->RSSetViewports(1, &this->viewport);
+	this->commandList->RSSetScissorRects(1, &this->scissorRect);
 
 	return true;
 }
 
-/*virtual*/ bool SwapChain::PostRender(ID3D12GraphicsCommandList* commandList)
+/*virtual*/ bool SwapChain::PostRender()
 {
-	auto frame = (SwapFrame*)this->frameArray[this->currentFrame];
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	auto frame = (SwapFrame*)this->frameArray[frameIndex];
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	commandList->ResourceBarrier(1, &barrier);
+	this->commandList->ResourceBarrier(1, &barrier);
 
 	return true;
-}
-
-int SwapChain::GetCurrentBackBufferIndex()
-{
-	return this->currentFrame;
 }

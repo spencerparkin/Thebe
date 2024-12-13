@@ -22,14 +22,13 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-
-		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue);
-		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue);
 		virtual bool Render();
-		virtual bool PreRender(ID3D12GraphicsCommandList* commandList);
-		virtual bool PostRender(ID3D12GraphicsCommandList* commandList);
 
 	protected:
+		virtual bool PreRender(RenderObject::RenderContext& context);
+		virtual bool PostRender();
+		virtual void PreSignal();
+
 		struct Frame
 		{
 			ComPtr<ID3D12CommandAllocator> commandAllocator;
@@ -37,9 +36,6 @@ namespace Thebe
 		};
 
 		virtual Frame* NewFrame() = 0;
-		virtual UINT GetCurrentFrame() = 0;
-		virtual bool GetRenderContext(RenderObject::RenderContext& context);
-		virtual RenderObject* GetRenderObject();
 
 		std::vector<Frame*> frameArray;
 		ComPtr<ID3D12GraphicsCommandList> commandList;

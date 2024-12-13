@@ -7,7 +7,6 @@ using namespace Thebe;
 
 ShadowBuffer::ShadowBuffer()
 {
-	this->currentFrame = 0;
 }
 
 /*virtual*/ ShadowBuffer::~ShadowBuffer()
@@ -109,7 +108,7 @@ ShadowBuffer::ShadowBuffer()
 	RenderTarget::Shutdown();
 }
 
-/*virtual*/ bool ShadowBuffer::GetRenderContext(RenderObject::RenderContext& context)
+/*virtual*/ bool ShadowBuffer::PreRender(RenderObject::RenderContext& context)
 {
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -125,52 +124,38 @@ ShadowBuffer::ShadowBuffer()
 
 	context.light = nullptr;
 	context.camera = camera;
-	return true;
-}
 
-/*virtual*/ ID3D12CommandAllocator* ShadowBuffer::AcquireCommandAllocator(ID3D12CommandQueue* commandQueue)
-{
-	this->currentFrame = (this->currentFrame + 1) % THEBE_NUM_SWAP_FRAMES;
-
-	return RenderTarget::AcquireCommandAllocator(commandQueue);
-}
-
-/*virtual*/ void ShadowBuffer::ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue)
-{
-	RenderTarget::ReleaseCommandAllocator(commandAllocator, commandQueue);
-}
-
-/*virtual*/ bool ShadowBuffer::PreRender(ID3D12GraphicsCommandList* commandList)
-{
-	auto frame = (ShadowFrame*)this->frameArray[this->currentFrame];
-
-	Reference<GraphicsEngine> graphicsEngine;
-	if (!this->GetGraphicsEngine(graphicsEngine))
-		return false;
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
 
 	ID3D12Device* device = graphicsEngine->GetDevice();
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	commandList->ResourceBarrier(1, &barrier);
+	this->commandList->ResourceBarrier(1, &barrier);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	this->dsvDescriptorSet.GetCpuHandle(this->currentFrame, dsvHandle);
-	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
+	this->commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
+	this->commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
 
-	commandList->RSSetViewports(1, &this->viewport);
-	commandList->RSSetScissorRects(1, &this->scissorRect);
+	this->commandList->RSSetViewports(1, &this->viewport);
+	this->commandList->RSSetScissorRects(1, &this->scissorRect);
 
 	return true;
 }
 
-/*virtual*/ bool ShadowBuffer::PostRender(ID3D12GraphicsCommandList* commandList)
+/*virtual*/ bool ShadowBuffer::PostRender()
 {
-	auto frame = (ShadowFrame*)this->frameArray[this->currentFrame];
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ);
-	commandList->ResourceBarrier(1, &barrier);
+	this->commandList->ResourceBarrier(1, &barrier);
 
 	return true;
 }
@@ -178,9 +163,4 @@ ShadowBuffer::ShadowBuffer()
 /*virtual*/ RenderTarget::Frame* ShadowBuffer::NewFrame()
 {
 	return new ShadowFrame();
-}
-
-/*virtual*/ UINT ShadowBuffer::GetCurrentFrame()
-{
-	return this->currentFrame;
 }

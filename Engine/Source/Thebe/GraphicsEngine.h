@@ -119,6 +119,7 @@ namespace Thebe
 		bool GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder);
 
 		UINT64 GetFrameCount();
+		UINT GetFrameIndex();
 		double GetDeltaTime();
 
 		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer);

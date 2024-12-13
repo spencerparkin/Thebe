@@ -26,27 +26,19 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-
-		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue) override;
-		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue) override;
-
-		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
-		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
+		virtual bool PreRender(RenderObject::RenderContext& context) override;
+		virtual bool PostRender() override;
 
 	protected:
-		virtual bool GetRenderContext(RenderObject::RenderContext& context) override;
-
 		struct ShadowFrame : public Frame
 		{
 			ComPtr<ID3D12Resource> depthBuffer;
 		};
 
 		virtual Frame* NewFrame() override;
-		virtual UINT GetCurrentFrame() override;
 
 		DescriptorHeap::DescriptorSet dsvDescriptorSet;
 		CD3DX12_VIEWPORT viewport;
 		CD3DX12_RECT scissorRect;
-		UINT currentFrame;
 	};
 }
