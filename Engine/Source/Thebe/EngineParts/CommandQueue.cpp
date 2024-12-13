@@ -35,7 +35,7 @@ CommandQueue::CommandQueue()
 	this->fence->SetGraphicsEngine(graphicsEngine.Get());
 	if (!this->fence->Setup())
 	{
-		THEBE_LOG("Failed to create fence for render pass.");
+		THEBE_LOG("Failed to create fence for command queue.");
 		return false;
 	}
 

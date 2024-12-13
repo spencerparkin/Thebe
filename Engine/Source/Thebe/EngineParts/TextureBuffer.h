@@ -4,10 +4,6 @@
 
 namespace Thebe
 {
-	// TODO: Can we make a class that derives from the RenderTarget class that
-	//       is capable of letting us render into a texture that we can then
-	//       later use to texture map a mesh in the main rendering pass?
-
 	/**
 	 * 
 	 */

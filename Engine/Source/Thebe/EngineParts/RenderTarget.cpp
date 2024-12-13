@@ -122,7 +122,7 @@ RenderTarget::RenderTarget()
 	ID3D12CommandAllocator* commandAllocator = this->AcquireCommandAllocator(this->commandQueue.Get());
 	if (!commandAllocator)
 	{
-		THEBE_LOG("No command allocator given by the render pass output.");
+		THEBE_LOG("Command allocator could not be acquired.");
 		return false;
 	}
 

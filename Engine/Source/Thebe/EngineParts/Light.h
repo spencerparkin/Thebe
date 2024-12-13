@@ -19,7 +19,7 @@ namespace Thebe
 		virtual ~Light();
 
 		/**
-		 * This is needed for the shadow (render) pass.
+		 * This is needed for the shadow pass.
 		 */
 		virtual Camera* GetCamera();
 
