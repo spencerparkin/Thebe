@@ -5,6 +5,7 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Application.h
     Source/Thebe/GraphicsEngine.cpp
     Source/Thebe/GraphicsEngine.h
+    Source/Thebe/Common.cpp
     Source/Thebe/Common.h
     Source/Thebe/Reference.cpp
     Source/Thebe/Reference.h
