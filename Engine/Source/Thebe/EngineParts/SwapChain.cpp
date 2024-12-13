@@ -8,10 +8,17 @@ using namespace Thebe;
 SwapChain::SwapChain()
 {
 	this->windowHandle = NULL;
+	this->commandQueueForSwapChainCreate = nullptr;
+	this->currentFrame = 0;
 }
 
 /*virtual*/ SwapChain::~SwapChain()
 {
+}
+
+/*virtual*/ RenderTarget::Frame* SwapChain::NewFrame()
+{
+	return new SwapFrame();
 }
 
 void SwapChain::SetWindowHandle(HWND windowHandle)
@@ -31,6 +38,12 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		THEBE_LOG("No window handle configured.");
 		return false;
 	}
+
+	if (!RenderTarget::Setup())
+		return false;
+
+	if (this->frameArray.size() != THEBE_NUM_SWAP_FRAMES)
+		return false;
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -89,22 +102,6 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		return false;
 	}
 
-	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
-	{
-		Frame& frame = this->frameArray[i];
-		frame.fence = new Fence();
-		frame.fence->SetGraphicsEngine(graphicsEngine.Get());
-		if (!frame.fence->Setup())
-			return false;
-
-		result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frame.commandAllocator));
-		if (FAILED(result))
-		{
-			THEBE_LOG("Failed to create command allocator for swap-frame %d.  Error: 0x%08x", result);
-			return false;
-		}
-	}
-
 	if (!graphicsEngine->GetRTVDescriptorHeap()->AllocDescriptorSet(THEBE_NUM_SWAP_FRAMES, this->rtvDescriptorSet))
 	{
 		THEBE_LOG("Failed to allocate RTV descriptor set for swap chain.");
@@ -134,6 +131,8 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 
 /*virtual*/ void SwapChain::Shutdown()
 {
+	this->swapChain = nullptr;
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
@@ -144,24 +143,23 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 			graphicsEngine->GetDSVDescriptorHeap()->FreeDescriptorSet(this->dsvDescriptorSet);
 	}
 
-	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
+	for (int i = 0; i < (int)this->frameArray.size(); i++)
 	{
-		Frame& frame = this->frameArray[i];
-		frame.fence->Shutdown();
-		frame.fence = nullptr;
-		frame.renderTarget = nullptr;
-		frame.depthBuffer = nullptr;
-		frame.commandAllocator = nullptr;
+		auto frame = (SwapFrame*)this->frameArray[i];
+		frame->depthBuffer = nullptr;
+		frame->renderTarget = nullptr;
 	}
+
+	RenderTarget::Shutdown();
 }
 
 bool SwapChain::RecreateViews(ID3D12Device* device)
 {
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		Frame& frame = this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i];
 
-		HRESULT result = this->swapChain->GetBuffer(i, IID_PPV_ARGS(&frame.renderTarget));
+		HRESULT result = this->swapChain->GetBuffer(i, IID_PPV_ARGS(&frame->renderTarget));
 		if (FAILED(result))
 		{
 			THEBE_LOG("Failed to get render target for frame %d.  Error: 0x%08x", i, result);
@@ -170,19 +168,19 @@ bool SwapChain::RecreateViews(ID3D12Device* device)
 
 		wchar_t renderTargetName[128];
 		wsprintfW(renderTargetName, L"Swap Frame Render Target %d", i);
-		frame.renderTarget->SetName(renderTargetName);
+		frame->renderTarget->SetName(renderTargetName);
 
 		wchar_t depthBufferName[128];
 		wsprintfW(depthBufferName, L"Depth Render Target %d", i);
-		frame.depthBuffer->SetName(depthBufferName);
+		frame->depthBuffer->SetName(depthBufferName);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 		this->rtvDescriptorSet.GetCpuHandle(i, rtvHandle);
-		device->CreateRenderTargetView(frame.renderTarget.Get(), nullptr, rtvHandle);
+		device->CreateRenderTargetView(frame->renderTarget.Get(), nullptr, rtvHandle);
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 		this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
-		device->CreateDepthStencilView(frame.depthBuffer.Get(), nullptr, dsvHandle);
+		device->CreateDepthStencilView(frame->depthBuffer.Get(), nullptr, dsvHandle);
 	}
 
 	return true;
@@ -192,9 +190,9 @@ bool SwapChain::ResizeDepthBuffers(int width, int height, ID3D12Device* device)
 {
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		Frame& frame = this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i];
 		
-		frame.depthBuffer = nullptr;
+		frame->depthBuffer = nullptr;
 
 		D3D12_HEAP_PROPERTIES heapProps{};
 		heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -224,7 +222,7 @@ bool SwapChain::ResizeDepthBuffers(int width, int height, ID3D12Device* device)
 			&depthBufferDesc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearValue,
-			IID_PPV_ARGS(&frame.depthBuffer));
+			IID_PPV_ARGS(&frame->depthBuffer));
 		if (FAILED(result))
 		{
 			THEBE_LOG("Failed to create depth buffer %d.", i);
@@ -257,8 +255,8 @@ bool SwapChain::Resize(int width, int height)
 
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		Frame& frame = this->frameArray[i];
-		frame.renderTarget = nullptr;
+		auto frame = (SwapFrame*)this->frameArray[i];
+		frame->renderTarget = nullptr;
 	}
 
 	HRESULT result = this->swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
@@ -300,39 +298,30 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	return true;
 }
 
+/*virtual*/ UINT SwapChain::GetCurrentFrame()
+{
+	return this->currentFrame;
+}
+
 /*virtual*/ ID3D12CommandAllocator* SwapChain::AcquireCommandAllocator(ID3D12CommandQueue* commandQueue)
 {
-	UINT i = this->swapChain->GetCurrentBackBufferIndex();
-	THEBE_ASSERT(0 <= i && i < THEBE_NUM_SWAP_FRAMES);
-	Frame& frame = this->frameArray[i];
+	this->currentFrame = this->swapChain->GetCurrentBackBufferIndex();
 
-	// Make sure the GPU is done rendering this part of the swap-chain before we return the command allocator.
-	frame.fence->WaitForSignalIfNecessary();
-
-	return frame.commandAllocator.Get();
+	return RenderTarget::AcquireCommandAllocator(commandQueue);
 }
 
 /*virtual*/ void SwapChain::ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue)
 {
-	// Call this before we present.  Otherwise, the back-buffer index will change on us.
-	UINT i = this->swapChain->GetCurrentBackBufferIndex();
-	THEBE_ASSERT(0 <= i && i < THEBE_NUM_SWAP_FRAMES);
-	Frame& frame = this->frameArray[i];
-
-	// Internally, I wonder if this enqueues some commands on the command queue.  When the swap-chain was
-	// created, we had to pass the creation function a pointer to the command queue.
+	// This must be done before a signal is enqueued, probably because this also uses the queue.
+	// Note that calling this will change the return value of GetCurrentBackBufferIndex().
 	HRESULT result = this->swapChain->Present(1, 0);
 
-	// By this time, any command lists submitted to the GPU have been enqueued.
-	// The last thing to enqueue is a signal we can use to know that the frame is complete.
-	frame.fence->EnqueueSignal(commandQueue);
+	RenderTarget::ReleaseCommandAllocator(commandAllocator, commandQueue);
 }
 
 /*virtual*/ bool SwapChain::PreRender(ID3D12GraphicsCommandList* commandList)
 {
-	UINT i = this->swapChain->GetCurrentBackBufferIndex();
-	THEBE_ASSERT(0 <= i && i < THEBE_NUM_SWAP_FRAMES);
-	Frame& frame = this->frameArray[i];
+	auto frame = (SwapFrame*)this->frameArray[this->currentFrame];
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -340,14 +329,14 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 	ID3D12Device* device = graphicsEngine->GetDevice();
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame.renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	commandList->ResourceBarrier(1, &barrier);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-	this->rtvDescriptorSet.GetCpuHandle(i, rtvHandle);
+	this->rtvDescriptorSet.GetCpuHandle(this->currentFrame, rtvHandle);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
+	this->dsvDescriptorSet.GetCpuHandle(this->currentFrame, dsvHandle);
 
 	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
@@ -363,11 +352,9 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 /*virtual*/ bool SwapChain::PostRender(ID3D12GraphicsCommandList* commandList)
 {
-	UINT i = this->swapChain->GetCurrentBackBufferIndex();
-	THEBE_ASSERT(0 <= i && i < THEBE_NUM_SWAP_FRAMES);
-	Frame& frame = this->frameArray[i];
+	auto frame = (SwapFrame*)this->frameArray[this->currentFrame];
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame.renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 	commandList->ResourceBarrier(1, &barrier);
 
 	return true;
@@ -375,5 +362,5 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 int SwapChain::GetCurrentBackBufferIndex()
 {
-	return this->swapChain->GetCurrentBackBufferIndex();
+	return this->currentFrame;
 }

@@ -1,5 +1,6 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/MainRenderPass.h"
+#include "Thebe/EngineParts/ShadowPass.h"
 #include "Thebe/EngineParts/SwapChain.h"
 #include "Thebe/EngineParts/Material.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
@@ -162,7 +163,13 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
-	// TODO: I'd eventually like to be able to add a shadow pass, but that's a long way off.
+	Reference<ShadowPass> shadowPass = new ShadowPass();
+	shadowPass->SetGraphicsEngine(this);
+	if (!shadowPass->Setup())
+	{
+		THEBE_LOG("Failed to setup shadow pass.");
+		return false;
+	}
 
 	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
 	mainRenderPass->SetGraphicsEngine(this);
@@ -173,6 +180,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
+	this->renderPassArray.push_back(shadowPass.Get());
 	this->renderPassArray.push_back(mainRenderPass.Get());
 
 	this->clock.Reset();
@@ -205,6 +213,24 @@ void GraphicsEngine::Shutdown()
 	{
 		this->commandExecutor->Shutdown();
 		this->commandExecutor = nullptr;
+	}
+
+	if (this->renderObject)
+	{
+		this->renderObject->Shutdown();
+		this->renderObject = nullptr;
+	}
+
+	if (this->camera)
+	{
+		this->camera->Shutdown();
+		this->camera = nullptr;
+	}
+
+	if (this->light)
+	{
+		this->light->Shutdown();
+		this->light = nullptr;
 	}
 
 	// Shutdown heaps last of all, because the shutdown of other things may

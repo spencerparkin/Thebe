@@ -44,6 +44,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/RenderTarget.h
     Source/Thebe/EngineParts/MainRenderPass.cpp
     Source/Thebe/EngineParts/MainRenderPass.h
+    Source/Thebe/EngineParts/ShadowPass.cpp
+    Source/Thebe/EngineParts/ShadowPass.h
+    Source/Thebe/EngineParts/ShadowBuffer.cpp
+    Source/Thebe/EngineParts/ShadowBuffer.h
     Source/Thebe/EngineParts/Space.cpp
     Source/Thebe/EngineParts/Space.h
     Source/Thebe/EngineParts/SwapChain.cpp

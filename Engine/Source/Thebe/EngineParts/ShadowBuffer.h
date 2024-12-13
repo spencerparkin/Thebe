@@ -1,35 +1,31 @@
 #pragma once
 
+#include "Thebe/EngineParts/SwapChain.h"
 #include "Thebe/EngineParts/RenderTarget.h"
+#include "Thebe/EngineParts/Fence.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
-#include <Windows.h>
-#include <dxgi1_6.h>
 #include <wrl.h>
 #include <d3d12.h>
 #include <d3dx12.h>
+
+#define THEBE_SHADOW_BUFFER_WIDTH			4 * 1024
+#define THEBE_SHADOW_BUFFER_HEIGHT			4 * 1024
 
 namespace Thebe
 {
 	using Microsoft::WRL::ComPtr;
 
-	class RenderPass;
-
 	/**
 	 * 
 	 */
-	class THEBE_API SwapChain : public RenderTarget
+	class THEBE_API ShadowBuffer : public RenderTarget
 	{
 	public:
-		SwapChain();
-		virtual ~SwapChain();
-
-		void SetWindowHandle(HWND windowHandle);
-		void SetCommandQueue(ID3D12CommandQueue* commandQueue);
+		ShadowBuffer();
+		virtual ~ShadowBuffer();
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-
-		bool Resize(int width, int height);
 
 		virtual ID3D12CommandAllocator* AcquireCommandAllocator(ID3D12CommandQueue* commandQueue) override;
 		virtual void ReleaseCommandAllocator(ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue) override;
@@ -37,30 +33,18 @@ namespace Thebe
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 
-		int GetCurrentBackBufferIndex();
-
 	private:
-		bool GetWindowDimensions(int& width, int& height);
-		bool ResizeDepthBuffers(int width, int height, ID3D12Device* device);
-		bool RecreateViews(ID3D12Device* device);
-
-		HWND windowHandle;
-		ID3D12CommandQueue* commandQueueForSwapChainCreate;
-		ComPtr<IDXGISwapChain3> swapChain;
-
-		struct SwapFrame : public Frame
+		struct ShadowFrame : public Frame
 		{
-			ComPtr<ID3D12Resource> renderTarget;
 			ComPtr<ID3D12Resource> depthBuffer;
 		};
 
 		virtual Frame* NewFrame() override;
 		virtual UINT GetCurrentFrame() override;
 
+		DescriptorHeap::DescriptorSet dsvDescriptorSet;
 		CD3DX12_VIEWPORT viewport;
 		CD3DX12_RECT scissorRect;
-		DescriptorHeap::DescriptorSet rtvDescriptorSet;
-		DescriptorHeap::DescriptorSet dsvDescriptorSet;
 		UINT currentFrame;
 	};
 }

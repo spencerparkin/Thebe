@@ -134,6 +134,11 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	if (!context || !context->camera)
 		return false;
 
+	// TODO: We should know from context which shader/constants buffer to use.
+	// TODO: A good debugging trick will be to use an ortho camera instead of perspective for the main camera, then place it at the light source.  We can then see what we should expect in the shadow buffer.
+	if (!context->light)
+		return true;	// TODO: Bail here in this case until we have a separate shadow material and shadow constants buffer!
+
 	const Matrix4x4& cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
 
 	Matrix4x4 worldToCameraMatrix;
@@ -144,7 +149,7 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	Matrix4x4 objectToCameraMatrix = worldToCameraMatrix * objectToWorldMatrix;
 	Matrix4x4 objectToProjMatrix = cameraToProjMatrix * objectToCameraMatrix;
-
+	
 	if (this->constantsBuffer->GetParameterType("objToProj") == Shader::Parameter::Type::FLOAT4x4)
 		this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
 

@@ -1,13 +1,17 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include "Thebe/EngineParts/Fence.h"
 #include <d3d12.h>
+
+#define THEBE_NUM_SWAP_FRAMES		2
 
 namespace Thebe
 {
+	using Microsoft::WRL::ComPtr;
+
 	/**
-	 * This is anything that can be a target for rendering, such as
-	 * a texture or swap-chain.
+	 *
 	 */
 	class THEBE_API RenderTarget : public EnginePart
 	{
@@ -23,5 +27,17 @@ namespace Thebe
 
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList);
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList);
+
+	protected:
+		struct Frame
+		{
+			ComPtr<ID3D12CommandAllocator> commandAllocator;
+			Reference<Fence> fence;
+		};
+
+		virtual Frame* NewFrame() = 0;
+		virtual UINT GetCurrentFrame() = 0;
+
+		std::vector<Frame*> frameArray;
 	};
 }
