@@ -115,7 +115,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     
     // Calculate our light intensity.
     // TODO: For spot-lights, an inverse square law would need to be taken into account here.
-    float3 lightIntensity = 10.0 * lightColor;      // TODO: Not sure what the scale of the light intensity is.  What is it?
+    float3 lightIntensity = 5.0 * lightColor;      // TODO: Not sure what the scale of the light intensity is.  What is it?
     
     // Calculate statistical percentage of surface area in the fragment containing microfacets that alignw ith the half-way vector.
     // These facets are going to contribute most to the specular highlight on the surface.
@@ -132,7 +132,13 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 specularPart = D * F * G / (4.0 * max(viewDirDotSurfaceNormal * lightDirDotSurfaceNormal, 0.001));
     float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
     
-    // TODO: HDR or gamma correction?
+ #if false
+    // Gamma correction?
+    float gamma = 1.0 / 2.2;
+    visibleColor.r = clamp(pow(visibleColor.r, gamma), 0.0, 1.0);
+    visibleColor.g = clamp(pow(visibleColor.g, gamma), 0.0, 1.0);
+    visibleColor.b = clamp(pow(visibleColor.b, gamma), 0.0, 1.0);
+#endif
     
     // TODO: I think the metalic parts will look wrong until there's either some ambient
     //       light added to the scene or I'm doing some sort of environment mapping.
