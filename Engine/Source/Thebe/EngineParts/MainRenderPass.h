@@ -19,6 +19,8 @@ namespace Thebe
 		void SetWindowHandle(HWND windowHandle);
 
 	protected:
+		virtual bool GetRenderContext(RenderObject::RenderContext& context) override;
+
 		HWND windowHandle;
 	};
 }

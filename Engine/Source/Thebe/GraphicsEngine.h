@@ -81,10 +81,13 @@ namespace Thebe
 		DescriptorHeap* GetDSVDescriptorHeap();
 		UploadHeap* GetUploadHeap();
 
-		void SetInputToAllRenderPasses(RenderObject* renderObject);
-		void SetCameraForMainRenderPass(Camera* camera);
-		void SetLightForMainRenderPass(Light* light);
-		void SetCameraForShadowPass(Camera* camera);
+		void SetRenderObject(RenderObject* renderObject);
+		void SetCamera(Camera* camera);
+		void SetLight(Light* light);
+
+		RenderObject* GetRenderObject();
+		Camera* GetCamera();
+		Light* GetLight();
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
@@ -146,6 +149,9 @@ namespace Thebe
 		std::list<std::filesystem::path> assetFolderList;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
+		Reference<RenderObject> renderObject;
+		Reference<Camera> camera;
+		Reference<Light> light;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		std::string MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer);

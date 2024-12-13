@@ -2,6 +2,7 @@
 
 #include "Thebe/EngineParts/CommandQueue.h"
 #include "Thebe/EngineParts/Fence.h"
+#include "Thebe/EngineParts/RenderObject.h"
 #include <d3d12.h>
 #include <wrl.h>
 
@@ -16,14 +17,8 @@ namespace Thebe
 	class Light;
 
 	/**
-	 * Render passes are used to render their configured input (typically a hierarchy of space
-	 * nodes) into their configured output (typically a swap-chain node, but could also be a
-	 * texture node for purposes of off-screen rendering, or shadow mapping.)
-	 * 
-	 * Ideally, these would render in parallel on the GPU with other render-passes whenever possible,
-	 * only stalling for other render passes if necessary.  Stalls happen at the resoure barriers.
-	 * For example, one queue stalls waiting for a resource to become readable while another queue
-	 * writes to it and then makes it readable.
+	 * Ideally these would render in parallel with one another as much as possible,
+	 * waiting only for resource barriers when necessary.
 	 */
 	class THEBE_API RenderPass : public CommandQueue
 	{
@@ -33,23 +28,16 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool Perform();
+		virtual bool Render();
 
-		RenderObject* GetInput();
-		RenderTarget* GetOutput();
-		Camera* GetCamera();
-		Light* GetLight();
-
-		void SetInput(RenderObject* renderObject);
-		void SetOutput(RenderTarget* renderTarget);
-		void SetCamera(Camera* camera);
-		void SetLight(Light* light);
+		RenderTarget* GetRenderTarget();
+		void SetRenderTarget(RenderTarget* renderTarget);
 
 	protected:
-		Reference<RenderObject> input;
-		Reference<RenderTarget> output;
-		Reference<Camera> camera;
-		Reference<Light> light;
+		virtual bool GetRenderContext(RenderObject::RenderContext& context);
+		virtual RenderObject* GetRenderObject();
+
+		Reference<RenderTarget> renderTarget;
 		ComPtr<ID3D12GraphicsCommandList> commandList;
 	};
 }

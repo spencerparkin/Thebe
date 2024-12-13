@@ -48,7 +48,7 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 	Thebe::Reference<Thebe::Camera> camera;
 	camera.Set(new Thebe::PerspectiveCamera());
 	camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCameraForMainRenderPass(camera);
+	this->graphicsEngine->SetCamera(camera);
 
 	this->frame->Show();
 

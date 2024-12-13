@@ -110,7 +110,7 @@ void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)
 		return;
 	}
 
-	graphicsEngine->SetInputToAllRenderPasses(scene.Get());
+	graphicsEngine->SetRenderObject(scene.Get());
 }
 
 void GraphicsToolFrame::OnAbout(wxCommandEvent& event)

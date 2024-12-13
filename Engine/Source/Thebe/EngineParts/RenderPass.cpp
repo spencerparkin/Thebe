@@ -29,39 +29,21 @@ RenderPass::RenderPass()
 {
 	CommandQueue::Shutdown();
 
-	if (this->input)
+	if (this->renderTarget)
 	{
-		this->input->Shutdown();
-		this->input = nullptr;
-	}
-
-	if (this->output)
-	{
-		this->output->Shutdown();
-		this->output = nullptr;
-	}
-
-	if (this->camera)
-	{
-		this->camera->Shutdown();
-		this->camera = nullptr;
-	}
-
-	if (this->light)
-	{
-		this->light->Shutdown();
-		this->light = nullptr;
+		this->renderTarget->Shutdown();
+		this->renderTarget = nullptr;
 	}
 }
 
-/*virtual*/ bool RenderPass::Perform()
+/*virtual*/ bool RenderPass::Render()
 {
-	if (!this->output.Get())
+	if (!this->renderTarget.Get())
 		return false;
 
 	// Note that this call should stall if necessary until the returned command allocator can safely be reset.
 	// A command allocator cannot be reset while the GPU is still executing commands that were allocated with it.
-	ID3D12CommandAllocator* commandAllocator = this->output->AcquireCommandAllocator(this->commandQueue.Get());
+	ID3D12CommandAllocator* commandAllocator = this->renderTarget->AcquireCommandAllocator(this->commandQueue.Get());
 	if (!commandAllocator)
 	{
 		THEBE_LOG("No command allocator given by the render pass output.");
@@ -100,29 +82,27 @@ RenderPass::RenderPass()
 		}
 	}
 
-	if (!this->output->PreRender(this->commandList.Get()))
+	if (!this->renderTarget->PreRender(this->commandList.Get()))
 	{
 		THEBE_LOG("Pre-render failed.");
 		return false;
 	}
 	
-	if (this->input.Get() && this->camera.Get())
+	RenderObject* renderObject = this->GetRenderObject();
+	RenderObject::RenderContext context{};
+	if (renderObject && this->GetRenderContext(context))
 	{
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
 		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
 
-		RenderObject::RenderContext context{};
-		context.camera = this->camera.Get();
-		context.light = this->light.Get();
-
-		if (!this->input->Render(this->commandList.Get(), &context))
+		if (!renderObject->Render(this->commandList.Get(), &context))
 		{
 			THEBE_LOG("Render failed.");
 			return false;
 		}
 	}
 
-	if (!this->output->PostRender(this->commandList.Get()))
+	if (!this->renderTarget->PostRender(this->commandList.Get()))
 	{
 		THEBE_LOG("Post-render failed.");
 		return false;
@@ -140,47 +120,31 @@ RenderPass::RenderPass()
 	this->commandQueue->ExecuteCommandLists(_countof(commandListArray), commandListArray);
 
 	// Indicate that we no longer need the command allocator.
-	this->output->ReleaseCommandAllocator(commandAllocator, this->commandQueue.Get());
+	this->renderTarget->ReleaseCommandAllocator(commandAllocator, this->commandQueue.Get());
 
 	return true;
 }
 
-RenderObject* RenderPass::GetInput()
+/*virtual*/ bool RenderPass::GetRenderContext(RenderObject::RenderContext& context)
 {
-	return this->input;
+	return false;
 }
 
-RenderTarget* RenderPass::GetOutput()
+/*virtual*/ RenderObject* RenderPass::GetRenderObject()
 {
-	return this->output;
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return nullptr;
+
+	return graphicsEngine->GetRenderObject();
 }
 
-Camera* RenderPass::GetCamera()
+RenderTarget* RenderPass::GetRenderTarget()
 {
-	return this->camera;
+	return this->renderTarget;
 }
 
-Light* RenderPass::GetLight()
+void RenderPass::SetRenderTarget(RenderTarget* renderTarget)
 {
-	return this->light;
-}
-
-void RenderPass::SetInput(RenderObject* renderObject)
-{
-	this->input = renderObject;
-}
-
-void RenderPass::SetOutput(RenderTarget* renderTarget)
-{
-	this->output = renderTarget;
-}
-
-void RenderPass::SetCamera(Camera* camera)
-{
-	this->camera = camera;
-}
-
-void RenderPass::SetLight(Light* light)
-{
-	this->light = light;
+	this->renderTarget = renderTarget;
 }

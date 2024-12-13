@@ -35,14 +35,14 @@ TestApplication::TestApplication()
 	Reference<Scene> scene;
 	if (!graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Silly.scene)", scene))
 		return false;
-	graphicsEngine->SetInputToAllRenderPasses(scene);
+	graphicsEngine->SetRenderObject(scene);
 
 	// Load and configure a light source.
 	Reference<DirectionalLight> light(new DirectionalLight());
 	Transform lightToWorld;
 	lightToWorld.LookAt(Vector3(50.0, 100.0, 50.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
 	light->SetLightToWorldTransform(lightToWorld);
-	graphicsEngine->SetLightForMainRenderPass(light);
+	graphicsEngine->SetLight(light);
 
 	// Configure a camera.
 	Transform cameraToWorld;
@@ -50,7 +50,7 @@ TestApplication::TestApplication()
 	cameraToWorld.translation.SetComponents(0.0, 20.0, 50.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	graphicsEngine->SetCameraForMainRenderPass(this->camera);
+	graphicsEngine->SetCamera(this->camera);
 
 	// Let the our free-cam control the camera.
 	this->freeCam.SetCamera(this->camera);

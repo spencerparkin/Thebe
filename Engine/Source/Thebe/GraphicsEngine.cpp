@@ -13,6 +13,7 @@
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/Scene.h"
+#include "Thebe/EngineParts/Light.h"
 #include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -181,8 +182,6 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 void GraphicsEngine::PurgeCache()
 {
-	this->SetInputToAllRenderPasses(nullptr);
-
 	for (auto pair : this->enginePartCacheMap)
 		pair.second->Shutdown();
 
@@ -248,43 +247,45 @@ double GraphicsEngine::GetDeltaTime()
 	return this->deltaTimeSeconds;
 }
 
-void GraphicsEngine::SetInputToAllRenderPasses(RenderObject* renderObject)
+void GraphicsEngine::SetRenderObject(RenderObject* renderObject)
 {
-	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->SetInput(renderObject);
+	this->renderObject = renderObject;
 }
 
-void GraphicsEngine::SetCameraForMainRenderPass(Camera* camera)
+void GraphicsEngine::SetCamera(Camera* camera)
 {
-	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
-	if (mainRenderPass)
-		mainRenderPass->SetCamera(camera);
+	this->camera = camera;
 }
 
-void GraphicsEngine::SetLightForMainRenderPass(Light* light)
+void GraphicsEngine::SetLight(Light* light)
 {
-	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
-	if (mainRenderPass)
-		mainRenderPass->SetLight(light);
+	this->light = light;
 }
 
-void GraphicsEngine::SetCameraForShadowPass(Camera* camera)
+RenderObject* GraphicsEngine::GetRenderObject()
 {
-	//...
+	return this->renderObject;
+}
+
+Camera* GraphicsEngine::GetCamera()
+{
+	return this->camera;
+}
+
+Light* GraphicsEngine::GetLight()
+{
+	return this->light;
 }
 
 void GraphicsEngine::Render()
 {
-	std::set<RenderObject*> renderObjectSet;
-	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		if (renderPass->GetInput())
-			renderObjectSet.insert(renderPass->GetInput());
+	if (!this->renderObject)
+		return;
 
-	for (RenderObject* renderObject : renderObjectSet)
-		renderObject->PrepareForRender();
+	renderObject->PrepareForRender();
 
 	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->Perform();
+		renderPass->Render();
 
 	this->frameCount++;
 	this->deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
@@ -326,15 +327,10 @@ void GraphicsEngine::Resize(int width, int height)
 	if (swapChain)
 		swapChain->Resize(width, height);
 
-	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
-	if (mainRenderPass)
+	if (this->camera.Get())
 	{
-		Camera* camera = mainRenderPass->GetCamera();
-		if (camera)
-		{
-			double aspectRatio = (height != 0) ? (double(width) / double(height)) : 1.0;
-			camera->UpdateProjection(aspectRatio);
-		}
+		double aspectRatio = (height != 0) ? (double(width) / double(height)) : 1.0;
+		camera->UpdateProjection(aspectRatio);
 	}
 }
 
@@ -342,7 +338,7 @@ SwapChain* GraphicsEngine::GetSwapChain()
 {
 	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
 	if (mainRenderPass)
-		return dynamic_cast<SwapChain*>(mainRenderPass->GetOutput());
+		return dynamic_cast<SwapChain*>(mainRenderPass->GetRenderTarget());
 
 	return nullptr;
 }

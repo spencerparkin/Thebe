@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/MainRenderPass.h"
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -43,11 +44,22 @@ void MainRenderPass::SetWindowHandle(HWND windowHandle)
 		return false;
 	}
 
-	this->SetOutput(swapChain.Get());
+	this->SetRenderTarget(swapChain.Get());
 	return true;
 }
 
 /*virtual*/ void MainRenderPass::Shutdown()
 {
 	RenderPass::Shutdown();
+}
+
+/*virtual*/ bool MainRenderPass::GetRenderContext(RenderObject::RenderContext& context)
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	context.camera = graphicsEngine->GetCamera();
+	context.light = graphicsEngine->GetLight();
+	return true;
 }
