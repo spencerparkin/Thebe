@@ -38,14 +38,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Mesh.h
     Source/Thebe/EngineParts/RenderObject.cpp
     Source/Thebe/EngineParts/RenderObject.h
-    Source/Thebe/EngineParts/RenderPass.cpp
-    Source/Thebe/EngineParts/RenderPass.h
     Source/Thebe/EngineParts/RenderTarget.cpp
     Source/Thebe/EngineParts/RenderTarget.h
-    Source/Thebe/EngineParts/MainRenderPass.cpp
-    Source/Thebe/EngineParts/MainRenderPass.h
-    Source/Thebe/EngineParts/ShadowPass.cpp
-    Source/Thebe/EngineParts/ShadowPass.h
     Source/Thebe/EngineParts/ShadowBuffer.cpp
     Source/Thebe/EngineParts/ShadowBuffer.h
     Source/Thebe/EngineParts/Space.cpp

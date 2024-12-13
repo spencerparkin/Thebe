@@ -1,5 +1,4 @@
 #include "Thebe/EngineParts/SwapChain.h"
-#include "Thebe/EngineParts/RenderPass.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -8,7 +7,6 @@ using namespace Thebe;
 SwapChain::SwapChain()
 {
 	this->windowHandle = NULL;
-	this->commandQueueForSwapChainCreate = nullptr;
 	this->currentFrame = 0;
 }
 
@@ -24,11 +22,6 @@ SwapChain::SwapChain()
 void SwapChain::SetWindowHandle(HWND windowHandle)
 {
 	this->windowHandle = windowHandle;
-}
-
-void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
-{
-	this->commandQueueForSwapChainCreate = commandQueue;
 }
 
 /*virtual*/ bool SwapChain::Setup()
@@ -81,7 +74,7 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
 	HRESULT result = factory->CreateSwapChainForHwnd(
-		this->commandQueueForSwapChainCreate,
+		this->commandQueue.Get(),
 		this->windowHandle,
 		&swapChainDesc,
 		nullptr,
@@ -92,8 +85,6 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 		THEBE_LOG("Failed to create swap-chain.  Error: 0x%08x", result);
 		return false;
 	}
-
-	this->commandQueueForSwapChainCreate = nullptr;
 
 	result = swapChain1.As(&this->swapChain);
 	if (FAILED(result))
@@ -151,6 +142,17 @@ void SwapChain::SetCommandQueue(ID3D12CommandQueue* commandQueue)
 	}
 
 	RenderTarget::Shutdown();
+}
+
+/*virtual*/ bool SwapChain::GetRenderContext(RenderObject::RenderContext& context)
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	context.camera = graphicsEngine->GetCamera();
+	context.light = graphicsEngine->GetLight();
+	return true;
 }
 
 bool SwapChain::RecreateViews(ID3D12Device* device)

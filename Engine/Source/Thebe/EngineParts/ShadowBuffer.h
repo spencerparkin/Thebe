@@ -33,7 +33,9 @@ namespace Thebe
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 
-	private:
+	protected:
+		virtual bool GetRenderContext(RenderObject::RenderContext& context) override;
+
 		struct ShadowFrame : public Frame
 		{
 			ComPtr<ID3D12Resource> depthBuffer;

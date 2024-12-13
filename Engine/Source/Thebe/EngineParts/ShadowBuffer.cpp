@@ -1,4 +1,5 @@
 #include "Thebe/EngineParts/ShadowBuffer.h"
+#include "Thebe/EngineParts/Light.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -106,6 +107,25 @@ ShadowBuffer::ShadowBuffer()
 	}
 
 	RenderTarget::Shutdown();
+}
+
+/*virtual*/ bool ShadowBuffer::GetRenderContext(RenderObject::RenderContext& context)
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	Light* light = graphicsEngine->GetLight();
+	if (!light)
+		return false;
+
+	Camera* camera = light->GetCamera();
+	if (!camera)
+		return false;
+
+	context.light = nullptr;
+	context.camera = camera;
+	return true;
 }
 
 /*virtual*/ ID3D12CommandAllocator* ShadowBuffer::AcquireCommandAllocator(ID3D12CommandQueue* commandQueue)

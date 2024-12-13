@@ -20,7 +20,7 @@ namespace Thebe
 {
 	using Microsoft::WRL::ComPtr;
 
-	class RenderPass;
+	class RenderTarget;
 	class EnginePart;
 	class SwapChain;
 	class CommandExecutor;
@@ -126,13 +126,13 @@ namespace Thebe
 	private:
 
 		template<typename T>
-		T* FindRenderPass()
+		T* FindRenderTarget()
 		{
-			for (Reference<RenderPass>& renderPass : this->renderPassArray)
+			for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
 			{
-				T* typedRenderPass = dynamic_cast<T*>(renderPass.Get());
-				if (typedRenderPass)
-					return typedRenderPass;
+				T* typedRenderTarget = dynamic_cast<T*>(renderTarget.Get());
+				if (typedRenderTarget)
+					return typedRenderTarget;
 			}
 
 			return nullptr;
@@ -140,7 +140,7 @@ namespace Thebe
 
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
-		std::vector<Reference<RenderPass>> renderPassArray;
+		std::vector<Reference<RenderTarget>> renderTargetArray;
 		Reference<CommandExecutor> commandExecutor;
 		Reference<UploadHeap> uploadHeap;
 		Reference<DescriptorHeap> csuDescriptorHeap;

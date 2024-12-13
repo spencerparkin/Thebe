@@ -1,7 +1,6 @@
 #include "Thebe/GraphicsEngine.h"
-#include "Thebe/EngineParts/MainRenderPass.h"
-#include "Thebe/EngineParts/ShadowPass.h"
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/EngineParts/ShadowBuffer.h"
 #include "Thebe/EngineParts/Material.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
@@ -163,26 +162,26 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
-	Reference<ShadowPass> shadowPass = new ShadowPass();
-	shadowPass->SetGraphicsEngine(this);
-	if (!shadowPass->Setup())
+	Reference<ShadowBuffer> shadowBuffer = new ShadowBuffer();
+	shadowBuffer->SetGraphicsEngine(this);
+	if (!shadowBuffer->Setup())
 	{
-		THEBE_LOG("Failed to setup shadow pass.");
+		THEBE_LOG("Failed to setup shadow buffer.");
 		return false;
 	}
 
-	Reference<MainRenderPass> mainRenderPass = new MainRenderPass();
-	mainRenderPass->SetGraphicsEngine(this);
-	mainRenderPass->SetWindowHandle(windowHandle);
-	if (!mainRenderPass->Setup())
+	Reference<SwapChain> swapChain = new SwapChain();
+	swapChain->SetGraphicsEngine(this);
+	swapChain->SetWindowHandle(windowHandle);
+	if (!swapChain->Setup())
 	{
-		THEBE_LOG("Failed to setup main render pass.");
+		THEBE_LOG("Failed to setup swap-chain.");
 		return false;
 	}
 
-	this->renderPassArray.push_back(shadowPass.Get());
-	this->renderPassArray.push_back(mainRenderPass.Get());
-
+	this->renderTargetArray.push_back(shadowBuffer.Get());
+	this->renderTargetArray.push_back(swapChain.Get());
+	
 	this->clock.Reset();
 
 	return true;
@@ -202,10 +201,10 @@ void GraphicsEngine::Shutdown()
 
 	this->PurgeCache();
 
-	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->Shutdown();
+	for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
+		renderTarget->Shutdown();
 
-	this->renderPassArray.clear();
+	this->renderTargetArray.clear();
 
 	this->pipelineStateCacheMap.clear();
 
@@ -310,8 +309,8 @@ void GraphicsEngine::Render()
 
 	renderObject->PrepareForRender();
 
-	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->Render();
+	for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
+		renderTarget->Render();
 
 	this->frameCount++;
 	this->deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
@@ -340,8 +339,8 @@ double GraphicsEngine::CalcFramerate()
 
 void GraphicsEngine::WaitForGPUIdle()
 {
-	for (Reference<RenderPass>& renderPass : this->renderPassArray)
-		renderPass->WaitForCommandQueueComplete();
+	for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
+		renderTarget->WaitForCommandQueueComplete();
 
 	if (this->commandExecutor.Get())
 		this->commandExecutor->WaitForCommandQueueComplete();
@@ -362,11 +361,7 @@ void GraphicsEngine::Resize(int width, int height)
 
 SwapChain* GraphicsEngine::GetSwapChain()
 {
-	auto mainRenderPass = this->FindRenderPass<MainRenderPass>();
-	if (mainRenderPass)
-		return dynamic_cast<SwapChain*>(mainRenderPass->GetRenderTarget());
-
-	return nullptr;
+	return this->FindRenderTarget<SwapChain>();
 }
 
 ID3D12Device* GraphicsEngine::GetDevice()

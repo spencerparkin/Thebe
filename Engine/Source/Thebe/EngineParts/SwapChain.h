@@ -12,8 +12,6 @@ namespace Thebe
 {
 	using Microsoft::WRL::ComPtr;
 
-	class RenderPass;
-
 	/**
 	 * 
 	 */
@@ -24,7 +22,6 @@ namespace Thebe
 		virtual ~SwapChain();
 
 		void SetWindowHandle(HWND windowHandle);
-		void SetCommandQueue(ID3D12CommandQueue* commandQueue);
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
@@ -39,13 +36,15 @@ namespace Thebe
 
 		int GetCurrentBackBufferIndex();
 
-	private:
+	protected:
+
+		virtual bool GetRenderContext(RenderObject::RenderContext& context) override;
+
 		bool GetWindowDimensions(int& width, int& height);
 		bool ResizeDepthBuffers(int width, int height, ID3D12Device* device);
 		bool RecreateViews(ID3D12Device* device);
 
 		HWND windowHandle;
-		ID3D12CommandQueue* commandQueueForSwapChainCreate;
 		ComPtr<IDXGISwapChain3> swapChain;
 
 		struct SwapFrame : public Frame
