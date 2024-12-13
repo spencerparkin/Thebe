@@ -27,6 +27,11 @@ Camera* FreeCam::GetCamera()
 	return this->camera;
 }
 
+XBoxController* FreeCam::GetController()
+{
+	return &this->controller;
+}
+
 void FreeCam::Update(double deltaTimeSeconds)
 {
 	// This prevents a large jump if we were just stopped in the debugger for a time.

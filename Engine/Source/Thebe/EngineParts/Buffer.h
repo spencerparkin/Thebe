@@ -16,8 +16,7 @@ namespace Thebe
 	class UploadHeap;
 
 	/**
-	 * This is the base class for constants buffers, index buffers and vertex buffers.
-	 * I'm not yet sure if it will serve as a base for textures.
+	 * This is the base class for constants buffers, index buffers, vertex buffers and texture buffers.
 	 */
 	class THEBE_API Buffer : public EnginePart
 	{

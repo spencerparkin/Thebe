@@ -25,6 +25,7 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
+		virtual bool Render() override;
 
 		bool Resize(int width, int height);
 

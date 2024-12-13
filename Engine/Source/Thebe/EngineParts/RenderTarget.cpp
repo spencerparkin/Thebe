@@ -123,6 +123,7 @@ RenderTarget::RenderTarget()
 	}
 
 	RenderObject::RenderContext context{};
+	context.renderTarget = this;
 	if (!this->PreRender(context))
 	{
 		THEBE_LOG("Pre-render failed.");

@@ -5,11 +5,19 @@ using namespace Thebe;
 
 DirectionalLight::DirectionalLight()
 {
-	this->camera.Set(new OrthographicCamera());
 }
 
 /*virtual*/ DirectionalLight::~DirectionalLight()
 {
+}
+
+/*virtual*/ bool DirectionalLight::Setup()
+{
+	this->camera.Set(new OrthographicCamera());
+	OrthographicCamera::Params& params = this->camera->GetParams();
+	params.width = 200.0;
+	params.height = 200.0;
+	return true;
 }
 
 /*virtual*/ Camera* DirectionalLight::GetCamera()
@@ -39,6 +47,9 @@ DirectionalLight::DirectionalLight()
 
 /*virtual*/ bool DirectionalLight::SetLightToWorldTransform(const Transform& lightToWorld)
 {
+	if (!this->camera.Get())
+		return false;
+
 	this->camera->SetCameraToWorldTransform(lightToWorld);
 	return true;
 }

@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/ShadowBuffer.h"
 #include "Thebe/EngineParts/Light.h"
+#include "Thebe/EngineParts/Camera.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -7,6 +8,7 @@ using namespace Thebe;
 
 ShadowBuffer::ShadowBuffer()
 {
+	this->SetName("ShadowBuffer");
 }
 
 /*virtual*/ ShadowBuffer::~ShadowBuffer()
@@ -121,6 +123,8 @@ ShadowBuffer::ShadowBuffer()
 	Camera* camera = light->GetCamera();
 	if (!camera)
 		return false;
+
+	camera->UpdateProjection(1.0);
 
 	context.light = nullptr;
 	context.camera = camera;

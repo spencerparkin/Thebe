@@ -86,9 +86,15 @@ Application::Application()
 
 		InvalidateRect(this->windowHandle, NULL, FALSE);
 		UpdateWindow(this->windowHandle);
+
+		this->BetweenDispatches();
 	}
 
 	return msg.wParam;
+}
+
+/*virtual*/ void Application::BetweenDispatches()
+{
 }
 
 /*static*/ LRESULT Application::WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)

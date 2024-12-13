@@ -17,6 +17,8 @@ public:
 	virtual LRESULT OnSize(WPARAM wParam, LPARAM lParam) override;
 
 private:
+	virtual void BetweenDispatches() override;
+
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::FreeCam freeCam;

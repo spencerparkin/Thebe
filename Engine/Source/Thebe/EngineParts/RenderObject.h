@@ -10,6 +10,7 @@ namespace Thebe
 {
 	class Camera;
 	class Light;
+	class RenderTarget;
 
 	/**
 	 * 
@@ -24,6 +25,7 @@ namespace Thebe
 		{
 			Camera* camera;
 			Light* light;
+			RenderTarget* renderTarget;
 		};
 
 		virtual bool Setup() override;

@@ -10,6 +10,7 @@ namespace Thebe
 
 	class ConstantsBuffer;
 	class Mesh;
+	class Material;
 
 	/**
 	 *
@@ -32,9 +33,13 @@ namespace Thebe
 
 	private:
 		ComPtr<ID3D12PipelineState> pipelineState;
+		ComPtr<ID3D12PipelineState> shadowPipelineState;
 		Reference<Mesh> mesh;
 		Reference<ConstantsBuffer> constantsBuffer;
+		Reference<ConstantsBuffer> shadowConstantsBuffer;
 		DescriptorHeap::DescriptorSet csuDescriptorSet;
+		DescriptorHeap::DescriptorSet csuShadowDescriptorSet;
+		Reference<Material> shadowMaterial;
 		std::filesystem::path meshPath;
 	};
 }

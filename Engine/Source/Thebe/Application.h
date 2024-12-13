@@ -27,6 +27,7 @@ namespace Thebe
 
 		virtual bool PrepareForWindowShow();
 		virtual const char* GetWindowTitle();
+		virtual void BetweenDispatches();
 
 		virtual LRESULT OnCreate(WPARAM wParam, LPARAM lParam);
 		virtual LRESULT OnPaint(WPARAM wParam, LPARAM lParam);

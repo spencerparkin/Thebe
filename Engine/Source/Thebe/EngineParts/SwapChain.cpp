@@ -7,6 +7,7 @@ using namespace Thebe;
 SwapChain::SwapChain()
 {
 	this->windowHandle = NULL;
+	this->SetName("SwapChain");
 }
 
 /*virtual*/ SwapChain::~SwapChain()
@@ -141,6 +142,18 @@ void SwapChain::SetWindowHandle(HWND windowHandle)
 	}
 
 	RenderTarget::Shutdown();
+}
+
+/*virtual*/ bool SwapChain::Render()
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	if (graphicsEngine->GetFrameIndex() != this->swapChain->GetCurrentBackBufferIndex())
+		return true;	// No problem.  Just wait until they match up again.
+
+	return RenderTarget::Render();
 }
 
 bool SwapChain::RecreateViews(ID3D12Device* device)

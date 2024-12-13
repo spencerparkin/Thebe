@@ -14,6 +14,7 @@ namespace Thebe
 		DirectionalLight();
 		virtual ~DirectionalLight();
 
+		virtual bool Setup() override;
 		virtual Camera* GetCamera() override;
 		virtual bool SetShaderParameters(ConstantsBuffer* constantsBuffer) override;
 		virtual bool SetLightToWorldTransform(const Transform& lightToWorld) override;

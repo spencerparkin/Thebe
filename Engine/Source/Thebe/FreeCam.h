@@ -23,6 +23,8 @@ namespace Thebe
 		void SetCamera(Camera* camera);
 		Camera* GetCamera();
 
+		XBoxController* GetController();
+
 		void Update(double deltaTimeSeconds);
 
 		virtual void OnButtonPressed(DWORD button) override;

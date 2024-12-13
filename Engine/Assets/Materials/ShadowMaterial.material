@@ -1,0 +1,4 @@
+{
+    "name": "ShadowMaterial",
+    "shader": "Shaders/ShadowShader.shader"
+}
