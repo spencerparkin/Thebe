@@ -50,7 +50,7 @@
     "ps_model": "ps_6_5",
     "ps_shader_object": "Shaders/PBRShaderPS.dxbc",
     "shader_code": "Shaders/PBRShader.hlsl",
-    "shdaow_map_register": 4,
+    "shadow_map_register": 4,
     "texture_register_map": {
         "albedo": 0,
         "metalic": 1,

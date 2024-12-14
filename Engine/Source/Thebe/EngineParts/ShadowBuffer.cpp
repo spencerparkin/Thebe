@@ -78,7 +78,7 @@ ShadowBuffer::ShadowBuffer()
 			&heapProps,
 			D3D12_HEAP_FLAG_NONE,
 			&depthBufferDesc,
-			D3D12_RESOURCE_STATE_DEPTH_READ,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearValue,
 			IID_PPV_ARGS(&frame->depthBuffer));
 		if (FAILED(result))
@@ -95,22 +95,51 @@ ShadowBuffer::ShadowBuffer()
 		this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
 		device->CreateDepthStencilView(frame->depthBuffer.Get(), nullptr, dsvHandle);
 
-		if (!graphicsEngine->GetCSUDescriptorHeap()->AllocDescriptorSet(1, frame->csuDescriptorSet))
+		D3D12_RESOURCE_DESC depthTextureDesc{};
+		depthTextureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		depthTextureDesc.Alignment = 0;
+		depthTextureDesc.Width = THEBE_SHADOW_BUFFER_WIDTH;
+		depthTextureDesc.Height = THEBE_SHADOW_BUFFER_HEIGHT;
+		depthTextureDesc.DepthOrArraySize = 1;
+		depthTextureDesc.MipLevels = 1;
+		depthTextureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		depthTextureDesc.SampleDesc.Count = 1;
+		depthTextureDesc.SampleDesc.Quality = 0;
+		depthTextureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		depthTextureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		result = device->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&depthTextureDesc,
+			D3D12_RESOURCE_STATE_COMMON,
+			nullptr,
+			IID_PPV_ARGS(&frame->depthTexture));
+		if (FAILED(result))
 		{
-			THEBE_LOG("Failed to allocate CSU descriptor set %d for shadow buffer.", i);
+			THEBE_LOG("Failed to create depth texture %d.", i);
 			return false;
 		}
 
-		// TODO: This won't work, we need to do a copy operation from the depth buffer to a depth texture.
+		wchar_t shadowTextureName[128];
+		wsprintfW(shadowTextureName, L"Shadow Texture %d", i);
+		frame->depthTexture->SetName(shadowTextureName);
+
+		if (!graphicsEngine->GetCSUDescriptorHeap()->AllocDescriptorSet(1, frame->srvDescriptorSet))
+		{
+			THEBE_LOG("Failed to allocate SRV descriptor set %d for shadow buffer.", i);
+			return false;
+		}
+
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = DXGI_FORMAT_R32_FLOAT; //depthBufferDesc.Format;
+		srvDesc.Format = depthTextureDesc.Format;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE csuHandle;
-		frame->csuDescriptorSet.GetCpuHandle(0, csuHandle);
-		device->CreateShaderResourceView(frame->depthBuffer.Get(), &srvDesc, csuHandle);
+		frame->srvDescriptorSet.GetCpuHandle(0, csuHandle);
+		device->CreateShaderResourceView(frame->depthTexture.Get(), &srvDesc, csuHandle);
 	}
 
 	return true;
@@ -131,11 +160,12 @@ ShadowBuffer::ShadowBuffer()
 	{
 		auto frame = (ShadowFrame*)frameArray[i];
 		frame->depthBuffer = nullptr;
+		frame->depthTexture = nullptr;
 
 		if (graphicsEngine.Get())
 		{
-			if (frame->csuDescriptorSet.IsAllocated())
-				graphicsEngine->GetCSUDescriptorHeap()->FreeDescriptorSet(frame->csuDescriptorSet);
+			if (frame->srvDescriptorSet.IsAllocated())
+				graphicsEngine->GetCSUDescriptorHeap()->FreeDescriptorSet(frame->srvDescriptorSet);
 		}
 	}
 
@@ -164,11 +194,6 @@ ShadowBuffer::ShadowBuffer()
 	UINT frameIndex = graphicsEngine->GetFrameIndex();
 	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
 
-	ID3D12Device* device = graphicsEngine->GetDevice();
-
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	this->commandList->ResourceBarrier(1, &barrier);
-
 	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
 	this->commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
@@ -190,7 +215,18 @@ ShadowBuffer::ShadowBuffer()
 	UINT frameIndex = graphicsEngine->GetFrameIndex();
 	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
 
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ);
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	this->commandList->ResourceBarrier(1, &barrier);
+
+	barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthTexture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+	this->commandList->ResourceBarrier(1, &barrier);
+
+	this->commandList->CopyResource(frame->depthTexture.Get(), frame->depthBuffer.Get());
+
+	barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthBuffer.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	this->commandList->ResourceBarrier(1, &barrier);
+
+	barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->depthTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
 	this->commandList->ResourceBarrier(1, &barrier);
 
 	return true;
@@ -209,5 +245,5 @@ DescriptorHeap::DescriptorSet* ShadowBuffer::GetShadowMapDescriptorForShader()
 
 	UINT frameIndex = graphicsEngine->GetFrameIndex();
 	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
-	return &frame->csuDescriptorSet;
+	return &frame->srvDescriptorSet;
 }

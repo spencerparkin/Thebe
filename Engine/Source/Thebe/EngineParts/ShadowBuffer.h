@@ -35,7 +35,8 @@ namespace Thebe
 		struct ShadowFrame : public Frame
 		{
 			ComPtr<ID3D12Resource> depthBuffer;
-			DescriptorHeap::DescriptorSet csuDescriptorSet;
+			ComPtr<ID3D12Resource> depthTexture;
+			DescriptorHeap::DescriptorSet srvDescriptorSet;
 		};
 
 		virtual Frame* NewFrame() override;

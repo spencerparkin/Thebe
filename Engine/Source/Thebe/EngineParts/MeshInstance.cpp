@@ -231,15 +231,15 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 		targetPipelineState = this->pipelineState.Get();
 		targetConstantsDescriptorSet = &this->csuConstantsBufferDescriptorSet;
 		targetTexturesDescriptorSet = &this->csuMaterialTexturesDescriptorSet;
+		auto shadowBuffer = graphicsEngine->FindRenderTarget<ShadowBuffer>();
+		THEBE_ASSERT_FATAL(shadowBuffer != nullptr);
+		targetShadowMapDescriptorSet = shadowBuffer->GetShadowMapDescriptorForShader();
 	}
 	else if (context->renderTarget->GetName() == "ShadowBuffer")
 	{
 		targetShader = this->shadowMaterial->GetShader();
 		targetPipelineState = this->shadowPipelineState.Get();
 		targetConstantsDescriptorSet = &this->csuShadowConstantsBufferDescriptorSet;
-		auto shadowBuffer = dynamic_cast<ShadowBuffer*>(context->renderTarget);
-		THEBE_ASSERT_FATAL(shadowBuffer != nullptr);
-		targetShadowMapDescriptorSet = shadowBuffer->GetShadowMapDescriptorForShader();
 	}
 	else
 	{
