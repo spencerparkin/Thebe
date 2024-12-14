@@ -20,10 +20,9 @@ Light::Light()
 
 /*virtual*/ bool Light::SetShaderParameters(ConstantsBuffer* constantsBuffer)
 {
-	if (constantsBuffer->GetParameterType("lightColor") != Shader::Parameter::Type::FLOAT3)
+	if (!constantsBuffer->SetParameter("lightColor", this->lightColor))
 		return false;
 
-	constantsBuffer->SetParameter("lightColor", this->lightColor);
 	return true;
 }
 

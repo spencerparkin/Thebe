@@ -66,7 +66,7 @@ Shader::Shader()
 	constantsBufferDescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	D3D12_DESCRIPTOR_RANGE1 shadowBufferDescriptorRange;
-	shadowBufferDescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	shadowBufferDescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	shadowBufferDescriptorRange.BaseShaderRegister = this->shadowMapRegister;
 	shadowBufferDescriptorRange.NumDescriptors = 1;
 	shadowBufferDescriptorRange.RegisterSpace = 0;

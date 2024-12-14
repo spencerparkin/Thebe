@@ -327,6 +327,14 @@ void GraphicsEngine::Render()
 	if ((this->frameCount % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
 		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
 #endif //_DEBUG
+
+	// TODO: Why do I get this?  "D3D12 ERROR: ID3D12CommandQueue::ExecuteCommandLists: Non-simultaneous-access Texture Resource (0x0000020AF722E580:'Shadow Texture 1') is still referenced by write|transition_barrier GPU operations in-flight on another Command Queue (0x0000020AF70EC880:'Unnamed ID3D12CommandQueue Object'). It is not safe to start read GPU operations now on this Command Queue (0x0000020AF722F2A0:'Unnamed ID3D12CommandQueue Object'). This can result in race conditions and application instability. [ EXECUTION ERROR #1047: OBJECT_ACCESSED_WHILE_STILL_IN_USE]"
+	//       Do both render passes need to be done on the same command queue?
+
+	// Figured some stuff out...
+	//   1) Commands in a command list are executed synchronously, but...
+	//   2) Command-lists in a command queue are executed asynchronously, and this drives the need for memory barriers.
+	// Further, my program, at present, has multiple queues, but I think I really need/want one for the whole program.
 }
 
 double GraphicsEngine::CalcFramerate()

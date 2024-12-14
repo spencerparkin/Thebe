@@ -247,15 +247,13 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 		return false;
 	}
 
-	IndexBuffer* indexBuffer = this->mesh->GetIndexBuffer();
-	VertexBuffer* vertexBuffer = this->mesh->GetVertexBuffer();
-
 	commandList->SetGraphicsRootSignature(targetShader->GetRootSignature());
-
 	targetShader->SetRootParameters(commandList, targetConstantsDescriptorSet, targetTexturesDescriptorSet, targetShadowMapDescriptorSet);
 
 	commandList->SetPipelineState(targetPipelineState);
 	
+	IndexBuffer* indexBuffer = this->mesh->GetIndexBuffer();
+	VertexBuffer* vertexBuffer = this->mesh->GetVertexBuffer();
 	commandList->IASetIndexBuffer(indexBuffer->GetIndexBufferView());
 	commandList->IASetVertexBuffers(0, 1, vertexBuffer->GetVertexBufferView());
 	commandList->IASetPrimitiveTopology(indexBuffer->GetPrimitiveTopology());
