@@ -7,12 +7,13 @@ cbuffer Constants : register(b0)
     float3 worldViewPos;
     float3 worldLightPos;
     float3 worldLightDir;
+    float3x3 shadowMatrix;
+    float shadowVolumeExtent;
     float lightDistanceInfinite;        // This is a binary (0 or 1) value.
     float3 lightColor;
 };
 
 static const float PI = 3.1415926536;
-static const float reflectance = 0.1; // TODO: We could expose this as a material parameter.
 
 SamplerState generalSampler : register(s0);
 
@@ -20,6 +21,7 @@ Texture2D albedoTexture : register(t0);
 Texture2D metalicTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
 Texture2D normalTexture : register(t3);
+Texture2D shadowTexture : register(t4);
 
 struct VSInput
 {
@@ -142,6 +144,30 @@ float4 PSMain(PSInput input) : SV_TARGET
     
     // TODO: I think the metalic parts will look wrong until there's either some ambient
     //       light added to the scene or I'm doing some sort of environment mapping.
+    
+#if false
+    float shadowFactor = 1.0;
+    if (lightDistanceInfinite == 1.0)
+    {
+        float distanceToLightPlane = dot(worldLightPos - input.worldPosition, unitWorldLightDir);
+        float3 projectedPoint = input.worldPosition + distanceToLightPlane * unitWorldLightDir;
+        float3 projectedVector = projectedPoint - worldLightPos;
+        float2 shadowUV = mul(shadowMatrix, projectedVector).xy;
+        if(0.0 <= shadowUV.x && shadowUV.x <= 1.0 && 0.0 <= shadowUV.y && shadowUV.y <= 1.0)
+        {
+            // TODO: If we multi-sample here, maybe we could get softwer shadows with a shadow factor in [0,1].
+            float depth = shadowTexture.Sample(generalSampler, shadowUV).r;
+            float nearestDistance = depth * shadowVolumeExtent;
+            float eps = 1e-2;
+            if(distanceToLightPlane < nearestDistance - eps)
+            {
+                shadowFactor = 0.0;
+            }
+        }
+    }
+    
+    visibleColor *= shadowFactor;
+#endif
     
     return float4(visibleColor, 1.0);
 }

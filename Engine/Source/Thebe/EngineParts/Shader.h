@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/EnginePart.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
 #include <d3d12.h>
 #include <wrl.h>
 #include <map>
@@ -21,6 +22,11 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
+
+		void SetRootParameters(ID3D12GraphicsCommandList* commandList,
+			DescriptorHeap::DescriptorSet* constantsSet,
+			DescriptorHeap::DescriptorSet* texturesSet,
+			DescriptorHeap::DescriptorSet* shadowMapSet);
 
 		struct Parameter
 		{
@@ -51,6 +57,8 @@ namespace Thebe
 
 		std::string GetTextureUsageForRegister(UINT registerNumber);
 
+		UINT GetNumTextureRegisters() const;
+
 	private:
 		ComPtr<ID3D12RootSignature> rootSignature;
 		ComPtr<ID3DBlob> vertexShaderBlob;
@@ -59,5 +67,6 @@ namespace Thebe
 		std::filesystem::path pixelShaderBlobFile;
 		std::vector<Parameter> parameterArray;
 		std::map<UINT, std::string> textureRegisterMap;
+		UINT shadowMapRegister;
 	};
 }

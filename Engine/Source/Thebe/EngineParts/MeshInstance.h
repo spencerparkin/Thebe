@@ -37,8 +37,9 @@ namespace Thebe
 		Reference<Mesh> mesh;
 		Reference<ConstantsBuffer> constantsBuffer;
 		Reference<ConstantsBuffer> shadowConstantsBuffer;
-		DescriptorHeap::DescriptorSet csuDescriptorSet;
-		DescriptorHeap::DescriptorSet csuShadowDescriptorSet;
+		DescriptorHeap::DescriptorSet csuConstantsBufferDescriptorSet;
+		DescriptorHeap::DescriptorSet csuMaterialTexturesDescriptorSet;
+		DescriptorHeap::DescriptorSet csuShadowConstantsBufferDescriptorSet;
 		Reference<Material> shadowMaterial;
 		std::filesystem::path meshPath;
 	};

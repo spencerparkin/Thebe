@@ -9,6 +9,7 @@
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/Light.h"
 #include "Thebe/EngineParts/RenderTarget.h"
+#include "Thebe/EngineParts/ShadowBuffer.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -69,18 +70,11 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	Shader* shadowShader = shadowMaterial->GetShader();
 	DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
 
-	// Make descriptors for all textures and 1 constants buffer.
-	if (!csuDescriptorHeap->AllocDescriptorSet(1 + material->GetNumTextures(), this->csuDescriptorSet))
-	{
-		THEBE_LOG("Failed to allocate descriptor set for mesh instance.");
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuConstantsBufferDescriptorSet))
 		return false;
-	}
 
-	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuShadowDescriptorSet))
-	{
-		THEBE_LOG("Failed to allocate shadow descriptor set for mesh instance.");
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuShadowConstantsBufferDescriptorSet))
 		return false;
-	}
 
 	this->constantsBuffer.Set(new ConstantsBuffer());
 	this->constantsBuffer->SetGraphicsEngine(graphicsEngine);
@@ -103,27 +97,34 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	}
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE handle;
-	this->csuDescriptorSet.GetCpuHandle(0, handle);
+
+	this->csuConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
 	if (!this->constantsBuffer->CreateResourceView(handle, device))
 		return false;
 
-	for (UINT i = 0; i < material->GetNumTextures(); i++)
-	{
-		TextureBuffer* texture = material->GetTextureForRegister(i);
-		if (!texture)
-		{
-			THEBE_LOG("Failed to get texture for register %d.", i);
-			return false;
-		}
-
-		this->csuDescriptorSet.GetCpuHandle(i + 1 /* skip constants buffer */, handle);
-		if (!texture->CreateResourceView(handle, device))
-			return false;
-	}
-
-	this->csuShadowDescriptorSet.GetCpuHandle(0, handle);
+	this->csuShadowConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
 	if (!this->shadowConstantsBuffer->CreateResourceView(handle, device))
 		return false;
+
+	if (shader->GetNumTextureRegisters() > 0)
+	{
+		if (!csuDescriptorHeap->AllocDescriptorSet(shader->GetNumTextureRegisters(), this->csuMaterialTexturesDescriptorSet))
+			return false;
+
+		for (UINT i = 0; i < shader->GetNumTextureRegisters(); i++)
+		{
+			TextureBuffer* texture = material->GetTextureForRegister(i);
+			if (!texture)
+			{
+				THEBE_LOG("Failed to get texture for register %d.", i);
+				return false;
+			}
+
+			this->csuMaterialTexturesDescriptorSet.GetCpuHandle(i, handle);
+			if (!texture->CreateResourceView(handle, device))
+				return false;
+		}
+	}
 
 	this->pipelineState = graphicsEngine->GetOrCreatePipelineState(material, this->mesh->GetVertexBuffer());
 	if (!this->pipelineState.Get())
@@ -160,8 +161,9 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
 		DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
-		csuDescriptorHeap->FreeDescriptorSet(this->csuDescriptorSet);
-		csuDescriptorHeap->FreeDescriptorSet(this->csuShadowDescriptorSet);
+		csuDescriptorHeap->FreeDescriptorSet(this->csuConstantsBufferDescriptorSet);
+		csuDescriptorHeap->FreeDescriptorSet(this->csuShadowConstantsBufferDescriptorSet);
+		csuDescriptorHeap->FreeDescriptorSet(this->csuMaterialTexturesDescriptorSet);
 	}
 
 	this->pipelineState = nullptr;
@@ -218,20 +220,31 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	Shader* targetShader = nullptr;
 	ID3D12PipelineState* targetPipelineState = nullptr;
-	DescriptorHeap::DescriptorSet* targetDescriptorSet = nullptr;
+	DescriptorHeap::DescriptorSet* targetConstantsDescriptorSet = nullptr;
+	DescriptorHeap::DescriptorSet* targetTexturesDescriptorSet = nullptr;
+	DescriptorHeap::DescriptorSet* targetShadowMapDescriptorSet = nullptr;
 
 	if (context->renderTarget->GetName() == "SwapChain")
 	{
 		Material* material = this->mesh->GetMaterial();
 		targetShader = material->GetShader();
 		targetPipelineState = this->pipelineState.Get();
-		targetDescriptorSet = &this->csuDescriptorSet;
+		targetConstantsDescriptorSet = &this->csuConstantsBufferDescriptorSet;
+		targetTexturesDescriptorSet = &this->csuMaterialTexturesDescriptorSet;
 	}
 	else if (context->renderTarget->GetName() == "ShadowBuffer")
 	{
 		targetShader = this->shadowMaterial->GetShader();
 		targetPipelineState = this->shadowPipelineState.Get();
-		targetDescriptorSet = &this->csuShadowDescriptorSet;
+		targetConstantsDescriptorSet = &this->csuShadowConstantsBufferDescriptorSet;
+		auto shadowBuffer = dynamic_cast<ShadowBuffer*>(context->renderTarget);
+		THEBE_ASSERT_FATAL(shadowBuffer != nullptr);
+		targetShadowMapDescriptorSet = shadowBuffer->GetShadowMapDescriptorForShader();
+	}
+	else
+	{
+		THEBE_LOG("Render target context (%s) not recognized.", context->renderTarget->GetName().c_str());
+		return false;
 	}
 
 	IndexBuffer* indexBuffer = this->mesh->GetIndexBuffer();
@@ -239,9 +252,7 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	commandList->SetGraphicsRootSignature(targetShader->GetRootSignature());
 
-	CD3DX12_GPU_DESCRIPTOR_HANDLE handle;
-	targetDescriptorSet->GetGpuHandle(0, handle);
-	commandList->SetGraphicsRootDescriptorTable(0, handle);
+	targetShader->SetRootParameters(commandList, targetConstantsDescriptorSet, targetTexturesDescriptorSet, targetShadowMapDescriptorSet);
 
 	commandList->SetPipelineState(targetPipelineState);
 	

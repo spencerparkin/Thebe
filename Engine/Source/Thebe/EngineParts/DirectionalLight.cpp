@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/DirectionalLight.h"
 #include "Thebe/EngineParts/ConstantsBuffer.h"
+#include "Thebe/Math/Matrix3x3.h"
 
 using namespace Thebe;
 
@@ -39,8 +40,40 @@ DirectionalLight::DirectionalLight()
 	if (!constantsBuffer->SetParameter("lightDistanceInfinite", 1.0))
 		return false;
 
-	if (constantsBuffer->GetParameterType("worldLightPos") == Shader::Parameter::FLOAT3)
-		constantsBuffer->SetParameter("worldLightPos", Vector3(0.0, 0.0, 0.0));
+	// Yes, our light source is conceptually infinitely far away, but for shadow
+	// calculations, we need to give the light a position along the light ray.
+	if (!constantsBuffer->SetParameter("worldLightPos", cameraToWorld.translation))
+		return false;
+
+	const OrthographicCamera::Params& params = this->camera->GetParams();
+	double shadowVolumeExtent = params.farClip - params.nearClip;
+	if (!constantsBuffer->SetParameter("shadowVolumeExtent", shadowVolumeExtent))
+		return false;
+
+	Vector3 xAxis = cameraToWorld.matrix.GetColumnVector(0);
+	Vector3 yAxis = cameraToWorld.matrix.GetColumnVector(1);
+
+	Matrix3x3 matrixA;
+	matrixA.ele[0][0] = xAxis.x;
+	matrixA.ele[0][1] = xAxis.y;
+	matrixA.ele[0][2] = xAxis.z;
+	matrixA.ele[1][0] = yAxis.x;
+	matrixA.ele[1][1] = yAxis.y;
+	matrixA.ele[1][2] = yAxis.z;
+
+	Matrix3x3 matrixB;
+	matrixB.ele[0][0] = 1.0 / params.width;
+	matrixB.ele[1][1] = 1.0 / params.height;
+	matrixB.ele[0][2] = 0.5;
+	matrixB.ele[1][2] = 0.5;
+
+	Matrix3x3 matrixC;
+	matrixC.ele[1][1] = -1.0;
+	matrixC.ele[1][2] = 1.0;
+
+	Matrix3x3 shadowMatrix = matrixC * matrixB * matrixA;
+	if (!constantsBuffer->SetParameter("shadowMatrix", shadowMatrix))
+		return false;
 
 	return true;
 }

@@ -124,8 +124,6 @@ namespace Thebe
 
 		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer);
 
-	private:
-
 		template<typename T>
 		T* FindRenderTarget()
 		{
@@ -138,6 +136,8 @@ namespace Thebe
 
 			return nullptr;
 		}
+
+	private:
 
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;

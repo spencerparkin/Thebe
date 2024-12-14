@@ -29,10 +29,13 @@ namespace Thebe
 		virtual bool PreRender(RenderObject::RenderContext& context) override;
 		virtual bool PostRender() override;
 
+		DescriptorHeap::DescriptorSet* GetShadowMapDescriptorForShader();
+
 	protected:
 		struct ShadowFrame : public Frame
 		{
 			ComPtr<ID3D12Resource> depthBuffer;
+			DescriptorHeap::DescriptorSet csuDescriptorSet;
 		};
 
 		virtual Frame* NewFrame() override;

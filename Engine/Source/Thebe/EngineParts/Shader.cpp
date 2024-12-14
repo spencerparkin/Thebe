@@ -9,6 +9,7 @@ using namespace Thebe;
 
 Shader::Shader()
 {
+	this->shadowMapRegister = -1;
 }
 
 /*virtual*/ Shader::~Shader()
@@ -56,35 +57,51 @@ Shader::Shader()
 		return false;
 	}
 
-	std::vector<D3D12_DESCRIPTOR_RANGE1> descriptorRangeArray;
-	descriptorRangeArray.resize(1 + this->textureRegisterMap.size());
+	D3D12_DESCRIPTOR_RANGE1 constantsBufferDescriptorRange;
+	constantsBufferDescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	constantsBufferDescriptorRange.BaseShaderRegister = 0;
+	constantsBufferDescriptorRange.NumDescriptors = 1;
+	constantsBufferDescriptorRange.RegisterSpace = 0;
+	constantsBufferDescriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
+	constantsBufferDescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	descriptorRangeArray[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	descriptorRangeArray[0].BaseShaderRegister = 0;
-	descriptorRangeArray[0].NumDescriptors = 1;
-	descriptorRangeArray[0].RegisterSpace = 0;
-	descriptorRangeArray[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
-	descriptorRangeArray[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	D3D12_DESCRIPTOR_RANGE1 shadowBufferDescriptorRange;
+	shadowBufferDescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	shadowBufferDescriptorRange.BaseShaderRegister = this->shadowMapRegister;
+	shadowBufferDescriptorRange.NumDescriptors = 1;
+	shadowBufferDescriptorRange.RegisterSpace = 0;
+	shadowBufferDescriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
+	shadowBufferDescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	int i = 1;
+	std::vector<D3D12_DESCRIPTOR_RANGE1> textureDescriptorRangeArray;
+	textureDescriptorRangeArray.resize(this->textureRegisterMap.size());
+	D3D12_DESCRIPTOR_RANGE1* textureDescriptorRange = textureDescriptorRangeArray.data();
 	for (const auto& pair : this->textureRegisterMap)
 	{
 		UINT registerNumber = pair.first;
-		D3D12_DESCRIPTOR_RANGE1& descriptorRange = descriptorRangeArray[i++];
-		descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		descriptorRange.BaseShaderRegister = registerNumber;
-		descriptorRange.NumDescriptors = 1;
-		descriptorRange.RegisterSpace = 0;
-		descriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
-		descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		textureDescriptorRange->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		textureDescriptorRange->BaseShaderRegister = registerNumber;
+		textureDescriptorRange->NumDescriptors = 1;
+		textureDescriptorRange->RegisterSpace = 0;
+		textureDescriptorRange->Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC;
+		textureDescriptorRange->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		textureDescriptorRange++;
 	}
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
-	rootParameterArray.resize(1);
+	rootParameterArray.resize(3);
 	rootParameterArray[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = (UINT)descriptorRangeArray.size();
-	rootParameterArray[0].DescriptorTable.pDescriptorRanges = descriptorRangeArray.data();
+	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterArray[0].DescriptorTable.pDescriptorRanges = &constantsBufferDescriptorRange;
 	rootParameterArray[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterArray[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterArray[1].DescriptorTable.NumDescriptorRanges = (this->shadowMapRegister == -1) ? 0 : 1;
+	rootParameterArray[1].DescriptorTable.pDescriptorRanges = (this->shadowMapRegister == -1) ? nullptr : &shadowBufferDescriptorRange;
+	rootParameterArray[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterArray[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterArray[2].DescriptorTable.NumDescriptorRanges = (UINT)textureDescriptorRangeArray.size();
+	rootParameterArray[2].DescriptorTable.pDescriptorRanges = textureDescriptorRangeArray.data();
+	rootParameterArray[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -141,6 +158,32 @@ Shader::Shader()
 	this->rootSignature = nullptr;
 }
 
+void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
+	DescriptorHeap::DescriptorSet* constantsSet,
+	DescriptorHeap::DescriptorSet* texturesSet,
+	DescriptorHeap::DescriptorSet* shadowMapSet)
+{
+	CD3DX12_GPU_DESCRIPTOR_HANDLE handle;
+
+	if (constantsSet && constantsSet->IsAllocated())
+	{
+		constantsSet->GetGpuHandle(0, handle);
+		commandList->SetGraphicsRootDescriptorTable(0, handle);
+	}
+
+	if (texturesSet && texturesSet->IsAllocated())
+	{
+		texturesSet->GetGpuHandle(0, handle);
+		commandList->SetGraphicsRootDescriptorTable(2, handle);
+	}
+
+	if (shadowMapSet && shadowMapSet->IsAllocated())
+	{
+		shadowMapSet->GetGpuHandle(0, handle);
+		commandList->SetGraphicsRootDescriptorTable(1, handle);
+	}
+}
+
 std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 {
 	auto pair = this->textureRegisterMap.find(registerNumber);
@@ -148,6 +191,11 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 		return "?";
 
 	return pair->second;
+}
+
+UINT Shader::GetNumTextureRegisters() const
+{
+	return (UINT)this->textureRegisterMap.size();
 }
 
 /*virtual*/ bool Shader::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
@@ -163,6 +211,10 @@ std::string Shader::GetTextureUsageForRegister(UINT registerNumber)
 		THEBE_LOG("Expected root of JSON to be an object.");
 		return false;
 	}
+
+	auto shadowMapRegisterValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("shadow_map_register"));
+	if (shadowMapRegisterValue)
+		this->shadowMapRegister = (UINT)shadowMapRegisterValue->GetValue();
 
 	auto textureRegisterMapValue = dynamic_cast<const JsonObject*>(rootValue->GetValue("texture_register_map"));
 	if (textureRegisterMapValue)

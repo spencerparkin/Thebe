@@ -94,6 +94,23 @@ ShadowBuffer::ShadowBuffer()
 		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 		this->dsvDescriptorSet.GetCpuHandle(i, dsvHandle);
 		device->CreateDepthStencilView(frame->depthBuffer.Get(), nullptr, dsvHandle);
+
+		if (!graphicsEngine->GetCSUDescriptorHeap()->AllocDescriptorSet(1, frame->csuDescriptorSet))
+		{
+			THEBE_LOG("Failed to allocate CSU descriptor set %d for shadow buffer.", i);
+			return false;
+		}
+
+		// TODO: This won't work, we need to do a copy operation from the depth buffer to a depth texture.
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT; //depthBufferDesc.Format;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE csuHandle;
+		frame->csuDescriptorSet.GetCpuHandle(0, csuHandle);
+		device->CreateShaderResourceView(frame->depthBuffer.Get(), &srvDesc, csuHandle);
 	}
 
 	return true;
@@ -101,10 +118,25 @@ ShadowBuffer::ShadowBuffer()
 
 /*virtual*/ void ShadowBuffer::Shutdown()
 {
+	Reference<GraphicsEngine> graphicsEngine;
+	this->GetGraphicsEngine(graphicsEngine);
+
+	if (graphicsEngine.Get())
+	{
+		if (this->dsvDescriptorSet.IsAllocated())
+			graphicsEngine->GetDSVDescriptorHeap()->FreeDescriptorSet(this->dsvDescriptorSet);
+	}
+
 	for (int i = 0; i < (int)this->frameArray.size(); i++)
 	{
 		auto frame = (ShadowFrame*)frameArray[i];
 		frame->depthBuffer = nullptr;
+
+		if (graphicsEngine.Get())
+		{
+			if (frame->csuDescriptorSet.IsAllocated())
+				graphicsEngine->GetCSUDescriptorHeap()->FreeDescriptorSet(frame->csuDescriptorSet);
+		}
 	}
 
 	RenderTarget::Shutdown();
@@ -167,4 +199,15 @@ ShadowBuffer::ShadowBuffer()
 /*virtual*/ RenderTarget::Frame* ShadowBuffer::NewFrame()
 {
 	return new ShadowFrame();
+}
+
+DescriptorHeap::DescriptorSet* ShadowBuffer::GetShadowMapDescriptorForShader()
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return nullptr;
+
+	UINT frameIndex = graphicsEngine->GetFrameIndex();
+	auto frame = (ShadowFrame*)this->frameArray[frameIndex];
+	return &frame->csuDescriptorSet;
 }
