@@ -45,6 +45,7 @@ DirectionalLight::DirectionalLight()
 	if (!constantsBuffer->SetParameter("worldLightPos", cameraToWorld.translation))
 		return false;
 
+	// TODO: Probably need to send in the near clip and far clip parameters instead of this.
 	const OrthographicCamera::Params& params = this->camera->GetParams();
 	double shadowVolumeExtent = params.farClip - params.nearClip;
 	if (!constantsBuffer->SetParameter("shadowVolumeExtent", shadowVolumeExtent))
