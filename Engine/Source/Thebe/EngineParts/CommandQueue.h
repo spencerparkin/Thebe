@@ -23,6 +23,8 @@ namespace Thebe
 
 		void WaitForCommandQueueComplete();
 
+		bool ExecuteCommandList(ID3D12CommandList* commandList);
+
 		ID3D12CommandQueue* GetCommandQueue();
 
 	protected:

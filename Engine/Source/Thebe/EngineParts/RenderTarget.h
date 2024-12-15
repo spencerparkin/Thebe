@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Thebe/EngineParts/CommandQueue.h"
-#include "Thebe/EngineParts/Fence.h"
+#include "Thebe/EnginePart.h"
+#include "Thebe/EngineParts/CommandAllocator.h"
 #include "Thebe/EngineParts/RenderObject.h"
 #include <d3d12.h>
 
@@ -14,7 +14,7 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class THEBE_API RenderTarget : public CommandQueue
+	class THEBE_API RenderTarget : public EnginePart
 	{
 	public:
 		RenderTarget();
@@ -25,19 +25,28 @@ namespace Thebe
 		virtual bool Render();
 
 	protected:
-		virtual bool PreRender(RenderObject::RenderContext& context);
-		virtual bool PostRender();
+		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context);
+		virtual bool PostRender(ID3D12GraphicsCommandList* commandList);
 		virtual void PreSignal();
 
-		struct Frame
+		class Frame : public CommandAllocator
 		{
-			ComPtr<ID3D12CommandAllocator> commandAllocator;
-			Reference<Fence> fence;
+		public:
+			Frame();
+			virtual ~Frame();
+
+			virtual void PreSignal() override;
+
+			void SetRenderTargetOwner(RenderTarget* renderTargetOwner);
+			void SetFrameNumber(UINT frameNumber);
+
+		protected:
+			RenderTarget* renderTargetOwner;
+			UINT frameNumber;
 		};
 
 		virtual Frame* NewFrame() = 0;
 
-		std::vector<Frame*> frameArray;
-		ComPtr<ID3D12GraphicsCommandList> commandList;
+		std::vector<Reference<Frame>> frameArray;
 	};
 }

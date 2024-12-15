@@ -26,14 +26,21 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual bool PreRender(RenderObject::RenderContext& context) override;
-		virtual bool PostRender() override;
+		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context) override;
+		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 
 		DescriptorHeap::DescriptorSet* GetShadowMapDescriptorForShader();
 
 	protected:
-		struct ShadowFrame : public Frame
+		class ShadowFrame : public Frame
 		{
+		public:
+			ShadowFrame();
+			virtual ~ShadowFrame();
+
+			virtual bool Setup() override;
+			virtual void Shutdown() override;
+
 			ComPtr<ID3D12Resource> depthBuffer;
 			ComPtr<ID3D12Resource> depthTexture;
 			DescriptorHeap::DescriptorSet srvDescriptorSet;

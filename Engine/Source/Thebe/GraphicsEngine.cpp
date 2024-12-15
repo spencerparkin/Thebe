@@ -7,7 +7,7 @@
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/Mesh.h"
-#include "Thebe/EngineParts/CommandExecutor.h"
+#include "Thebe/EngineParts/CommandQueue.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/EngineParts/UploadHeap.h"
 #include "Thebe/EngineParts/RenderObject.h"
@@ -106,11 +106,19 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
-	this->commandExecutor.Set(new CommandExecutor());
-	this->commandExecutor->SetGraphicsEngine(this);
-	if (!this->commandExecutor->Setup())
+	this->commandQueue.Set(new CommandQueue());
+	this->commandQueue->SetGraphicsEngine(this);
+	if (!this->commandQueue->Setup())
 	{
-		THEBE_LOG("Failed to setup command executor.");
+		THEBE_LOG("Failed to setup command queue.");
+		return false;
+	}
+
+	this->commandAllocator.Set(new CommandAllocator());
+	this->commandAllocator->SetGraphicsEngine(this);
+	if (!this->commandAllocator->Setup())
+	{
+		THEBE_LOG("Failed to setup command allocator.");
 		return false;
 	}
 
@@ -208,10 +216,16 @@ void GraphicsEngine::Shutdown()
 
 	this->pipelineStateCacheMap.clear();
 
-	if (this->commandExecutor)
+	if (this->commandQueue)
 	{
-		this->commandExecutor->Shutdown();
-		this->commandExecutor = nullptr;
+		this->commandQueue->Shutdown();
+		this->commandQueue = nullptr;
+	}
+
+	if (this->commandAllocator)
+	{
+		this->commandAllocator->Shutdown();
+		this->commandAllocator = nullptr;
 	}
 
 	if (this->renderObject)
@@ -327,14 +341,6 @@ void GraphicsEngine::Render()
 	if ((this->frameCount % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
 		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
 #endif //_DEBUG
-
-	// TODO: Why do I get this?  "D3D12 ERROR: ID3D12CommandQueue::ExecuteCommandLists: Non-simultaneous-access Texture Resource (0x0000020AF722E580:'Shadow Texture 1') is still referenced by write|transition_barrier GPU operations in-flight on another Command Queue (0x0000020AF70EC880:'Unnamed ID3D12CommandQueue Object'). It is not safe to start read GPU operations now on this Command Queue (0x0000020AF722F2A0:'Unnamed ID3D12CommandQueue Object'). This can result in race conditions and application instability. [ EXECUTION ERROR #1047: OBJECT_ACCESSED_WHILE_STILL_IN_USE]"
-	//       Do both render passes need to be done on the same command queue?
-
-	// Figured some stuff out...
-	//   1) Commands in a command list are executed synchronously, but...
-	//   2) Command-lists in a command queue are executed asynchronously, and this drives the need for memory barriers.
-	// Further, my program, at present, has multiple queues, but I think I really need/want one for the whole program.
 }
 
 double GraphicsEngine::CalcFramerate()
@@ -352,11 +358,8 @@ double GraphicsEngine::CalcFramerate()
 
 void GraphicsEngine::WaitForGPUIdle()
 {
-	for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
-		renderTarget->WaitForCommandQueueComplete();
-
-	if (this->commandExecutor.Get())
-		this->commandExecutor->WaitForCommandQueueComplete();
+	if (this->commandQueue.Get())
+		this->commandQueue->WaitForCommandQueueComplete();
 }
 
 void GraphicsEngine::Resize(int width, int height)
@@ -387,9 +390,14 @@ IDXGIFactory4* GraphicsEngine::GetFactory()
 	return this->factory.Get();
 }
 
-CommandExecutor* GraphicsEngine::GetCommandExecutor()
+CommandQueue* GraphicsEngine::GetCommandQueue()
 {
-	return this->commandExecutor;
+	return this->commandQueue;
+}
+
+CommandAllocator* GraphicsEngine::GetCommandAllocator()
+{
+	return this->commandAllocator;
 }
 
 DescriptorHeap* GraphicsEngine::GetCSUDescriptorHeap()

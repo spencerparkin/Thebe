@@ -1,6 +1,6 @@
 #include "Thebe/EngineParts/Buffer.h"
 #include "Thebe/EngineParts/SwapChain.h"
-#include "Thebe/EngineParts/CommandExecutor.h"
+#include "Thebe/EngineParts/CommandAllocator.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
@@ -145,26 +145,24 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	if (!this->CopyDataToUploadHeap(uploadBuffer, device))
 		return false;
 
-	CommandExecutor* commandExecutor = graphicsEngine->GetCommandExecutor();
-	if (!commandExecutor)
+	CommandAllocator* commandAllocator = graphicsEngine->GetCommandAllocator();
+	if (!commandAllocator)
 		return false;
 
-	ComPtr<ID3D12GraphicsCommandList> commandList;
-	if(!commandExecutor->BeginRecording(commandList))
-	{
-		THEBE_LOG("Failed to start command-list recording.");
+	if(!commandAllocator->BeginRecordingCommandList())
 		return false;
-	}
+
+	ID3D12GraphicsCommandList* commandList = commandAllocator->GetCommandList();
+	if (!commandList)
+		return false;
 	
-	this->CopyDataFromUploadHeapToDefaultHeap(uploadHeap, commandList.Get(), device);
+	this->CopyDataFromUploadHeapToDefaultHeap(uploadHeap, commandList, device);
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
 	commandList->ResourceBarrier(1, &barrier);
 
-	if (!commandExecutor->EndRecording(commandList))
+	if (!commandAllocator->EndRecordingCommandList())
 		return false;
-
-	commandExecutor->Execute();
 
 	if (this->type == Type::STATIC)
 	{

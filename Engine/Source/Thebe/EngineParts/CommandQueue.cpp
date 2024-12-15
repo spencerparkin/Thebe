@@ -53,6 +53,15 @@ CommandQueue::CommandQueue()
 	this->commandQueue = nullptr;
 }
 
+bool CommandQueue::ExecuteCommandList(ID3D12CommandList* commandList)
+{
+	if (!this->commandQueue.Get())
+		return false;
+
+	this->commandQueue->ExecuteCommandLists(1, &commandList);
+	return true;
+}
+
 void CommandQueue::WaitForCommandQueueComplete()
 {
 	if (this->commandQueue.Get() && this->fence.Get())

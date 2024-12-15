@@ -20,10 +20,11 @@ namespace Thebe
 {
 	using Microsoft::WRL::ComPtr;
 
+	class CommandQueue;
+	class CommandAllocator;
 	class RenderTarget;
 	class EnginePart;
 	class SwapChain;
-	class CommandExecutor;
 	class DescriptorHeap;
 	class Material;
 	class VertexBuffer;
@@ -75,7 +76,8 @@ namespace Thebe
 		ID3D12Device* GetDevice();
 		IDXGIFactory4* GetFactory();
 		SwapChain* GetSwapChain();
-		CommandExecutor* GetCommandExecutor();
+		CommandQueue* GetCommandQueue();
+		CommandAllocator* GetCommandAllocator();
 		DescriptorHeap* GetCSUDescriptorHeap();
 		DescriptorHeap* GetRTVDescriptorHeap();
 		DescriptorHeap* GetDSVDescriptorHeap();
@@ -142,7 +144,8 @@ namespace Thebe
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderTarget>> renderTargetArray;
-		Reference<CommandExecutor> commandExecutor;
+		Reference<CommandQueue> commandQueue;
+		Reference<CommandAllocator> commandAllocator;
 		Reference<UploadHeap> uploadHeap;
 		Reference<DescriptorHeap> csuDescriptorHeap;
 		Reference<DescriptorHeap> rtvDescriptorHeap;

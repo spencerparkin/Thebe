@@ -30,8 +30,8 @@ namespace Thebe
 		bool Resize(int width, int height);
 
 	protected:
-		virtual bool PreRender(RenderObject::RenderContext& context) override;
-		virtual bool PostRender() override;
+		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context) override;
+		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
 		virtual void PreSignal() override;
 
 		bool GetWindowDimensions(int& width, int& height);
@@ -41,8 +41,12 @@ namespace Thebe
 		HWND windowHandle;
 		ComPtr<IDXGISwapChain3> swapChain;
 
-		struct SwapFrame : public Frame
+		class SwapFrame : public Frame
 		{
+		public:
+			SwapFrame();
+			virtual ~SwapFrame();
+
 			ComPtr<ID3D12Resource> renderTarget;
 			ComPtr<ID3D12Resource> depthBuffer;
 		};

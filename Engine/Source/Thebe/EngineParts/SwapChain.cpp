@@ -1,8 +1,11 @@
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/EngineParts/CommandQueue.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
+
+//------------------------------------------------ SwapChain ------------------------------------------------
 
 SwapChain::SwapChain()
 {
@@ -74,7 +77,7 @@ void SwapChain::SetWindowHandle(HWND windowHandle)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
 	HRESULT result = factory->CreateSwapChainForHwnd(
-		this->commandQueue.Get(),
+		graphicsEngine->GetCommandQueue()->GetCommandQueue(),
 		this->windowHandle,
 		&swapChainDesc,
 		nullptr,
@@ -136,7 +139,7 @@ void SwapChain::SetWindowHandle(HWND windowHandle)
 
 	for (int i = 0; i < (int)this->frameArray.size(); i++)
 	{
-		auto frame = (SwapFrame*)this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i].Get();
 		frame->depthBuffer = nullptr;
 		frame->renderTarget = nullptr;
 	}
@@ -160,7 +163,7 @@ bool SwapChain::RecreateViews(ID3D12Device* device)
 {
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		auto frame = (SwapFrame*)this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i].Get();
 
 		HRESULT result = this->swapChain->GetBuffer(i, IID_PPV_ARGS(&frame->renderTarget));
 		if (FAILED(result))
@@ -193,7 +196,7 @@ bool SwapChain::ResizeDepthBuffers(int width, int height, ID3D12Device* device)
 {
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		auto frame = (SwapFrame*)this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i].Get();
 		
 		frame->depthBuffer = nullptr;
 
@@ -258,7 +261,7 @@ bool SwapChain::Resize(int width, int height)
 
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		auto frame = (SwapFrame*)this->frameArray[i];
+		auto frame = (SwapFrame*)this->frameArray[i].Get();
 		frame->renderTarget = nullptr;
 	}
 
@@ -309,7 +312,7 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	THEBE_ASSERT(SUCCEEDED(result));
 }
 
-/*virtual*/ bool SwapChain::PreRender(RenderObject::RenderContext& context)
+/*virtual*/ bool SwapChain::PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context)
 {
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -321,12 +324,12 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	context.light = graphicsEngine->GetLight();
 
 	UINT frameIndex = graphicsEngine->GetFrameIndex();
-	auto frame = (SwapFrame*)this->frameArray[frameIndex];
+	auto frame = (SwapFrame*)this->frameArray[frameIndex].Get();
 
 	ID3D12Device* device = graphicsEngine->GetDevice();
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	this->commandList->ResourceBarrier(1, &barrier);
+	commandList->ResourceBarrier(1, &barrier);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	this->rtvDescriptorSet.GetCpuHandle(frameIndex, rtvHandle);
@@ -335,28 +338,38 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
 
 	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	this->commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	this->commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	this->commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-	this->commandList->RSSetViewports(1, &this->viewport);
-	this->commandList->RSSetScissorRects(1, &this->scissorRect);
+	commandList->RSSetViewports(1, &this->viewport);
+	commandList->RSSetScissorRects(1, &this->scissorRect);
 
 	return true;
 }
 
-/*virtual*/ bool SwapChain::PostRender()
+/*virtual*/ bool SwapChain::PostRender(ID3D12GraphicsCommandList* commandList)
 {
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
 
 	UINT frameIndex = graphicsEngine->GetFrameIndex();
-	auto frame = (SwapFrame*)this->frameArray[frameIndex];
+	auto frame = (SwapFrame*)this->frameArray[frameIndex].Get();
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-	this->commandList->ResourceBarrier(1, &barrier);
+	commandList->ResourceBarrier(1, &barrier);
 
 	return true;
+}
+
+//------------------------------------------------ SwapChain::SwapFrame ------------------------------------------------
+
+SwapChain::SwapFrame::SwapFrame()
+{
+}
+
+/*virtual*/ SwapChain::SwapFrame::~SwapFrame()
+{
 }

@@ -5,6 +5,8 @@
 
 using namespace Thebe;
 
+//---------------------------------------- RenderTarget ----------------------------------------
+
 RenderTarget::RenderTarget()
 {
 }
@@ -15,16 +17,11 @@ RenderTarget::RenderTarget()
 
 /*virtual*/ bool RenderTarget::Setup()
 {
-	if (!CommandQueue::Setup())
-		return false;
-
 	if (this->frameArray.size() > 0)
 	{
 		THEBE_LOG("Render target already setup.");
 		return false;
 	}
-
-	this->frameArray.resize(THEBE_NUM_SWAP_FRAMES);
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
@@ -34,20 +31,23 @@ RenderTarget::RenderTarget()
 
 	for (int i = 0; i < THEBE_NUM_SWAP_FRAMES; i++)
 	{
-		Frame* frame = this->NewFrame();
-		this->frameArray[i] = frame;
-
-		frame->fence = new Fence();
-		frame->fence->SetGraphicsEngine(graphicsEngine.Get());
-		if (!frame->fence->Setup())
-			return false;
-
-		HRESULT result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&frame->commandAllocator));
-		if (FAILED(result))
+		Reference<Frame> frame = this->NewFrame();
+		if (!frame.Get())
 		{
-			THEBE_LOG("Failed to create command allocator for swap-frame %d.  Error: 0x%08x", i, result);
+			THEBE_LOG("Failed to create frame for render target %d.", i);
 			return false;
 		}
+
+		frame->SetGraphicsEngine(graphicsEngine.Get());
+		frame->SetRenderTargetOwner(this);
+		frame->SetFrameNumber(i);
+		if (!frame->Setup())
+		{
+			THEBE_LOG("Failed to setup frame %d for render target.", i);
+			return false;
+		}
+
+		this->frameArray.push_back(frame);
 	}
 
 	return true;
@@ -55,28 +55,23 @@ RenderTarget::RenderTarget()
 
 /*virtual*/ void RenderTarget::Shutdown()
 {
-	for (Frame* frame : this->frameArray)
+	for (Reference<Frame>& frame : this->frameArray)
 	{
-		if (frame->fence.Get())
-		{
-			frame->fence->Shutdown();
-			frame->fence = nullptr;
-		}
-
-		delete frame;
+		frame->Shutdown();
+		frame = nullptr;
 	}
 
 	this->frameArray.clear();
 
-	CommandQueue::Shutdown();
+	EnginePart::Shutdown();
 }
 
-/*virtual*/ bool RenderTarget::PreRender(RenderObject::RenderContext& context)
+/*virtual*/ bool RenderTarget::PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context)
 {
 	return false;
 }
 
-/*virtual*/ bool RenderTarget::PostRender()
+/*virtual*/ bool RenderTarget::PostRender(ID3D12GraphicsCommandList* commandList)
 {
 	return false;
 }
@@ -91,40 +86,19 @@ RenderTarget::RenderTarget()
 	THEBE_ASSERT(0 <= frameIndex && frameIndex < (UINT)this->frameArray.size());
 	Frame* frame = this->frameArray[frameIndex];
 
-	// Make sure the GPU is done with the command allocator before we reset it.
-	frame->fence->WaitForSignalIfNecessary();
-	ID3D12CommandAllocator* commandAllocator = frame->commandAllocator.Get();
-	HRESULT result = commandAllocator->Reset();
-	if (FAILED(result))
+	if (!frame->BeginRecordingCommandList())
 	{
-		THEBE_LOG("Failed to reset command allocator.");
+		THEBE_LOG("Failed to begin command-list recording.");
 		return false;
 	}
 
-	if (!this->commandList.Get())
-	{
-		result = graphicsEngine->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&this->commandList));
-		if (FAILED(result))
-		{
-			THEBE_LOG("Failed to create command list.  Error: 0x%08x", result);
-			return false;
-		}
-
-		//this->commandList->SetName(L"");
-	}
-	else
-	{
-		result = this->commandList->Reset(commandAllocator, nullptr);
-		if (FAILED(result))
-		{
-			THEBE_LOG("Failed to reset command list and put it into the recording state.");
-			return false;
-		}
-	}
+	ID3D12GraphicsCommandList* commandList = frame->GetCommandList();
+	if (!commandList)
+		return false;
 
 	RenderObject::RenderContext context{};
 	context.renderTarget = this;
-	if (!this->PreRender(context))
+	if (!this->PreRender(commandList, context))
 	{
 		THEBE_LOG("Pre-render failed.");
 		return false;
@@ -134,41 +108,58 @@ RenderTarget::RenderTarget()
 	if (renderObject)
 	{
 		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
-		this->commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
+		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
 
-		if (!renderObject->Render(this->commandList.Get(), &context))
+		if (!renderObject->Render(commandList, &context))
 		{
 			THEBE_LOG("Render failed.");
 			return false;
 		}
 	}
 
-	if (!this->PostRender())
+	if (!this->PostRender(commandList))
 	{
 		THEBE_LOG("Post-render failed.");
 		return false;
 	}
 
-	result = this->commandList->Close();
-	if (FAILED(result))
+	if (!frame->EndRecordingCommandList())
 	{
-		THEBE_LOG("Failed to close command list.");
+		THEBE_LOG("Failed to end command-list recording.");
 		return false;
 	}
-
-	// Kick-off the GPU to execute the commands.
-	ID3D12CommandList* commandListArray[] = { this->commandList.Get() };
-	this->commandQueue->ExecuteCommandLists(_countof(commandListArray), commandListArray);
-
-	// Let a derived class enqueue anything they wish before we enqueue a
-	// fence signal to mark the true end of our present use of the queue.
-	this->PreSignal();
-
-	frame->fence->EnqueueSignal(this->commandQueue.Get());
 
 	return true;
 }
 
 /*virtual*/ void RenderTarget::PreSignal()
 {
+}
+
+//---------------------------------------- RenderTarget::Frame ----------------------------------------
+
+RenderTarget::Frame::Frame()
+{
+	this->renderTargetOwner = nullptr;
+	this->frameNumber = -1;
+}
+
+/*virtual*/ RenderTarget::Frame::~Frame()
+{
+}
+
+void RenderTarget::Frame::SetRenderTargetOwner(RenderTarget* renderTargetOwner)
+{
+	this->renderTargetOwner = renderTargetOwner;
+}
+
+void RenderTarget::Frame::SetFrameNumber(UINT frameNumber)
+{
+	this->frameNumber = frameNumber;
+}
+
+/*virtual*/ void RenderTarget::Frame::PreSignal()
+{
+	if (this->renderTargetOwner)
+		this->renderTargetOwner->PreSignal();
 }

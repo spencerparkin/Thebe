@@ -65,8 +65,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Scene.h
     Source/Thebe/EngineParts/CommandQueue.cpp
     Source/Thebe/EngineParts/CommandQueue.h
-    Source/Thebe/EngineParts/CommandExecutor.cpp
-    Source/Thebe/EngineParts/CommandExecutor.h
+    Source/Thebe/EngineParts/CommandAllocator.cpp
+    Source/Thebe/EngineParts/CommandAllocator.h
     Source/Thebe/EngineParts/MeshInstance.cpp
     Source/Thebe/EngineParts/MeshInstance.h
     Source/Thebe/EngineParts/DescriptorHeap.cpp
