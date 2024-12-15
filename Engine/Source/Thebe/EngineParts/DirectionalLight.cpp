@@ -55,6 +55,7 @@ DirectionalLight::DirectionalLight()
 	Vector3 yAxis = cameraToWorld.matrix.GetColumnVector(1);
 
 	Matrix3x3 matrixA;
+	matrixA.SetIdentity();
 	matrixA.ele[0][0] = xAxis.x;
 	matrixA.ele[0][1] = xAxis.y;
 	matrixA.ele[0][2] = xAxis.z;
@@ -63,12 +64,14 @@ DirectionalLight::DirectionalLight()
 	matrixA.ele[1][2] = yAxis.z;
 
 	Matrix3x3 matrixB;
+	matrixB.SetIdentity();
 	matrixB.ele[0][0] = 1.0 / params.width;
 	matrixB.ele[1][1] = 1.0 / params.height;
 	matrixB.ele[0][2] = 0.5;
 	matrixB.ele[1][2] = 0.5;
 
 	Matrix3x3 matrixC;
+	matrixC.SetIdentity();
 	matrixC.ele[1][1] = -1.0;
 	matrixC.ele[1][2] = 1.0;
 
