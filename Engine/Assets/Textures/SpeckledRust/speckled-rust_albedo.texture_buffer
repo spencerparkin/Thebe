@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 5556676,
 	"data": "Textures\\SpeckledRust\\speckled-rust_albedo.texture_buffer_data",
 	"height": 2048,
 	"name": "speckled-rust_albedo",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

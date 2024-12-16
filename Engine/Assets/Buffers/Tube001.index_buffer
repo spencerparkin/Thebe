@@ -1,4 +1,5 @@
 {
+	"compressed": false,
 	"data": "Buffers\\Tube001.index_buffer_data",
 	"format": 42,
 	"name": "Tube001_IndexBuffer",

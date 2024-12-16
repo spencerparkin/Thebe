@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 3107313,
 	"data": "Textures\\MetalCompartments\\metal-compartments_albedo.texture_buffer_data",
 	"height": 2048,
 	"name": "metal-compartments_albedo",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 2789466,
 	"data": "Textures\\SpeckledRust\\speckled-rust_normal-dx.texture_buffer_data",
 	"height": 2048,
 	"name": "speckled-rust_normal-dx",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 3352698,
 	"data": "Textures\\RibbedChippedMetal\\ribbed-chipped-metal_roughness.texture_buffer_data",
 	"height": 2048,
 	"name": "ribbed-chipped-metal_roughness",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

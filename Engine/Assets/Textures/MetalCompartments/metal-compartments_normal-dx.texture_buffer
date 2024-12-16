@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 468488,
 	"data": "Textures\\MetalCompartments\\metal-compartments_normal-dx.texture_buffer_data",
 	"height": 2048,
 	"name": "metal-compartments_normal-dx",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

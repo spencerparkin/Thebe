@@ -1,9 +1,12 @@
 {
+	"compressed": true,
+	"compressed_size": 472297,
 	"data": "Textures\\StylizedGrass\\stylized-grass1_roughness.texture_buffer_data",
 	"height": 2048,
 	"name": "stylized-grass1_roughness",
+	"num_mips": 12,
 	"pixel_format": 28,
-	"size": 16777216,
+	"size": 22369620,
 	"type": 1,
 	"width": 2048
 }

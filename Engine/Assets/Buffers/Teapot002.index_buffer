@@ -1,4 +1,5 @@
 {
+	"compressed": false,
 	"data": "Buffers\\Teapot002.index_buffer_data",
 	"format": 42,
 	"name": "Teapot002_IndexBuffer",
