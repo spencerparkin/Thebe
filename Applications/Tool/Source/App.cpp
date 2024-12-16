@@ -3,6 +3,7 @@
 #include "Canvas.h"
 #include "Thebe/Math/Transform.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/DirectionalLight.h"
 #include <wx/image.h>
 #include <wx/msgdlg.h>
 
@@ -41,10 +42,16 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 	if (!this->graphicsEngine->Setup(windowHandle))
 		return false;
 
+	Thebe::Reference<Thebe::DirectionalLight> light(new Thebe::DirectionalLight());
+	light->Setup();
+	Thebe::Transform lightToWorld;
+	lightToWorld.LookAt(Thebe::Vector3(50.0, 100.0, 50.0), Thebe::Vector3(0.0, 0.0, 0.0), Thebe::Vector3(0.0, 1.0, 0.0));
+	light->SetLightToWorldTransform(lightToWorld);
+	this->graphicsEngine->SetLight(light);
+
 	Thebe::Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
 	cameraToWorld.translation.SetComponents(0.0, 0.0, 10.0);
-
 	Thebe::Reference<Thebe::Camera> camera;
 	camera.Set(new Thebe::PerspectiveCamera());
 	camera->SetCameraToWorldTransform(cameraToWorld);
