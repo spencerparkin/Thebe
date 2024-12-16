@@ -1,0 +1,8 @@
+{
+	"data": "Buffers\\Plane002.index_buffer_data",
+	"format": 42,
+	"name": "Plane002_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 384,
+	"type": 1
+}
