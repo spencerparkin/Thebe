@@ -153,19 +153,22 @@ float4 PSMain(PSInput input) : SV_TARGET
     float shadowFactor = 1.0;
     if (lightDistanceInfinite == 1.0)
     {
-        float distanceToLightPlane = dot(worldLightPos - input.worldPosition, unitWorldLightDir);
-        float3 projectedPoint = input.worldPosition + distanceToLightPlane * unitWorldLightDir;
-        float3 projectedVector = projectedPoint - worldLightPos;
-        float2 shadowUVs;
-        shadowUVs.x = dot(projectedVector, worldLightXAxis) / shadowWidth + 0.5;
-        shadowUVs.y = dot(projectedVector, worldLightYAxis) / shadowHeight + 0.5;
-        if(0.0 <= shadowUVs.x && shadowUVs.x <= 1.0 && 0.0 <= shadowUVs.y && shadowUVs.y <= 1.0)
+        if(dot(input.worldNormal, unitWorldLightDir) > 0.1)
         {
-            shadowUVs.y = 1.0 - shadowUVs.y;
-            float depth = shadowTexture.Sample(generalSampler, shadowUVs).r;
-            float nearestDistance = shadowNearClip + depth * (shadowFarClip - shadowNearClip);
-            if(distanceToLightPlane > nearestDistance + shadowEpsilon)
-                shadowFactor = 0.5;
+            float distanceToLightPlane = dot(worldLightPos - input.worldPosition, unitWorldLightDir);
+            float3 projectedPoint = input.worldPosition + distanceToLightPlane * unitWorldLightDir;
+            float3 projectedVector = projectedPoint - worldLightPos;
+            float2 shadowUVs;
+            shadowUVs.x = dot(projectedVector, worldLightXAxis) / shadowWidth + 0.5;
+            shadowUVs.y = dot(projectedVector, worldLightYAxis) / shadowHeight + 0.5;
+            if(0.0 <= shadowUVs.x && shadowUVs.x <= 1.0 && 0.0 <= shadowUVs.y && shadowUVs.y <= 1.0)
+            {
+                shadowUVs.y = 1.0 - shadowUVs.y;
+                float depth = shadowTexture.Sample(generalSampler, shadowUVs).r;
+                float nearestDistance = shadowNearClip + depth * (shadowFarClip - shadowNearClip);
+                if(distanceToLightPlane > nearestDistance + shadowEpsilon)
+                    shadowFactor = 0.5;
+            }
         }
     }
     
