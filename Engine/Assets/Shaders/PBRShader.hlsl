@@ -7,13 +7,18 @@ cbuffer Constants : register(b0)
     float3 worldViewPos;
     float3 worldLightPos;
     float3 worldLightDir;
-    float3x3 shadowMatrix;
-    float shadowVolumeExtent;
+    float3 worldLightXAxis;
+    float3 worldLightYAxis;
+    float shadowWidth;
+    float shadowHeight;
+    float shadowNearClip;
+    float shadowFarClip;
     float lightDistanceInfinite;        // This is a binary (0 or 1) value.
     float3 lightColor;
 };
 
 static const float PI = 3.1415926536;
+static const float shadowEpsilon = 0.1;
 
 SamplerState generalSampler : register(s0);
 
@@ -145,29 +150,26 @@ float4 PSMain(PSInput input) : SV_TARGET
     // TODO: I think the metalic parts will look wrong until there's either some ambient
     //       light added to the scene or I'm doing some sort of environment mapping.
     
-#if false
     float shadowFactor = 1.0;
     if (lightDistanceInfinite == 1.0)
     {
         float distanceToLightPlane = dot(worldLightPos - input.worldPosition, unitWorldLightDir);
         float3 projectedPoint = input.worldPosition + distanceToLightPlane * unitWorldLightDir;
         float3 projectedVector = projectedPoint - worldLightPos;
-        float2 shadowUV = mul(shadowMatrix, projectedVector).xy;
-        if(0.0 <= shadowUV.x && shadowUV.x <= 1.0 && 0.0 <= shadowUV.y && shadowUV.y <= 1.0)
+        float2 shadowUVs;
+        shadowUVs.x = dot(projectedVector, worldLightXAxis) / shadowWidth + 0.5;
+        shadowUVs.y = dot(projectedVector, worldLightYAxis) / shadowHeight + 0.5;
+        if(0.0 <= shadowUVs.x && shadowUVs.x <= 1.0 && 0.0 <= shadowUVs.y && shadowUVs.y <= 1.0)
         {
-            // TODO: If we multi-sample here, maybe we could get softwer shadows with a shadow factor in [0,1].
-            float depth = shadowTexture.Sample(generalSampler, shadowUV).r;
-            float nearestDistance = depth * shadowVolumeExtent;
-            float eps = 1e-2;
-            if(distanceToLightPlane < nearestDistance - eps)
-            {
-                shadowFactor = 0.0;
-            }
+            shadowUVs.y = 1.0 - shadowUVs.y;
+            float depth = shadowTexture.Sample(generalSampler, shadowUVs).r;
+            float nearestDistance = depth * shadowFarClip;
+            if(distanceToLightPlane > nearestDistance + shadowEpsilon)
+                shadowFactor = 0.5;
         }
     }
     
     visibleColor *= shadowFactor;
-#endif
     
     return float4(visibleColor, 1.0);
 }

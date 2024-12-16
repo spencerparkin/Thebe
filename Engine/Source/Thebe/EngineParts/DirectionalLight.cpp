@@ -45,38 +45,24 @@ DirectionalLight::DirectionalLight()
 	if (!constantsBuffer->SetParameter("worldLightPos", cameraToWorld.translation))
 		return false;
 
-	// TODO: Probably need to send in the near clip and far clip parameters instead of this.
 	const OrthographicCamera::Params& params = this->camera->GetParams();
-	double shadowVolumeExtent = params.farClip - params.nearClip;
-	if (!constantsBuffer->SetParameter("shadowVolumeExtent", shadowVolumeExtent))
+	
+	if (!constantsBuffer->SetParameter("shadowNearClip", params.nearClip))
+		return false;
+	
+	if (!constantsBuffer->SetParameter("shadowFarClip", params.farClip))
 		return false;
 
-	Vector3 xAxis = cameraToWorld.matrix.GetColumnVector(0);
-	Vector3 yAxis = cameraToWorld.matrix.GetColumnVector(1);
+	if (!constantsBuffer->SetParameter("shadowWidth", params.width))
+		return false;
 
-	Matrix3x3 matrixA;
-	matrixA.SetIdentity();
-	matrixA.ele[0][0] = xAxis.x;
-	matrixA.ele[0][1] = xAxis.y;
-	matrixA.ele[0][2] = xAxis.z;
-	matrixA.ele[1][0] = yAxis.x;
-	matrixA.ele[1][1] = yAxis.y;
-	matrixA.ele[1][2] = yAxis.z;
+	if (!constantsBuffer->SetParameter("shadowHeight", params.height))
+		return false;
 
-	Matrix3x3 matrixB;
-	matrixB.SetIdentity();
-	matrixB.ele[0][0] = 1.0 / params.width;
-	matrixB.ele[1][1] = 1.0 / params.height;
-	matrixB.ele[0][2] = 0.5;
-	matrixB.ele[1][2] = 0.5;
+	if (!constantsBuffer->SetParameter("worldLightXAxis", cameraToWorld.matrix.GetColumnVector(0)))
+		return false;
 
-	Matrix3x3 matrixC;
-	matrixC.SetIdentity();
-	matrixC.ele[1][1] = -1.0;
-	matrixC.ele[1][2] = 1.0;
-
-	Matrix3x3 shadowMatrix = matrixC * matrixB * matrixA;
-	if (!constantsBuffer->SetParameter("shadowMatrix", shadowMatrix))
+	if (!constantsBuffer->SetParameter("worldLightYAxis", cameraToWorld.matrix.GetColumnVector(1)))
 		return false;
 
 	return true;

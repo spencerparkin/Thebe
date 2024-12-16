@@ -1,12 +1,12 @@
 {
     "constants": {
         "lightColor": {
-            "offset": 228,
+            "offset": 224,
             "size": 12,
             "type": "float3"
         },
         "lightDistanceInfinite": {
-            "offset": 224,
+            "offset": 220,
             "size": 4,
             "type": "float"
         },
@@ -20,13 +20,23 @@
             "size": 64,
             "type": "float4x4"
         },
-        "shadowMatrix": {
-            "offset": 176,
-            "size": 44,
-            "type": "float3x3"
+        "shadowFarClip": {
+            "offset": 216,
+            "size": 4,
+            "type": "float"
         },
-        "shadowVolumeExtent": {
-            "offset": 220,
+        "shadowHeight": {
+            "offset": 208,
+            "size": 4,
+            "type": "float"
+        },
+        "shadowNearClip": {
+            "offset": 212,
+            "size": 4,
+            "type": "float"
+        },
+        "shadowWidth": {
+            "offset": 204,
             "size": 4,
             "type": "float"
         },
@@ -37,6 +47,16 @@
         },
         "worldLightPos": {
             "offset": 144,
+            "size": 12,
+            "type": "float3"
+        },
+        "worldLightXAxis": {
+            "offset": 176,
+            "size": 12,
+            "type": "float3"
+        },
+        "worldLightYAxis": {
+            "offset": 192,
             "size": 12,
             "type": "float3"
         },
