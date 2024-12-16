@@ -75,7 +75,7 @@ def calculate_constant_buffer_layout(shader_data, assets_base_dir):
         'float3': 12,
         'float4': 16,
         'float2x2': 16,
-        'float3x3': 36,
+        'float3x3': 36 + 2*4,   # Must add padding after first and second row.
         'float4x4': 64
     }
 

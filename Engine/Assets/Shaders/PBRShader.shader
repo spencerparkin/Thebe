@@ -1,12 +1,12 @@
 {
     "constants": {
         "lightColor": {
-            "offset": 224,
+            "offset": 228,
             "size": 12,
             "type": "float3"
         },
         "lightDistanceInfinite": {
-            "offset": 212,
+            "offset": 224,
             "size": 4,
             "type": "float"
         },
@@ -21,12 +21,12 @@
             "type": "float4x4"
         },
         "shadowMatrix": {
-            "offset": 172,
-            "size": 36,
+            "offset": 176,
+            "size": 44,
             "type": "float3x3"
         },
         "shadowVolumeExtent": {
-            "offset": 208,
+            "offset": 220,
             "size": 4,
             "type": "float"
         },
