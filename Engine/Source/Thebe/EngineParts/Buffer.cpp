@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/UploadHeap.h"
+#include "Thebe/Utilities/CompressionHelper.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 #include "Thebe/Math/PolygonMesh.h"
@@ -21,6 +22,7 @@ Buffer::Buffer()
 	this->type = Type::NONE;
 	this->lastUpdateFrameCount = -1L;
 	this->uploadBufferOffset = 0L;
+	this->compressed = false;
 
 	// These alignment conventions are not well documented, but apparently well understood.
 	this->offsetAlignmentRequirement = 256;
@@ -41,6 +43,11 @@ Buffer::Buffer()
 
 /*virtual*/ Buffer::~Buffer()
 {
+}
+
+void Buffer::SetCompressed(bool compressed)
+{
+	this->compressed = compressed;
 }
 
 std::vector<UINT8>& Buffer::GetOriginalBuffer()
@@ -407,8 +414,6 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 			return false;
 		}
 
-		// TODO: May want to decompress the buffer.
-
 		std::ifstream fileStream;
 		fileStream.open(bufferDataPath.c_str(), std::ios::in | std::ios::binary);
 		if (!fileStream.is_open())
@@ -417,7 +422,34 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 			return false;
 		}
 
-		fileStream.read((char*)this->originalBuffer.data(), bufferSize);
+		auto compressedValue = dynamic_cast<const JsonBool*>(rootValue->GetValue("compressed"));
+		if(!compressedValue || !compressedValue->GetValue())
+			fileStream.read((char*)this->originalBuffer.data(), bufferSize);
+		else
+		{
+			auto compressedSizeValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("compressed_size"));
+			if (!compressedSizeValue)
+			{
+				THEBE_LOG("Compressed size was not stored in the JSON.");
+				return false;
+			}
+
+			UINT64 compressedBufferSize = (UINT64)compressedSizeValue->GetValue();
+			std::vector<UINT8> compressedBuffer;
+			compressedBuffer.resize(compressedBufferSize);
+			fileStream.read((char*)compressedBuffer.data(), compressedBufferSize);
+			this->originalBuffer.resize(bufferSize);
+			ZLibCompressionHelper compressionHelper;
+			if (!compressionHelper.Decompress(compressedBuffer, this->originalBuffer))
+				return false;
+
+			if (this->originalBuffer.size() != bufferSize)
+			{
+				THEBE_LOG("Decompressed buffer size (%ull) does not match decompressed buffer size (%ull).", UINT64(this->originalBuffer.size()), bufferSize);
+				return false;
+			}
+		}
+
 		fileStream.close();
 	}
 
@@ -442,8 +474,6 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 	rootValue->SetValue("type", new JsonInt(this->type));
 	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));
 
-	// TODO: May want to compress the buffer.
-
 	std::filesystem::path bufferDataPath = assetPath;
 	bufferDataPath.replace_extension(bufferDataPath.extension().string() + "_data");
 
@@ -455,7 +485,21 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		return false;
 	}
 
-	fileStream.write((const char*)this->originalBuffer.data(), this->originalBuffer.size());
+	rootValue->SetValue("compressed", new JsonBool(this->compressed));
+
+	if(!this->compressed)
+		fileStream.write((const char*)this->originalBuffer.data(), this->originalBuffer.size());
+	else
+	{
+		std::vector<UINT8> compressedBuffer;
+		ZLibCompressionHelper compressionHelper;
+		if (!compressionHelper.Compress(this->originalBuffer, compressedBuffer))
+			return false;
+
+		fileStream.write((const char*)compressedBuffer.data(), compressedBuffer.size());
+		rootValue->SetValue("compressed_size", new JsonInt(compressedBuffer.size()));
+	}
+
 	fileStream.close();
 
 	if (!graphicsEngine->GetRelativeToAssetFolder(bufferDataPath))

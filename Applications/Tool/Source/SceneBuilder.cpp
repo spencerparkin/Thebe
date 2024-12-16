@@ -7,6 +7,7 @@
 
 SceneBuilder::SceneBuilder()
 {
+	this->compressTextures = true;
 }
 
 /*virtual*/ SceneBuilder::~SceneBuilder()
@@ -204,6 +205,7 @@ Thebe::Reference<Thebe::TextureBuffer> SceneBuilder::GenerateTextureBuffer(const
 	outputTexture->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
 	outputTexture->SetName(inputTexturePath.stem().string());
 	outputTexture->SetBufferType(Thebe::Buffer::STATIC);
+	outputTexture->SetCompressed(this->compressTextures);
 
 	wxImage inputImage;
 	if (!inputImage.LoadFile(inputTexturePath.string().c_str()))
@@ -215,30 +217,66 @@ Thebe::Reference<Thebe::TextureBuffer> SceneBuilder::GenerateTextureBuffer(const
 	D3D12_RESOURCE_DESC& gpuBufferDesc = outputTexture->GetResourceDesc();
 	gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	gpuBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	gpuBufferDesc.MipLevels = 1;
 	gpuBufferDesc.Width = inputImage.GetWidth();
 	gpuBufferDesc.Height = inputImage.GetHeight();
 
+	UINT64 outputBufferSize = 0;
+	UINT numMips = 0;
+	UINT64 mipWidth = (UINT)inputImage.GetWidth();
+	UINT64 mipHeight = (UINT)inputImage.GetHeight();
+	while (mipWidth >= 1 && mipHeight >= 1)
+	{
+		numMips++;
+		outputBufferSize += mipWidth * mipHeight * outputTexture->GetBytesPerPixel();
+		if ((mipWidth & 0x1) != 0 || (mipHeight & 0x1) != 0)
+			break;
+		mipWidth >>= 1;
+		mipHeight >>= 1;
+	}
+
+	gpuBufferDesc.MipLevels = numMips;
+
 	UINT bytesPerInputColorPixel = 3;
 	UINT bytesPerInputAlphaPixel = 1;
+
 	std::vector<UINT8>& outputBuffer = outputTexture->GetOriginalBuffer();
-	outputBuffer.resize(inputImage.GetWidth() * inputImage.GetHeight() * outputTexture->GetBytesPerPixel());
-	for (UINT i = 0; i < (UINT)inputImage.GetHeight(); i++)
+	outputBuffer.resize(outputBufferSize);
+
+	mipWidth = (UINT)inputImage.GetWidth();
+	mipHeight = (UINT)inputImage.GetHeight();
+	UINT64 mipImageOffset = 0;
+
+	for (UINT mipNumber = 0; mipNumber < numMips; mipNumber++)
 	{
-		for (UINT j = 0; j < (UINT)inputImage.GetWidth(); j++)
+		wxImage sourceImage;
+		if (mipNumber > 0)
+			sourceImage = inputImage.Scale((int)mipWidth, (int)mipHeight, wxIMAGE_QUALITY_HIGH);
+		else
+			sourceImage = inputImage;
+
+		UINT8* destinationImageBuffer = &outputBuffer.data()[mipImageOffset];
+
+		for (UINT64 i = 0; i < mipWidth; i++)
 		{
-			UINT pixelOffset = i * inputImage.GetWidth() + j;
+			for (UINT64 j = 0; j < mipHeight; j++)
+			{
+				UINT pixelOffset = i * mipWidth + j;
 
-			const unsigned char* inputColor = &inputImage.GetData()[pixelOffset * bytesPerInputColorPixel];
-			const unsigned char* inputAlpha = inputImage.HasAlpha() ? &inputImage.GetAlpha()[pixelOffset * bytesPerInputAlphaPixel] : nullptr;
+				const unsigned char* inputColor = &sourceImage.GetData()[pixelOffset * bytesPerInputColorPixel];
+				const unsigned char* inputAlpha = sourceImage.HasAlpha() ? &sourceImage.GetAlpha()[pixelOffset * bytesPerInputAlphaPixel] : nullptr;
 
-			UINT8* outputPixel = &outputBuffer.data()[pixelOffset * outputTexture->GetBytesPerPixel()];
+				UINT8* outputPixel = &destinationImageBuffer[pixelOffset * outputTexture->GetBytesPerPixel()];
 
-			outputPixel[0] = inputColor[0];
-			outputPixel[1] = inputColor[1];
-			outputPixel[2] = inputColor[2];
-			outputPixel[3] = inputAlpha ? inputAlpha[0] : 0;
+				outputPixel[0] = inputColor[0];
+				outputPixel[1] = inputColor[1];
+				outputPixel[2] = inputColor[2];
+				outputPixel[3] = inputAlpha ? inputAlpha[0] : 0;
+			}
 		}
+
+		mipImageOffset += mipWidth * mipHeight * outputTexture->GetBytesPerPixel();
+		mipWidth >>= 1;
+		mipHeight >>= 1;
 	}
 
 	return outputTexture;

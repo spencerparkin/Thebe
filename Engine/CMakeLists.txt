@@ -25,6 +25,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Utilities/ScratchHeap.h
     Source/Thebe/Utilities/StackHeap.cpp
     Source/Thebe/Utilities/StackHeap.h
+    Source/Thebe/Utilities/CompressionHelper.cpp
+    Source/Thebe/Utilities/CompressionHelper.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp
@@ -149,11 +151,18 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     dxgi.lib
     d3dcompiler.lib
     Xinput9_1_0.lib
+    cabinet.lib
+    zlib.lib
     ParseParty
+)
+
+target_link_directories(ThebeGraphicsEngine PRIVATE
+    "../ThirdParty/zLib"
 )
 
 target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
     "DirectXHeader"
     "../ThirdParty/ParseParty/ParseLibrary/Source"
+    "../ThirdParty/zLib/include"
 )

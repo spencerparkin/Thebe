@@ -52,4 +52,5 @@ private:
 	std::filesystem::path outputAssetsFolder;
 	std::filesystem::path inputSceneFileFolder;
 	std::set<std::filesystem::path> texturesToBuildSet;
+	bool compressTextures;
 };

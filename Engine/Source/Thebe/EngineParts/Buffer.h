@@ -48,6 +48,7 @@ namespace Thebe
 		Type GetBufferType() const;
 		D3D12_RESOURCE_DESC& GetResourceDesc();
 		const D3D12_RESOURCE_DESC& GetResourceDesc() const;
+		void SetCompressed(bool compressed);
 
 		static bool GenerateIndexAndVertexBuffersForConvexHull(
 			const std::vector<Vector3>& pointArray,
@@ -77,5 +78,6 @@ namespace Thebe
 		ComPtr<ID3D12Resource> gpuBuffer;
 		UINT64 uploadBufferOffset;
 		UINT64 lastUpdateFrameCount;
+		bool compressed;
 	};
 }
