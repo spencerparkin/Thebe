@@ -1,0 +1,10 @@
+Some things I'd like to achieve...
+
+[ ] Generate MIP maps for textures.
+[ ] Compress textures.
+[ ] Add cube-maps for a dome.
+[ ] Add cube-map environment lighting.
+[ ] Add font renderer.
+[ ] Fix bugs in PBR shading.
+[ ] Add height maps to PBR shading.
+[ ] Add AO maps to PBR shading.
