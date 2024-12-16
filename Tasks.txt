@@ -8,3 +8,4 @@ Some things I'd like to achieve...
 [ ] Fix bugs in PBR shading.
 [ ] Add height maps to PBR shading.
 [ ] Add AO maps to PBR shading.
+[ ] Can we soften the edges of shadows?
