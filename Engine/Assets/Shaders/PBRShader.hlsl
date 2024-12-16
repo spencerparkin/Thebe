@@ -18,7 +18,7 @@ cbuffer Constants : register(b0)
 };
 
 static const float PI = 3.1415926536;
-static const float shadowEpsilon = 0.1;
+static const float shadowEpsilon = 0.2;
 
 SamplerState generalSampler : register(s0);
 
@@ -163,7 +163,7 @@ float4 PSMain(PSInput input) : SV_TARGET
         {
             shadowUVs.y = 1.0 - shadowUVs.y;
             float depth = shadowTexture.Sample(generalSampler, shadowUVs).r;
-            float nearestDistance = depth * shadowFarClip;
+            float nearestDistance = shadowNearClip + depth * (shadowFarClip - shadowNearClip);
             if(distanceToLightPlane > nearestDistance + shadowEpsilon)
                 shadowFactor = 0.5;
         }
