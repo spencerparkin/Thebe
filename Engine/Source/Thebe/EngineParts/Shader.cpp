@@ -272,6 +272,8 @@ UINT Shader::GetNumTextureRegisters() const
 				parameter.type = Parameter::FLOAT2;
 			else if (typeValue->GetValue() == "float3")
 				parameter.type = Parameter::FLOAT3;
+			else if (typeValue->GetValue() == "float4")
+				parameter.type = Parameter::FLOAT4;
 			else if (typeValue->GetValue() == "float2x2")
 				parameter.type = Parameter::FLOAT2x2;
 			else if (typeValue->GetValue() == "float3x3")
@@ -315,6 +317,7 @@ UINT32 Shader::Parameter::GetSize() const
 		case Type::FLOAT: return sizeof(float);
 		case Type::FLOAT2: return 2 * sizeof(float);
 		case Type::FLOAT3: return 3 * sizeof(float);
+		case Type::FLOAT4: return 4 * sizeof(float);
 		case Type::FLOAT2x2: return 2 * 2 * sizeof(float);
 		case Type::FLOAT3x3: return 3 * 3 * sizeof(float);
 		case Type::FLOAT4x4: return 4 * 4 * sizeof(float);

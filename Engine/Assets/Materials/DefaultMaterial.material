@@ -1,0 +1,10 @@
+{
+	"alpha_blending": false,
+	"casts_shadows": true,
+	"name": "DefaultMaterial",
+	"shader": "Shaders/FlatShader.shader",
+	"texture_map":
+	{
+
+	}
+}

@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/Log.h"
 #include <wx/image.h>
+#include <algorithm>
 
 CubeMapBuilder::CubeMapBuilder()
 {
@@ -10,6 +11,24 @@ CubeMapBuilder::CubeMapBuilder()
 
 /*virtual*/ CubeMapBuilder::~CubeMapBuilder()
 {
+}
+
+int CubeMapBuilder::GetTexturePathKey(const wxString& inputTexturePath)
+{
+	wxString lowerCase = inputTexturePath.Lower();
+	if (lowerCase.Find("right") >= 0 || lowerCase.Find("posx") >= 0)
+		return 0;
+	if (lowerCase.Find("left") >= 0 || lowerCase.Find("negx") >= 0)
+		return 1;
+	if (lowerCase.Find("top") >= 0 || lowerCase.Find("posy") >= 0)
+		return 2;
+	if (lowerCase.Find("bottom") >= 0 || lowerCase.Find("negy") >= 0)
+		return 3;
+	if (lowerCase.Find("front") >= 0 || lowerCase.Find("posz") >= 0)
+		return 4;
+	if (lowerCase.Find("back") >= 0 || lowerCase.Find("negz") >= 0)
+		return 5;
+	return -1;
 }
 
 bool CubeMapBuilder::BuildCubeMap(const wxArrayString& inputCubeMapTexturesArray)
@@ -26,17 +45,30 @@ bool CubeMapBuilder::BuildCubeMap(const wxArrayString& inputCubeMapTexturesArray
 		return false;
 	}
 
+	std::vector<int> textureOrderArray;
+	for (int i = 0; i < 6; i++)
+		textureOrderArray.push_back(i);
+
+	// If the textures are named well-enough, we'll know what order to array them in the cube map.
+	std::sort(textureOrderArray.begin(), textureOrderArray.end(), [=, &inputCubeMapTexturesArray](int i, int j) -> bool
+		{
+			int keyA = this->GetTexturePathKey(inputCubeMapTexturesArray[i]);
+			int keyB = this->GetTexturePathKey(inputCubeMapTexturesArray[j]);
+			return keyA < keyB;
+		});
+
 	std::filesystem::path outputFolderPath = std::filesystem::path((const char*)inputCubeMapTexturesArray[0].c_str()).parent_path();
 	std::string cubeMapName = outputFolderPath.stem().string();
 	Thebe::Reference<Thebe::CubeMapBuffer> outputCubeMap(new Thebe::CubeMapBuffer());
 	outputCubeMap->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
 	outputCubeMap->SetName(cubeMapName);
 	outputCubeMap->SetCompressed(this->compressTextures);
+	outputCubeMap->SetBufferType(Thebe::Buffer::STATIC);
 
 	wxImage inputImageArray[6];
 	for (int i = 0; i < 6; i++)
 	{
-		if (!inputImageArray[i].LoadFile(inputCubeMapTexturesArray[i]))
+		if (!inputImageArray[i].LoadFile(inputCubeMapTexturesArray[textureOrderArray[i]]))
 		{
 			THEBE_LOG("Failed to load file: %s", inputCubeMapTexturesArray[i].c_str());
 			return false;

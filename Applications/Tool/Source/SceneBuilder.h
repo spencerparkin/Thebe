@@ -27,7 +27,7 @@ public:
 
 private:
 	Thebe::Reference<Thebe::Space> GenerateSceneTree(const aiNode* inputParentNode);
-	Thebe::Reference<Thebe::MeshInstance> GenerateMeshInstance(const aiMesh* inputMesh);
+	Thebe::Reference<Thebe::MeshInstance> GenerateMeshInstance(const aiMesh* inputMesh, const aiNode* inputNode);
 	Thebe::Reference<Thebe::Mesh> GenerateMesh(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::VertexBuffer> GenerateVertexBuffer(const aiMesh* inputMesh);

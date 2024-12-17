@@ -1,6 +1,7 @@
 #include "Thebe/EngineParts/Material.h"
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
+#include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 #include <d3dx12.h>
@@ -9,6 +10,7 @@ using namespace Thebe;
 
 Material::Material()
 {
+	this->castsShadows = true;
 	::ZeroMemory(&this->blendDesc, sizeof(this->blendDesc));
 }
 
@@ -37,11 +39,20 @@ Material::Material()
 		Reference<TextureBuffer> texture;
 		if (!graphicsEngine->LoadEnginePartFromFile(textureFilePath, texture))
 		{
-			THEBE_LOG("Failed to load texture file: %s", textureFilePath.c_str());
+			THEBE_LOG("Failed to load texture file: %s", textureFilePath.string().c_str());
 			return false;
 		}
 
 		this->textureMap.insert(std::pair(textureUsage, texture));
+	}
+
+	if (this->cubeMapPath.string().length() > 0)
+	{
+		if (!graphicsEngine->LoadEnginePartFromFile(this->cubeMapPath, this->cubeMap))
+		{
+			THEBE_LOG("Failed to load cube-map file: %s", this->cubeMapPath.string().c_str());
+			return false;
+		}
 	}
 
 	return true;
@@ -110,6 +121,14 @@ Material::Material()
 		}
 	}
 
+	auto cubeMapValue = dynamic_cast<const JsonString*>(rootValue->GetValue("cube_map"));
+	if (cubeMapValue)
+		this->cubeMapPath = cubeMapValue->GetValue();
+
+	auto castsShadowsValue = dynamic_cast<const JsonBool*>(rootValue->GetValue("casts_shadows"));
+	if (castsShadowsValue)
+		this->castsShadows = castsShadowsValue->GetValue();
+
 	return true;
 }
 
@@ -137,6 +156,11 @@ Material::Material()
 		textureMapValue->SetValue(textureUsage, new JsonString(textureFilePath.string()));
 	}
 
+	if (this->cubeMapPath.string().length() > 0)
+		rootValue->SetValue("cube_map", new JsonString(this->cubeMapPath.string()));
+
+	rootValue->SetValue("casts_shadows", new JsonBool(this->castsShadows));
+
 	return true;
 }
 
@@ -151,6 +175,11 @@ void Material::SetTexturePath(const std::string& textureUsage, const std::filesy
 		this->textureFileMap.erase(textureUsage);
 
 	this->textureFileMap.insert(std::pair(textureUsage, texturePath));
+}
+
+void Material::SetCubeMapPath(const std::filesystem::path& cubeMapPath)
+{
+	this->cubeMapPath = cubeMapPath;
 }
 
 void Material::ClearAllTexturePaths()
@@ -173,16 +202,34 @@ UINT Material::GetNumTextures()
 	return (UINT)this->textureMap.size();
 }
 
-TextureBuffer* Material::GetTextureForRegister(UINT i)
+Buffer* Material::GetTextureForRegister(UINT i)
 {
 	if (!this->shader.Get())
 		return nullptr;
 
 	std::string textureUsage = this->shader->GetTextureUsageForRegister(i);
+	if (textureUsage == "cube_map")
+		return this->cubeMap;
+
 	auto iter = this->textureMap.find(textureUsage);
 	if (iter == this->textureMap.end())
 		return nullptr;
 
 	TextureBuffer* texture = iter->second.Get();
 	return texture;
+}
+
+void Material::SetCastsShadows(bool castsShadows)
+{
+	this->castsShadows = castsShadows;
+}
+
+bool Material::GetCastsShadows() const
+{
+	return this->castsShadows;
+}
+
+CubeMapBuffer* Material::GetCubeMap()
+{
+	return this->cubeMap;
 }

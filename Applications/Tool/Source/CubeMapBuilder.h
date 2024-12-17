@@ -18,5 +18,7 @@ public:
 	bool BuildCubeMap(const wxArrayString& inputCubeMapTexturesArray);
 
 private:
+	int GetTexturePathKey(const wxString& inputTexturePath);
+
 	bool compressTextures;
 };

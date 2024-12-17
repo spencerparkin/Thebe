@@ -34,6 +34,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 
 	this->importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1.0);
 
+	THEBE_LOG("Loading scene file: %s", inputSceneFile.string().c_str());
 	const aiScene* inputScene = this->importer.ReadFile(inputSceneFile.string().c_str(), aiProcess_GlobalScale);
 	if (!inputScene)
 	{
@@ -41,6 +42,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		return false;
 	}
 
+	THEBE_LOG("Generating scene tree...");
 	Thebe::Reference<Thebe::Space> outputRootNode = this->GenerateSceneTree(inputScene->mRootNode);
 	if (!outputRootNode.Get())
 	{
@@ -53,6 +55,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	outputScene->SetName(inputScene->mName.C_Str());
 	outputScene->SetRootSpace(outputRootNode);
 
+	THEBE_LOG("Dumping scene tree...");
 	std::filesystem::path outputSceneFile = this->outputAssetsFolder / "Scenes" / inputSceneFile.filename();
 	outputSceneFile.replace_extension(".scene");
 	if (!graphicsEngine->DumpEnginePartToFile(outputSceneFile, outputScene, THEBE_DUMP_FLAG_CAN_OVERWRITE))
@@ -61,9 +64,12 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		return false;
 	}
 
+	THEBE_LOG("Processing %d meshes...", inputScene->mNumMeshes);
 	for (int i = 0; i < (int)inputScene->mNumMeshes; i++)
 	{
 		const aiMesh* inputMesh = inputScene->mMeshes[i];
+		THEBE_LOG("Processing mesh %s", inputMesh->mName.C_Str());
+
 		Thebe::Reference<Thebe::Mesh> outputMesh = this->GenerateMesh(inputMesh);
 		if (!outputMesh.Get())
 		{
@@ -79,9 +85,12 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		}
 	}
 
+	THEBE_LOG("Processing %d materials...", inputScene->mNumMaterials);
 	for (int i = 0; i < (int)inputScene->mNumMaterials; i++)
 	{
 		const aiMaterial* inputMaterial = inputScene->mMaterials[i];
+		THEBE_LOG("Processing material %s", inputMaterial->GetName().C_Str());
+
 		Thebe::Reference<Thebe::Material> outputMaterial = this->GenerateMaterial(inputMaterial);
 		if (!outputMaterial.Get())
 		{
@@ -97,8 +106,11 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		}
 	}
 
+	THEBE_LOG("Processing %d textures...", this->texturesToBuildSet.size());
 	for (const std::filesystem::path& inputTexturePath : this->texturesToBuildSet)
 	{
+		THEBE_LOG("Processing texture %s", inputTexturePath.string().c_str());
+
 		Thebe::Reference<Thebe::TextureBuffer> outputTexture = this->GenerateTextureBuffer(inputTexturePath);
 		if (!outputTexture.Get())
 		{
@@ -509,18 +521,27 @@ Thebe::Reference<Thebe::Space> SceneBuilder::GenerateSceneTree(const aiNode* inp
 	for (int i = 0; i < (int)inputParentNode->mNumMeshes; i++)
 	{
 		const aiMesh* inputMesh = this->importer.GetScene()->mMeshes[inputParentNode->mMeshes[i]];
-		Thebe::Reference<Thebe::MeshInstance> meshInstance = this->GenerateMeshInstance(inputMesh);
+		Thebe::Reference<Thebe::MeshInstance> meshInstance = this->GenerateMeshInstance(inputMesh, inputParentNode);
 		outputParentNode->AddSubSpace(meshInstance);
 	}
 
 	return outputParentNode;
 }
 
-Thebe::Reference<Thebe::MeshInstance> SceneBuilder::GenerateMeshInstance(const aiMesh* inputMesh)
+Thebe::Reference<Thebe::MeshInstance> SceneBuilder::GenerateMeshInstance(const aiMesh* inputMesh, const aiNode* inputNode)
 {
 	Thebe::Reference<Thebe::MeshInstance> outputMeshInstance(new Thebe::MeshInstance());
+
 	std::filesystem::path outputMeshPath = this->GenerateMeshPath(inputMesh);
 	outputMeshInstance->SetMeshPath(outputMeshPath);
+
+	aiString userProperties;
+	if (inputNode->mMetaData->Get("UserProperties", userProperties))
+	{
+		std::filesystem::path overrideMaterialPath(userProperties.C_Str());
+		outputMeshInstance->SetOverrideMaterialPath(overrideMaterialPath);
+	}
+
 	return outputMeshInstance;
 }
 

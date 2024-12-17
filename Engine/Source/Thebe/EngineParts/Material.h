@@ -6,7 +6,9 @@
 namespace Thebe
 {
 	class TextureBuffer;
+	class CubeMapBuffer;
 	class Shader;
+	class Buffer;
 
 	/**
 	 *
@@ -24,17 +26,24 @@ namespace Thebe
 
 		void SetShaderPath(const std::filesystem::path& shaderPath);
 		void SetTexturePath(const std::string& textureUsage, const std::filesystem::path& texturePath);
+		void SetCubeMapPath(const std::filesystem::path& cubeMapPath);
 		void ClearAllTexturePaths();
 		Shader* GetShader();
 		D3D12_BLEND_DESC& GetBlendDesc();
 		UINT GetNumTextures();
-		TextureBuffer* GetTextureForRegister(UINT i);
+		Buffer* GetTextureForRegister(UINT i);
+		void SetCastsShadows(bool castsShadows);
+		bool GetCastsShadows() const;
+		CubeMapBuffer* GetCubeMap();
 
 	private:
 		Reference<Shader> shader;
+		Reference<CubeMapBuffer> cubeMap;
 		std::map<std::string, Reference<TextureBuffer>> textureMap;
 		std::map<std::string, std::filesystem::path> textureFileMap;
+		std::filesystem::path cubeMapPath;
 		D3D12_BLEND_DESC blendDesc;
 		std::filesystem::path shaderPath;
+		bool castsShadows;
 	};
 }

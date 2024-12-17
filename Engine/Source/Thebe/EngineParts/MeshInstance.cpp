@@ -7,6 +7,7 @@
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
+#include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/EngineParts/Light.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/ShadowBuffer.h"
@@ -23,9 +24,14 @@ MeshInstance::MeshInstance()
 {
 }
 
-void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
+void MeshInstance::SetMeshPath(const std::filesystem::path& meshPath)
 {
 	this->meshPath = meshPath;
+}
+
+void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& overrideMaterialPath)
+{
+	this->overrideMaterialPath = overrideMaterialPath;
 }
 
 /*virtual*/ bool MeshInstance::Setup()
@@ -58,22 +64,22 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 		}
 	}
 
-	if (!graphicsEngine->LoadEnginePartFromFile("Materials/ShadowMaterial.material", this->shadowMaterial))
+	if (this->overrideMaterialPath.string().length() == 0)
+		this->material = this->mesh->GetMaterial();
+	else
 	{
-		THEBE_LOG("Failed to load shadow material for mesh instance.");
-		return false;
+		if (!graphicsEngine->LoadEnginePartFromFile(this->overrideMaterialPath, this->material))
+		{
+			THEBE_LOG("Failed to load override material: %s", this->overrideMaterialPath.string().c_str());
+			return false;
+		}
 	}
 
 	ID3D12Device* device = graphicsEngine->GetDevice();
-	Material* material = this->mesh->GetMaterial();
-	Shader* shader = material->GetShader();
-	Shader* shadowShader = shadowMaterial->GetShader();
+	Shader* shader = this->material->GetShader();
 	DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
 
 	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuConstantsBufferDescriptorSet))
-		return false;
-
-	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuShadowConstantsBufferDescriptorSet))
 		return false;
 
 	this->constantsBuffer.Set(new ConstantsBuffer());
@@ -86,25 +92,51 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 		return false;
 	}
 
-	this->shadowConstantsBuffer.Set(new ConstantsBuffer());
-	this->shadowConstantsBuffer->SetGraphicsEngine(graphicsEngine);
-	this->shadowConstantsBuffer->SetShader(shadowShader);
-	this->shadowConstantsBuffer->SetName("ShadowConstantsBuffer");
-	if (!this->shadowConstantsBuffer->Setup())
-	{
-		THEBE_LOG("Fafiled to setup shadow constants buffer for mesh instance.");
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuShadowConstantsBufferDescriptorSet))
 		return false;
-	}
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE handle;
-
 	this->csuConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
 	if (!this->constantsBuffer->CreateResourceView(handle, device))
 		return false;
 
-	this->csuShadowConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
-	if (!this->shadowConstantsBuffer->CreateResourceView(handle, device))
+	this->pipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->mesh->GetVertexBuffer());
+	if (!this->pipelineState.Get())
+	{
+		THEBE_LOG("Failed to get or create PSO.");
 		return false;
+	}
+
+	if (this->material->GetCastsShadows())
+	{
+		if (!graphicsEngine->LoadEnginePartFromFile("Materials/ShadowMaterial.material", this->shadowMaterial))
+		{
+			THEBE_LOG("Failed to load shadow material for mesh instance.");
+			return false;
+		}
+
+		Shader* shadowShader = this->shadowMaterial->GetShader();
+		this->shadowConstantsBuffer.Set(new ConstantsBuffer());
+		this->shadowConstantsBuffer->SetGraphicsEngine(graphicsEngine);
+		this->shadowConstantsBuffer->SetShader(shadowShader);
+		this->shadowConstantsBuffer->SetName("ShadowConstantsBuffer");
+		if (!this->shadowConstantsBuffer->Setup())
+		{
+			THEBE_LOG("Fafiled to setup shadow constants buffer for mesh instance.");
+			return false;
+		}
+	
+		this->csuShadowConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
+		if (!this->shadowConstantsBuffer->CreateResourceView(handle, device))
+			return false;
+	
+		this->shadowPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer());
+		if (!shadowPipelineState.Get())
+		{
+			THEBE_LOG("Failed to get or create shadow PSO.");
+			return false;
+		}
+	}
 
 	if (shader->GetNumTextureRegisters() > 0)
 	{
@@ -113,31 +145,17 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 		for (UINT i = 0; i < shader->GetNumTextureRegisters(); i++)
 		{
-			TextureBuffer* texture = material->GetTextureForRegister(i);
-			if (!texture)
+			Buffer* buffer = this->material->GetTextureForRegister(i);
+			if (!buffer)
 			{
 				THEBE_LOG("Failed to get texture for register %d.", i);
 				return false;
 			}
-
+				
 			this->csuMaterialTexturesDescriptorSet.GetCpuHandle(i, handle);
-			if (!texture->CreateResourceView(handle, device))
+			if (!buffer->CreateResourceView(handle, device))
 				return false;
 		}
-	}
-
-	this->pipelineState = graphicsEngine->GetOrCreatePipelineState(material, this->mesh->GetVertexBuffer());
-	if (!this->pipelineState.Get())
-	{
-		THEBE_LOG("Failed to get or create PSO.");
-		return false;
-	}
-
-	this->shadowPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer());
-	if (!shadowPipelineState.Get())
-	{
-		THEBE_LOG("Failed to get or create shadow PSO.");
-		return false;
 	}
 
 	return true;
@@ -168,6 +186,7 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	this->pipelineState = nullptr;
 	this->shadowPipelineState = nullptr;
+	this->material = nullptr;
 }
 
 /*virtual*/ bool MeshInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
@@ -178,6 +197,9 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	if (!context || !context->camera)
 		return false;
+
+	if (context->renderTarget->GetName() == "ShadowBuffer" && !this->material->GetCastsShadows())
+		return true;
 
 	ConstantsBuffer* targetConstantsBuffer = nullptr;
 
@@ -226,14 +248,17 @@ void MeshInstance::SetMeshPath(std::filesystem::path& meshPath)
 
 	if (context->renderTarget->GetName() == "SwapChain")
 	{
-		Material* material = this->mesh->GetMaterial();
-		targetShader = material->GetShader();
+		targetShader = this->material->GetShader();
 		targetPipelineState = this->pipelineState.Get();
 		targetConstantsDescriptorSet = &this->csuConstantsBufferDescriptorSet;
 		targetTexturesDescriptorSet = &this->csuMaterialTexturesDescriptorSet;
-		auto shadowBuffer = graphicsEngine->FindRenderTarget<ShadowBuffer>();
-		THEBE_ASSERT_FATAL(shadowBuffer != nullptr);
-		targetShadowMapDescriptorSet = shadowBuffer->GetShadowMapDescriptorForShader();
+
+		if (this->material->GetCastsShadows())
+		{
+			auto shadowBuffer = graphicsEngine->FindRenderTarget<ShadowBuffer>();
+			THEBE_ASSERT_FATAL(shadowBuffer != nullptr);
+			targetShadowMapDescriptorSet = shadowBuffer->GetShadowMapDescriptorForShader();
+		}
 	}
 	else if (context->renderTarget->GetName() == "ShadowBuffer")
 	{
@@ -294,6 +319,10 @@ Mesh* MeshInstance::GetMesh()
 
 	this->meshPath = meshInstanceValue->GetValue();
 
+	auto materialOverridePathValue = dynamic_cast<const JsonString*>(rootValue->GetValue("material_override"));
+	if (materialOverridePathValue)
+		this->SetOverrideMaterialPath(materialOverridePathValue->GetValue());
+
 	return true;
 }
 
@@ -318,6 +347,9 @@ Mesh* MeshInstance::GetMesh()
 	}
 
 	rootValue->SetValue("mesh_instance", new JsonString(this->meshPath.string().c_str()));
+
+	if (this->overrideMaterialPath.string().length() > 0)
+		rootValue->SetValue("material_override", new JsonString(this->overrideMaterialPath.string().c_str()));
 
 	return true;
 }

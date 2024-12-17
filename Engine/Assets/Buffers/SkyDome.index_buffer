@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\SkyDome.index_buffer_data",
+	"format": 42,
+	"name": "SkyDome_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 11520,
+	"type": 1
+}

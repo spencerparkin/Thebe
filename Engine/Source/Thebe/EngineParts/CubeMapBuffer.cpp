@@ -120,7 +120,7 @@ CubeMapBuffer::CubeMapBuffer()
 	for (UINT i = 0; i < this->gpuBufferDesc.DepthOrArraySize; i++)
 		totalSize += this->gpuBufferDesc.Width * this->gpuBufferDesc.Height * bytesPerPixel;
 
-	if (totalSize = (UINT64)this->originalBuffer.size())
+	if (totalSize != (UINT64)this->originalBuffer.size())
 	{
 		THEBE_LOG("Size of original buffer (%ull) inconsistent with calculated size (%ull) according to descript.", UINT64(this->originalBuffer.size()), totalSize);
 		return false;

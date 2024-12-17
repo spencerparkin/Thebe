@@ -137,6 +137,11 @@ Material* Mesh::GetMaterial()
 	return this->material;
 }
 
+void Mesh::SetMaterial(Material* material)
+{
+	this->material = material;
+}
+
 const std::filesystem::path& Mesh::GetMeshPath() const
 {
 	return this->meshPath;

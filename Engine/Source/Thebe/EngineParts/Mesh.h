@@ -28,6 +28,7 @@ namespace Thebe
 		VertexBuffer* GetVertexBuffer();
 		IndexBuffer* GetIndexBuffer();
 		Material* GetMaterial();
+		void SetMaterial(Material* material);
 		const std::filesystem::path& GetMeshPath() const;
 		void SetVertexBufferPath(const std::filesystem::path& vertexBufferPath);
 		void SetIndexBufferPath(const std::filesystem::path& indexBufferPath);

@@ -1,0 +1,7 @@
+{
+    "alpha_blending": false,
+    "name": "OceanSkyDome",
+    "shader": "Shaders/SkyDome.shader",
+    "cube_map": "Textures/OceanCubeMap/OceanCubeMap.cube_map",
+    "casts_shadows": false
+}

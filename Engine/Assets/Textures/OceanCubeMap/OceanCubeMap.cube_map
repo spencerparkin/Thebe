@@ -1,12 +1,12 @@
 {
 	"array_size": 6,
 	"compressed": true,
-	"compressed_size": 16469991,
+	"compressed_size": 16469532,
 	"data": "Textures\\OceanCubeMap\\OceanCubeMap.cube_map_data",
 	"height": 2048,
 	"name": "OceanCubeMap",
 	"pixel_format": 28,
 	"size": 100663296,
-	"type": 0,
+	"type": 1,
 	"width": 2048
 }

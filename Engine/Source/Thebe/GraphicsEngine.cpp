@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
+#include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/CommandQueue.h"
@@ -638,6 +639,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new Shader());
 	else if (ext == ".scene")
 		enginePart.Set(new Scene());
+	else if (ext == ".cube_map")
+		enginePart.Set(new CubeMapBuffer());
 
 	if (!enginePart.Get())
 	{

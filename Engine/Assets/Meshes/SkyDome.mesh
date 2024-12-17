@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\SkyDome.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "SkyDome",
+	"vertex_buffer": "Buffers\\SkyDome.vertex_buffer"
+}
