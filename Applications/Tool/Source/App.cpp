@@ -4,6 +4,7 @@
 #include "Thebe/Math/Transform.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/DirectionalLight.h"
+#include "Thebe/DatagramLog.h"
 #include <wx/image.h>
 #include <wx/msgdlg.h>
 
@@ -37,6 +38,15 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 	wxInitAllImageHandlers();
 
 	this->frame = new GraphicsToolFrame(wxPoint(10, 10), wxSize(1200, 800));
+
+	Thebe::Reference<Thebe::Log> log(new Thebe::Log());
+	Thebe::Reference<Thebe::DatagramLogSink> logSink(new Thebe::DatagramLogSink());
+	Thebe::NetworkAddress address;
+	address.SetIPAddress("234.5.0.5");
+	address.SetPort(8908);
+	logSink->SetSendAddress(address);
+	log->AddSink(logSink);
+	Thebe::Log::Set(log);
 
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))

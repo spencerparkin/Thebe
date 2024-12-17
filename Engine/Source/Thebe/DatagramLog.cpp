@@ -1,4 +1,5 @@
 #include "Thebe/DatagramLog.h"
+#include <format>
 
 using namespace Thebe;
 
@@ -35,6 +36,11 @@ bool NetworkAddress::SetAddress(const std::string& ipAddrAndPort)
 	return true;
 }
 
+std::string NetworkAddress::GetAddress() const
+{
+	return std::format("{}:{}", this->ipAddr.c_str(), this->port);
+}
+
 void NetworkAddress::SetIPAddress(const std::string& ipAddr)
 {
 	this->ipAddr = ipAddr;
@@ -45,12 +51,12 @@ void NetworkAddress::SetPort(uint32_t port)
 	this->port = port;
 }
 
-void NetworkAddress::GetSockAddr(sockaddr_in& sockaddr) const
+void NetworkAddress::GetSockAddr(sockaddr_in& addr) const
 {
-	::memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.sin_family = AF_INET;
-	sockaddr.sin_addr.S_un.S_addr = ::inet_addr(this->ipAddr.c_str());
-	sockaddr.sin_port = htons(this->port);
+	::memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.S_un.S_addr = ::inet_addr(this->ipAddr.c_str());
+	addr.sin_port = htons(this->port);
 }
 
 //----------------------------- DatagramLogSink -----------------------------
@@ -62,10 +68,38 @@ DatagramLogSink::DatagramLogSink()
 
 /*virtual*/ DatagramLogSink::~DatagramLogSink()
 {
+	if (this->socket != INVALID_SOCKET)
+		::closesocket(this->socket);
+
+	WSACleanup();
+}
+
+/*virtual*/ bool DatagramLogSink::Setup()
+{
+	if (this->socket != INVALID_SOCKET)
+		return false;
+
+	DWORD version = MAKEWORD(2, 2);
+	WSADATA startupData;
+	if (WSAStartup(version, &startupData) != 0)
+		return false;
+
+	this->socket = ::socket(AF_INET, SOCK_DGRAM, 0);
+	if (this->socket == INVALID_SOCKET)
+		return false;
+
+	return true;
 }
 
 /*virtual*/ void DatagramLogSink::Print(const std::string& msg)
 {
+	if (this->socket != INVALID_SOCKET)
+	{
+		sockaddr_in addr;
+		this->sendAddress.GetSockAddr(addr);
+		int result = ::sendto(this->socket, msg.c_str(), msg.length(), 0, (const sockaddr*)&addr, sizeof(addr));
+		result = 0;
+	}
 }
 
 void DatagramLogSink::SetSendAddress(const NetworkAddress& sendAddress)
@@ -90,6 +124,11 @@ void DatagramLogCollector::SetReceptionAddress(const NetworkAddress& receptionAd
 	this->receptionAddress = receptionAddress;
 }
 
+const NetworkAddress& DatagramLogCollector::GetReceptionAddress() const
+{
+	return this->receptionAddress;
+}
+
 bool DatagramLogCollector::Setup()
 {
 	if (this->thread || this->socket != INVALID_SOCKET)
@@ -104,9 +143,14 @@ bool DatagramLogCollector::Setup()
 	if (this->socket == INVALID_SOCKET)
 		return false;
 
+	char flag = 1;
+	int error = ::setsockopt(this->socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag));
+	if (error != 0)
+		return false;
+
 	sockaddr_in addr;
 	this->receptionAddress.GetSockAddr(addr);
-	int error = ::bind(this->socket, (const sockaddr*)&addr, sizeof(addr));
+	error = ::bind(this->socket, (const sockaddr*)&addr, sizeof(addr));
 	if (error < 0)
 		return false;
 
@@ -129,6 +173,8 @@ void DatagramLogCollector::Shutdown()
 		delete this->thread;
 		this->thread = nullptr;
 	}
+
+	WSACleanup();
 
 	this->logMessageList.clear();
 }

@@ -11,7 +11,7 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	class NetworkAddress
+	class THEBE_API NetworkAddress
 	{
 	public:
 		NetworkAddress();
@@ -21,9 +21,10 @@ namespace Thebe
 		void operator=(const NetworkAddress& address);
 
 		bool SetAddress(const std::string& ipAddrAndPort);
+		std::string GetAddress() const;
 		void SetIPAddress(const std::string& ipAddr);
 		void SetPort(uint32_t port);
-		void GetSockAddr(sockaddr_in& sockaddr) const;
+		void GetSockAddr(sockaddr_in& addr) const;
 
 	private:
 		std::string ipAddr;
@@ -39,6 +40,7 @@ namespace Thebe
 		DatagramLogSink();
 		virtual ~DatagramLogSink();
 
+		virtual bool Setup() override;
 		virtual void Print(const std::string& msg) override;
 
 		void SetSendAddress(const NetworkAddress& sendAddress);
@@ -62,6 +64,7 @@ namespace Thebe
 		bool GrabLogMessage(std::string& logMessage);
 
 		void SetReceptionAddress(const NetworkAddress& receptionAddress);
+		const NetworkAddress& GetReceptionAddress() const;
 
 	private:
 		void ThreadRun();
