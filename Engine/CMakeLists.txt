@@ -11,6 +11,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
+    Source/Thebe/DatagramLog.cpp
+    Source/Thebe/DatagramLog.h
     Source/Thebe/FreeCam.cpp
     Source/Thebe/FreeCam.h
     Source/Thebe/XBoxController.cpp
@@ -155,6 +157,7 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     Xinput9_1_0.lib
     cabinet.lib
     zlib.lib
+    Ws2_32.lib
     ParseParty
 )
 
