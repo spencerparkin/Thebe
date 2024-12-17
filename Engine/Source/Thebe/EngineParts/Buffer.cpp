@@ -510,6 +510,15 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 	return true;
 }
 
+UINT64 Buffer::GetBytesPerPixel()
+{
+	if (this->gpuBufferDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+		return sizeof(UINT);
+
+	THEBE_LOG("Pixel format %d not yet supported.", this->gpuBufferDesc.Format);
+	return 0;
+}
+
 /*static*/ bool Buffer::GenerateIndexAndVertexBuffersForConvexHull(
 	const std::vector<Vector3>& pointArray,
 	GraphicsEngine* graphicsEngine,

@@ -2,6 +2,7 @@
 #include "Canvas.h"
 #include "App.h"
 #include "SceneBuilder.h"
+#include "CubeMapBuilder.h"
 #include "Thebe/EngineParts/Scene.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -16,6 +17,9 @@ GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : w
 {
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildScene, "Build Scene", "Build a scene for the Thebe graphics engine using a file exported from 3Ds Max, Maya or Blender."));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildCubeMap, "Build Cube Map", "Build a cube map that can be used for a sky-dome or environment lighting."));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildFont, "Build Font", "Build a font asset that can be used to render text in the engine."));
+	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PreviewScene, "Preview Scene", "Load and render a Thebe graphics engine scene file."));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Exit, "Exit", "Go ski."));
@@ -31,6 +35,8 @@ GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : w
 	this->CreateStatusBar();
 
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildScene, this, ID_BuildScene);
+	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildCubeMap, this, ID_BuildCubeMap);
+	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildFont, this, ID_BuildFont);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnPreviewScene, this, ID_PreviewScene);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnAbout, this, ID_About);
@@ -81,6 +87,42 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 		wxMessageBox("Scene build failed!", "Error!", wxICON_ERROR | wxOK, this);
 	else
 		wxMessageBox("Scene build succeeded!", "Success!", wxICON_INFORMATION | wxOK, this);
+}
+
+void GraphicsToolFrame::OnBuildCubeMap(wxCommandEvent& event)
+{
+	wxFileDialog inputFileDialog(this, "Choose input files.", wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+	if (inputFileDialog.ShowModal() != wxID_OK)
+		return;
+
+	wxArrayString inputFilePathArray;
+	inputFileDialog.GetPaths(inputFilePathArray);
+	if (inputFilePathArray.size() == 0)
+		return;
+
+	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	std::filesystem::path outputAssetsFolder;
+	if (!graphicsEngine->GleanAssetsFolderFromPath(std::filesystem::path((const char*)inputFilePathArray[0].c_str()), outputAssetsFolder))
+		return;
+
+	graphicsEngine->RemoveAllAssetFolders();
+	graphicsEngine->AddAssetFolder(outputAssetsFolder);
+
+	CubeMapBuilder cubeMapBuilder;
+	bool cubeMapBuilt = false;
+	{
+		wxBusyCursor busyCursor;
+		cubeMapBuilt = cubeMapBuilder.BuildCubeMap(inputFilePathArray);
+	}
+
+	if (!cubeMapBuilt)
+		wxMessageBox("Cube map build failed!", "Error!", wxICON_ERROR | wxOK, this);
+	else
+		wxMessageBox("Cube map build succeeded!", "Success!", wxICON_INFORMATION | wxOK, this);
+}
+
+void GraphicsToolFrame::OnBuildFont(wxCommandEvent& event)
+{
 }
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)

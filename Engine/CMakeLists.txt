@@ -61,6 +61,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/IndexBuffer.h
     Source/Thebe/EngineParts/ConstantsBuffer.cpp
     Source/Thebe/EngineParts/ConstantsBuffer.h
+    Source/Thebe/EngineParts/CubeMapBuffer.cpp
+    Source/Thebe/EngineParts/CubeMapBuffer.h
     Source/Thebe/EngineParts/Fence.cpp
     Source/Thebe/EngineParts/Fence.h
     Source/Thebe/EngineParts/Scene.cpp

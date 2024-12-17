@@ -256,9 +256,9 @@ Thebe::Reference<Thebe::TextureBuffer> SceneBuilder::GenerateTextureBuffer(const
 
 		UINT8* destinationImageBuffer = &outputBuffer.data()[mipImageOffset];
 
-		for (UINT64 i = 0; i < mipWidth; i++)
+		for (UINT64 i = 0; i < mipHeight; i++)
 		{
-			for (UINT64 j = 0; j < mipHeight; j++)
+			for (UINT64 j = 0; j < mipWidth; j++)
 			{
 				UINT pixelOffset = i * mipWidth + j;
 

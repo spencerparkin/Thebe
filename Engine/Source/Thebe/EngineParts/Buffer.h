@@ -63,6 +63,8 @@ namespace Thebe
 			GraphicsEngine* graphicsEngine,
 			Reference<TextureBuffer>& textureBuffer);
 
+		UINT64 GetBytesPerPixel();
+
 	protected:
 		virtual bool ValidateBufferDescription();
 		virtual UINT64 GetUploadHeapAllocationSize(ID3D12Device* device);

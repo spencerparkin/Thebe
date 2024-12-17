@@ -9,6 +9,8 @@ set(GRAPHICS_TOOL_SOURCES
     Source/Canvas.h
     Source/SceneBuilder.cpp
     Source/SceneBuilder.h
+    Source/CubeMapBuilder.cpp
+    Source/CubeMapBuilder.h
 )
 
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GRAPHICS_TOOL_SOURCES})

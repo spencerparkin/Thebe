@@ -14,6 +14,8 @@ public:
 	enum
 	{
 		ID_BuildScene = wxID_HIGHEST,
+		ID_BuildCubeMap,
+		ID_BuildFont,
 		ID_PreviewScene,
 		ID_About,
 		ID_Exit,
@@ -24,6 +26,8 @@ public:
 
 private:
 	void OnBuildScene(wxCommandEvent& event);
+	void OnBuildCubeMap(wxCommandEvent& event);
+	void OnBuildFont(wxCommandEvent& event);
 	void OnPreviewScene(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);

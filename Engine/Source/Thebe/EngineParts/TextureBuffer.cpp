@@ -123,15 +123,6 @@ TextureBuffer::TextureBuffer()
 	return true;
 }
 
-UINT64 TextureBuffer::GetBytesPerPixel()
-{
-	if (this->gpuBufferDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
-		return sizeof(UINT);
-
-	THEBE_LOG("Pixel format %d not yet supported.", this->gpuBufferDesc.Format);
-	return 0;
-}
-
 /*virtual*/ void TextureBuffer::CopyDataFromUploadHeapToDefaultHeap(UploadHeap* uploadHeap, ID3D12GraphicsCommandList* commandList, ID3D12Device* device)
 {
 	std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> layoutArray;
