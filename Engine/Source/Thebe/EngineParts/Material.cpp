@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/Shader.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/CubeMapBuffer.h"
+#include "Thebe/EngineParts/Scene.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 #include <d3dx12.h>
@@ -210,6 +211,15 @@ Buffer* Material::GetTextureForRegister(UINT i)
 	std::string textureUsage = this->shader->GetTextureUsageForRegister(i);
 	if (textureUsage == "cube_map")
 		return this->cubeMap;
+
+	if (textureUsage == "env_map")
+	{
+		Reference<GraphicsEngine> graphicsEngine;
+		if (!this->GetGraphicsEngine(graphicsEngine))
+			return nullptr;
+
+		//graphicsEngine->GetEnvironmentMap();
+	}
 
 	auto iter = this->textureMap.find(textureUsage);
 	if (iter == this->textureMap.end())
