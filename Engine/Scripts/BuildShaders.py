@@ -32,6 +32,7 @@ def compile_shader(shader_data, config, prefix, assets_base_dir, shader_pdb_dir)
     ]
 
     if config == 'debug':
+        cmd_line.append('/O0')
         cmd_line.append('/Zi')
         cmd_line.append('/Zss')
         cmd_line.append('/Fd %s\\' % shader_pdb_dir)    # Must have trailing backslash!
@@ -140,6 +141,14 @@ if __name__ == '__main__':
     for pdb_file in pdb_file_list:
         os.remove(pdb_file)
         print('Deleted: ' + pdb_file)
+
+    print('Deleting DXBC files...')
+    shaders_dir = os.path.join(assets_base_dir, 'Shaders')
+    dxbc_file_list = []
+    find_all_files(shaders_dir, dxbc_file_list, '.dxbc')
+    for dxbc_file in dxbc_file_list:
+        os.remove(dxbc_file)
+        print('Delete: ' + dxbc_file)
 
     print('Processing shader files...')
     shader_file_list = []

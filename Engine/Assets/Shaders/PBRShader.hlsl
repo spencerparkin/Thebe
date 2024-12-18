@@ -124,7 +124,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // TODO: For spot-lights, an inverse square law would need to be taken into account here.
     float3 lightIntensity = 5.0 * lightColor;      // TODO: Not sure what the scale of the light intensity is.  What is it?
     
-    // Calculate statistical percentage of surface area in the fragment containing microfacets that alignw ith the half-way vector.
+    // Calculate statistical percentage of surface area in the fragment containing microfacets that align with the half-way vector.
     // These facets are going to contribute most to the specular highlight on the surface.
     float D = NormalDistribution(halfwayVectorDotSurfaceNormal, roughness);
     
