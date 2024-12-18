@@ -128,7 +128,7 @@ ZLibCompressionHelper::ZLibCompressionHelper()
 /*virtual*/ bool ZLibCompressionHelper::Compress(const std::vector<uint8_t>& inputBuffer, std::vector<uint8_t>& outputBuffer)
 {
 	z_stream zStream{};
-	int result = deflateInit(&zStream, 9 /* highest compression level */);
+	int result = deflateInit(&zStream, Z_DEFAULT_COMPRESSION);
 	if (result != Z_OK)
 	{
 		THEBE_LOG("Failed to initialize deflate algorithm.");
