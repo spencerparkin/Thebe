@@ -107,7 +107,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 #if true
     float3 worldBinormal = cross(normalize(input.worldNormal), normalize(input.worldTangent));
     float3x3 tanToWorld = float3x3(input.worldTangent, worldBinormal, input.worldNormal);
-    float3 unitTanSurfaceNormal = normalize(normalTexture.Sample(generalSampler, input.texCoords).xyz);
+    float3 unitTanSurfaceNormal = normalize(normalTexture.Sample(generalSampler, input.texCoords).xyz - float3(0.5, 0.5, 0.0));
     float3 unitWorldSurfaceNormal = mul(unitTanSurfaceNormal, tanToWorld);
 #else
     float3 unitWorldSurfaceNormal = normalize(input.worldNormal);
