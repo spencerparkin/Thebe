@@ -73,6 +73,8 @@ void LogViewerFrame::OnTimer(wxTimerEvent& event)
 	{
 		wxString logMessageStr(logMessage.c_str());
 		this->textCtrl->AppendText(logMessageStr);
+		if (logMessageStr.Find("CloseLogViewer") >= 0)
+			this->Close(true);
 	}
 }
 

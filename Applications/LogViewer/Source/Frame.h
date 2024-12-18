@@ -3,6 +3,7 @@
 #include <wx/frame.h>
 #include <wx/textctrl.h>
 #include <wx/timer.h>
+#include <wx/cmdline.h>
 
 class LogViewerFrame : public wxFrame
 {

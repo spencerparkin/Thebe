@@ -20,10 +20,7 @@ LogViewerApp::LogViewerApp()
 		return false;
 
 	auto server = new Thebe::NetServerLogCollector();
-	Thebe::NetworkAddress address;
-	address.SetIPAddress("127.0.0.1");
-	address.SetPort(12345);
-	server->SetListeningAddress(address);
+	server->SetListeningAddress(this->address);
 	this->logCollector = server;
 	if (!this->logCollector->Setup())
 	{
@@ -52,4 +49,29 @@ LogViewerApp::LogViewerApp()
 Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 {
 	return this->logCollector;
+}
+
+/*virtual*/ void LogViewerApp::OnInitCmdLine(wxCmdLineParser& parser)
+{
+	static const wxCmdLineEntryDesc cmdLineDesc[] =
+	{
+		 { wxCMD_LINE_OPTION, "p", "port", "Specify which port to use for socket communication.", wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL },
+		 { wxCMD_LINE_OPTION, "a", "addr", "Specify which IP address to use for socket communication.", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+		 { wxCMD_LINE_NONE }
+	};
+
+	parser.SetDesc(cmdLineDesc);
+}
+
+/*virtual*/ bool LogViewerApp::OnCmdLineParsed(wxCmdLineParser& parser)
+{
+	long port = 0;
+	if (parser.Found("port", &port))
+		this->address.SetPort((uint32_t)port);
+
+	wxString addr;
+	if (parser.Found("addr", &addr))
+		this->address.SetIPAddress((const char*)addr.c_str());
+
+	return true;
 }
