@@ -11,8 +11,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
-    Source/Thebe/DatagramLog.cpp
-    Source/Thebe/DatagramLog.h
+    Source/Thebe/NetLog.cpp
+    Source/Thebe/NetLog.h
     Source/Thebe/FreeCam.cpp
     Source/Thebe/FreeCam.h
     Source/Thebe/XBoxController.cpp
@@ -29,6 +29,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Utilities/StackHeap.h
     Source/Thebe/Utilities/CompressionHelper.cpp
     Source/Thebe/Utilities/CompressionHelper.h
+    Source/Thebe/Utilities/RingBuffer.cpp
+    Source/Thebe/Utilities/RingBuffer.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp

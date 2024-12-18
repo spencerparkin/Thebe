@@ -7,6 +7,7 @@ wxIMPLEMENT_APP(LogViewerApp);
 LogViewerApp::LogViewerApp()
 {
 	this->frame = nullptr;
+	this->logCollector = nullptr;
 }
 
 /*virtual*/ LogViewerApp::~LogViewerApp()
@@ -18,11 +19,13 @@ LogViewerApp::LogViewerApp()
 	if (!wxApp::OnInit())
 		return false;
 
+	auto server = new Thebe::NetServerLogCollector();
 	Thebe::NetworkAddress address;
-	address.SetIPAddress("192.168.0.5");
-	address.SetPort(8908);		// TODO: Maybe get this from command-line?
-	this->logCollector.SetReceptionAddress(address);
-	if (!this->logCollector.Setup())
+	address.SetIPAddress("127.0.0.1");
+	address.SetPort(12345);
+	server->SetListeningAddress(address);
+	this->logCollector = server;
+	if (!this->logCollector->Setup())
 	{
 		wxMessageBox("Failed to setup log collector!", "Error!", wxICON_ERROR | wxOK, nullptr);
 		return false;
@@ -36,12 +39,17 @@ LogViewerApp::LogViewerApp()
 
 /*virtual*/ int LogViewerApp::OnExit(void)
 {
-	this->logCollector.Shutdown();
+	if (this->logCollector)
+	{
+		this->logCollector->Shutdown();
+		delete this->logCollector;
+		this->logCollector = nullptr;
+	}
 
 	return 0;
 }
 
-Thebe::DatagramLogCollector* LogViewerApp::GetLogCollector()
+Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 {
-	return &this->logCollector;
+	return this->logCollector;
 }

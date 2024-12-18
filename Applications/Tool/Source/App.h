@@ -2,6 +2,7 @@
 
 #include <wx/app.h>
 #include "Thebe/GraphicsEngine.h"
+#include "Thebe/Log.h"
 #include "Thebe/FreeCam.h"
 
 class GraphicsToolFrame;
@@ -21,6 +22,7 @@ public:
 private:
 	GraphicsToolFrame* frame;
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
+	Thebe::Reference<Thebe::Log> log;
 	Thebe::FreeCam freeCam;
 };
 

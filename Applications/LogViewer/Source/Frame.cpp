@@ -4,7 +4,7 @@
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
 
-LogViewerFrame::LogViewerFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Log Viewer", pos, size), timer(this)
+LogViewerFrame::LogViewerFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Log Viewer", pos, size), timer(this, ID_Timer)
 {
 	wxMenu* fileMenu = new wxMenu();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_Clear, "Clear", "Clear all log messages."));
@@ -23,19 +23,21 @@ LogViewerFrame::LogViewerFrame(const wxPoint& pos, const wxSize& size) : wxFrame
 	this->Bind(wxEVT_MENU, &LogViewerFrame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_MENU, &LogViewerFrame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_UPDATE_UI, &LogViewerFrame::OnUpdateUI, this, ID_Clear);
+	this->Bind(wxEVT_TIMER, &LogViewerFrame::OnTimer, this, ID_Timer);
 
 	this->CreateStatusBar();
 
 	this->textCtrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
 
+	wxFont font;
+	font.SetFamily(wxFontFamily::wxFONTFAMILY_TELETYPE);
+	this->textCtrl->SetFont(font);
+
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(textCtrl, 1, wxGROW | wxALL, 2);
+	sizer->Add(textCtrl, 1, wxGROW | wxALL, 0);
 	this->SetSizer(sizer);
 
-	Thebe::NetworkAddress address = wxGetApp().GetLogCollector()->GetReceptionAddress();
-	this->SetTitle(wxString::Format("Thebe Log Viewer -- Listening @ %s", address.GetAddress().c_str()));
-
-	this->timer.Start(60);
+	this->timer.Start(0);
 }
 
 /*virtual*/ LogViewerFrame::~LogViewerFrame()
@@ -67,7 +69,7 @@ void LogViewerFrame::OnExit(wxCommandEvent& event)
 void LogViewerFrame::OnTimer(wxTimerEvent& event)
 {
 	std::string logMessage;
-	if (wxGetApp().GetLogCollector()->GrabLogMessage(logMessage))
+	if (wxGetApp().GetLogCollector()->RemoveLogMessage(logMessage))
 	{
 		wxString logMessageStr(logMessage.c_str());
 		this->textCtrl->AppendText(logMessageStr);
