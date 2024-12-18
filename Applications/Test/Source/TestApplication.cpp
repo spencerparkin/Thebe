@@ -33,7 +33,7 @@ TestApplication::TestApplication()
 
 	// Load and configure the scene.
 	Reference<Scene> scene;
-	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Silly.scene)", scene))
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\ShadowTest.scene)", scene))
 		return false;
 	this->graphicsEngine->SetRenderObject(scene);
 
