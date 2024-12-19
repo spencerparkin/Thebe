@@ -1,12 +1,12 @@
 {
 	"compressed": true,
-	"compressed_size": 21767,
+	"compressed_size": 5453,
 	"data": "Textures\\TexturedAluminum\\textured-aluminum_metallic.texture_buffer_data",
 	"height": 2048,
 	"name": "textured-aluminum_metallic",
 	"num_mips": 12,
-	"pixel_format": 28,
-	"size": 22369620,
+	"pixel_format": 61,
+	"size": 5592405,
 	"type": 1,
 	"width": 2048
 }
