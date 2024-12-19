@@ -34,6 +34,7 @@ namespace Thebe
 		virtual void PrepareForRender();
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList);
 		virtual uint32_t GetRenderOrder() const;
+		virtual bool RendersToTarget(RenderTarget* renderTarget) const;
 
 		uint32_t GetFlags() const;
 		void SetFlags(uint32_t flags);

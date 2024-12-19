@@ -39,7 +39,7 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	if (!Space::Setup())
 		return false;
 
-	if (this->constantsBuffer.Get() || this->pipelineState.Get())
+	if (this->constantsBuffer.Get())
 	{
 		THEBE_LOG("Mesh instance already setup.");
 		return false;
@@ -100,13 +100,6 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	if (!this->constantsBuffer->CreateResourceView(handle, device))
 		return false;
 
-	this->pipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->mesh->GetVertexBuffer());
-	if (!this->pipelineState.Get())
-	{
-		THEBE_LOG("Failed to get or create PSO.");
-		return false;
-	}
-
 	if (this->material->GetCastsShadows())
 	{
 		if (!graphicsEngine->LoadEnginePartFromFile("Materials/ShadowMaterial.material", this->shadowMaterial))
@@ -129,13 +122,6 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 		this->csuShadowConstantsBufferDescriptorSet.GetCpuHandle(0, handle);
 		if (!this->shadowConstantsBuffer->CreateResourceView(handle, device))
 			return false;
-	
-		this->shadowPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer());
-		if (!shadowPipelineState.Get())
-		{
-			THEBE_LOG("Failed to get or create shadow PSO.");
-			return false;
-		}
 	}
 
 	if (shader->GetNumTextureRegisters() > 0)
@@ -184,9 +170,15 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 		csuDescriptorHeap->FreeDescriptorSet(this->csuMaterialTexturesDescriptorSet);
 	}
 
-	this->pipelineState = nullptr;
-	this->shadowPipelineState = nullptr;
 	this->material = nullptr;
+}
+
+/*virtual*/ bool MeshInstance::RendersToTarget(RenderTarget* renderTarget) const
+{
+	if (renderTarget->GetName() == "ShadowBuffer")
+		return this->material->GetCastsShadows();
+
+	return true;
 }
 
 /*virtual*/ bool MeshInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
@@ -197,9 +189,6 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 
 	if (!context || !context->camera)
 		return false;
-
-	if (context->renderTarget->GetName() == "ShadowBuffer" && !this->material->GetCastsShadows())
-		return true;
 
 	ConstantsBuffer* targetConstantsBuffer = nullptr;
 
@@ -248,8 +237,8 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 
 	if (context->renderTarget->GetName() == "SwapChain")
 	{
+		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->mesh->GetVertexBuffer(), context->renderTarget);
 		targetShader = this->material->GetShader();
-		targetPipelineState = this->pipelineState.Get();
 		targetConstantsDescriptorSet = &this->csuConstantsBufferDescriptorSet;
 		targetTexturesDescriptorSet = &this->csuMaterialTexturesDescriptorSet;
 
@@ -262,8 +251,8 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	}
 	else if (context->renderTarget->GetName() == "ShadowBuffer")
 	{
+		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer(), context->renderTarget);
 		targetShader = this->shadowMaterial->GetShader();
-		targetPipelineState = this->shadowPipelineState.Get();
 		targetConstantsDescriptorSet = &this->csuShadowConstantsBufferDescriptorSet;
 	}
 	else

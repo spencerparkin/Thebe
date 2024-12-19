@@ -46,7 +46,7 @@ Scene::Scene()
 /*virtual*/ bool Scene::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	std::list<RenderObject*> renderObjectList;
-	this->GatherVisibleRenderObjects(renderObjectList, context->camera);
+	this->GatherVisibleRenderObjects(renderObjectList, context->camera, context->renderTarget);
 
 	// This ensures that opaque objects are render before those with some amount of transparency.
 	// We might also try to use this mechanism to sort by PSO to reduce PSO switching.
@@ -69,7 +69,7 @@ void Scene::SetRootSpace(Space* space)
 	this->rootSpace = space;
 }
 
-void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera)
+void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget)
 {
 	renderObjectList.clear();
 	if (!this->rootSpace)
@@ -83,9 +83,11 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 		queue.pop_front();
 
 		uint32_t flags = renderObject->GetFlags();
-		if ((flags & THEBE_RENDER_OBJECT_FLAG_VISIBLE) != 0 && camera->CanSee(renderObject))
+		if ((flags & THEBE_RENDER_OBJECT_FLAG_VISIBLE) != 0)
 		{
-			renderObjectList.push_back(renderObject);
+			if (renderObject->RendersToTarget(renderTarget) && camera->CanSee(renderObject))
+				renderObjectList.push_back(renderObject);
+
 			renderObject->AppendAllChildRenderObjects(queue);
 		}
 	}

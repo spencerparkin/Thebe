@@ -26,6 +26,7 @@ namespace Thebe
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context) override;
+		virtual bool RendersToTarget(RenderTarget* renderTarget) const override;
 
 		void SetMeshPath(const std::filesystem::path& meshPath);
 		void SetOverrideMaterialPath(const std::filesystem::path& overrideMaterialPath);
@@ -33,8 +34,6 @@ namespace Thebe
 		Mesh* GetMesh();
 
 	private:
-		ComPtr<ID3D12PipelineState> pipelineState;
-		ComPtr<ID3D12PipelineState> shadowPipelineState;
 		Reference<Mesh> mesh;
 		Reference<Material> material;
 		Reference<ConstantsBuffer> constantsBuffer;

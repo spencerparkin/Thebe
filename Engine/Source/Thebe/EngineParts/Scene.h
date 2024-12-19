@@ -5,6 +5,7 @@
 namespace Thebe
 {
 	class Space;
+	class RenderTarget;
 
 	/**
 	 * 
@@ -25,7 +26,7 @@ namespace Thebe
 		void SetRootSpace(Space* space);
 
 	protected:
-		void GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera);
+		void GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget);
 
 		Reference<Space> rootSpace;
 	};

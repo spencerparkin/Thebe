@@ -10,4 +10,4 @@ Some things I'd like to achieve...
 [ ] Add AO maps to PBR shading.
 [ ] Can we soften the edges of shadows?
 [ ] Build a cube map by using the render engine itself.
-[ ] Add FSAA or MSAA.  Can some of the principles here be used for soft shadows?
+[x] Add FSAA or MSAA.  Can some of the principles here be used for soft shadows?  Can't see how right now.

@@ -21,6 +21,11 @@ void RenderObject::SetFlags(uint32_t flags)
 	this->flags = flags;
 }
 
+/*virtual*/ bool RenderObject::RendersToTarget(RenderTarget* renderTarget) const
+{
+	return false;
+}
+
 /*virtual*/ bool RenderObject::Setup()
 {
 	return true;

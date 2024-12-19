@@ -124,7 +124,7 @@ namespace Thebe
 		UINT GetFrameIndex();
 		double GetDeltaTime();
 
-		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer);
+		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, RenderTarget* renderTarget);
 
 		template<typename T>
 		T* FindRenderTarget()
@@ -152,13 +152,13 @@ namespace Thebe
 		Reference<DescriptorHeap> dsvDescriptorHeap;
 		std::list<std::filesystem::path> assetFolderList;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
-		std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
+		std::unordered_map<uint64_t, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
 		Reference<RenderObject> renderObject;
 		Reference<Camera> camera;
 		Reference<Light> light;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
-		std::string MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer);
+		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
 
 		double CalcFramerate();
 		Clock clock;

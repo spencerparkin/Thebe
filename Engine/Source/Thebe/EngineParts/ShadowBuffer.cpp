@@ -140,6 +140,12 @@ DescriptorHeap::DescriptorSet* ShadowBuffer::GetShadowMapDescriptorForShader()
 	return &frame->srvDescriptorSet;
 }
 
+/*virtual*/ void ShadowBuffer::ConfigurePiplineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc)
+{
+	pipelineStateDesc.SampleDesc.Count = 1;
+	pipelineStateDesc.SampleDesc.Quality = 0;
+}
+
 //------------------------------------ ShadowBuffer::ShadowFrame ------------------------------------
 
 ShadowBuffer::ShadowFrame::ShadowFrame()
@@ -250,6 +256,8 @@ ShadowBuffer::ShadowFrame::ShadowFrame()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE csuHandle;
 	this->srvDescriptorSet.GetCpuHandle(0, csuHandle);
 	device->CreateShaderResourceView(this->depthTexture.Get(), &srvDesc, csuHandle);
+
+	return true;
 }
 
 /*virtual*/ void ShadowBuffer::ShadowFrame::Shutdown()

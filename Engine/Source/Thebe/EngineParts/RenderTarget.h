@@ -23,6 +23,7 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 		virtual bool Render();
+		virtual void ConfigurePiplineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
 
 	protected:
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context);

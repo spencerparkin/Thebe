@@ -21,6 +21,32 @@
 #include <ctype.h>
 #include <codecvt>
 
+namespace std
+{
+	template<>
+	struct hash<D3D12_GRAPHICS_PIPELINE_STATE_DESC>
+	{
+		// This hash function is probably terrible.
+		size_t operator()(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc) const
+		{
+			size_t hashValue = 0;
+			auto buffer = reinterpret_cast<const uint8_t*>(&psoDesc);
+			uint32_t word = 0;
+			for (uint32_t i = 0; i < sizeof(psoDesc); i++)
+			{
+				word |= uint32_t(buffer[i]) << ((i % 4) * 8);
+				if (i % 4 == 0)
+				{
+					hashValue += std::hash<uint32_t>()(word);
+					word = 0;
+				}
+			}
+			hashValue += std::hash<uint32_t>()(word);
+			return hashValue;
+		}
+	};
+}
+
 using namespace Thebe;
 
 GraphicsEngine::GraphicsEngine()
@@ -520,18 +546,8 @@ bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, 
 	return false;
 }
 
-ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer)
+ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, RenderTarget* renderTarget)
 {
-	std::string key = this->MakePipelineStateKey(material, vertexBuffer);
-	auto iter = this->pipelineStateCacheMap.find(key);
-	if (iter != this->pipelineStateCacheMap.end())
-	{
-		THEBE_LOG("Reusing old PSO: %s.", key.c_str());
-		return iter->second.Get();
-	}
-
-	THEBE_LOG("Creating new PSO: %s.", key.c_str());
-
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescriptionArray = vertexBuffer->GetElementDescArray();
 
 	Shader* shader = material->GetShader();
@@ -556,6 +572,13 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
+	renderTarget->ConfigurePiplineStateDesc(psoDesc);
+
+	uint64_t key = this->MakePipelineStateKey(psoDesc);
+	auto pair = this->pipelineStateCacheMap.find(key);
+	if (pair != this->pipelineStateCacheMap.end())
+		return pair->second.Get();
+
 	ComPtr<ID3D12PipelineState> pipelineState;
 	HRESULT result = this->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 	if (FAILED(result))
@@ -575,9 +598,10 @@ std::string GraphicsEngine::MakeAssetKey(const std::filesystem::path& assetPath)
 	return key;
 }
 
-std::string GraphicsEngine::MakePipelineStateKey(const Material* material, const VertexBuffer* vertexBuffer)
+uint64_t GraphicsEngine::MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc)
 {
-	std::string key = std::format("{}_{}", material->GetHandle(), vertexBuffer->GetHandle());
+	std::hash<D3D12_GRAPHICS_PIPELINE_STATE_DESC> hash;
+	uint64_t key = hash(pipelineStateDesc);
 	return key;
 }
 

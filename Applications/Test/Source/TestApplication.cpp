@@ -89,6 +89,13 @@ TestApplication::TestApplication()
 		}
 	}
 
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_Y))
+	{
+		auto swapChain = this->graphicsEngine->FindRenderTarget<Thebe::SwapChain>();
+		if (swapChain)
+			swapChain->SetMsaaEnabled(!swapChain->GetMsaaEnabled());
+	}
+
 	return 0;
 }
 

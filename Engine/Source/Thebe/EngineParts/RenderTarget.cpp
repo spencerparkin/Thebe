@@ -136,6 +136,10 @@ RenderTarget::RenderTarget()
 {
 }
 
+/*virtual*/ void RenderTarget::ConfigurePiplineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc)
+{
+}
+
 //---------------------------------------- RenderTarget::Frame ----------------------------------------
 
 RenderTarget::Frame::Frame()

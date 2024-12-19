@@ -28,6 +28,7 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
+		virtual void ConfigurePiplineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc) override;
 
 		DescriptorHeap::DescriptorSet* GetShadowMapDescriptorForShader();
 
