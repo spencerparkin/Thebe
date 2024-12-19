@@ -35,7 +35,7 @@ namespace std
 			for (uint32_t i = 0; i < sizeof(psoDesc); i++)
 			{
 				word |= uint32_t(buffer[i]) << ((i % 4) * 8);
-				if (i % 4 == 0)
+				if (i % 4 == 3)
 				{
 					hashValue += std::hash<uint32_t>()(word);
 					word = 0;
