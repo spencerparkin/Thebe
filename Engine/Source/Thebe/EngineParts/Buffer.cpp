@@ -512,8 +512,15 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 
 UINT64 Buffer::GetBytesPerPixel()
 {
-	if (this->gpuBufferDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
-		return sizeof(UINT);
+	switch (this->gpuBufferDesc.Format)
+	{
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+		return 4;
+	case DXGI_FORMAT_R8G8_UNORM:
+		return 2;
+	case DXGI_FORMAT_R8_UNORM:
+		return 1;
+	}
 
 	THEBE_LOG("Pixel format %d not yet supported.", this->gpuBufferDesc.Format);
 	return 0;

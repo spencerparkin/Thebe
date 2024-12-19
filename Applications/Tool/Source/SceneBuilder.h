@@ -26,13 +26,18 @@ public:
 	bool BuildScene(const std::filesystem::path& inputSceneFile);
 
 private:
+	struct TextureBuildInfo
+	{
+		UINT numComponentsPerPixel;
+	};
+
 	Thebe::Reference<Thebe::Space> GenerateSceneTree(const aiNode* inputParentNode);
 	Thebe::Reference<Thebe::MeshInstance> GenerateMeshInstance(const aiMesh* inputMesh, const aiNode* inputNode);
 	Thebe::Reference<Thebe::Mesh> GenerateMesh(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::VertexBuffer> GenerateVertexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::Material> GenerateMaterial(const aiMaterial* inputMaterial);
-	Thebe::Reference<Thebe::TextureBuffer> GenerateTextureBuffer(const std::filesystem::path& inputTexturePath);
+	Thebe::Reference<Thebe::TextureBuffer> GenerateTextureBuffer(const std::filesystem::path& inputTexturePath, const TextureBuildInfo& buildInfo);
 
 	Thebe::Transform MakeTransform(const aiMatrix4x4& givenMatrix);
 	Thebe::Vector3 MakeVector(const aiVector3D& givenVector);
@@ -51,6 +56,6 @@ private:
 	Assimp::Importer importer;
 	std::filesystem::path outputAssetsFolder;
 	std::filesystem::path inputSceneFileFolder;
-	std::set<std::filesystem::path> texturesToBuildSet;
+	std::map<std::filesystem::path, TextureBuildInfo> texturesToBuildMap;
 	bool compressTextures;
 };
