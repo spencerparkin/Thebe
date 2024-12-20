@@ -2,10 +2,10 @@ Some things I'd like to achieve...
 
 [x] Generate MIP maps for textures.
 [x] Compress textures.
-[ ] Add cube-maps for a dome.
+[x] Add cube-maps for a dome.
 [ ] Add cube-map environment lighting.
 [ ] Add font renderer.  Use the freetype library to make glyph atlas.
-[ ] Fix bugs in PBR shading.
+[x] Fix bugs in PBR shading.
 [ ] Add height maps to PBR shading.
 [ ] Add AO maps to PBR shading.
 [ ] Can we soften the edges of shadows?
