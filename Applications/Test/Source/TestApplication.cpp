@@ -31,6 +31,12 @@ TestApplication::TestApplication()
 	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
 
+	// Load an env-map.  Must do this before loading the scene.
+	Reference<CubeMapBuffer> envMap;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Textures/OceanCubeMap/OceanCubeMap.cube_map)", envMap))
+		return false;
+	this->graphicsEngine->SetEnvMap(envMap);
+
 	// Load and configure the scene.
 	Reference<Scene> scene;
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Silly.scene)", scene))

@@ -3,6 +3,7 @@
 #include "Thebe/Common.h"
 #include "Thebe/Reference.h"
 #include "Thebe/Utilities/Clock.h"
+#include "Thebe/EngineParts/CubeMapBuffer.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -33,6 +34,7 @@ namespace Thebe
 	class RenderObject;
 	class Camera;
 	class Light;
+	class CubeMapBuffer;
 
 	/**
 	 * An instance of this class facilitates the rendering of graphics into a window.
@@ -87,10 +89,12 @@ namespace Thebe
 		void SetRenderObject(RenderObject* renderObject);
 		void SetCamera(Camera* camera);
 		void SetLight(Light* light);
+		void SetEnvMap(CubeMapBuffer* envMap);
 
 		RenderObject* GetRenderObject();
 		Camera* GetCamera();
 		Light* GetLight();
+		CubeMapBuffer* GetEnvMap();
 
 		bool LoadEnginePartFromFile(std::filesystem::path enginePartPath, Reference<EnginePart>& enginePart, uint32_t flags = 0);
 		bool DumpEnginePartToFile(std::filesystem::path enginePartPath, const EnginePart* enginePart, uint32_t flags = 0);
@@ -162,6 +166,7 @@ namespace Thebe
 		Reference<RenderObject> renderObject;
 		Reference<Camera> camera;
 		Reference<Light> light;
+		Reference<CubeMapBuffer> envMap;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);

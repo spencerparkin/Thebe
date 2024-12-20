@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Sphere003.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "Sphere003",
+	"vertex_buffer": "Buffers\\Sphere003.vertex_buffer"
+}

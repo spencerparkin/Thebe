@@ -1,0 +1,6 @@
+{
+    "alpha_blending": false,
+    "name": "PerfectMirror",
+    "shader": "Shaders/PerfectMirror.shader",
+    "casts_shadows": true
+}

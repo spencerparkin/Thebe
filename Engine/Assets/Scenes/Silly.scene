@@ -1058,6 +1058,250 @@
 					}
 				],
 				"name": "SkyDome_$AssimpFbx$_PreRotation"
+			},
+			{
+				"child_to_parent_transform":
+				{
+					"matrix":
+					{
+						"elements":
+						[
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000
+						]
+					},
+					"translation":
+					{
+						"x": 60.027542,
+						"y": 41.535507,
+						"z": -10.413399
+					}
+				},
+				"children":
+				[
+					{
+						"child_to_parent_transform":
+						{
+							"matrix":
+							{
+								"elements":
+								[
+									1.000000,
+									0.000000,
+									0.000000,
+									0.000000,
+									-0.000000,
+									1.000000,
+									0.000000,
+									-1.000000,
+									-0.000000
+								]
+							},
+							"translation":
+							{
+								"x": 0.000000,
+								"y": 0.000000,
+								"z": 0.000000
+							}
+						},
+						"children":
+						[
+							{
+								"child_to_parent_transform":
+								{
+									"matrix":
+									{
+										"elements":
+										[
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000
+										]
+									},
+									"translation":
+									{
+										"x": 0.000000,
+										"y": 0.000000,
+										"z": 0.000000
+									}
+								},
+								"children":
+								[
+									{
+										"child_to_parent_transform":
+										{
+											"matrix":
+											{
+												"elements":
+												[
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000
+												]
+											},
+											"translation":
+											{
+												"x": 0.000000,
+												"y": 0.000000,
+												"z": 0.000000
+											}
+										},
+										"children":
+										[
+
+										],
+										"material_override": "Materials/PerfectMirror.material",
+										"mesh_instance": "Meshes\\Sphere003.mesh"
+									}
+								],
+								"name": "Sphere003"
+							}
+						],
+						"name": "Sphere003_$AssimpFbx$_PreRotation"
+					}
+				],
+				"name": "Sphere003_$AssimpFbx$_Translation"
+			},
+			{
+				"child_to_parent_transform":
+				{
+					"matrix":
+					{
+						"elements":
+						[
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000
+						]
+					},
+					"translation":
+					{
+						"x": 62.348530,
+						"y": 18.988453,
+						"z": 66.107559
+					}
+				},
+				"children":
+				[
+					{
+						"child_to_parent_transform":
+						{
+							"matrix":
+							{
+								"elements":
+								[
+									1.000000,
+									0.000000,
+									0.000000,
+									0.000000,
+									-0.000000,
+									1.000000,
+									0.000000,
+									-1.000000,
+									-0.000000
+								]
+							},
+							"translation":
+							{
+								"x": 0.000000,
+								"y": 0.000000,
+								"z": 0.000000
+							}
+						},
+						"children":
+						[
+							{
+								"child_to_parent_transform":
+								{
+									"matrix":
+									{
+										"elements":
+										[
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000
+										]
+									},
+									"translation":
+									{
+										"x": 0.000000,
+										"y": 0.000000,
+										"z": 0.000000
+									}
+								},
+								"children":
+								[
+									{
+										"child_to_parent_transform":
+										{
+											"matrix":
+											{
+												"elements":
+												[
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000
+												]
+											},
+											"translation":
+											{
+												"x": 0.000000,
+												"y": 0.000000,
+												"z": 0.000000
+											}
+										},
+										"children":
+										[
+
+										],
+										"material_override": "Materials/PerfectMirror.material",
+										"mesh_instance": "Meshes\\Box003.mesh"
+									}
+								],
+								"name": "Box003"
+							}
+						],
+						"name": "Box003_$AssimpFbx$_PreRotation"
+					}
+				],
+				"name": "Box003_$AssimpFbx$_Translation"
 			}
 		],
 		"name": "RootNode"

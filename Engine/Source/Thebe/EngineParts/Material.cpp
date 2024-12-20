@@ -218,7 +218,7 @@ Buffer* Material::GetTextureForRegister(UINT i)
 		if (!this->GetGraphicsEngine(graphicsEngine))
 			return nullptr;
 
-		//graphicsEngine->GetEnvironmentMap();
+		return graphicsEngine->GetEnvMap();
 	}
 
 	auto iter = this->textureMap.find(textureUsage);

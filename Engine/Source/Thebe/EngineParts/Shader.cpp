@@ -177,10 +177,13 @@ void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 		commandList->SetGraphicsRootDescriptorTable(2, handle);
 	}
 
-	if (shadowMapSet && shadowMapSet->IsAllocated())
+	if (this->shadowMapRegister != -1)
 	{
-		shadowMapSet->GetGpuHandle(0, handle);
-		commandList->SetGraphicsRootDescriptorTable(1, handle);
+		if (shadowMapSet && shadowMapSet->IsAllocated())
+		{
+			shadowMapSet->GetGpuHandle(0, handle);
+			commandList->SetGraphicsRootDescriptorTable(1, handle);
+		}
 	}
 }
 

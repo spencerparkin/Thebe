@@ -357,6 +357,11 @@ void GraphicsEngine::SetLight(Light* light)
 	this->light = light;
 }
 
+void GraphicsEngine::SetEnvMap(CubeMapBuffer* envMap)
+{
+	this->envMap = envMap;
+}
+
 RenderObject* GraphicsEngine::GetRenderObject()
 {
 	return this->renderObject;
@@ -370,6 +375,11 @@ Camera* GraphicsEngine::GetCamera()
 Light* GraphicsEngine::GetLight()
 {
 	return this->light;
+}
+
+CubeMapBuffer* GraphicsEngine::GetEnvMap()
+{
+	return this->envMap;
 }
 
 void GraphicsEngine::Render()

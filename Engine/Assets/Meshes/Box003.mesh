@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\Box003.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "Box003",
+	"vertex_buffer": "Buffers\\Box003.vertex_buffer"
+}

@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\Sphere003.index_buffer_data",
+	"format": 42,
+	"name": "Sphere003_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 11520,
+	"type": 1
+}
