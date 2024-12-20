@@ -128,6 +128,7 @@ void GraphicsToolFrame::OnBuildFont(wxCommandEvent& event)
 	if (inputFileDialog.ShowModal() != wxID_OK)
 		return;
 
+	bool succeeded = true;
 	wxArrayString inputFilePathArray;
 	inputFileDialog.GetPaths(inputFilePathArray);
 	for (const wxString& inputFontFile : inputFilePathArray)
@@ -144,9 +145,13 @@ void GraphicsToolFrame::OnBuildFont(wxCommandEvent& event)
 		if (!fontBuilder.GenerateFont(inputFontFile, outputAssetsFolder))
 		{
 			wxMessageBox(wxString::Format("Failed to build font: %s", inputFontFile.c_str()), "Error!", wxICON_ERROR | wxOK, this);
+			succeeded = false;
 			break;
 		}
 	}
+
+	if (succeeded)
+		wxMessageBox(wxString::Format("Built %d font(s) successfully!", (int)inputFilePathArray.size()), "Success!", wxICON_INFORMATION | wxOK, this);
 }
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)

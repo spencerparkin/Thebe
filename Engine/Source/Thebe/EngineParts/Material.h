@@ -35,6 +35,7 @@ namespace Thebe
 		void SetCastsShadows(bool castsShadows);
 		bool GetCastsShadows() const;
 		CubeMapBuffer* GetCubeMap();
+		bool RendersTransparency() const;
 
 	private:
 		Reference<Shader> shader;

@@ -2,6 +2,7 @@
 #include "TextureBuilder.h"
 #include "Thebe/Log.h"
 #include "Thebe/Utilities/JsonHelper.h"
+#include "Thebe/EngineParts/Font.h"
 #include "App.h"
 #include <wx/image.h>
 #include <wx/filename.h>
@@ -21,6 +22,11 @@ FontBuilder::FontBuilder()
 bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::path& outputAssetsFolder)
 {
 	using namespace ParseParty;
+
+	Thebe::Reference<Thebe::Font> font(new Thebe::Font());
+	font->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
+
+	THEBE_LOG("Building font: %s", (const char*)fontFile.c_str());
 
 	wxFileName nativeFontFile(fontFile);
 	wxString fontFolder = nativeFontFile.GetPath();
@@ -49,14 +55,16 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 	}
 
 	FT_Face face = nullptr;
-	auto fontRootValue = new JsonObject();
 	bool success = false;
 	do
 	{
-		fontRootValue->SetValue("name", new JsonString((const char*)fontFileName.GetName()));
-		
-		auto characterArrayValue = new JsonArray();
-		fontRootValue->SetValue("character_array", characterArrayValue);
+		font->SetName((const char*)fontFileName.GetName());
+		font->SetShaderPath(R"(Shaders/FontShader.shader)");
+		font->SetCastsShadows(false);
+		font->GetBlendDesc().RenderTarget[0].BlendEnable = TRUE;
+
+		std::vector<Thebe::Font::CharacterInfo>& charInfoArray = font->GetCharacterInfoArray();
+		charInfoArray.resize(256);
 
 		error = FT_New_Face(this->library, (const char*)fontFile.c_str(), 0, &face);
 		if (error)
@@ -106,8 +114,7 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 		FT_UInt i;
 		for (i = 0; i < 256; i++)
 		{
-			auto characterValue = new JsonObject();
-			characterArrayValue->PushValue(characterValue);
+			Thebe::Font::CharacterInfo& charInfo = charInfoArray[i];
 
 			FT_UInt glyphIndex = FT_Get_Char_Index(face, i);
 
@@ -129,18 +136,13 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 			}
 
 			FT_GlyphSlot slot = face->glyph;
-			double advance = double(slot->advance.x >> 6) / double(atlasWidth);
-			characterValue->SetValue("advance", new JsonFloat(advance));
-
-			double penOffsetX = double(slot->bitmap_left) / double(atlasWidth);
-			double penOffsetY = double(int(slot->bitmap_top) - int(slot->bitmap.rows)) / double(atlasHeight);
-			characterValue->SetValue("pen_offset_x", new JsonFloat(penOffsetX));
-			characterValue->SetValue("pen_offset_y", new JsonFloat(penOffsetY));
+			charInfo.advance = double(slot->advance.x >> 6) / double(atlasWidth);
+			charInfo.penOffset.x = double(slot->bitmap_left) / double(atlasWidth);
+			charInfo.penOffset.y = double(int(slot->bitmap_top) - int(slot->bitmap.rows)) / double(atlasHeight);
 
 			if (!slot->bitmap.buffer)
 			{
 				THEBE_LOG("Character %d didn't have a bitmap associated with it.  (Could just be a space.)", i);
-				characterValue->SetValue("no_glyph", new JsonBool(true));
 			}
 			else
 			{
@@ -165,15 +167,10 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 					break;
 				}
 
-				double minU = double(atlasX) / double(atlasWidth);
-				double minV = double(atlasY) / double(atlasHeight);
-				double maxU = double(atlasX + slot->bitmap.width) / double(atlasWidth);
-				double maxV = double(atlasY + slot->bitmap.rows) / double(atlasHeight);
-
-				characterValue->SetValue("min_u", new JsonFloat(minU));
-				characterValue->SetValue("min_v", new JsonFloat(minV));
-				characterValue->SetValue("max_u", new JsonFloat(maxU));
-				characterValue->SetValue("max_v", new JsonFloat(maxV));
+				charInfo.minUV.x = double(atlasX) / double(atlasWidth);
+				charInfo.minUV.y = double(atlasY) / double(atlasHeight);
+				charInfo.maxUV.x = double(atlasX + slot->bitmap.width) / double(atlasWidth);
+				charInfo.maxUV.y = double(atlasY + slot->bitmap.rows) / double(atlasHeight);
 
 				for (int row = 0; row < slot->bitmap.rows; row++)
 				{
@@ -228,27 +225,20 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 		}
 
 		std::filesystem::path outputTexturePath = textureBuilder.GenerateTextureBufferPath(inputTexturePath);
-		fontRootValue->SetValue("texture", new JsonString(outputTexturePath.string().c_str()));
+		font->SetTexturePath("char_atlas", outputTexturePath);
 
-		std::string jsonString;
-		if (!fontRootValue->PrintJson(jsonString))
+		std::filesystem::path outputFontPath((const char*)fontFileName.GetFullPath());
+		if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputFontPath, font, THEBE_DUMP_FLAG_CAN_OVERWRITE))
+		{
+			THEBE_LOG("Failed to dump font file: %s", outputFontPath.string().c_str());
 			break;
-
-		std::ofstream fileStream;
-		fileStream.open((const char*)fontFileName.GetFullPath(), std::ios::out);
-		if (!fileStream.is_open())
-			break;
-
-		fileStream.write(jsonString.c_str(), jsonString.length());
-		fileStream.close();
+		}
 
 		success = true;
 	} while (false);
 
 	if (face)
 		FT_Done_Face(face);
-
-	delete fontRootValue;
 
 	return success;
 }

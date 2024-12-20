@@ -24,6 +24,7 @@ namespace Thebe
 		virtual void PrepareForRender() override;
 
 		void SetRootSpace(Space* space);
+		Space* GetRootSpace();
 
 	protected:
 		void GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget);

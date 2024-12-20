@@ -87,6 +87,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/SpotLight.h
     Source/Thebe/EngineParts/DirectionalLight.cpp
     Source/Thebe/EngineParts/DirectionalLight.h
+    Source/Thebe/EngineParts/TextInstance.cpp
+    Source/Thebe/EngineParts/TextInstance.h
+    Source/Thebe/EngineParts/Font.cpp
+    Source/Thebe/EngineParts/Font.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

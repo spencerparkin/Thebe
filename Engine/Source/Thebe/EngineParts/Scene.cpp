@@ -69,6 +69,11 @@ void Scene::SetRootSpace(Space* space)
 	this->rootSpace = space;
 }
 
+Space* Scene::GetRootSpace()
+{
+	return this->rootSpace;
+}
+
 void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget)
 {
 	renderObjectList.clear();

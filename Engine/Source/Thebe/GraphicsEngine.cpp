@@ -15,6 +15,7 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Light.h"
+#include "Thebe/EngineParts/Font.h"
 #include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -709,6 +710,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new Scene());
 	else if (ext == ".cube_map")
 		enginePart.Set(new CubeMapBuffer());
+	else if (ext == ".font")
+		enginePart.Set(new Font());
 
 	if (!enginePart.Get())
 	{

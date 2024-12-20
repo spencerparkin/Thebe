@@ -288,6 +288,14 @@ Mesh* MeshInstance::GetMesh()
 	return this->mesh;
 }
 
+/*virtual*/ uint32_t MeshInstance::GetRenderOrder() const
+{
+	if (this->material.Get() && this->material->RendersTransparency())
+		return THEBE_RENDER_ORDER_ALPHA_BLEND;
+
+	return THEBE_RENDER_ORDER_OPAQUE;
+}
+
 /*virtual*/ bool MeshInstance::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
 {
 	using namespace ParseParty;

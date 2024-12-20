@@ -165,6 +165,16 @@ Material::Material()
 	return true;
 }
 
+bool Material::RendersTransparency() const
+{
+	UINT numRenderTargets = _countof(this->blendDesc.RenderTarget);
+	for (UINT i = 0; i < numRenderTargets; i++)
+		if (this->blendDesc.RenderTarget[i].BlendEnable)
+			return true;
+
+	return false;
+}
+
 void Material::SetShaderPath(const std::filesystem::path& shaderPath)
 {
 	this->shaderPath = shaderPath;

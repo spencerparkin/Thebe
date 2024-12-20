@@ -37,7 +37,7 @@ void RenderObject::SetFlags(uint32_t flags)
 
 /*virtual*/ uint32_t RenderObject::GetRenderOrder() const
 {
-	return 0;
+	return THEBE_RENDER_ORDER_OPAQUE;
 }
 
 /*virtual*/ bool RenderObject::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)

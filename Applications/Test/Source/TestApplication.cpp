@@ -3,11 +3,13 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/Scene.h"
-#include "Thebe/Math/Transform.h"
 #include "Thebe/EngineParts/Buffer.h"
 #include "Thebe/EngineParts/IndexBuffer.h"
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/DirectionalLight.h"
+#include "Thebe/EngineParts/Font.h"
+#include "Thebe/EngineParts/TextInstance.h"
+#include "Thebe/Math/Transform.h"
 
 using namespace Thebe;
 
@@ -42,6 +44,21 @@ TestApplication::TestApplication()
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\Silly.scene)", scene))
 		return false;
 	this->graphicsEngine->SetRenderObject(scene);
+
+	// Load a font we can use.
+	Reference<Font> font;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Fonts\Roboto_Regular.font)", font))
+		return false;
+
+	// Create some text and put it in the scene.
+	Reference<TextInstance> text(new TextInstance());
+	text->SetFont(font);
+	text->SetText("This is some text!\nThis is another line of text!\nIs this is the final line of text!");
+	Transform textTransform;
+	textTransform.SetIdentity();
+	textTransform.translation.SetComponents(-30.0, 50.0, 30);
+	text->SetChildToParentTransform(textTransform);
+	scene->GetRootSpace()->AddSubSpace(text);
 
 	// Load and configure a light source.
 	Reference<DirectionalLight> light(new DirectionalLight());
