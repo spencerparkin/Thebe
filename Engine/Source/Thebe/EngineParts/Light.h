@@ -39,8 +39,12 @@ namespace Thebe
 		void SetAmbientLightColor(const Vector3& ambientLightColor);
 		const Vector3& GetAmbientLightColor() const;
 
+		void SetLightIntensity(double lightIntensity);
+		double GetLightIntensity() const;
+
 	protected:
 		Vector3 lightColor;
 		Vector3 ambientLightColor;
+		double lightIntensity;
 	};
 }

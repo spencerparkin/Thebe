@@ -16,6 +16,7 @@ cbuffer Constants : register(b0)
     float lightDistanceInfinite;        // This is a binary (0 or 1) value.
     float3 lightColor;
     float3 ambientLightColor;
+    float lightIntensity;
 };
 
 static const float PI = 3.1415926536;
@@ -125,9 +126,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     
     // TODO: IBL is overwelming.  Can we do some sort of environment reflection?
     
-    // Calculate our light intensity.
-    // TODO: For spot-lights, an inverse square law would need to be taken into account here.
-    float3 lightIntensity = 5.0 * lightColor;      // TODO: Not sure what the scale of the light intensity is.  What is it?
+    // TODO: For spot-lights, an inverse square law would need to be applied to the light intensity.
     
     // Calculate statistical percentage of surface area in the fragment containing microfacets that align with the half-way vector.
     // These facets are going to contribute most to the specular highlight on the surface.
@@ -142,7 +141,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // Calculate the Cook-Torrance BRDF.  Note that the F and 1-F terms give us the conservation of energy property.
     float3 diffusePart = (baseColor / PI) * (float3(1.0, 1.0, 1.0) - F) * (1.0 - metalness); // Metals are just reflective.
     float3 specularPart = D * F * G / (4.0 * max(viewDirDotSurfaceNormal * lightDirDotSurfaceNormal, 0.001));
-    float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
+    float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightColor * lightDirDotSurfaceNormal;
     
     // Factor in an ambient light term.
     visibleColor += ambientLightColor * baseColor * ao;

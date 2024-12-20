@@ -15,6 +15,11 @@
             "size": 4,
             "type": "float"
         },
+        "lightIntensity": {
+            "offset": 252,
+            "size": 4,
+            "type": "float"
+        },
         "objToProj": {
             "offset": 0,
             "size": 64,

@@ -8,6 +8,7 @@ Light::Light()
 {
 	this->lightColor.SetComponents(1.0, 1.0, 1.0);
 	this->ambientLightColor.SetComponents(0.03, 0.03, 0.03);
+	this->lightIntensity = 5.0;
 }
 
 /*virtual*/ Light::~Light()
@@ -25,6 +26,9 @@ Light::Light()
 		return false;
 
 	if (!constantsBuffer->SetParameter("ambientLightColor", this->ambientLightColor))
+		return false;
+
+	if (!constantsBuffer->SetParameter("lightIntensity", this->lightIntensity))
 		return false;
 
 	return true;
@@ -53,4 +57,14 @@ const Vector3& Light::GetAmbientLightColor() const
 /*virtual*/ bool Light::SetLightToWorldTransform(const Transform& lightToWorld)
 {
 	return false;
+}
+
+void Light::SetLightIntensity(double lightIntensity)
+{
+	this->lightIntensity = lightIntensity;
+}
+
+double Light::GetLightIntensity() const
+{
+	return this->lightIntensity;
 }
