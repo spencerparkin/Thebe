@@ -1,0 +1,12 @@
+{
+	"compressed": true,
+	"compressed_size": 43774,
+	"data": "Fonts\\Roboto_Regular.texture_buffer_data",
+	"height": 1024,
+	"name": "Roboto_Regular",
+	"num_mips": 1,
+	"pixel_format": 65,
+	"size": 1048576,
+	"type": 1,
+	"width": 1024
+}
