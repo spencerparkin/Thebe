@@ -63,7 +63,7 @@ PSInput VSMain(VSInput input)
 // This is the Trowbridge-Reitz GGX normal distribution function.
 float NormalDistribution(float halfwayVectorDotSurfaceNormal, float roughness)
 {
-    float alpha = roughness * roughness;
+    float alpha = roughness;
     float alpha2 = alpha * alpha;
     float denomFactor = halfwayVectorDotSurfaceNormal * halfwayVectorDotSurfaceNormal * (alpha2 - 1.0) + 1.0;
     return alpha2 / (PI * denomFactor * denomFactor);
