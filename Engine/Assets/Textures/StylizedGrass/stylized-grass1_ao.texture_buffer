@@ -1,0 +1,12 @@
+{
+	"compressed": true,
+	"compressed_size": 2014551,
+	"data": "Textures\\StylizedGrass\\stylized-grass1_ao.texture_buffer_data",
+	"height": 2048,
+	"name": "stylized-grass1_ao",
+	"num_mips": 12,
+	"pixel_format": 61,
+	"size": 5592405,
+	"type": 1,
+	"width": 2048
+}
