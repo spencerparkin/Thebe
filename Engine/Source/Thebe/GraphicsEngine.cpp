@@ -230,6 +230,30 @@ void GraphicsEngine::PurgeCache()
 	this->enginePartCacheMap.clear();
 }
 
+void GraphicsEngine::RemoveExpiredPSOs(bool removeAllNow /*= false*/)
+{
+	std::vector<uint64_t> keyArray;
+
+	for (auto pair : this->pipelineStateCacheMap)
+	{
+		PSO* pso = pair.second;
+		if (pso->expirationCount == 0 || removeAllNow)
+			keyArray.push_back(pair.first);
+		else
+			pso->expirationCount--;
+	}
+
+	for (uint64_t key : keyArray)
+	{
+		THEBE_LOG("Releasing PSO: %ull", key);
+		auto pair = this->pipelineStateCacheMap.find(key);
+		PSO* pso = pair->second;
+		pso->pipelineState = nullptr;
+		delete pso;
+		this->pipelineStateCacheMap.erase(key);
+	}
+}
+
 void GraphicsEngine::Shutdown()
 {
 	this->WaitForGPUIdle();
@@ -241,7 +265,7 @@ void GraphicsEngine::Shutdown()
 
 	this->renderTargetArray.clear();
 
-	this->pipelineStateCacheMap.clear();
+	this->RemoveExpiredPSOs(true);
 
 	if (this->commandQueue)
 	{
@@ -357,6 +381,8 @@ void GraphicsEngine::Render()
 
 	for (Reference<RenderTarget>& renderTarget : this->renderTargetArray)
 		renderTarget->Render();
+
+	this->RemoveExpiredPSOs();
 
 	this->frameCount++;
 	this->deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
@@ -574,21 +600,29 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 
 	renderTarget->ConfigurePiplineStateDesc(psoDesc);
 
+	PSO* pso = nullptr;
 	uint64_t key = this->MakePipelineStateKey(psoDesc);
 	auto pair = this->pipelineStateCacheMap.find(key);
 	if (pair != this->pipelineStateCacheMap.end())
-		return pair->second.Get();
-
-	ComPtr<ID3D12PipelineState> pipelineState;
-	HRESULT result = this->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
-	if (FAILED(result))
+		pso = pair->second;
+	else
 	{
-		THEBE_LOG("Failed to create graphics pipeline state object.  Error: 0x%08x", result);
-		return nullptr;
+		pso = new PSO();
+		pso->expirationCount = 0;
+		this->pipelineStateCacheMap.insert(std::pair(key, pso));
+
+		HRESULT result = this->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso->pipelineState));
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to create graphics pipeline state object.  Error: 0x%08x", result);
+			return nullptr;
+		}
+
+		THEBE_LOG("Created PSO: %ull", key);
 	}
 
-	this->pipelineStateCacheMap.insert(std::pair(key, pipelineState));
-	return pipelineState.Get();
+	pso->expirationCount = THEBE_PSO_MAX_EXPIRATION_COUNT;
+	return pso->pipelineState.Get();
 }
 
 std::string GraphicsEngine::MakeAssetKey(const std::filesystem::path& assetPath)

@@ -15,6 +15,7 @@
 #define THEBE_LOAD_FLAG_DONT_CACHE_PART					0x00000002
 #define THEBE_DUMP_FLAG_CAN_OVERWRITE					0x00000001
 #define THEBE_UPLOAD_HEAP_DEFAULT_SIZE					128 * 1024 * 1024
+#define THEBE_PSO_MAX_EXPIRATION_COUNT					512
 
 namespace Thebe
 {
@@ -140,6 +141,11 @@ namespace Thebe
 		}
 
 	private:
+		struct PSO
+		{
+			ComPtr<ID3D12PipelineState> pipelineState;
+			UINT expirationCount;
+		};
 
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
@@ -152,13 +158,14 @@ namespace Thebe
 		Reference<DescriptorHeap> dsvDescriptorHeap;
 		std::list<std::filesystem::path> assetFolderList;
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
-		std::unordered_map<uint64_t, ComPtr<ID3D12PipelineState>> pipelineStateCacheMap;
+		std::unordered_map<uint64_t, PSO*> pipelineStateCacheMap;
 		Reference<RenderObject> renderObject;
 		Reference<Camera> camera;
 		Reference<Light> light;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
+		void RemoveExpiredPSOs(bool removeAllNow = false);
 
 		double CalcFramerate();
 		Clock clock;
