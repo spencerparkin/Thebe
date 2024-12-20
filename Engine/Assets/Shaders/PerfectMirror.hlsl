@@ -37,7 +37,7 @@ PSInput VSMain(VSInput input)
 float4 PSMain(PSInput input) : SV_TARGET
 {
     float3 worldViewDir = worldViewPos - input.worldPos;
-    float3 worldReflectionDir = 2.0 * dot(worldViewDir, input.worldNormal) - worldViewDir;
+    float3 worldReflectionDir = 2.0 * dot(worldViewDir, input.worldNormal) * input.worldNormal - worldViewDir;
     float3 unitWorldReflectionDir = normalize(worldReflectionDir);
     float4 color = envTexture.Sample(envSampler, unitWorldReflectionDir);
     return color;
