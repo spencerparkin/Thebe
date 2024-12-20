@@ -519,6 +519,7 @@ UINT64 Buffer::GetBytesPerPixel()
 	case DXGI_FORMAT_R8G8_UNORM:
 		return 2;
 	case DXGI_FORMAT_R8_UNORM:
+	case DXGI_FORMAT_A8_UNORM:
 		return 1;
 	}
 

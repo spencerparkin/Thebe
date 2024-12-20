@@ -3,11 +3,9 @@
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include <assimp/postprocess.h>
-#include <wx/image.h>
 
 SceneBuilder::SceneBuilder()
 {
-	this->compressTextures = true;
 }
 
 /*virtual*/ SceneBuilder::~SceneBuilder()
@@ -26,7 +24,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	THEBE_LOG("Output assets folder: %s", this->outputAssetsFolder.string().c_str());
 
 	this->inputSceneFileFolder = inputSceneFile.parent_path();
-	this->texturesToBuildMap.clear();
+	this->textureBuilder.ClearTextures();
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->RemoveAllAssetFolders();
@@ -106,27 +104,8 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		}
 	}
 
-	THEBE_LOG("Processing %d textures...", this->texturesToBuildMap.size());
-	for (auto pair : this->texturesToBuildMap)
-	{
-		const std::filesystem::path& inputTexturePath = pair.first;
-		const TextureBuildInfo& textureBuildInfo = pair.second;
-		THEBE_LOG("Processing texture: %s", inputTexturePath.string().c_str());
-
-		Thebe::Reference<Thebe::TextureBuffer> outputTexture = this->GenerateTextureBuffer(inputTexturePath, textureBuildInfo);
-		if (!outputTexture.Get())
-		{
-			THEBE_LOG("Failed to generate texture: %s", inputTexturePath.string().c_str());
-			return Thebe::Reference<Thebe::Material>();
-		}
-
-		std::filesystem::path outputTexturePath = (this->outputAssetsFolder / this->GenerateTextureBufferPath(inputTexturePath)).lexically_normal();
-		if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputTexturePath, outputTexture, THEBE_DUMP_FLAG_CAN_OVERWRITE))
-		{
-			THEBE_LOG("Failed to dump texture: %s", outputTexturePath.string().c_str());
-			return Thebe::Reference<Thebe::Material>();
-		}
-	}
+	if (!this->textureBuilder.GenerateTextures(this->outputAssetsFolder))
+		return false;
 
 	return true;
 }
@@ -143,8 +122,8 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 		outputMaterial->SetShaderPath("Shaders/BasicShader.shader");
 
 		std::filesystem::path inputDiffuseTexturePath = (this->inputSceneFileFolder / inputDiffuseTexture.C_Str()).lexically_normal();
-		this->texturesToBuildMap.insert(std::pair(inputDiffuseTexturePath, TextureBuildInfo{ 4 }));
-		std::filesystem::path outputDiffuseTexturePath = this->GenerateTextureBufferPath(inputDiffuseTexturePath);
+		this->textureBuilder.AddTexture(inputDiffuseTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+		std::filesystem::path outputDiffuseTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputDiffuseTexturePath);
 		outputMaterial->SetTexturePath("diffuse", outputDiffuseTexturePath);
 	}
 	else
@@ -155,16 +134,16 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			outputMaterial->SetShaderPath("Shaders/PBRShader.shader");
 
 			std::filesystem::path inputAlbedoTexturePath = (this->inputSceneFileFolder / inputAlbedoTexture.C_Str()).lexically_normal();
-			this->texturesToBuildMap.insert(std::pair(inputAlbedoTexturePath, TextureBuildInfo{ 4 }));
-			std::filesystem::path outputAlbedoTexturePath = this->GenerateTextureBufferPath(inputAlbedoTexturePath);
+			this->textureBuilder.AddTexture(inputAlbedoTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+			std::filesystem::path outputAlbedoTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputAlbedoTexturePath);
 			outputMaterial->SetTexturePath("albedo", outputAlbedoTexturePath);
 
 			aiString inputAmbientOcclusionTexture;
 			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_AMBIENT_OCCLUSION, 0), &inputAmbientOcclusionTexture))
 			{
 				std::filesystem::path inputAmbientOcclusionTexturePath = (this->inputSceneFileFolder / inputAmbientOcclusionTexture.C_Str()).lexically_normal();
-				this->texturesToBuildMap.insert(std::pair(inputAmbientOcclusionTexturePath, TextureBuildInfo{ 4 }));
-				std::filesystem::path outputAmbientOcclusionTexturePath = this->GenerateTextureBufferPath(inputAmbientOcclusionTexturePath);
+				this->textureBuilder.AddTexture(inputAmbientOcclusionTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+				std::filesystem::path outputAmbientOcclusionTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputAmbientOcclusionTexturePath);
 				outputMaterial->SetTexturePath("ambient_occlusion", outputAmbientOcclusionTexturePath);
 			}
 
@@ -172,8 +151,8 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_HEIGHT, 0), &inputHeightTexture))
 			{
 				std::filesystem::path inputHeightTexturePath = (this->inputSceneFileFolder / inputHeightTexture.C_Str()).lexically_normal();
-				this->texturesToBuildMap.insert(std::pair(inputHeightTexturePath, TextureBuildInfo{ 4 }));
-				std::filesystem::path outputHeightTexturePath = this->GenerateTextureBufferPath(inputHeightTexturePath);
+				this->textureBuilder.AddTexture(inputHeightTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+				std::filesystem::path outputHeightTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputHeightTexturePath);
 				outputMaterial->SetTexturePath("height", outputHeightTexturePath);
 			}
 
@@ -181,8 +160,8 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_METALNESS, 0), &inputMetalicTexture))
 			{
 				std::filesystem::path inputMetalicTexturePath = (this->inputSceneFileFolder / inputMetalicTexture.C_Str()).lexically_normal();
-				this->texturesToBuildMap.insert(std::pair(inputMetalicTexturePath, TextureBuildInfo{ 1 }));
-				std::filesystem::path outputMetalicTexturePath = this->GenerateTextureBufferPath(inputMetalicTexturePath);
+				this->textureBuilder.AddTexture(inputMetalicTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8_UNORM, UINT(-1) });
+				std::filesystem::path outputMetalicTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputMetalicTexturePath);
 				outputMaterial->SetTexturePath("metalic", outputMetalicTexturePath);
 			}
 
@@ -190,8 +169,8 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_NORMAL_CAMERA, 0), &inputNormalTexture))
 			{
 				std::filesystem::path inputNormalTexturePath = (this->inputSceneFileFolder / inputNormalTexture.C_Str()).lexically_normal();
-				this->texturesToBuildMap.insert(std::pair(inputNormalTexturePath, TextureBuildInfo{ 4 }));
-				std::filesystem::path outputNormalTexturePath = this->GenerateTextureBufferPath(inputNormalTexturePath);
+				this->textureBuilder.AddTexture(inputNormalTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+				std::filesystem::path outputNormalTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputNormalTexturePath);
 				outputMaterial->SetTexturePath("normal", outputNormalTexturePath);
 			}
 
@@ -199,8 +178,8 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE_ROUGHNESS, 0), &inputRoughnessTexture))
 			{
 				std::filesystem::path inputRoughnessTexturePath = (this->inputSceneFileFolder / inputRoughnessTexture.C_Str()).lexically_normal();
-				this->texturesToBuildMap.insert(std::pair(inputRoughnessTexturePath, TextureBuildInfo{ 1 }));
-				std::filesystem::path outputRoughnessTexturePath = this->GenerateTextureBufferPath(inputRoughnessTexturePath);
+				this->textureBuilder.AddTexture(inputRoughnessTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8_UNORM, UINT(-1) });
+				std::filesystem::path outputRoughnessTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputRoughnessTexturePath);
 				outputMaterial->SetTexturePath("roughness", outputRoughnessTexturePath);
 			}
 		}
@@ -211,108 +190,6 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 	}
 
 	return outputMaterial;
-}
-
-Thebe::Reference<Thebe::TextureBuffer> SceneBuilder::GenerateTextureBuffer(const std::filesystem::path& inputTexturePath, const TextureBuildInfo& buildInfo)
-{
-	Thebe::Reference<Thebe::TextureBuffer> outputTexture(new Thebe::TextureBuffer());
-	outputTexture->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
-	outputTexture->SetName(inputTexturePath.stem().string());
-	outputTexture->SetBufferType(Thebe::Buffer::STATIC);
-	outputTexture->SetCompressed(this->compressTextures);
-
-	wxImage inputImage;
-	if (!inputImage.LoadFile(inputTexturePath.string().c_str()))
-	{
-		THEBE_LOG("Failed to load file: %s", inputTexturePath.string().c_str());
-		return Thebe::Reference<Thebe::TextureBuffer>();
-	}
-
-	D3D12_RESOURCE_DESC& gpuBufferDesc = outputTexture->GetResourceDesc();
-	gpuBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	gpuBufferDesc.Width = inputImage.GetWidth();
-	gpuBufferDesc.Height = inputImage.GetHeight();
-
-	switch (buildInfo.numComponentsPerPixel)
-	{
-	case 4:
-		gpuBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		break;
-	case 2:
-		gpuBufferDesc.Format = DXGI_FORMAT_R8G8_UNORM;
-		break;
-	case 1:
-		gpuBufferDesc.Format = DXGI_FORMAT_R8_UNORM;
-		break;
-	default:
-		THEBE_LOG("Can't yet support %d components per pixel.", buildInfo.numComponentsPerPixel);
-		return Thebe::Reference<Thebe::TextureBuffer>();
-	}
-
-	if (outputTexture->GetBytesPerPixel() == 0)
-	{
-		THEBE_LOG("Got zero bytes per pixel?!");
-		return Thebe::Reference<Thebe::TextureBuffer>();
-	}
-
-	UINT64 outputBufferSize = 0;
-	UINT numMips = 0;
-	UINT64 mipWidth = (UINT)inputImage.GetWidth();
-	UINT64 mipHeight = (UINT)inputImage.GetHeight();
-	while (mipWidth >= 1 && mipHeight >= 1)
-	{
-		numMips++;
-		outputBufferSize += mipWidth * mipHeight * outputTexture->GetBytesPerPixel();
-		if ((mipWidth & 0x1) != 0 || (mipHeight & 0x1) != 0)
-			break;
-		mipWidth >>= 1;
-		mipHeight >>= 1;
-	}
-
-	gpuBufferDesc.MipLevels = numMips;
-
-	UINT bytesPerInputColorPixel = 3;
-	UINT bytesPerInputAlphaPixel = 1;
-
-	std::vector<UINT8>& outputBuffer = outputTexture->GetOriginalBuffer();
-	outputBuffer.resize(outputBufferSize);
-
-	mipWidth = (UINT)inputImage.GetWidth();
-	mipHeight = (UINT)inputImage.GetHeight();
-	UINT64 mipImageOffset = 0;
-
-	for (UINT mipNumber = 0; mipNumber < numMips; mipNumber++)
-	{
-		wxImage sourceImage;
-		if (mipNumber > 0)
-			sourceImage = inputImage.Scale((int)mipWidth, (int)mipHeight, wxIMAGE_QUALITY_HIGH);
-		else
-			sourceImage = inputImage;
-
-		UINT8* destinationImageBuffer = &outputBuffer.data()[mipImageOffset];
-
-		for (UINT64 i = 0; i < mipHeight; i++)
-		{
-			for (UINT64 j = 0; j < mipWidth; j++)
-			{
-				UINT pixelOffset = i * mipWidth + j;
-
-				const unsigned char* inputColor = &sourceImage.GetData()[pixelOffset * bytesPerInputColorPixel];
-				const unsigned char* inputAlpha = sourceImage.HasAlpha() ? &sourceImage.GetAlpha()[pixelOffset * bytesPerInputAlphaPixel] : nullptr;
-
-				UINT8* outputPixel = &destinationImageBuffer[pixelOffset * outputTexture->GetBytesPerPixel()];
-
-				for (int k = 0; k < buildInfo.numComponentsPerPixel; k++)
-					outputPixel[k] = (k < 3) ? inputColor[k] : (inputAlpha ? inputAlpha[0] : 0);
-			}
-		}
-
-		mipImageOffset += mipWidth * mipHeight * outputTexture->GetBytesPerPixel();
-		mipWidth >>= 1;
-		mipHeight >>= 1;
-	}
-
-	return outputTexture;
 }
 
 Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh)
@@ -600,35 +477,6 @@ std::filesystem::path SceneBuilder::GenerateVertexBufferPath(const aiMesh* input
 	outputVertexBufferName = this->NoSpaces(this->PrefixWithSceneName(outputVertexBufferName));
 	std::filesystem::path outputVertexBufferPath = std::filesystem::path("Buffers") / outputVertexBufferName;
 	return outputVertexBufferPath;
-}
-
-std::filesystem::path SceneBuilder::GenerateTextureBufferPath(const std::filesystem::path& inputTexturePath)
-{
-	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
-	std::filesystem::path relativeInputTexturePath = inputTexturePath;
-	bool found = graphicsEngine->GetRelativeToAssetFolder(relativeInputTexturePath);
-	THEBE_ASSERT(found);
-	std::string inputTextureName(inputTexturePath.stem().string());
-	std::string outputTextureName = inputTextureName + ".texture_buffer";
-	outputTextureName = this->NoSpaces(this->PrefixWithSceneName(outputTextureName));
-	std::filesystem::path outputTexturePath = relativeInputTexturePath.parent_path() / outputTextureName;
-	return outputTexturePath;
-}
-
-std::string SceneBuilder::NoSpaces(const std::string& givenString)
-{
-	std::string resultString = givenString;
-
-	while (true)
-	{
-		size_t pos = resultString.find(' ');
-		if (pos == std::string::npos)
-			break;
-
-		resultString.replace(pos, 1, "_");
-	}
-
-	return resultString;
 }
 
 std::string SceneBuilder::PrefixWithSceneName(const std::string& givenString)

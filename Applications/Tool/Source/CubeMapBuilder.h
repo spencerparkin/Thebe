@@ -1,6 +1,7 @@
 #pragma once
 
 #include "App.h"
+#include "Builder.h"
 #include "Thebe/EngineParts/CubeMapBuffer.h"
 
 /**
@@ -9,7 +10,7 @@
  * that is currently rendering in the engine.  Doing so might be a
  * worth-while exercise.
  */
-class CubeMapBuilder
+class CubeMapBuilder : public Builder
 {
 public:
 	CubeMapBuilder();

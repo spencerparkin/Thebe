@@ -3,6 +3,7 @@
 #include "App.h"
 #include "SceneBuilder.h"
 #include "CubeMapBuilder.h"
+#include "FontBuilder.h"
 #include "Thebe/EngineParts/Scene.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -123,6 +124,29 @@ void GraphicsToolFrame::OnBuildCubeMap(wxCommandEvent& event)
 
 void GraphicsToolFrame::OnBuildFont(wxCommandEvent& event)
 {
+	wxFileDialog inputFileDialog(this, "Choose font files.", wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+	if (inputFileDialog.ShowModal() != wxID_OK)
+		return;
+
+	wxArrayString inputFilePathArray;
+	inputFileDialog.GetPaths(inputFilePathArray);
+	for (const wxString& inputFontFile : inputFilePathArray)
+	{
+		Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+		std::filesystem::path outputAssetsFolder;
+		if (!graphicsEngine->GleanAssetsFolderFromPath(std::filesystem::path((const char*)inputFontFile.c_str()), outputAssetsFolder))
+			return;
+
+		graphicsEngine->RemoveAllAssetFolders();
+		graphicsEngine->AddAssetFolder(outputAssetsFolder);
+
+		FontBuilder fontBuilder;
+		if (!fontBuilder.GenerateFont(inputFontFile, outputAssetsFolder))
+		{
+			wxMessageBox(wxString::Format("Failed to build font: %s", inputFontFile.c_str()), "Error!", wxICON_ERROR | wxOK, this);
+			break;
+		}
+	}
 }
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)
