@@ -15,6 +15,7 @@ cbuffer Constants : register(b0)
     float shadowFarClip;
     float lightDistanceInfinite;        // This is a binary (0 or 1) value.
     float3 lightColor;
+    float3 ambientLightColor;
 };
 
 static const float PI = 3.1415926536;
@@ -26,7 +27,8 @@ Texture2D albedoTexture : register(t0);
 Texture2D metalicTexture : register(t1);
 Texture2D roughnessTexture : register(t2);
 Texture2D normalTexture : register(t3);
-Texture2D shadowTexture : register(t4);
+Texture2D ambientOcclusionTexture : register(t4);
+Texture2D shadowTexture : register(t5);
 
 struct VSInput
 {
@@ -102,6 +104,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     float roughness = roughnessTexture.Sample(generalSampler, input.texCoords).r;
     float metalness = metalicTexture.Sample(generalSampler, input.texCoords).r;
     float3 baseColor = albedoTexture.Sample(generalSampler, input.texCoords).rgb;
+    float ao = ambientOcclusionTexture.Sample(generalSampler, input.texCoords).r;
     
     // Calculate our surface normal using the normal map.
 #if true
@@ -119,6 +122,8 @@ float4 PSMain(PSInput input) : SV_TARGET
     float halfwayVectorDotViewDir = max(dot(halfwayVector, unitWorldViewDir), 0.0);
     float viewDirDotSurfaceNormal = max(dot(unitWorldViewDir, unitWorldSurfaceNormal), 0.0);
     float lightDirDotSurfaceNormal = max(dot(unitWorldLightDir, unitWorldSurfaceNormal), 0.0);
+    
+    // TODO: IBL is overwelming.  Can we do some sort of environment reflection?
     
     // Calculate our light intensity.
     // TODO: For spot-lights, an inverse square law would need to be taken into account here.
@@ -139,16 +144,14 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 specularPart = D * F * G / (4.0 * max(viewDirDotSurfaceNormal * lightDirDotSurfaceNormal, 0.001));
     float3 visibleColor = (diffusePart + specularPart) * lightIntensity * lightDirDotSurfaceNormal;
     
- #if false
-    // Gamma correction?
-    float gamma = 1.0 / 2.2;
-    visibleColor.r = clamp(pow(visibleColor.r, gamma), 0.0, 1.0);
-    visibleColor.g = clamp(pow(visibleColor.g, gamma), 0.0, 1.0);
-    visibleColor.b = clamp(pow(visibleColor.b, gamma), 0.0, 1.0);
-#endif
+    // Factor in an ambient light term.
+    visibleColor += ambientLightColor * baseColor * ao;
     
-    // TODO: I think the metalic parts will look wrong until there's either some ambient
-    //       light added to the scene or I'm doing some sort of environment mapping.
+ #if false
+    // HDR/gamma-correction...
+    visibleColor = visibleColor / (visibleColor + float3(1.0, 1.0, 1.0));
+    visibleColor = pow(visibleColor, 1.0 / 2.2);
+#endif
     
     float shadowFactor = 1.0;
     if (lightDistanceInfinite == 1.0)

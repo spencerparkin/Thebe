@@ -6,6 +6,7 @@
 	"texture_map":
 	{
 		"albedo": "Textures\\StylizedGrass\\stylized-grass1_albedo.texture_buffer",
+		"ambient_occlusion": "Textures\\StylizedGrass\\stylized-grass1_ao.texture_buffer",
 		"metalic": "Textures\\StylizedGrass\\stylized-grass1_metallic.texture_buffer",
 		"normal": "Textures\\StylizedGrass\\stylized-grass1_normal-dx.texture_buffer",
 		"roughness": "Textures\\StylizedGrass\\stylized-grass1_roughness.texture_buffer"

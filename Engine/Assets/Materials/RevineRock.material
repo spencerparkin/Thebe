@@ -6,6 +6,7 @@
 	"texture_map":
 	{
 		"albedo": "Textures\\RavineRock\\ravine-rock1_albedo.texture_buffer",
+		"ambient_occlusion": "Textures\\RavineRock\\ravine-rock1_ao.texture_buffer",
 		"metalic": "Textures\\RavineRock\\ravine-rock1_metallic.texture_buffer",
 		"normal": "Textures\\RavineRock\\ravine-rock1_normal-dx.texture_buffer",
 		"roughness": "Textures\\RavineRock\\ravine-rock1_roughness.texture_buffer"

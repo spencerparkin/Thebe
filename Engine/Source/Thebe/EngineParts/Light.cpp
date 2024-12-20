@@ -7,6 +7,7 @@ using namespace Thebe;
 Light::Light()
 {
 	this->lightColor.SetComponents(1.0, 1.0, 1.0);
+	this->ambientLightColor.SetComponents(0.03, 0.03, 0.03);
 }
 
 /*virtual*/ Light::~Light()
@@ -23,6 +24,9 @@ Light::Light()
 	if (!constantsBuffer->SetParameter("lightColor", this->lightColor))
 		return false;
 
+	if (!constantsBuffer->SetParameter("ambientLightColor", this->ambientLightColor))
+		return false;
+
 	return true;
 }
 
@@ -34,6 +38,16 @@ void Light::SetLightColor(const Vector3& lightColor)
 const Vector3& Light::GetLightColor() const
 {
 	return this->lightColor;
+}
+
+void Light::SetAmbientLightColor(const Vector3& ambientLightColor)
+{
+	this->ambientLightColor = ambientLightColor;
+}
+
+const Vector3& Light::GetAmbientLightColor() const
+{
+	return this->ambientLightColor;
 }
 
 /*virtual*/ bool Light::SetLightToWorldTransform(const Transform& lightToWorld)

@@ -1,5 +1,10 @@
 {
     "constants": {
+        "ambientLightColor": {
+            "offset": 240,
+            "size": 12,
+            "type": "float3"
+        },
         "lightColor": {
             "offset": 224,
             "size": 12,
@@ -70,9 +75,10 @@
     "ps_model": "ps_6_5",
     "ps_shader_object": "Shaders/PBRShaderPS.dxbc",
     "shader_code": "Shaders/PBRShader.hlsl",
-    "shadow_map_register": 4,
+    "shadow_map_register": 5,
     "texture_register_map": {
         "albedo": 0,
+        "ambient_occlusion": 4,
         "metalic": 1,
         "normal": 3,
         "roughness": 2

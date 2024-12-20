@@ -6,6 +6,7 @@
 	"texture_map":
 	{
 		"albedo": "Textures\\SpeckledRust\\speckled-rust_albedo.texture_buffer",
+		"ambient_occlusion": "Textures\\SpeckledRust\\speckled-rust_ao.texture_buffer",
 		"metalic": "Textures\\SpeckledRust\\speckled-rust_metallic.texture_buffer",
 		"normal": "Textures\\SpeckledRust\\speckled-rust_normal-dx.texture_buffer",
 		"roughness": "Textures\\SpeckledRust\\speckled-rust_roughness.texture_buffer"

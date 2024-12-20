@@ -36,9 +36,11 @@ namespace Thebe
 		void SetLightColor(const Vector3& lightColor);
 		const Vector3& GetLightColor() const;
 
+		void SetAmbientLightColor(const Vector3& ambientLightColor);
+		const Vector3& GetAmbientLightColor() const;
+
 	protected:
 		Vector3 lightColor;
-
-		// TODO: Should we own some ambient light characterstics here?
+		Vector3 ambientLightColor;
 	};
 }

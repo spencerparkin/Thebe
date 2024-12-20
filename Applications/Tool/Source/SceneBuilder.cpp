@@ -139,10 +139,26 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 			outputMaterial->SetTexturePath("albedo", outputAlbedoTexturePath);
 
 			aiString inputAmbientOcclusionTexture;
-			if (AI_SUCCESS == aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_AMBIENT_OCCLUSION, 0), &inputAmbientOcclusionTexture))
+			if (AI_SUCCESS != aiGetMaterialString(inputMaterial, AI_MATKEY_TEXTURE(aiTextureType_AMBIENT_OCCLUSION, 0), &inputAmbientOcclusionTexture))
+			{
+				// 3Ds Max doesn't seem to have a slot in the material for AO, so just look to see if we can find an AO map.
+				std::string name = inputAlbedoTexturePath.stem().string();
+				std::string match = "_albedo";
+				size_t i = name.find(match);
+				if (i != std::string::npos)
+				{
+					name.replace(i, match.length(), "_ao");
+					std::filesystem::path aoPath = inputAlbedoTexturePath.parent_path() / name;
+					aoPath.replace_extension(inputAlbedoTexturePath.extension());
+					if (std::filesystem::exists(aoPath))
+						inputAmbientOcclusionTexture = aoPath.string().c_str();
+				}
+			}
+
+			if(inputAmbientOcclusionTexture.length > 0)
 			{
 				std::filesystem::path inputAmbientOcclusionTexturePath = (this->inputSceneFileFolder / inputAmbientOcclusionTexture.C_Str()).lexically_normal();
-				this->textureBuilder.AddTexture(inputAmbientOcclusionTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8G8B8A8_UNORM, UINT(-1) });
+				this->textureBuilder.AddTexture(inputAmbientOcclusionTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_R8_UNORM, UINT(-1) });
 				std::filesystem::path outputAmbientOcclusionTexturePath = this->textureBuilder.GenerateTextureBufferPath(inputAmbientOcclusionTexturePath);
 				outputMaterial->SetTexturePath("ambient_occlusion", outputAmbientOcclusionTexturePath);
 			}
