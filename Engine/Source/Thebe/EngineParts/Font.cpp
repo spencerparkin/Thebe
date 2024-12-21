@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/Font.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
+#include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/Utilities/JsonHelper.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
@@ -19,11 +20,55 @@ Font::Font()
 	if (!Material::Setup())
 		return false;
 
+	this->vertexBuffer.Set(new VertexBuffer());
+
+	std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescArray = this->vertexBuffer->GetElementDescArray();
+	elementDescArray.resize(2);
+	elementDescArray[0].AlignedByteOffset = 0;
+	elementDescArray[0].Format = DXGI_FORMAT_R32G32_FLOAT;
+	elementDescArray[0].InputSlot = 0;
+	elementDescArray[0].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	elementDescArray[0].InstanceDataStepRate = 0;
+	elementDescArray[0].SemanticIndex = 0;
+	elementDescArray[0].SemanticName = "POSITION";
+	elementDescArray[1].AlignedByteOffset = 0;
+	elementDescArray[1].Format = DXGI_FORMAT_UNKNOWN;
+	elementDescArray[1].InputSlot = 1;
+	elementDescArray[1].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+	elementDescArray[1].InstanceDataStepRate = 0;
+	elementDescArray[1].SemanticIndex = 0;
+	elementDescArray[1].SemanticName = "CHAR_INFO";
+
+	this->vertexBuffer->SetStride(THEBE_ALIGNED(2 * sizeof(float), 16));
+	this->vertexBuffer->SetBufferType(Buffer::STATIC);
+
+	std::vector<UINT8>& originalBuffer = this->vertexBuffer->GetOriginalBuffer();
+	originalBuffer.resize(6 * 2 * sizeof(float));
+	auto vertex = reinterpret_cast<Vector2*>(originalBuffer.data());
+	vertex[0].SetComponents(0.0, 0.0);
+	vertex[1].SetComponents(1.0, 0.0);
+	vertex[2].SetComponents(1.0, 1.0);
+	vertex[3].SetComponents(0.0, 0.0);
+	vertex[4].SetComponents(1.0, 1.0);
+	vertex[5].SetComponents(0.0, 1.0);
+
+	if (!this->vertexBuffer->Setup())
+	{
+		THEBE_LOG("Failed to setup vertex buffer for tex instance.");
+		return false;
+	}
+
 	return true;
 }
 
 /*virtual*/ void Font::Shutdown()
 {
+	if (this->vertexBuffer.Get())
+	{
+		this->vertexBuffer->Shutdown();
+		this->vertexBuffer = nullptr;
+	}
+
 	this->characterInfoArray.clear();
 
 	Material::Shutdown();
@@ -127,4 +172,9 @@ std::vector<Font::CharacterInfo>& Font::GetCharacterInfoArray()
 const std::vector<Font::CharacterInfo>& Font::GetCharacterInfoArray() const
 {
 	return this->characterInfoArray;
+}
+
+VertexBuffer* Font::GetVertexBuffer()
+{
+	return this->vertexBuffer;
 }

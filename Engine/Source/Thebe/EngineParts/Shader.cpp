@@ -10,6 +10,7 @@ using namespace Thebe;
 Shader::Shader()
 {
 	this->shadowMapRegister = -1;
+	this->structuredBufferRegister = -1;
 }
 
 /*virtual*/ Shader::~Shader()
@@ -88,8 +89,16 @@ Shader::Shader()
 		textureDescriptorRange++;
 	}
 
+	D3D12_DESCRIPTOR_RANGE1 structuredBufferDescriptorRange;
+	structuredBufferDescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	structuredBufferDescriptorRange.BaseShaderRegister = this->structuredBufferRegister;
+	structuredBufferDescriptorRange.NumDescriptors = 1;
+	structuredBufferDescriptorRange.RegisterSpace = 0;
+	structuredBufferDescriptorRange.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
+	structuredBufferDescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
-	rootParameterArray.resize(3);
+	rootParameterArray.resize(4);
 	rootParameterArray[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterArray[0].DescriptorTable.pDescriptorRanges = &constantsBufferDescriptorRange;
@@ -102,6 +111,10 @@ Shader::Shader()
 	rootParameterArray[2].DescriptorTable.NumDescriptorRanges = (UINT)textureDescriptorRangeArray.size();
 	rootParameterArray[2].DescriptorTable.pDescriptorRanges = textureDescriptorRangeArray.data();
 	rootParameterArray[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterArray[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterArray[3].DescriptorTable.NumDescriptorRanges = (this->structuredBufferRegister == -1) ? 0 : 1;
+	rootParameterArray[3].DescriptorTable.pDescriptorRanges = (this->structuredBufferRegister == -1) ? nullptr : &structuredBufferDescriptorRange;
+	rootParameterArray[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -161,7 +174,8 @@ Shader::Shader()
 void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 	DescriptorHeap::DescriptorSet* constantsSet,
 	DescriptorHeap::DescriptorSet* texturesSet,
-	DescriptorHeap::DescriptorSet* shadowMapSet)
+	DescriptorHeap::DescriptorSet* shadowMapSet,
+	DescriptorHeap::DescriptorSet* structuredBufferSet)
 {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE handle;
 
@@ -171,18 +185,27 @@ void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 		commandList->SetGraphicsRootDescriptorTable(0, handle);
 	}
 
-	if (texturesSet && texturesSet->IsAllocated())
-	{
-		texturesSet->GetGpuHandle(0, handle);
-		commandList->SetGraphicsRootDescriptorTable(2, handle);
-	}
-
 	if (this->shadowMapRegister != -1)
 	{
 		if (shadowMapSet && shadowMapSet->IsAllocated())
 		{
 			shadowMapSet->GetGpuHandle(0, handle);
 			commandList->SetGraphicsRootDescriptorTable(1, handle);
+		}
+	}
+
+	if (texturesSet && texturesSet->IsAllocated())
+	{
+		texturesSet->GetGpuHandle(0, handle);
+		commandList->SetGraphicsRootDescriptorTable(2, handle);
+	}
+
+	if (this->structuredBufferRegister != -1)
+	{
+		if (structuredBufferSet && structuredBufferSet->IsAllocated())
+		{
+			structuredBufferSet->GetGpuHandle(0, handle);
+			commandList->SetGraphicsRootDescriptorTable(3, handle);
 		}
 	}
 }
@@ -218,6 +241,10 @@ UINT Shader::GetNumTextureRegisters() const
 	auto shadowMapRegisterValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("shadow_map_register"));
 	if (shadowMapRegisterValue)
 		this->shadowMapRegister = (UINT)shadowMapRegisterValue->GetValue();
+
+	auto structuredBufferRegisterValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("structured_buffer_register"));
+	if (structuredBufferRegisterValue)
+		this->structuredBufferRegister = (UINT)structuredBufferRegisterValue->GetValue();
 
 	auto textureRegisterMapValue = dynamic_cast<const JsonObject*>(rootValue->GetValue("texture_register_map"));
 	if (textureRegisterMapValue)

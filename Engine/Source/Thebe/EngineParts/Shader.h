@@ -26,7 +26,8 @@ namespace Thebe
 		void SetRootParameters(ID3D12GraphicsCommandList* commandList,
 			DescriptorHeap::DescriptorSet* constantsSet,
 			DescriptorHeap::DescriptorSet* texturesSet,
-			DescriptorHeap::DescriptorSet* shadowMapSet);
+			DescriptorHeap::DescriptorSet* shadowMapSet,
+			DescriptorHeap::DescriptorSet* structuredBufferSet);
 
 		struct Parameter
 		{
@@ -69,5 +70,6 @@ namespace Thebe
 		std::vector<Parameter> parameterArray;
 		std::map<UINT, std::string> textureRegisterMap;
 		UINT shadowMapRegister;
+		UINT structuredBufferRegister;
 	};
 }

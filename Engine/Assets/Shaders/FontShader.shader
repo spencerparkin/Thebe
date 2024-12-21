@@ -18,6 +18,7 @@
     "texture_register_map": {
         "char_atlas": 0
     },
+    "structured_buffer_register": 1,
     "vs_entry_point": "VS_Main",
     "vs_model": "vs_6_5",
     "vs_shader_object": "Shaders/FontShaderVS.dxbc"

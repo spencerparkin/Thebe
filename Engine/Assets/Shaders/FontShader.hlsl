@@ -9,10 +9,19 @@ cbuffer Constants : register(b0)
     float3 textColor;
 };
 
+struct CharInfo
+{
+    float2 minUV;
+    float2 maxUV;
+    float2 scale;
+    float2 delta;
+};
+
+StructuredBuffer<CharInfo> charInfoArray : register(t1);
+
 struct VS_Input
 {
-    float3 objPos : POSITION;
-    float2 texCoord : TEXCOORD;
+    float2 objPos : POSITION;
 };
 
 struct VS_Output
@@ -23,11 +32,23 @@ struct VS_Output
 
 //----------------------------- VS_Main -----------------------------
 
-VS_Output VS_Main(VS_Input input)
+VS_Output VS_Main(VS_Input input, uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 {
     VS_Output output;
-    output.projPos = mul(objToProj, float4(input.objPos, 1.0f));
-    output.texCoord = input.texCoord;
+    
+    CharInfo charInfo = charInfoArray[instanceID];
+    float2 objVertex = input.objPos * charInfo.scale + charInfo.delta;
+    output.projPos = mul(objToProj, float4(objVertex, 0.0f, 1.0f));
+    
+    if(vertexID == 0 || vertexID == 3)
+        output.texCoord = charInfo.minUV;
+    else if(vertexID == 1)
+        output.texCoord = float2(charInfo.maxUV.x, charInfo.minUV.y);
+    else if(vertexID == 2 || vertexID == 4)
+        output.texCoord = charInfo.maxUV;
+    else
+        output.texCoord = float2(charInfo.minUV.x, charInfo.maxUV.y);
+    
     return output;
 }
 

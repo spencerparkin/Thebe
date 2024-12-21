@@ -262,7 +262,7 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	}
 
 	commandList->SetGraphicsRootSignature(targetShader->GetRootSignature());
-	targetShader->SetRootParameters(commandList, targetConstantsDescriptorSet, targetTexturesDescriptorSet, targetShadowMapDescriptorSet);
+	targetShader->SetRootParameters(commandList, targetConstantsDescriptorSet, targetTexturesDescriptorSet, targetShadowMapDescriptorSet, nullptr);
 
 	commandList->SetPipelineState(targetPipelineState);
 	
