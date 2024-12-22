@@ -33,6 +33,11 @@ StructuredBuffer::StructuredBuffer()
 		return false;
 	}
 
+	D3D12_RESOURCE_DESC& bufferDesc = this->GetResourceDesc();
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = bufferSize;
+	bufferDesc.Height = 1;
+
 	if (!Buffer::Setup())
 		return false;
 
@@ -47,6 +52,7 @@ StructuredBuffer::StructuredBuffer()
 /*virtual*/ bool StructuredBuffer::CreateResourceView(CD3DX12_CPU_DESCRIPTOR_HANDLE& handle, ID3D12Device* device)
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 	srvDesc.Buffer.FirstElement = 0;

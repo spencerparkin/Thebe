@@ -374,7 +374,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 				return false;
 			}
 
-			floatBuffer[i] = floatValue->GetValue();
+			floatBuffer[i] = (float)floatValue->GetValue();
 		}
 	}
 	else if (intArrayValue)

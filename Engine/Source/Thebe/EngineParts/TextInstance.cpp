@@ -2,6 +2,8 @@
 #include "Thebe/EngineParts/Font.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/StructuredBuffer.h"
+#include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -20,6 +22,16 @@ TextInstance::TextInstance()
 	if (!Space::Setup())
 		return false;
 
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	if (!graphicsEngine->LoadEnginePartFromFile("Buffers/CharacterQuad.vertex_buffer", this->vertexBuffer))
+	{
+		THEBE_LOG("Failed to load character quad vertex buffer.");
+		return false;
+	}
+
 	if (this->maxCharacters == 0)
 	{
 		THEBE_LOG("Max characters is zero.");
@@ -27,6 +39,7 @@ TextInstance::TextInstance()
 	}
 
 	this->charBuffer.Set(new StructuredBuffer());
+	this->charBuffer->SetGraphicsEngine(graphicsEngine);
 	this->charBuffer->SetBufferType(Buffer::DYNAMIC);
 	this->charBuffer->SetStructSize(sizeof(CharInfo));
 
@@ -40,7 +53,16 @@ TextInstance::TextInstance()
 		return false;
 	}
 
-	//csuCharBufferDescriptorSet
+	DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuCharBufferDescriptorSet))
+	{
+		THEBE_LOG("Failed to allocate character buffer descriptor set.");
+		return false;
+	}
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE csuHandle;
+	this->csuCharBufferDescriptorSet.GetCpuHandle(0, csuHandle);
+	this->charBuffer->CreateResourceView(csuHandle, graphicsEngine->GetDevice());
 
 	return true;
 }
@@ -53,6 +75,19 @@ TextInstance::TextInstance()
 		this->charBuffer = nullptr;
 	}
 
+	Reference<GraphicsEngine> graphicsEngine;
+	if (this->GetGraphicsEngine(graphicsEngine))
+	{
+		if (this->csuCharBufferDescriptorSet.IsAllocated())
+		{
+			DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
+			csuDescriptorHeap->FreeDescriptorSet(this->csuCharBufferDescriptorSet);
+		}
+	}
+
+	// Don't shutdown this buffer.  Some other instance might be using it.
+	this->vertexBuffer = nullptr;
+
 	Space::Shutdown();
 }
 
@@ -60,21 +95,24 @@ TextInstance::TextInstance()
 {
 	if (this->renderedText == this->text)
 		return;
+
+	//...
 }
 
 /*virtual*/ bool TextInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
+	if (!this->charBuffer.Get())
+		return false;
+
 	if (this->renderedText != this->text)
 	{
-		//if (!this->vertexBuffer->UpdateIfNecessary(commandList))
-		//	return false;
+		if (!this->charBuffer->UpdateIfNecessary(commandList))
+			return false;
 
 		this->renderedText = this->text;
 	}
 
 	//...
-
-	// TODO: Remember to bind both the vertex buffer and the structured buffer with IASetVertexBuffers().
 
 	return true;
 }

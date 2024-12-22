@@ -5,8 +5,6 @@
 
 namespace Thebe
 {
-	class VertexBuffer;
-
 	/**
 	 * 
 	 */
@@ -32,10 +30,7 @@ namespace Thebe
 		std::vector<CharacterInfo>& GetCharacterInfoArray();
 		const std::vector<CharacterInfo>& GetCharacterInfoArray() const;
 
-		VertexBuffer* GetVertexBuffer();
-
 	private:
 		std::vector<CharacterInfo> characterInfoArray;
-		Reference<VertexBuffer> vertexBuffer;
 	};
 }

@@ -2,11 +2,13 @@
 
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/EngineParts/VertexBuffer.h"
 
 namespace Thebe
 {
 	class Font;
 	class StructuredBuffer;
+	class VertexBuffer;
 
 	/**
 	 * 
@@ -36,10 +38,14 @@ namespace Thebe
 	private:
 		struct CharInfo
 		{
-			Vector2 minUV;
-			Vector2 maxUV;
-			Vector2 scale;
-			Vector2 delta;
+			float minU;
+			float minV;
+			float maxU;
+			float maxV;
+			float scaleX;
+			float scaleY;
+			float deltaX;
+			float deltaY;
 		};
 
 		UINT maxCharacters;
@@ -48,5 +54,6 @@ namespace Thebe
 		Reference<Font> font;
 		Reference<StructuredBuffer> charBuffer;
 		DescriptorHeap::DescriptorSet csuCharBufferDescriptorSet;
+		Reference<VertexBuffer> vertexBuffer;
 	};
 }

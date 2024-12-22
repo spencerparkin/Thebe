@@ -52,12 +52,15 @@ TestApplication::TestApplication()
 
 	// Create some text and put it in the scene.
 	Reference<TextInstance> text(new TextInstance());
+	text->SetGraphicsEngine(this->graphicsEngine);
 	text->SetFont(font);
 	text->SetText("This is some text!\nThis is another line of text!\nIs this is the final line of text!");
 	Transform textTransform;
 	textTransform.SetIdentity();
-	textTransform.translation.SetComponents(-30.0, 50.0, 30);
+	textTransform.translation.SetComponents(30.0, 100.0, 30);
 	text->SetChildToParentTransform(textTransform);
+	if (!text->Setup())
+		return false;
 	scene->GetRootSpace()->AddSubSpace(text);
 
 	// Load and configure a light source.
