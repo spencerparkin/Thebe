@@ -20,11 +20,13 @@ namespace Thebe
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context) override;
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList) override;
+		virtual void PrepareForRender() override;
 
 		void UpdateObjectToWorldTransform(const Transform& parentToWorld);
 		void SetChildToParentTransform(const Transform& childToParent);
 		void AddSubSpace(Space* space);
 		void ClearAllSubSpaces();
+		void CalcGraphicsMatrices(const Camera* camera, Matrix4x4& objectToProjMatrix, Matrix4x4& objectToCameraMatrix, Matrix4x4& objectToWorldMatrix) const;
 
 		std::vector<Reference<Space>>& GetSubSpaceArray();
 

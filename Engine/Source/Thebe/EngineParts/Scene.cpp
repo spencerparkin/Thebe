@@ -40,6 +40,8 @@ Scene::Scene()
 		Transform parentToWorld;
 		parentToWorld.SetIdentity();
 		this->rootSpace->UpdateObjectToWorldTransform(parentToWorld);
+
+		this->rootSpace->PrepareForRender();
 	}
 }
 

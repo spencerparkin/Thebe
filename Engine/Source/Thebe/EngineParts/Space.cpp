@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/MeshInstance.h"
+#include "Thebe/EngineParts/Camera.h"
 #include "Thebe/Utilities/JsonHelper.h"
 #include "Thebe/Log.h"
 
@@ -33,6 +34,19 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 		subSpace->Shutdown();
 
 	this->subSpaceArray.clear();
+}
+
+void Space::CalcGraphicsMatrices(const Camera* camera, Matrix4x4& objectToProjMatrix, Matrix4x4& objectToCameraMatrix, Matrix4x4& objectToWorldMatrix) const
+{
+	const Matrix4x4& cameraToProjMatrix = camera->GetCameraToProjectionMatrix();
+
+	Matrix4x4 worldToCameraMatrix;
+	camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
+
+	this->objectToWorld.GetToMatrix(objectToWorldMatrix);
+
+	objectToCameraMatrix = worldToCameraMatrix * objectToWorldMatrix;
+	objectToProjMatrix = cameraToProjMatrix * objectToCameraMatrix;
 }
 
 /*virtual*/ bool Space::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)
@@ -137,6 +151,12 @@ void Space::UpdateObjectToWorldTransform(const Transform& parentToWorld)
 
 	for (Reference<Space>& space : this->subSpaceArray)
 		space->UpdateObjectToWorldTransform(this->objectToWorld);
+}
+
+/*virtual*/ void Space::PrepareForRender()
+{
+	for (Reference<Space>& space : this->subSpaceArray)
+		space->PrepareForRender();
 }
 
 void Space::SetChildToParentTransform(const Transform& childToParent)

@@ -9,6 +9,7 @@ namespace Thebe
 	class Font;
 	class StructuredBuffer;
 	class VertexBuffer;
+	class ConstantsBuffer;
 
 	/**
 	 * 
@@ -34,6 +35,8 @@ namespace Thebe
 		const Font* GetFont() const;
 		void SetMaxCharacters(UINT maxCharacter);
 		UINT GetMaxCharacters() const;
+		void SetFontSize(double fontSize);
+		double GetFontSize() const;
 
 	private:
 		struct CharInfo
@@ -53,7 +56,12 @@ namespace Thebe
 		std::string renderedText;
 		Reference<Font> font;
 		Reference<StructuredBuffer> charBuffer;
-		DescriptorHeap::DescriptorSet csuCharBufferDescriptorSet;
 		Reference<VertexBuffer> vertexBuffer;
+		Reference<ConstantsBuffer> constantsBuffer;
+		DescriptorHeap::DescriptorSet csuCharBufferDescriptorSet;
+		DescriptorHeap::DescriptorSet csuConstantsBufferDescriptorSet;
+		DescriptorHeap::DescriptorSet csuAtlasTextureDescriptorSet;
+		bool charBufferUpdateNeeded;
+		double fontSize;
 	};
 }

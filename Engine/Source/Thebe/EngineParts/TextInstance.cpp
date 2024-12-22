@@ -3,6 +3,7 @@
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/StructuredBuffer.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/EngineParts/ConstantsBuffer.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
@@ -11,6 +12,8 @@ using namespace Thebe;
 TextInstance::TextInstance()
 {
 	this->maxCharacters = 256;
+	this->fontSize = 1.0;
+	this->charBufferUpdateNeeded = false;
 }
 
 /*virtual*/ TextInstance::~TextInstance()
@@ -19,6 +22,12 @@ TextInstance::TextInstance()
 
 /*virtual*/ bool TextInstance::Setup()
 {
+	if (!this->font.Get())
+	{
+		THEBE_LOG("No font configured.");
+		return false;
+	}
+
 	if (!Space::Setup())
 		return false;
 
@@ -64,6 +73,48 @@ TextInstance::TextInstance()
 	this->csuCharBufferDescriptorSet.GetCpuHandle(0, csuHandle);
 	this->charBuffer->CreateResourceView(csuHandle, graphicsEngine->GetDevice());
 
+	Shader* fontShader = this->font->GetShader();
+	this->constantsBuffer.Set(new ConstantsBuffer());
+	this->constantsBuffer->SetGraphicsEngine(graphicsEngine);
+	this->constantsBuffer->SetShader(fontShader);
+	this->constantsBuffer->SetName("ConstantsBufferForTextInstance");
+	if (!this->constantsBuffer->Setup())
+	{
+		THEBE_LOG("Failed to setup constants buffer for text instance.");
+		return false;
+	}
+
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuConstantsBufferDescriptorSet))
+	{
+		THEBE_LOG("Failed to allocate constants buffer descriptor set.");
+		return false;
+	}
+
+	this->csuConstantsBufferDescriptorSet.GetCpuHandle(0, csuHandle);
+	this->constantsBuffer->CreateResourceView(csuHandle, graphicsEngine->GetDevice());
+
+	if (fontShader->GetTextureUsageForRegister(0) != "char_atlas")
+	{
+		THEBE_LOG("Expected texture register 0 to be used for \"char_atlas\".");
+		return false;
+	}
+
+	Buffer* buffer = this->font->GetTextureForRegister(0);
+	if (!buffer)
+	{
+		THEBE_LOG("Failed to get texture for register 0.");
+		return false;
+	}
+
+	if (!csuDescriptorHeap->AllocDescriptorSet(1, this->csuAtlasTextureDescriptorSet))
+	{
+		THEBE_LOG("Failed to allocate atlas texture descriptor set.");
+		return false;
+	}
+
+	this->csuAtlasTextureDescriptorSet.GetCpuHandle(0, csuHandle);
+	buffer->CreateResourceView(csuHandle, graphicsEngine->GetDevice());
+
 	return true;
 }
 
@@ -75,14 +126,25 @@ TextInstance::TextInstance()
 		this->charBuffer = nullptr;
 	}
 
+	if (this->constantsBuffer.Get())
+	{
+		this->constantsBuffer->Shutdown();
+		this->constantsBuffer = nullptr;
+	}
+
 	Reference<GraphicsEngine> graphicsEngine;
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
+		DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
+
 		if (this->csuCharBufferDescriptorSet.IsAllocated())
-		{
-			DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
 			csuDescriptorHeap->FreeDescriptorSet(this->csuCharBufferDescriptorSet);
-		}
+
+		if (this->csuConstantsBufferDescriptorSet.IsAllocated())
+			csuDescriptorHeap->FreeDescriptorSet(this->csuConstantsBufferDescriptorSet);
+
+		if (this->csuAtlasTextureDescriptorSet.IsAllocated())
+			csuDescriptorHeap->FreeDescriptorSet(this->csuAtlasTextureDescriptorSet);
 	}
 
 	// Don't shutdown this buffer.  Some other instance might be using it.
@@ -93,10 +155,54 @@ TextInstance::TextInstance()
 
 /*virtual*/ void TextInstance::PrepareForRender()
 {
+	Space::PrepareForRender();
+
 	if (this->renderedText == this->text)
 		return;
 
-	//...
+	if (this->text.length() > this->maxCharacters)
+	{
+		THEBE_LOG("String of length (%d) exceeds maximum character length (%d).", this->text.length(), this->maxCharacters);
+		return;
+	}
+
+	const std::vector<Font::CharacterInfo>& charInfoArray = this->font->GetCharacterInfoArray();
+
+	auto charInfoBuffer = reinterpret_cast<CharInfo*>(this->charBuffer->GetOriginalBuffer().data());
+
+	Vector2 penPosition(0.0, 0.0);
+
+	for (UINT i = 0; i < this->maxCharacters; i++)
+	{
+		if (this->text.c_str()[i] == '\0')
+			break;
+
+		if (this->text.c_str()[i] == '\n')
+		{
+			//...query font for line-height here to do carriage return...
+			continue;
+		}
+
+		CharInfo* charRenderInfo = &charInfoBuffer[i];
+		const Font::CharacterInfo& charInfo = charInfoArray[this->text.c_str()[i]];
+
+		charRenderInfo->minU = (float)charInfo.minUV.x;
+		charRenderInfo->minV = (float)charInfo.minUV.y;
+		charRenderInfo->maxU = (float)charInfo.maxUV.x;
+		charRenderInfo->maxV = (float)charInfo.maxUV.y;
+
+		charRenderInfo->scaleX = float((charInfo.maxUV.x - charInfo.minUV.x) * this->fontSize);
+		charRenderInfo->scaleY = float((charInfo.maxUV.y - charInfo.minUV.y) * this->fontSize);
+
+		Vector2 charLocation = penPosition + charInfo.penOffset * this->fontSize;
+
+		charRenderInfo->deltaX = (float)charLocation.x;
+		charRenderInfo->deltaY = (float)charLocation.y;
+
+		penPosition.x += charInfo.advance * this->fontSize;
+	}
+
+	this->charBufferUpdateNeeded = true;
 }
 
 /*virtual*/ bool TextInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
@@ -104,15 +210,50 @@ TextInstance::TextInstance()
 	if (!this->charBuffer.Get())
 		return false;
 
-	if (this->renderedText != this->text)
+	if (this->text.length() > this->maxCharacters)
+	{
+		THEBE_LOG("Text length exceeds max characters.");
+		return false;
+	}
+
+	if (this->charBufferUpdateNeeded)
 	{
 		if (!this->charBuffer->UpdateIfNecessary(commandList))
 			return false;
 
-		this->renderedText = this->text;
+		this->charBufferUpdateNeeded = false;
 	}
 
-	//...
+	Reference<GraphicsEngine> graphicsEngine;
+	if (!this->GetGraphicsEngine(graphicsEngine))
+		return false;
+
+	if (!context || !context->camera)
+		return false;
+
+	Matrix4x4 objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix;
+	this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);
+
+	this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
+
+	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->font, this->vertexBuffer, context->renderTarget);
+	if (!pipelineState)
+		return false;
+
+	Shader* fontShader = this->font->GetShader();
+
+	commandList->SetGraphicsRootSignature(fontShader->GetRootSignature());
+	
+	fontShader->SetRootParameters(commandList,
+		&this->csuConstantsBufferDescriptorSet,
+		&this->csuAtlasTextureDescriptorSet,
+		nullptr,
+		&this->csuCharBufferDescriptorSet);
+
+	commandList->SetPipelineState(pipelineState);
+	commandList->IASetVertexBuffers(0, 1, this->vertexBuffer->GetVertexBufferView());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->DrawInstanced(6, this->text.length(), 0, 0);
 
 	return true;
 }
@@ -163,4 +304,14 @@ void TextInstance::SetMaxCharacters(UINT maxCharacter)
 UINT TextInstance::GetMaxCharacters() const
 {
 	return this->maxCharacters;
+}
+
+void TextInstance::SetFontSize(double fontSize)
+{
+	this->fontSize = fontSize;
+}
+
+double TextInstance::GetFontSize() const
+{
+	return this->fontSize;
 }

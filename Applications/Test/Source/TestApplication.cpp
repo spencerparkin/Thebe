@@ -54,7 +54,7 @@ TestApplication::TestApplication()
 	Reference<TextInstance> text(new TextInstance());
 	text->SetGraphicsEngine(this->graphicsEngine);
 	text->SetFont(font);
-	text->SetText("This is some text!\nThis is another line of text!\nIs this is the final line of text!");
+	text->SetText("T"); //his is some text!\nThis is another line of text!\nIs this is the final line of text!");
 	Transform textTransform;
 	textTransform.SetIdentity();
 	textTransform.translation.SetComponents(30.0, 100.0, 30);

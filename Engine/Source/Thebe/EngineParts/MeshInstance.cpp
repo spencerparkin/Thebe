@@ -85,7 +85,7 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	this->constantsBuffer.Set(new ConstantsBuffer());
 	this->constantsBuffer->SetGraphicsEngine(graphicsEngine);
 	this->constantsBuffer->SetShader(shader);
-	this->constantsBuffer->SetName("ConstantsBuffer");
+	this->constantsBuffer->SetName("ConstantsBufferForMeshInstance");
 	if (!this->constantsBuffer->Setup())
 	{
 		THEBE_LOG("Failed to setup constants buffer for mesh instance.");
@@ -203,16 +203,8 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 		return false;
 	}
 
-	const Matrix4x4& cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
-
-	Matrix4x4 worldToCameraMatrix;
-	context->camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
-
-	Matrix4x4 objectToWorldMatrix;
-	this->objectToWorld.GetToMatrix(objectToWorldMatrix);
-
-	Matrix4x4 objectToCameraMatrix = worldToCameraMatrix * objectToWorldMatrix;
-	Matrix4x4 objectToProjMatrix = cameraToProjMatrix * objectToCameraMatrix;
+	Matrix4x4 objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix;
+	this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);
 	
 	targetConstantsBuffer->SetParameter("objToProj", objectToProjMatrix);
 	targetConstantsBuffer->SetParameter("objToCam", objectToCameraMatrix);
