@@ -14,6 +14,8 @@ TextInstance::TextInstance()
 	this->maxCharacters = 256;
 	this->fontSize = 1.0;
 	this->charBufferUpdateNeeded = false;
+	this->numCharsToRender = 0;
+	this->textColor.SetComponents(1.0, 0.0, 0.0);
 }
 
 /*virtual*/ TextInstance::~TextInstance()
@@ -167,10 +169,10 @@ TextInstance::TextInstance()
 	}
 
 	const std::vector<Font::CharacterInfo>& charInfoArray = this->font->GetCharacterInfoArray();
-
-	auto charInfoBuffer = reinterpret_cast<CharInfo*>(this->charBuffer->GetOriginalBuffer().data());
+	auto charInfoBuffer = reinterpret_cast<CharInfo*>(this->charBuffer->GetBufferPtr());
 
 	Vector2 penPosition(0.0, 0.0);
+	this->numCharsToRender = 0;
 
 	for (UINT i = 0; i < this->maxCharacters; i++)
 	{
@@ -200,6 +202,7 @@ TextInstance::TextInstance()
 		charRenderInfo->deltaY = (float)charLocation.y;
 
 		penPosition.x += charInfo.advance * this->fontSize;
+		this->numCharsToRender++;
 	}
 
 	this->charBufferUpdateNeeded = true;
@@ -235,6 +238,13 @@ TextInstance::TextInstance()
 	this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);
 
 	this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
+	this->constantsBuffer->SetParameter("textColor", this->textColor);
+
+	if (!this->constantsBuffer->UpdateIfNecessary(commandList))
+	{
+		THEBE_LOG("Failed to update constants buffer for text instance.");
+		return false;
+	}
 
 	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->font, this->vertexBuffer, context->renderTarget);
 	if (!pipelineState)
@@ -253,7 +263,7 @@ TextInstance::TextInstance()
 	commandList->SetPipelineState(pipelineState);
 	commandList->IASetVertexBuffers(0, 1, this->vertexBuffer->GetVertexBufferView());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	commandList->DrawInstanced(6, this->text.length(), 0, 0);
+	commandList->DrawInstanced(6, this->numCharsToRender, 0, 0);
 
 	return true;
 }
@@ -314,4 +324,14 @@ void TextInstance::SetFontSize(double fontSize)
 double TextInstance::GetFontSize() const
 {
 	return this->fontSize;
+}
+
+void TextInstance::SetTextColor(const Vector3& textColor)
+{
+	this->textColor = textColor;
+}
+
+const Vector3& TextInstance::GetTextColor() const
+{
+	return this->textColor;
 }

@@ -54,11 +54,12 @@ TestApplication::TestApplication()
 	Reference<TextInstance> text(new TextInstance());
 	text->SetGraphicsEngine(this->graphicsEngine);
 	text->SetFont(font);
-	text->SetText("T"); //his is some text!\nThis is another line of text!\nIs this is the final line of text!");
+	text->SetText("This is some text!\nThis is another line of text!\nIs this is the final line of text!");
 	Transform textTransform;
 	textTransform.SetIdentity();
-	textTransform.translation.SetComponents(30.0, 100.0, 30);
+	textTransform.translation.SetComponents(0.0, 100.0, 0.0);
 	text->SetChildToParentTransform(textTransform);
+	text->SetFontSize(50.0);
 	if (!text->Setup())
 		return false;
 	scene->GetRootSpace()->AddSubSpace(text);
@@ -74,7 +75,7 @@ TestApplication::TestApplication()
 	// Configure a camera.
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 20.0, 50.0);
+	cameraToWorld.translation.SetComponents(0.0, 100.0, 50.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);

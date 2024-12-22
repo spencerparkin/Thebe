@@ -37,6 +37,8 @@ namespace Thebe
 		UINT GetMaxCharacters() const;
 		void SetFontSize(double fontSize);
 		double GetFontSize() const;
+		void SetTextColor(const Vector3& textColor);
+		const Vector3& GetTextColor() const;
 
 	private:
 		struct CharInfo
@@ -63,5 +65,7 @@ namespace Thebe
 		DescriptorHeap::DescriptorSet csuAtlasTextureDescriptorSet;
 		bool charBufferUpdateNeeded;
 		double fontSize;
+		Vector3 textColor;
+		UINT numCharsToRender;
 	};
 }

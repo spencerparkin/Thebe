@@ -41,13 +41,13 @@ VS_Output VS_Main(VS_Input input, uint vertexID : SV_VertexID, uint instanceID :
     output.projPos = mul(objToProj, float4(objVertex, 0.0f, 1.0f));
     
     if(vertexID == 0 || vertexID == 3)
-        output.texCoord = charInfo.minUV;
-    else if(vertexID == 1)
-        output.texCoord = float2(charInfo.maxUV.x, charInfo.minUV.y);
-    else if(vertexID == 2 || vertexID == 4)
-        output.texCoord = charInfo.maxUV;
-    else
         output.texCoord = float2(charInfo.minUV.x, charInfo.maxUV.y);
+    else if(vertexID == 1)
+        output.texCoord = charInfo.maxUV;
+    else if(vertexID == 2 || vertexID == 4)
+        output.texCoord = float2(charInfo.maxUV.x, charInfo.minUV.y);
+    else
+        output.texCoord = charInfo.minUV;
     
     return output;
 }

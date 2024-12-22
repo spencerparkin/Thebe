@@ -147,7 +147,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	}
 
 	UINT8* uploadBuffer = uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
-	THEBE_ASSERT(uploadBuffer != nullptr);
+	THEBE_ASSERT_FATAL(uploadBuffer != nullptr);
 
 	if (!this->CopyDataToUploadHeap(uploadBuffer, device))
 		return false;
