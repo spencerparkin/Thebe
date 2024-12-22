@@ -41,7 +41,7 @@ namespace Thebe
 		const Vector3& GetTextColor() const;
 
 	private:
-		struct CharInfo
+		struct CharRenderInfo
 		{
 			float minU;
 			float minV;

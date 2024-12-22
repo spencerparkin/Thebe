@@ -52,10 +52,10 @@ TextInstance::TextInstance()
 	this->charBuffer.Set(new StructuredBuffer());
 	this->charBuffer->SetGraphicsEngine(graphicsEngine);
 	this->charBuffer->SetBufferType(Buffer::DYNAMIC);
-	this->charBuffer->SetStructSize(sizeof(CharInfo));
+	this->charBuffer->SetStructSize(sizeof(CharRenderInfo));
 
 	std::vector<UINT8>& originalBuffer = this->charBuffer->GetOriginalBuffer();
-	originalBuffer.resize(this->maxCharacters * sizeof(CharInfo));
+	originalBuffer.resize(this->maxCharacters * sizeof(CharRenderInfo));
 	::memset(originalBuffer.data(), 0, originalBuffer.size());
 
 	if (!this->charBuffer->Setup())
@@ -169,7 +169,7 @@ TextInstance::TextInstance()
 	}
 
 	const std::vector<Font::CharacterInfo>& charInfoArray = this->font->GetCharacterInfoArray();
-	auto charInfoBuffer = reinterpret_cast<CharInfo*>(this->charBuffer->GetBufferPtr());
+	auto charRenderInfo = reinterpret_cast<CharRenderInfo*>(this->charBuffer->GetBufferPtr());
 
 	Vector2 penPosition(0.0, 0.0);
 	this->numCharsToRender = 0;
@@ -185,7 +185,6 @@ TextInstance::TextInstance()
 			continue;
 		}
 
-		CharInfo* charRenderInfo = &charInfoBuffer[i];
 		const Font::CharacterInfo& charInfo = charInfoArray[this->text.c_str()[i]];
 
 		charRenderInfo->minU = (float)charInfo.minUV.x;
@@ -202,6 +201,7 @@ TextInstance::TextInstance()
 		charRenderInfo->deltaY = (float)charLocation.y;
 
 		penPosition.x += charInfo.advance * this->fontSize;
+		charRenderInfo++;
 		this->numCharsToRender++;
 	}
 
