@@ -139,6 +139,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Math/Graph.h
     Source/Thebe/Math/Random.cpp
     Source/Thebe/Math/Random.h
+    Source/Thebe/Math/GJKAlgorithm.cpp
+    Source/Thebe/Math/GJKAlgorithm.h
 )
 
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})
