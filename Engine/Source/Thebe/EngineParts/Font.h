@@ -30,7 +30,10 @@ namespace Thebe
 		std::vector<CharacterInfo>& GetCharacterInfoArray();
 		const std::vector<CharacterInfo>& GetCharacterInfoArray() const;
 
+		double GetLineHeight() const;
+
 	private:
 		std::vector<CharacterInfo> characterInfoArray;
+		double lineHeight;
 	};
 }

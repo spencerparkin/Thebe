@@ -7,6 +7,7 @@ using namespace Thebe;
 
 Font::Font()
 {
+	this->lineHeight = 0.0;
 }
 
 /*virtual*/ Font::~Font()
@@ -45,6 +46,9 @@ Font::Font()
 		THEBE_LOG("Expected character array value to be present in the JSON.");
 		return false;
 	}
+
+	double minY = std::numeric_limits<double>::max();
+	double maxY = std::numeric_limits<double>::min();
 
 	this->characterInfoArray.clear();
 	for (UINT i = 0; i < (UINT)characterArrayValue->GetSize(); i++)
@@ -86,7 +90,12 @@ Font::Font()
 		}
 
 		this->characterInfoArray.push_back(charInfo);
+
+		maxY = THEBE_MAX(maxY, charInfo.penOffset.y + (charInfo.maxUV.y - charInfo.minUV.y));
+		minY = THEBE_MIN(minY, charInfo.penOffset.y);
 	}
+
+	this->lineHeight = maxY - minY;
 
 	return true;
 }
@@ -126,4 +135,9 @@ std::vector<Font::CharacterInfo>& Font::GetCharacterInfoArray()
 const std::vector<Font::CharacterInfo>& Font::GetCharacterInfoArray() const
 {
 	return this->characterInfoArray;
+}
+
+double Font::GetLineHeight() const
+{
+	return this->lineHeight;
 }

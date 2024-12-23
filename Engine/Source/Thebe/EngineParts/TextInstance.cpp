@@ -181,7 +181,8 @@ TextInstance::TextInstance()
 
 		if (this->text.c_str()[i] == '\n')
 		{
-			//...query font for line-height here to do carriage return...
+			penPosition.x = 0.0;
+			penPosition.y -= this->font->GetLineHeight() * this->fontSize;
 			continue;
 		}
 
