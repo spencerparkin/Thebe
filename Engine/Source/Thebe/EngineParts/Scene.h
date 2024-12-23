@@ -26,9 +26,12 @@ namespace Thebe
 		void SetRootSpace(Space* space);
 		Space* GetRootSpace();
 
+		std::vector<Reference<RenderObject>>& GetRenderObjectArray();
+
 	protected:
 		void GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget);
 
 		Reference<Space> rootSpace;
+		std::vector<Reference<RenderObject>> renderObjectArray;
 	};
 }

@@ -42,6 +42,8 @@ namespace Thebe
 		uint32_t GetFlags() const;
 		void SetFlags(uint32_t flags);
 
+		bool IsVisible() const;
+
 	protected:
 		uint32_t flags;
 	};

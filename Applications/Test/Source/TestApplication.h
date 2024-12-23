@@ -4,6 +4,7 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/Text.h"
+#include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/FreeCam.h"
 
 class TestApplication : public Thebe::Application
@@ -24,4 +25,5 @@ private:
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::FreeCam freeCam;
 	Thebe::Reference<Thebe::FramerateText> framerateText;
+	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
 };

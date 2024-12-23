@@ -42,6 +42,13 @@ DynamicLineRenderer::DynamicLineRenderer()
 	this->vertexBuffer.Set(new VertexBuffer());
 	this->vertexBuffer->SetGraphicsEngine(graphicsEngine);
 	this->vertexBuffer->SetBufferType(VertexBuffer::DYNAMIC);
+	this->vertexBuffer->SetStride(2 * sizeof(Vertex));
+
+	D3D12_RESOURCE_DESC& bufferDesc = this->vertexBuffer->GetResourceDesc();
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = this->lineMaxCount * 2 * sizeof(Vertex);
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescArray = this->vertexBuffer->GetElementDescArray();
 	elementDescArray.resize(2);
@@ -61,7 +68,7 @@ DynamicLineRenderer::DynamicLineRenderer()
 	elementDescArray[1].SemanticName = "COLOR";
 
 	std::vector<UINT8>& originalBuffer = this->vertexBuffer->GetOriginalBuffer();
-	originalBuffer.resize(this->lineMaxCount * 2 * sizeof(Vertex));
+	originalBuffer.resize(bufferDesc.Width);
 	::memset(originalBuffer.data(), 0, originalBuffer.size());
 
 	if (!this->vertexBuffer->Setup())
@@ -96,6 +103,7 @@ DynamicLineRenderer::DynamicLineRenderer()
 	}
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE csuHandle;
+	this->csuConstantsDescriptorSet.GetCpuHandle(0, csuHandle);
 	if (!this->constantsBuffer->CreateResourceView(csuHandle, graphicsEngine->GetDevice()))
 	{
 		THEBE_LOG("Failed to create resource view into constants buffer.");
@@ -134,8 +142,13 @@ DynamicLineRenderer::DynamicLineRenderer()
 	if (!this->vertexBuffer.Get() || !this->material.Get())
 		return false;
 
-	if (!this->vertexBuffer->UpdateIfNecessary(commandList))
-		return false;
+	if (this->vertexBufferUpdateNeeded)
+	{
+		if (!this->vertexBuffer->UpdateIfNecessary(commandList))
+			return false;
+
+		this->vertexBufferUpdateNeeded = false;
+	}
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))

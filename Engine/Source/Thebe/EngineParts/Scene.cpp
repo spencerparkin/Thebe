@@ -84,13 +84,15 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 
 	std::list<RenderObject*> queue;
 	queue.push_back(this->rootSpace);
+	for (auto renderObject : this->renderObjectArray)
+		queue.push_back(renderObject);
+
 	while (queue.size() > 0)
 	{
 		RenderObject* renderObject = *queue.begin();
 		queue.pop_front();
 
-		uint32_t flags = renderObject->GetFlags();
-		if ((flags & THEBE_RENDER_OBJECT_FLAG_VISIBLE) != 0)
+		if (renderObject->IsVisible())
 		{
 			if (renderObject->RendersToTarget(renderTarget) && camera->CanSee(renderObject))
 				renderObjectList.push_back(renderObject);
@@ -98,6 +100,11 @@ void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectLis
 			renderObject->AppendAllChildRenderObjects(queue);
 		}
 	}
+}
+
+std::vector<Reference<RenderObject>>& Scene::GetRenderObjectArray()
+{
+	return this->renderObjectArray;
 }
 
 /*virtual*/ bool Scene::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)

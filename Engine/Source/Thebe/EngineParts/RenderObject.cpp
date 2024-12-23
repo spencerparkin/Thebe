@@ -21,6 +21,11 @@ void RenderObject::SetFlags(uint32_t flags)
 	this->flags = flags;
 }
 
+bool RenderObject::IsVisible() const
+{
+	return (this->flags & THEBE_RENDER_OBJECT_FLAG_VISIBLE) != 0;
+}
+
 /*virtual*/ bool RenderObject::RendersToTarget(RenderTarget* renderTarget) const
 {
 	return false;

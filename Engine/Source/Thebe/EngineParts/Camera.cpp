@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/ConstantsBuffer.h"
+#include "Thebe/EngineParts/RenderObject.h"
 
 using namespace Thebe;
 
@@ -126,7 +127,7 @@ OrthographicCamera::OrthographicCamera()
 
 /*virtual*/ bool OrthographicCamera::CanSee(const RenderObject* renderObject) const
 {
-	// TODO: Write this.
+	// TODO: Write this.  Check render object against the frustum.
 	return true;
 }
 
