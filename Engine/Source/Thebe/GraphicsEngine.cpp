@@ -562,11 +562,26 @@ bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, 
 	return false;
 }
 
-ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, RenderTarget* renderTarget)
+ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, RenderTarget* renderTarget)
 {
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>& elementDescriptionArray = vertexBuffer->GetElementDescArray();
 
 	Shader* shader = material->GetShader();
+
+	D3D12_PRIMITIVE_TOPOLOGY primitiveTopology = indexBuffer ? indexBuffer->GetPrimitiveTopology() : vertexBuffer->GetPrimitiveTopology();
+	D3D12_PRIMITIVE_TOPOLOGY_TYPE primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+
+	switch (primitiveTopology)
+	{
+	case D3D_PRIMITIVE_TOPOLOGY_LINELIST:
+		primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+		break;
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
+		primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		break;
+	}
+
+	THEBE_ASSERT(primitiveTopologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.InputLayout.NumElements = (UINT)elementDescriptionArray.size();
@@ -582,7 +597,7 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.PrimitiveTopologyType = primitiveTopologyType;
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.SampleDesc.Count = 1;

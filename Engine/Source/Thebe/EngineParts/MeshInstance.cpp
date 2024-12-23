@@ -229,7 +229,7 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 
 	if (context->renderTarget->GetName() == "SwapChain")
 	{
-		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->mesh->GetVertexBuffer(), context->renderTarget);
+		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->mesh->GetVertexBuffer(), this->mesh->GetIndexBuffer(), context->renderTarget);
 		targetShader = this->material->GetShader();
 		targetConstantsDescriptorSet = &this->csuConstantsBufferDescriptorSet;
 		targetTexturesDescriptorSet = &this->csuMaterialTexturesDescriptorSet;
@@ -243,7 +243,7 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 	}
 	else if (context->renderTarget->GetName() == "ShadowBuffer")
 	{
-		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer(), context->renderTarget);
+		targetPipelineState = graphicsEngine->GetOrCreatePipelineState(this->shadowMaterial, this->mesh->GetVertexBuffer(), this->mesh->GetIndexBuffer(), context->renderTarget);
 		targetShader = this->shadowMaterial->GetShader();
 		targetConstantsDescriptorSet = &this->csuShadowConstantsBufferDescriptorSet;
 	}

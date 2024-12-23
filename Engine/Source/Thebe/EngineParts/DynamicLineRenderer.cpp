@@ -42,7 +42,8 @@ DynamicLineRenderer::DynamicLineRenderer()
 	this->vertexBuffer.Set(new VertexBuffer());
 	this->vertexBuffer->SetGraphicsEngine(graphicsEngine);
 	this->vertexBuffer->SetBufferType(VertexBuffer::DYNAMIC);
-	this->vertexBuffer->SetStride(2 * sizeof(Vertex));
+	this->vertexBuffer->SetStride(sizeof(Vertex));
+	this->vertexBuffer->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
 	D3D12_RESOURCE_DESC& bufferDesc = this->vertexBuffer->GetResourceDesc();
 	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -167,7 +168,7 @@ DynamicLineRenderer::DynamicLineRenderer()
 	if (!this->constantsBuffer->UpdateIfNecessary(commandList))
 		return false;
 
-	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->vertexBuffer, context->renderTarget);
+	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->material, this->vertexBuffer, nullptr, context->renderTarget);
 	if (!pipelineState)
 		return false;
 

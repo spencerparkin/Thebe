@@ -28,6 +28,7 @@ namespace Thebe
 	class DescriptorHeap;
 	class Material;
 	class VertexBuffer;
+	class IndexBuffer;
 	class UploadHeap;
 	class RenderObject;
 	class Camera;
@@ -127,7 +128,7 @@ namespace Thebe
 		UINT GetFrameIndex();
 		double GetDeltaTime();
 
-		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, RenderTarget* renderTarget);
+		ID3D12PipelineState* GetOrCreatePipelineState(Material* material, VertexBuffer* vertexBuffer, IndexBuffer* indexBuffer, RenderTarget* renderTarget);
 
 		template<typename T>
 		T* FindRenderTarget()

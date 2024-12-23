@@ -272,7 +272,7 @@ Text::Text()
 		return false;
 	}
 
-	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->font, this->vertexBuffer, context->renderTarget);
+	ID3D12PipelineState* pipelineState = graphicsEngine->GetOrCreatePipelineState(this->font, this->vertexBuffer, nullptr, context->renderTarget);
 	if (!pipelineState)
 		return false;
 

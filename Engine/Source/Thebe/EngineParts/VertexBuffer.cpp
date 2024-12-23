@@ -8,6 +8,7 @@ VertexBuffer::VertexBuffer()
 	::memset(&this->vertexBufferView, 0, sizeof(this->vertexBufferView));
 	this->resourceStateWhenRendering = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 	this->sizeAlignmentRequirement = 1;
+	this->primitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 	this->semanticNameHeap.SetSize(5 * 1024);
 }
 
@@ -23,6 +24,16 @@ void VertexBuffer::SetStride(UINT32 stride)
 const D3D12_VERTEX_BUFFER_VIEW* VertexBuffer::GetVertexBufferView() const
 {
 	return &this->vertexBufferView;
+}
+
+void VertexBuffer::SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology)
+{
+	this->primitiveTopology = primitiveTopology;
+}
+
+D3D_PRIMITIVE_TOPOLOGY VertexBuffer::GetPrimitiveTopology() const
+{
+	return this->primitiveTopology;
 }
 
 /*virtual*/ bool VertexBuffer::Setup()
@@ -143,6 +154,10 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 		this->elementDescArray.push_back(elementDesc);
 	}
 
+	auto primitiveTopologyValue = dynamic_cast<const JsonInt*>(rootValue->GetValue("primitive_topology"));
+	if (primitiveTopologyValue)
+		this->primitiveTopology = (D3D_PRIMITIVE_TOPOLOGY)primitiveTopologyValue->GetValue();
+
 	return true;
 }
 
@@ -175,6 +190,8 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 		elementDescValue->SetValue("input_slot_class", new JsonInt(elementDesc.InputSlotClass));
 		elementDescValue->SetValue("instance_data_step_rate", new JsonInt(elementDesc.InstanceDataStepRate));
 	}
+
+	rootValue->SetValue("primitive_topology", new JsonInt(this->primitiveTopology));
 
 	return true;
 }

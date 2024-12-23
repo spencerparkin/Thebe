@@ -24,10 +24,13 @@ namespace Thebe
 		std::vector<D3D12_INPUT_ELEMENT_DESC>& GetElementDescArray();
 		const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetElementDescArray() const;
 		const D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() const;
+		void SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitiveTopology);
+		D3D_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const;
 
 	protected:
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 		std::vector<D3D12_INPUT_ELEMENT_DESC> elementDescArray;
 		ScratchHeap semanticNameHeap;
+		D3D_PRIMITIVE_TOPOLOGY primitiveTopology;
 	};
 }
