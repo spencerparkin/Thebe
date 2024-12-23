@@ -18,7 +18,9 @@ GJKShape::GJKShape()
 	if (!shapeA || !shapeB)
 		return false;
 
-	// TODO: Check to see if GJK works even if we don't handle this simple case.
+	// For two spheres that touch in a single point, I can see the GJK algorithm
+	// taking a long time to converge on this point.  So just handle two spheres
+	// here as a special case.
 	auto sphereA = dynamic_cast<const GJKSphere*>(shapeA);
 	auto sphereB = dynamic_cast<const GJKSphere*>(shapeB);
 	if (sphereA && sphereB)
@@ -62,10 +64,6 @@ GJKShape::GJKShape()
 	Vector3 origin(0.0, 0.0, 0.0);
 	bool newSimplexFound = false;
 
-	// Where I'm really fuzzy here is in the (possibly false) notion that
-	// a direction in the Minkowski space corresponds reasonably to the
-	// same or similar direction in world space.
-
 	do
 	{
 		if (simplex.ContainsOrigin())
@@ -83,7 +81,7 @@ GJKShape::GJKShape()
 			{
 				const GJKSimplex::Face* face = faceArray[i];
 
-				pointA = shapeA->FurthestPoint(facePlane->unitNormal);
+				pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
 				pointB = shapeB->FurthestPoint(facePlane->unitNormal);
 
 				GJKSimplex newSimplex;
