@@ -22,5 +22,6 @@
     "size": 48,
     "type": 1,
     "stride": 8,
-    "name": "CharacterQuad"
+    "name": "CharacterQuad",
+    "primitive_topology": 4
 }
