@@ -6,4 +6,4 @@ Following is the latest screen-shot.  It's a work in progress.
 
 ![snapshot](https://github.com/spencerparkin/Thebe/blob/main/screen_shot.png?raw=true)
 
-One I'd like to expore IBL, but for now, the PBR shader is good enough for what I'd like to do with the engine.
+One day I'd like to expore IBL, but for now, the PBR shader is good enough for what I'd like to do with the engine.
