@@ -66,6 +66,9 @@ namespace Thebe
 
 		UINT64 GetBytesPerPixel();
 
+		void SetUploadSize(UINT64 uploadSize);
+		UINT64 GetUploadSize() const;
+
 	protected:
 		virtual bool ValidateBufferDescription();
 		virtual UINT64 GetUploadHeapAllocationSize(ID3D12Device* device);
@@ -81,6 +84,7 @@ namespace Thebe
 		ComPtr<ID3D12Resource> gpuBuffer;
 		UINT64 uploadBufferOffset;
 		UINT64 lastUpdateFrameCount;
+		UINT64 uploadSize;
 		bool compressed;
 	};
 }

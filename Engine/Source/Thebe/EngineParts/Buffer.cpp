@@ -22,6 +22,7 @@ Buffer::Buffer()
 	this->type = Type::NONE;
 	this->lastUpdateFrameCount = -1L;
 	this->uploadBufferOffset = 0L;
+	this->uploadSize = 0L;
 	this->compressed = false;
 
 	// These alignment conventions are not well documented, but apparently well understood.
@@ -163,6 +164,7 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 	if (!commandList)
 		return false;
 	
+	this->uploadSize = this->originalBuffer.size();
 	this->CopyDataFromUploadHeapToDefaultHeap(uploadHeap, commandList, device);
 
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(this->gpuBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, this->resourceStateWhenRendering);
@@ -217,8 +219,17 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 
 /*virtual*/ void Buffer::CopyDataFromUploadHeapToDefaultHeap(UploadHeap* uploadHeap, ID3D12GraphicsCommandList* commandList, ID3D12Device* device)
 {
-	UINT64 bufferSize = (UINT64)this->originalBuffer.size();
-	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, bufferSize);
+	commandList->CopyBufferRegion(this->gpuBuffer.Get(), 0, uploadHeap->GetUploadBuffer(), this->uploadBufferOffset, this->uploadSize);
+}
+
+void Buffer::SetUploadSize(UINT64 uploadSize)
+{
+	this->uploadSize = THEBE_MIN(uploadSize, this->originalBuffer.size());
+}
+
+UINT64 Buffer::GetUploadSize() const
+{
+	return this->uploadSize;
 }
 
 /*virtual*/ void Buffer::Shutdown()
