@@ -1,4 +1,4 @@
-#include "Thebe/EngineParts/TextInstance.h"
+#include "Thebe/EngineParts/Text.h"
 #include "Thebe/EngineParts/Font.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/StructuredBuffer.h"
@@ -10,9 +10,9 @@
 
 using namespace Thebe;
 
-//------------------------------ TextInstance ------------------------------
+//------------------------------ Text ------------------------------
 
-TextInstance::TextInstance()
+Text::Text()
 {
 	this->maxCharacters = 256;
 	this->fontSize = 1.0;
@@ -22,11 +22,11 @@ TextInstance::TextInstance()
 	this->textColor.SetComponents(1.0, 0.0, 0.0);
 }
 
-/*virtual*/ TextInstance::~TextInstance()
+/*virtual*/ Text::~Text()
 {
 }
 
-/*virtual*/ bool TextInstance::Setup()
+/*virtual*/ bool Text::Setup()
 {
 	if (!this->font.Get())
 	{
@@ -124,7 +124,7 @@ TextInstance::TextInstance()
 	return true;
 }
 
-/*virtual*/ void TextInstance::Shutdown()
+/*virtual*/ void Text::Shutdown()
 {
 	if (this->charBuffer.Get())
 	{
@@ -159,7 +159,7 @@ TextInstance::TextInstance()
 	Space::Shutdown();
 }
 
-/*virtual*/ void TextInstance::PrepareForRender()
+/*virtual*/ void Text::PrepareForRender()
 {
 	Space::PrepareForRender();
 
@@ -213,7 +213,7 @@ TextInstance::TextInstance()
 	this->charBufferUpdateNeeded = true;
 }
 
-/*virtual*/ bool TextInstance::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
+/*virtual*/ bool Text::Render(ID3D12GraphicsCommandList* commandList, RenderContext* context)
 {
 	if (!this->charBuffer.Get())
 		return false;
@@ -294,7 +294,7 @@ TextInstance::TextInstance()
 	return true;
 }
 
-/*virtual*/ bool TextInstance::RendersToTarget(RenderTarget* renderTarget) const
+/*virtual*/ bool Text::RendersToTarget(RenderTarget* renderTarget) const
 {
 	if (renderTarget->GetName() == "ShadowBuffer")
 		return false;
@@ -302,72 +302,72 @@ TextInstance::TextInstance()
 	return true;
 }
 
-/*virtual*/ uint32_t TextInstance::GetRenderOrder() const
+/*virtual*/ uint32_t Text::GetRenderOrder() const
 {
 	return THEBE_RENDER_ORDER_ALPHA_BLEND;
 }
 
-void TextInstance::SetText(const std::string& text)
+void Text::SetText(const std::string& text)
 {
 	this->text = text;
 }
 
-const std::string& TextInstance::GetText() const
+const std::string& Text::GetText() const
 {
 	return this->text;
 }
 
-void TextInstance::SetFont(Font* font)
+void Text::SetFont(Font* font)
 {
 	this->font = font;
 }
 
-Font* TextInstance::GetFont()
+Font* Text::GetFont()
 {
 	return this->font;
 }
 
-const Font* TextInstance::GetFont() const
+const Font* Text::GetFont() const
 {
 	return this->font;
 }
 
-void TextInstance::SetMaxCharacters(UINT maxCharacter)
+void Text::SetMaxCharacters(UINT maxCharacter)
 {
 	this->maxCharacters = maxCharacters;
 }
 
-UINT TextInstance::GetMaxCharacters() const
+UINT Text::GetMaxCharacters() const
 {
 	return this->maxCharacters;
 }
 
-void TextInstance::SetFontSize(double fontSize)
+void Text::SetFontSize(double fontSize)
 {
 	this->fontSize = fontSize;
 }
 
-double TextInstance::GetFontSize() const
+double Text::GetFontSize() const
 {
 	return this->fontSize;
 }
 
-void TextInstance::SetTextColor(const Vector3& textColor)
+void Text::SetTextColor(const Vector3& textColor)
 {
 	this->textColor = textColor;
 }
 
-const Vector3& TextInstance::GetTextColor() const
+const Vector3& Text::GetTextColor() const
 {
 	return this->textColor;
 }
 
-void TextInstance::SetRenderSpace(RenderSpace renderSpace)
+void Text::SetRenderSpace(RenderSpace renderSpace)
 {
 	this->renderSpace = renderSpace;
 }
 
-TextInstance::RenderSpace TextInstance::GetRenderSpace() const
+Text::RenderSpace Text::GetRenderSpace() const
 {
 	return this->renderSpace;
 }
@@ -402,7 +402,7 @@ FramerateText::FramerateText()
 	objectToScreen.translation.SetComponents(-1.0, 0.5, -2.0);
 	this->SetChildToParentTransform(objectToScreen);
 
-	if (!TextInstance::Setup())
+	if (!Text::Setup())
 		return false;
 
 	return true;
@@ -431,5 +431,5 @@ FramerateText::FramerateText()
 		this->SetText(std::format("Framerate: {:2.2f}", framerateFPS));
 	}
 
-	TextInstance::PrepareForRender();
+	Text::PrepareForRender();
 }

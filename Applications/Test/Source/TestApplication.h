@@ -3,7 +3,7 @@
 #include "Thebe/Application.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Camera.h"
-#include "Thebe/EngineParts/TextInstance.h"
+#include "Thebe/EngineParts/Text.h"
 #include "Thebe/FreeCam.h"
 
 class TestApplication : public Thebe::Application

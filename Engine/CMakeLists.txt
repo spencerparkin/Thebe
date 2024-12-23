@@ -87,8 +87,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/SpotLight.h
     Source/Thebe/EngineParts/DirectionalLight.cpp
     Source/Thebe/EngineParts/DirectionalLight.h
-    Source/Thebe/EngineParts/TextInstance.cpp
-    Source/Thebe/EngineParts/TextInstance.h
+    Source/Thebe/EngineParts/Text.cpp
+    Source/Thebe/EngineParts/Text.h
     Source/Thebe/EngineParts/Font.cpp
     Source/Thebe/EngineParts/Font.h
     Source/Thebe/EngineParts/StructuredBuffer.cpp

@@ -14,11 +14,11 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	class THEBE_API TextInstance : public Space
+	class THEBE_API Text : public Space
 	{
 	public:
-		TextInstance();
-		virtual ~TextInstance();
+		Text();
+		virtual ~Text();
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
@@ -82,7 +82,7 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	class THEBE_API FramerateText : public TextInstance
+	class THEBE_API FramerateText : public Text
 	{
 	public:
 		FramerateText();
