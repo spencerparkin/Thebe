@@ -93,6 +93,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Font.h
     Source/Thebe/EngineParts/StructuredBuffer.cpp
     Source/Thebe/EngineParts/StructuredBuffer.h
+    Source/Thebe/EngineParts/DynamicLineRenderer.cpp
+    Source/Thebe/EngineParts/DynamicLineRenderer.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp

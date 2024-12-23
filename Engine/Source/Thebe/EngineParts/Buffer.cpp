@@ -281,6 +281,11 @@ UINT8* Buffer::GetBufferPtr()
 	return uploadHeap->GetAllocationPtr(this->uploadBufferOffset);
 }
 
+const UINT8* Buffer::GetBufferPtr() const
+{
+	return const_cast<Buffer*>(this)->GetBufferPtr();
+}
+
 UINT64 Buffer::GetBufferSize() const
 {
 	return (UINT64)this->originalBuffer.size();

@@ -22,5 +22,5 @@
     "shader_code": "Shaders/FlatShader.hlsl",
     "vs_entry_point": "VSMain",
     "vs_model": "vs_6_5",
-    "vs_shader_object": "Shaders/FlatShaderPS.dxbc"
+    "vs_shader_object": "Shaders/FlatShaderVS.dxbc"
 }

@@ -1,0 +1,6 @@
+{
+	"alpha_blending": false,
+	"casts_shadows": false,
+	"name": "DefaultMaterial",
+	"shader": "Shaders/LineShader.shader"
+}

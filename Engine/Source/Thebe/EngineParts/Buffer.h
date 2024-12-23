@@ -43,6 +43,7 @@ namespace Thebe
 		bool UpdateIfNecessary(ID3D12GraphicsCommandList* commandList);
 
 		UINT8* GetBufferPtr();
+		const UINT8* GetBufferPtr() const;
 		UINT64 GetBufferSize() const;
 		void SetBufferType(Type type);
 		Type GetBufferType() const;
