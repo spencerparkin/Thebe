@@ -4,10 +4,13 @@
 #include "Thebe/EngineParts/StructuredBuffer.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/EngineParts/ConstantsBuffer.h"
+#include "Thebe/EngineParts/Camera.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
+
+//------------------------------ TextInstance ------------------------------
 
 TextInstance::TextInstance()
 {
@@ -15,6 +18,7 @@ TextInstance::TextInstance()
 	this->fontSize = 1.0;
 	this->charBufferUpdateNeeded = false;
 	this->numCharsToRender = 0;
+	this->renderSpace = RenderSpace::CAMERA;
 	this->textColor.SetComponents(1.0, 0.0, 0.0);
 }
 
@@ -235,10 +239,31 @@ TextInstance::TextInstance()
 	if (!context || !context->camera)
 		return false;
 
-	Matrix4x4 objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix;
-	this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);
+	switch (this->renderSpace)
+	{
+		case RenderSpace::WORLD:
+		{
+			Matrix4x4 objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix;
+			this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);
+			this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
+			break;
+		}
+		case RenderSpace::CAMERA:
+		{
+			Matrix4x4 cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
+			Matrix4x4 objectToCameraMatrix;
+			this->objectToWorld.GetToMatrix(objectToCameraMatrix);
+			Matrix4x4 objectToProjMatrix = cameraToProjMatrix * objectToCameraMatrix;
+			this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
+			break;
+		}
+		default:
+		{
+			THEBE_LOG("Render space (%d) unknown.", this->renderSpace);
+			return false;
+		}
+	}
 
-	this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
 	this->constantsBuffer->SetParameter("textColor", this->textColor);
 
 	if (!this->constantsBuffer->UpdateIfNecessary(commandList))
@@ -335,4 +360,76 @@ void TextInstance::SetTextColor(const Vector3& textColor)
 const Vector3& TextInstance::GetTextColor() const
 {
 	return this->textColor;
+}
+
+void TextInstance::SetRenderSpace(RenderSpace renderSpace)
+{
+	this->renderSpace = renderSpace;
+}
+
+TextInstance::RenderSpace TextInstance::GetRenderSpace() const
+{
+	return this->renderSpace;
+}
+
+//------------------------------ FramerateText ------------------------------
+
+FramerateText::FramerateText()
+{
+	this->deltaTimeListSizeMax = 16;
+}
+
+/*virtual*/ FramerateText::~FramerateText()
+{
+}
+
+/*virtual*/ bool FramerateText::Setup()
+{
+	if (!this->font)
+	{
+		Reference<GraphicsEngine> graphicsEngine;
+		if (!this->GetGraphicsEngine(graphicsEngine))
+			return false;
+
+		if (!graphicsEngine->LoadEnginePartFromFile(R"(Fonts\Roboto_Regular.font)", this->font))
+			return false;
+	}
+
+	this->SetRenderSpace(CAMERA);
+
+	Transform objectToScreen;
+	objectToScreen.SetIdentity();
+	objectToScreen.translation.SetComponents(-1.0, 0.5, -2.0);
+	this->SetChildToParentTransform(objectToScreen);
+
+	if (!TextInstance::Setup())
+		return false;
+
+	return true;
+}
+
+/*virtual*/ void FramerateText::PrepareForRender()
+{
+	Reference<GraphicsEngine> graphicsEngine;
+	if (this->GetGraphicsEngine(graphicsEngine))
+	{
+		double deltaTimeSeconds = graphicsEngine->GetDeltaTime();
+		this->deltaTimeList.push_back(deltaTimeSeconds);
+		while (this->deltaTimeList.size() > this->deltaTimeListSizeMax)
+			this->deltaTimeList.pop_front();
+	}
+
+	if (this->deltaTimeList.size() == 0)
+		this->SetText("Framerate: ?");
+	else
+	{
+		double averageDeltaTime = 0.0;
+		for (double deltaTime : this->deltaTimeList)
+			averageDeltaTime += deltaTime;
+		averageDeltaTime /= double(this->deltaTimeList.size());
+		double framerateFPS = 1.0 / averageDeltaTime;
+		this->SetText(std::format("Framerate: {:2.2f}", framerateFPS));
+	}
+
+	TextInstance::PrepareForRender();
 }

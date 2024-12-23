@@ -10,8 +10,6 @@
 #include <dxgi1_6.h>
 #include <filesystem>
 
-#define THEBE_FRAMES_PER_FRAMERATE_LOGGING				64
-#define THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION		32
 #define THEBE_LOAD_FLAG_DONT_CHECK_CACHE				0x00000001
 #define THEBE_LOAD_FLAG_DONT_CACHE_PART					0x00000002
 #define THEBE_DUMP_FLAG_CAN_OVERWRITE					0x00000001
@@ -174,7 +172,6 @@ namespace Thebe
 
 		double CalcFramerate();
 		Clock clock;
-		std::list<double> frameTimeList;
 		UINT64 frameCount;
 		double deltaTimeSeconds;
 	};

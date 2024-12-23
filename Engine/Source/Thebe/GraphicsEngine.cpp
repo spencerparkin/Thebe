@@ -397,27 +397,6 @@ void GraphicsEngine::Render()
 
 	this->frameCount++;
 	this->deltaTimeSeconds = this->clock.GetCurrentTimeSeconds(true);
-
-#if defined _DEBUG
-	this->frameTimeList.push_back(deltaTimeSeconds);
-	while (this->frameTimeList.size() > THEBE_MAX_FRAMES_PER_FRAMERATE_CALCULATION)
-		this->frameTimeList.pop_front();
-	if ((this->frameCount % THEBE_FRAMES_PER_FRAMERATE_LOGGING) == 0)
-		THEBE_LOG("Frame rate: %2.2f FPS", this->CalcFramerate());
-#endif //_DEBUG
-}
-
-double GraphicsEngine::CalcFramerate()
-{
-	if (this->frameTimeList.size() == 0)
-		return 0.0;
-
-	double averageFrameTimeSeconds = 0.0;
-	for (double frameTimeSeconds : this->frameTimeList)
-		averageFrameTimeSeconds += frameTimeSeconds;
-
-	averageFrameTimeSeconds /= double(this->frameTimeList.size());
-	return 1.0 / averageFrameTimeSeconds;
 }
 
 void GraphicsEngine::WaitForGPUIdle()

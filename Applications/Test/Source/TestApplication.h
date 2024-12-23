@@ -3,6 +3,7 @@
 #include "Thebe/Application.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/EngineParts/TextInstance.h"
 #include "Thebe/FreeCam.h"
 
 class TestApplication : public Thebe::Application
@@ -22,4 +23,5 @@ private:
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::FreeCam freeCam;
+	Thebe::Reference<Thebe::FramerateText> framerateText;
 };

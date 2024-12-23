@@ -8,7 +8,6 @@
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/DirectionalLight.h"
 #include "Thebe/EngineParts/Font.h"
-#include "Thebe/EngineParts/TextInstance.h"
 #include "Thebe/Math/Transform.h"
 
 using namespace Thebe;
@@ -45,24 +44,13 @@ TestApplication::TestApplication()
 		return false;
 	this->graphicsEngine->SetRenderObject(scene);
 
-	// Load a font we can use.
-	Reference<Font> font;
-	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Fonts\Roboto_Regular.font)", font))
+	// Add framerate indicator.
+	this->framerateText.Set(new FramerateText());
+	this->framerateText->SetGraphicsEngine(this->graphicsEngine);
+	this->framerateText->SetFlags(0);
+	if (!this->framerateText->Setup())
 		return false;
-
-	// Create some text and put it in the scene.
-	Reference<TextInstance> text(new TextInstance());
-	text->SetGraphicsEngine(this->graphicsEngine);
-	text->SetFont(font);
-	text->SetText("This is some text!\nThis is another line of text!\nIs this is the final line of text!");
-	Transform textTransform;
-	textTransform.SetIdentity();
-	textTransform.translation.SetComponents(0.0, 100.0, 0.0);
-	text->SetChildToParentTransform(textTransform);
-	text->SetFontSize(50.0);
-	if (!text->Setup())
-		return false;
-	scene->GetRootSpace()->AddSubSpace(text);
+	scene->GetRootSpace()->AddSubSpace(this->framerateText);
 
 	// Load and configure a light source.
 	Reference<DirectionalLight> light(new DirectionalLight());
@@ -121,6 +109,16 @@ TestApplication::TestApplication()
 		auto swapChain = this->graphicsEngine->FindRenderTarget<Thebe::SwapChain>();
 		if (swapChain)
 			swapChain->SetMsaaEnabled(!swapChain->GetMsaaEnabled());
+	}
+
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_B))
+	{
+		uint32_t flags = this->framerateText->GetFlags();
+		if ((flags & THEBE_RENDER_OBJECT_FLAG_VISIBLE) != 0)
+			flags &= ~THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+		else
+			flags |= THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+		this->framerateText->SetFlags(flags);
 	}
 
 	return 0;

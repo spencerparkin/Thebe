@@ -164,6 +164,11 @@ void Space::SetChildToParentTransform(const Transform& childToParent)
 	this->childToParent = childToParent;
 }
 
+const Transform& Space::GetChildToParentTransform() const
+{
+	return this->childToParent;
+}
+
 void Space::AddSubSpace(Space* space)
 {
 	this->subSpaceArray.push_back(space);

@@ -40,7 +40,16 @@ namespace Thebe
 		void SetTextColor(const Vector3& textColor);
 		const Vector3& GetTextColor() const;
 
-	private:
+		enum RenderSpace
+		{
+			WORLD,
+			CAMERA
+		};
+
+		void SetRenderSpace(RenderSpace renderSpace);
+		RenderSpace GetRenderSpace() const;
+
+	protected:
 		struct CharRenderInfo
 		{
 			float minU;
@@ -67,5 +76,23 @@ namespace Thebe
 		double fontSize;
 		Vector3 textColor;
 		UINT numCharsToRender;
+		RenderSpace renderSpace;
+	};
+
+	/**
+	 * 
+	 */
+	class THEBE_API FramerateText : public TextInstance
+	{
+	public:
+		FramerateText();
+		virtual ~FramerateText();
+
+		virtual bool Setup() override;
+		virtual void PrepareForRender() override;
+
+	private:
+		std::list<double> deltaTimeList;
+		size_t deltaTimeListSizeMax;
 	};
 }
