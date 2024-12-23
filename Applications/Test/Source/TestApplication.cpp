@@ -94,7 +94,7 @@ TestApplication::TestApplication()
 	// Configure a camera.
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 100.0, 50.0);
+	cameraToWorld.translation.SetComponents(0.0, 30.0, 100.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);
