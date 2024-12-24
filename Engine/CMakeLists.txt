@@ -17,6 +17,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/FreeCam.h
     Source/Thebe/XBoxController.cpp
     Source/Thebe/XBoxController.h
+    Source/Thebe/BoundingVolumeHierarchy.cpp
+    Source/Thebe/BoundingVolumeHierarchy.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
