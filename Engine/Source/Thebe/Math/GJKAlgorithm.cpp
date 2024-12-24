@@ -1,5 +1,6 @@
 #include "Thebe/Math/GJKAlgorithm.h"
 #include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Log.h"
 
 using namespace Thebe;
 
@@ -35,35 +36,52 @@ GJKShape::GJKShape()
 	//      a) If it is determined that no new simplex can be made in the direction of the origin, then there is no intersection and we're done.
 	//      b) Make the new simplex and continue with step 1.
 
+	std::vector<Vector3> unitDirectionArray;
+	unitDirectionArray.resize(6);
+	unitDirectionArray[0].SetComponents(1.0, 0.0, 0.0);
+	unitDirectionArray[1].SetComponents(-1.0, 0.0, 0.0);
+	unitDirectionArray[2].SetComponents(0.0, 1.0, 0.0);
+	unitDirectionArray[3].SetComponents(0.0, -1.0, 0.0);
+	unitDirectionArray[4].SetComponents(0.0, 0.0, 1.0);
+	unitDirectionArray[5].SetComponents(0.0, 0.0, -1.0);
+
 	GJKSimplex simplex;
-	Vector3 unitDirection;
+	Vector3* unitDirection = unitDirectionArray.data();
 	Vector3 pointA, pointB;
+	double epsilon = 1e-5;
 
-	unitDirection.SetComponents(1.0, 0.0, 0.0);
-	pointA = shapeA->FurthestPoint(unitDirection);
-	pointB = shapeB->FurthestPoint(unitDirection);
-	simplex.vertexArray[0] = pointB - pointA;
+	// Find the initial simplex.
+	int i = 0;
+	while (i < 4)
+	{
+		pointA = shapeA->FurthestPoint(-*unitDirection);
+		pointB = shapeB->FurthestPoint(*unitDirection);
+		simplex.vertexArray[i] = pointB - pointA;
 
-	unitDirection.SetComponents(-1.0, 0.0, 0.0);
-	pointA = shapeA->FurthestPoint(unitDirection);
-	pointB = shapeB->FurthestPoint(unitDirection);
-	simplex.vertexArray[1] = pointB - pointA;
+		double shortestDistance = std::numeric_limits<double>::max();
+		for (int j = 0; j < i; j++)
+		{
+			double distance = (simplex.vertexArray[j] - simplex.vertexArray[i]).Length();
+			if (distance < shortestDistance)
+				shortestDistance = distance;
+		}
 
-	unitDirection.SetComponents(0.0, 1.0, 0.0);
-	pointA = shapeA->FurthestPoint(unitDirection);
-	pointB = shapeB->FurthestPoint(unitDirection);
-	simplex.vertexArray[2] = pointB - pointA;
+		unitDirection++;
 
-	unitDirection.SetComponents(0.0, 0.0, 1.0);
-	pointA = shapeA->FurthestPoint(unitDirection);
-	pointB = shapeB->FurthestPoint(unitDirection);
-	simplex.vertexArray[3] = pointB - pointA;
+		if (shortestDistance > epsilon)
+			i++;
+		else if (unitDirection - unitDirectionArray.data() == unitDirectionArray.size())
+		{
+			THEBE_LOG("GJK failed to find initial tetrahedron.");
+			return false;
+		}
+	}
 
 	simplex.MakeFaces();
 
+	// Try to walk the simplex to the origin.
 	Vector3 origin(0.0, 0.0, 0.0);
 	bool newSimplexFound = false;
-
 	do
 	{
 		if (simplex.ContainsOrigin())
