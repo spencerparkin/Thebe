@@ -2,6 +2,9 @@
 
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/Plane.h"
+#include "Thebe/Math/Transform.h"
+#include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/AxisAlignedBoundingBox.h"
 
 namespace Thebe
 {
@@ -36,6 +39,11 @@ namespace Thebe
 		virtual Vector3 FurthestPoint(const Vector3& unitDirection) const = 0;
 
 		/**
+		 * Calculate and return the smallest possible box that bounds this shape.
+		 */
+		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const = 0;
+
+		/**
 		 * Tell the caller if the two given shapes interesect.
 		 * 
 		 * @return True is returned if and only if the two given shapes share at least one point in common.
@@ -43,6 +51,8 @@ namespace Thebe
 		static bool Intersect(const GJKShape* shapeA, const GJKShape* shapeB);
 
 		// TODO: Can we extend GJK to give us the signed distance between two shapes, and in what direction that distance is measured?
+
+		Transform objectToWorld;
 	};
 
 	/**
@@ -120,6 +130,7 @@ namespace Thebe
 		virtual ~GJKSphere();
 
 		virtual Vector3 FurthestPoint(const Vector3& unitDirection) const override;
+		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 
 		Vector3 center;
 		double radius;
@@ -135,11 +146,17 @@ namespace Thebe
 		virtual ~GJKConvexHull();
 
 		virtual Vector3 FurthestPoint(const Vector3& unitDirection) const override;
+		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 
 		/**
 		 * Generate a convex hull from any arbitrarily chosen set of points.
 		 */
 		bool CalculateFromPointCloud(const std::vector<Vector3>& pointCloud);
+
+		/**
+		 * Generate a polygon mesh from this shape's vertex array.
+		 */
+		bool GeneratePolygonMesh(PolygonMesh& polygonMesh) const;
 
 		/**
 		 * The convex hull represented here is the one found as the smallest

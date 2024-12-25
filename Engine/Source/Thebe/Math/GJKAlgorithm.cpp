@@ -262,7 +262,17 @@ GJKSphere::GJKSphere()
 
 /*virtual*/ Vector3 GJKSphere::FurthestPoint(const Vector3& unitDirection) const
 {
-	return this->center + this->radius * unitDirection;
+	return this->objectToWorld.TransformPoint(this->center) + this->radius * unitDirection;
+}
+
+/*virtual*/ AxisAlignedBoundingBox GJKSphere::GetWorldBoundingBox() const
+{
+	AxisAlignedBoundingBox worldBoundingBox;
+	worldBoundingBox.minCorner.SetComponents(-this->radius, -this->radius, -this->radius);
+	worldBoundingBox.maxCorner.SetComponents(this->radius, this->radius, this->radius);
+	worldBoundingBox.minCorner += this->objectToWorld.translation;
+	worldBoundingBox.maxCorner += this->objectToWorld.translation;
+	return worldBoundingBox;
 }
 
 //------------------------------------- GJKConvexHull -------------------------------------
@@ -278,20 +288,34 @@ GJKConvexHull::GJKConvexHull()
 /*virtual*/ Vector3 GJKConvexHull::FurthestPoint(const Vector3& unitDirection) const
 {
 	double largestDistance = std::numeric_limits<double>::min();
-	const Vector3* chosenVertex = nullptr;
+	Vector3 chosenVertex(0.0, 0.0, 0.0);
 
-	for (const Vector3& vertex : this->vertexArray)
+	for (const Vector3& objectVertex : this->vertexArray)
 	{
-		double distance = vertex.Dot(unitDirection);
+		Vector3 worldVertex = this->objectToWorld.TransformPoint(objectVertex);
+		double distance = worldVertex.Dot(unitDirection);
 		if (distance > largestDistance)
 		{
 			largestDistance = distance;
-			chosenVertex = &vertex;
+			chosenVertex = worldVertex;
 		}
 	}
 
-	THEBE_ASSERT_FATAL(chosenVertex != nullptr);
-	return *chosenVertex;
+	return chosenVertex;
+}
+
+/*virtual*/ AxisAlignedBoundingBox GJKConvexHull::GetWorldBoundingBox() const
+{
+	AxisAlignedBoundingBox worldBoundingBox;
+	worldBoundingBox.MakeReadyForExpansion();
+
+	for (const Vector3& objectVertex : this->vertexArray)
+	{
+		Vector3 worldVertex = this->objectToWorld.TransformPoint(objectVertex);
+		worldBoundingBox.Expand(worldVertex);
+	}
+
+	return worldBoundingBox;
 }
 
 bool GJKConvexHull::CalculateFromPointCloud(const std::vector<Vector3>& pointCloud)
@@ -305,4 +329,9 @@ bool GJKConvexHull::CalculateFromPointCloud(const std::vector<Vector3>& pointClo
 		this->vertexArray.push_back(vertex);
 
 	return true;
+}
+
+bool GJKConvexHull::GeneratePolygonMesh(PolygonMesh& polygonMesh) const
+{
+	return polygonMesh.GenerateConvexHull(this->vertexArray);
 }

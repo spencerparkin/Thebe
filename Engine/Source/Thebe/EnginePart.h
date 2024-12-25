@@ -14,7 +14,7 @@ namespace Thebe
 	 * By virtue of being an engine part, you are owned by a
 	 * particular graphics engine and have access to that instance.
 	 */
-	class THEBE_API EnginePart : public ReferenceCounted
+	class THEBE_API EnginePart : virtual public ReferenceCounted
 	{
 	public:
 		EnginePart();

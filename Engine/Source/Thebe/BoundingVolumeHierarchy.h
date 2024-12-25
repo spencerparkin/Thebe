@@ -63,7 +63,7 @@ namespace Thebe
 	/**
 	 * These are objects spatially organized by the BVH.
 	 */
-	class BVHObject : public ReferenceCounted
+	class THEBE_API BVHObject : virtual public ReferenceCounted
 	{
 		friend class BVHTree;
 

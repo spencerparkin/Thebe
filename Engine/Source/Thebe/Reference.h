@@ -140,12 +140,12 @@ namespace Thebe
 
 		T* Get()
 		{
-			return (T*)this->refCounted;
+			return dynamic_cast<T*>(this->refCounted);
 		}
 
 		const T* Get() const
 		{
-			return (T*)const_cast<const ReferenceCounted*>(this->refCounted);
+			return dynamic_cast<const T*>(this->refCounted);
 		}
 
 		T* SafeGet()

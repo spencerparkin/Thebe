@@ -1,6 +1,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/Camera.h"
+#include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;

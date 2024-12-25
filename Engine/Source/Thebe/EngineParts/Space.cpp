@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/Utilities/JsonHelper.h"
+#include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;

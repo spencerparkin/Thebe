@@ -19,6 +19,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/XBoxController.h
     Source/Thebe/BoundingVolumeHierarchy.cpp
     Source/Thebe/BoundingVolumeHierarchy.h
+    Source/Thebe/CollisionSystem.cpp
+    Source/Thebe/CollisionSystem.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
@@ -41,6 +43,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EnginePart.h
     Source/Thebe/EngineParts/Camera.cpp
     Source/Thebe/EngineParts/Camera.h
+    Source/Thebe/EngineParts/CollisionObject.cpp
+    Source/Thebe/EngineParts/CollisionObject.h
     Source/Thebe/EngineParts/Material.cpp
     Source/Thebe/EngineParts/Material.h
     Source/Thebe/EngineParts/Mesh.cpp

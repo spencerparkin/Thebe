@@ -268,6 +268,8 @@ void GraphicsEngine::Shutdown()
 
 	this->RemoveExpiredPSOs(true);
 
+	this->collisionSystem.UntrackAllObjects();
+
 	if (this->commandQueue)
 	{
 		this->commandQueue->Shutdown();
@@ -522,6 +524,11 @@ void GraphicsEngine::RemoveAllAssetFolders()
 const std::list<std::filesystem::path>& GraphicsEngine::GetAssetFolderList() const
 {
 	return this->assetFolderList;
+}
+
+CollisionSystem* GraphicsEngine::GetCollisionSystem()
+{
+	return &this->collisionSystem;
 }
 
 bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)
