@@ -280,6 +280,13 @@ void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOff
 #endif //_DEBUG
 }
 
+#if defined _DEBUG
+void CollisionObject::SetDebugColor(const Vector3& color)
+{
+	this->color = color;
+}
+#endif //_DEBUG
+
 /*virtual*/ AxisAlignedBoundingBox CollisionObject::GetWorldBoundingBox() const
 {
 	return this->shape->GetWorldBoundingBox();

@@ -50,7 +50,10 @@ CollisionLabApp::CollisionLabApp()
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);
-	this->freeCam.SetCamera(this->camera);
+	this->moverCam.SetCamera(this->camera);
+
+	this->moverCam.AddMoveObject(this->cubeA);
+	this->moverCam.AddMoveObject(this->cubeB);
 
 	return true;
 }
@@ -74,7 +77,7 @@ CollisionLabApp::CollisionLabApp()
 
 	this->graphicsEngine->Render();
 
-	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
+	this->moverCam.Update(this->graphicsEngine->GetDeltaTime());
 
 	return 0;
 }

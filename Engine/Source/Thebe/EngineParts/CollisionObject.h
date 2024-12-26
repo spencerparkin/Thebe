@@ -34,6 +34,10 @@ namespace Thebe
 		UINT64 GetFrameWhenLastMoved() const;
 		GJKShape* GetShape();
 
+#if defined _DEBUG
+		void SetDebugColor(const Vector3& color);
+#endif //_DEBUG
+
 	private:
 
 		void GenerateVertices(const Vector3& vertexBase, uint32_t axisFlags, std::vector<Vector3>& vertexArray);

@@ -25,12 +25,12 @@ namespace Thebe
 
 		XBoxController* GetController();
 
-		void Update(double deltaTimeSeconds);
+		virtual void Update(double deltaTimeSeconds);
 
 		virtual void OnButtonPressed(DWORD button) override;
 		virtual void OnButtonReleased(DWORD button) override;
 
-	private:
+	protected:
 		Reference<Camera> camera;
 		XBoxController controller;
 

@@ -5,6 +5,8 @@ set(COLLISION_LAB_SOURCES
     Source/Main.h
     Source/App.cpp
     Source/App.h
+    Source/MoverCam.cpp
+    Source/MoverCam.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${COLLISION_LAB_SOURCES})
