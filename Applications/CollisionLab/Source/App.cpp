@@ -54,17 +54,17 @@ CollisionLabApp::CollisionLabApp()
 	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
 	this->graphicsEngine->GetCollisionSystem()->SetWorldBox(worldBox);
 
-	if (!this->graphicsEngine->LoadEnginePartFromFile("CollisionObjects/Cube.collision_object", this->cubeA))
+	if (!this->graphicsEngine->LoadEnginePartFromFile("CollisionObjects/Icosahedron.collision_object", this->shapeA, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 		return false;
 
-	if (!this->graphicsEngine->LoadEnginePartFromFile("CollisionObjects/Cube.collision_object", this->cubeB, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
+	if (!this->graphicsEngine->LoadEnginePartFromFile("CollisionObjects/Cube.collision_object", this->shapeB, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 		return false;
 
-	Transform objectToWorld = this->cubeB->GetObjectToWorld();
+	Transform objectToWorld = this->shapeB->GetObjectToWorld();
 	objectToWorld.translation.x += 1.0;
 	objectToWorld.translation.y += 1.0;
 	objectToWorld.translation.z += 1.0;
-	this->cubeB->SetObjectToWorld(objectToWorld);
+	this->shapeB->SetObjectToWorld(objectToWorld);
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
@@ -74,8 +74,8 @@ CollisionLabApp::CollisionLabApp()
 	this->graphicsEngine->SetCamera(this->camera);
 	this->moverCam.SetCamera(this->camera);
 
-	this->moverCam.AddMoveObject(this->cubeA);
-	this->moverCam.AddMoveObject(this->cubeB);
+	this->moverCam.AddMoveObject(this->shapeA);
+	this->moverCam.AddMoveObject(this->shapeB);
 
 	return true;
 }
@@ -96,10 +96,10 @@ CollisionLabApp::CollisionLabApp()
 	this->text->SetText("No collision.");
 	this->text->SetTextColor(Vector3(1.0, 0.0, 0.0));
 	std::vector<Reference<CollisionSystem::Collision>> collisionArray;
-	this->graphicsEngine->GetCollisionSystem()->FindAllCollisions(this->cubeA.Get(), collisionArray);
+	this->graphicsEngine->GetCollisionSystem()->FindAllCollisions(this->shapeA.Get(), collisionArray);
 	for (auto& collision : collisionArray)
 	{
-		if (collision->objectA.Get() == this->cubeB.Get() || collision->objectB.Get() == this->cubeB.Get())
+		if (collision->objectA.Get() == this->shapeB.Get() || collision->objectB.Get() == this->shapeB.Get())
 		{
 			this->text->SetText("Yes collision!");
 			this->text->SetTextColor(Vector3(0.0, 1.0, 0.0));

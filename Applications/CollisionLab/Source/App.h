@@ -23,8 +23,8 @@ private:
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
-	Thebe::Reference<Thebe::CollisionObject> cubeA;
-	Thebe::Reference<Thebe::CollisionObject> cubeB;
+	Thebe::Reference<Thebe::CollisionObject> shapeA;
+	Thebe::Reference<Thebe::CollisionObject> shapeB;
 	Thebe::Reference<Thebe::Text> text;
 	MoverCam moverCam;
 };
