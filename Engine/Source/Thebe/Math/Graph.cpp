@@ -76,8 +76,8 @@ bool Graph::FromPolygohMesh(const PolygonMesh& mesh)
 		{
 			int j = polygon.Mod(i + 1);
 
-			Node* nodeA = this->nodeArray[i];
-			Node* nodeB = this->nodeArray[j];
+			Node* nodeA = this->nodeArray[polygon.vertexArray[i]];
+			Node* nodeB = this->nodeArray[polygon.vertexArray[j]];
 
 			if (!nodeA->IsAdjacentTo(nodeB))
 				nodeA->adjacentNodeSet.insert(nodeB);

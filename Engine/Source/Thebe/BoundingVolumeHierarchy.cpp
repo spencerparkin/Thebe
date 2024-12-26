@@ -184,8 +184,12 @@ bool BVHObject::UpdateBVHLocation(bool allowCuts /*= false*/)
 	AxisAlignedBoundingBox worldBoundingBox = this->GetWorldBoundingBox();
 
 	while (node.Get())
+	{
 		if (!node->worldBox.ContainsBox(worldBoundingBox))
 			node = node->parentNode;
+		else
+			break;
+	}
 	
 	if (!node.Get())
 		return false;
@@ -202,6 +206,9 @@ bool BVHObject::UpdateBVHLocation(bool allowCuts /*= false*/)
 
 			node->childNodeArray.push_back(nodeA);
 			node->childNodeArray.push_back(nodeB);
+
+			nodeA->parentNode = node.Get();
+			nodeB->parentNode = node.Get();
 		}
 		
 		wentDeeper = false;

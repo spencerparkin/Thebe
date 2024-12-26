@@ -22,6 +22,8 @@ namespace Thebe
 		bool TrackObject(CollisionObject* collisionObject);
 		bool UntrackObject(CollisionObject* collisionObject);
 		void UntrackAllObjects();
+		void SetWorldBox(const AxisAlignedBoundingBox& worldBox);
+		const AxisAlignedBoundingBox& GetWorldBox() const;
 
 		/**
 		 * The main feature of the collision system is to produce instances

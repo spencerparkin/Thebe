@@ -9,10 +9,22 @@ using namespace Thebe;
 
 CollisionSystem::CollisionSystem()
 {
+	this->boxTree.Set(new BVHTree());
 }
 
 /*virtual*/ CollisionSystem::~CollisionSystem()
 {
+	this->boxTree = nullptr;
+}
+
+void CollisionSystem::SetWorldBox(const AxisAlignedBoundingBox& worldBox)
+{
+	this->boxTree->SetWorldBox(worldBox);
+}
+
+const AxisAlignedBoundingBox& CollisionSystem::GetWorldBox() const
+{
+	return this->boxTree->GetWorldBox();
 }
 
 bool CollisionSystem::TrackObject(CollisionObject* collisionObject)

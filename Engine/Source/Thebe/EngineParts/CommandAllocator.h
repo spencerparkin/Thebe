@@ -36,6 +36,11 @@ namespace Thebe
 		 */
 		bool EndRecordingCommandList();
 
+		/**
+		 * This will close the command-list without submitting it to the command queue.
+		 */
+		bool CancelRecordingCommandList();
+
 		ID3D12GraphicsCommandList* GetCommandList();
 
 	protected:

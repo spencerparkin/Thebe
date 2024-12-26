@@ -80,11 +80,10 @@ Space* Scene::GetRootSpace()
 void Scene::GatherVisibleRenderObjects(std::list<RenderObject*>& renderObjectList, Camera* camera, RenderTarget* renderTarget)
 {
 	renderObjectList.clear();
-	if (!this->rootSpace)
-		return;
-
+	
 	std::list<RenderObject*> queue;
-	queue.push_back(this->rootSpace);
+	if (this->rootSpace.Get())
+		queue.push_back(this->rootSpace);
 	for (auto renderObject : this->renderObjectArray)
 		queue.push_back(renderObject);
 

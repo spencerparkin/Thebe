@@ -115,6 +115,18 @@ bool CommandAllocator::EndRecordingCommandList()
 	return true;
 }
 
+bool CommandAllocator::CancelRecordingCommandList()
+{
+	HRESULT result = this->commandList->Close();
+	if (FAILED(result))
+	{
+		THEBE_LOG("Failed to close command list.  Error: 0x%08x", result);
+		return false;
+	}
+
+	return true;
+}
+
 /*virtual*/ void CommandAllocator::PreSignal()
 {
 }

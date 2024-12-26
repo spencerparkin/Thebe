@@ -1,0 +1,29 @@
+{
+    "name": "Cube",
+    "polyhedron": "hexadron",
+    "scale": 1.0,
+    "object_to_world":
+    {
+        "matrix":
+        {
+            "elements":
+            [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "translation":
+        {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        }
+    }
+}

@@ -36,6 +36,8 @@ namespace Thebe
 
 	private:
 
+		void GenerateVertices(const Vector3& vertexBase, uint32_t axisFlags, std::vector<Vector3>& vertexArray);
+
 		GJKShape* shape;
 		UINT64 frameWhenLastMoved;
 #if defined _DEBUG

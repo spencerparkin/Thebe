@@ -16,6 +16,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Light.h"
 #include "Thebe/EngineParts/Font.h"
+#include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -494,9 +495,11 @@ bool GraphicsEngine::ResolvePath(std::filesystem::path& assetPath, ResolveMethod
 		{
 			for (const std::filesystem::path& assetFolder : this->assetFolderList)
 			{
-				assetPath = assetFolder / assetPath;
-				if (std::filesystem::exists(assetPath))
+				if (std::filesystem::exists(assetFolder / assetPath))
+				{
+					assetPath = assetFolder / assetPath;
 					break;
+				}
 			}
 		}
 	}
@@ -713,6 +716,8 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new CubeMapBuffer());
 	else if (ext == ".font")
 		enginePart.Set(new Font());
+	else if (ext == ".collision_object")
+		enginePart.Set(new CollisionObject());
 
 	if (!enginePart.Get())
 	{

@@ -92,34 +92,48 @@ RenderTarget::RenderTarget()
 		return false;
 	}
 
-	ID3D12GraphicsCommandList* commandList = frame->GetCommandList();
-	if (!commandList)
-		return false;
-
-	RenderObject::RenderContext context{};
-	context.renderTarget = this;
-	if (!this->PreRender(commandList, context))
+	bool renderSucceeded = false;
+	do
 	{
-		THEBE_LOG("Pre-render failed.");
-		return false;
-	}
-	
-	RenderObject* renderObject = graphicsEngine->GetRenderObject();
-	if (renderObject)
-	{
-		ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
-		commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
+		ID3D12GraphicsCommandList* commandList = frame->GetCommandList();
+		if (!commandList)
+			break;
 
-		if (!renderObject->Render(commandList, &context))
+		RenderObject::RenderContext context{};
+		context.renderTarget = this;
+		if (!this->PreRender(commandList, context))
 		{
-			THEBE_LOG("Render failed.");
-			return false;
+			THEBE_LOG("Pre-render failed.");
+			break;
 		}
-	}
 
-	if (!this->PostRender(commandList))
+		RenderObject* renderObject = graphicsEngine->GetRenderObject();
+		if (renderObject)
+		{
+			ID3D12DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap()->GetDescriptorHeap();
+			commandList->SetDescriptorHeaps(1, &csuDescriptorHeap);
+
+			if (!renderObject->Render(commandList, &context))
+			{
+				THEBE_LOG("Render failed.");
+				break;
+			}
+		}
+
+		if (!this->PostRender(commandList))
+		{
+			THEBE_LOG("Post-render failed.");
+			break;
+		}
+
+		renderSucceeded = true;
+	} while (false);
+
+	if (!renderSucceeded)
 	{
-		THEBE_LOG("Post-render failed.");
+		if (!frame->CancelRecordingCommandList())
+			THEBE_LOG("Failed to cancel command-list rendering.");
+		
 		return false;
 	}
 
