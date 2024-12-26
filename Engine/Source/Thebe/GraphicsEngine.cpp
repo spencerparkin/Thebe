@@ -601,6 +601,8 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 	psoDesc.PS = CD3DX12_SHADER_BYTECODE(shader->GetPixelShaderBlob());
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+	psoDesc.RasterizerState.MultisampleEnable = TRUE;
+	psoDesc.RasterizerState.AntialiasedLineEnable = TRUE;
 	psoDesc.BlendState = material->GetBlendDesc();
 	psoDesc.DepthStencilState.DepthEnable = TRUE;
 	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
