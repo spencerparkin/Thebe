@@ -109,7 +109,8 @@ GJKShape::GJKShape()
 				newSimplex.vertexArray[3] = pointB - pointA;
 				newSimplex.MakeFaces();
 
-				if (newSimplex.CalcVolume() > 0.0)
+				static double epsilon = 1e-5;
+				if (newSimplex.CalcVolume() > epsilon)
 				{
 					simplex = newSimplex;
 					newSimplexFound = true;
@@ -127,7 +128,7 @@ GJKShape::GJKShape()
 GJKSimplex::GJKSimplex()
 {
 	for (int i = 0; i < 4; i++)
-		for (int j = 0; j < 4; j++)
+		for (int j = 0; j < 3; j++)
 			this->faceArray[i].vertexArray[j] = 0;
 }
 
@@ -287,7 +288,7 @@ GJKConvexHull::GJKConvexHull()
 
 /*virtual*/ Vector3 GJKConvexHull::FurthestPoint(const Vector3& unitDirection) const
 {
-	double largestDistance = std::numeric_limits<double>::min();
+	double largestDistance = -std::numeric_limits<double>::max();
 	Vector3 chosenVertex(0.0, 0.0, 0.0);
 
 	for (const Vector3& objectVertex : this->vertexArray)

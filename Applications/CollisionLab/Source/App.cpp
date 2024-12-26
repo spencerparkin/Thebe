@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Thebe/EngineParts/Scene.h"
+#include "Thebe/EngineParts/Font.h"
 
 using namespace Thebe;
 
@@ -19,6 +20,24 @@ CollisionLabApp::CollisionLabApp()
 	if (!this->graphicsEngine->Setup(this->windowHandle))
 		return false;
 
+	Reference<Font> font;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Fonts\Roboto_Regular.font)", font))
+		return false;
+
+	this->text.Set(new Text());
+	this->text->SetGraphicsEngine(this->graphicsEngine);
+	this->text->SetFont(font);
+	this->text->SetText("Hello!");
+	this->text->SetRenderSpace(Text::CAMERA);
+	this->text->SetTextColor(Vector3(1.0, 1.0, 1.0));
+	if (!this->text->Setup())
+		return false;
+
+	Transform childToParent;
+	childToParent.SetIdentity();
+	childToParent.translation.SetComponents(-1.0, 0.5, -2.0);
+	this->text->SetChildToParentTransform(childToParent);
+
 	this->lineRenderer.Set(new DynamicLineRenderer());
 	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
 	this->lineRenderer->SetLineMaxCount(1024);
@@ -27,6 +46,7 @@ CollisionLabApp::CollisionLabApp()
 
 	Reference<Scene> scene(new Scene());
 	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+	scene->SetRootSpace(this->text.Get());
 	this->graphicsEngine->SetRenderObject(scene.Get());
 
 	AxisAlignedBoundingBox worldBox;
@@ -73,6 +93,20 @@ CollisionLabApp::CollisionLabApp()
 
 /*virtual*/ LRESULT CollisionLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->text->SetText("No collision.");
+	this->text->SetTextColor(Vector3(1.0, 0.0, 0.0));
+	std::vector<Reference<CollisionSystem::Collision>> collisionArray;
+	this->graphicsEngine->GetCollisionSystem()->FindAllCollisions(this->cubeA.Get(), collisionArray);
+	for (auto& collision : collisionArray)
+	{
+		if (collision->objectA.Get() == this->cubeB.Get() || collision->objectB.Get() == this->cubeB.Get())
+		{
+			this->text->SetText("Yes collision!");
+			this->text->SetTextColor(Vector3(0.0, 1.0, 0.0));
+			break;
+		}
+	}
+
 	UINT lineOffset = 0;
 	this->graphicsEngine->GetCollisionSystem()->DebugDraw(this->lineRenderer.Get(), lineOffset);
 	this->lineRenderer->SetLineRenderCount(lineOffset);

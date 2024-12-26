@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/EngineParts/CollisionObject.h"
+#include "Thebe/EngineParts/Text.h"
 #include "MoverCam.h"
 
 class CollisionLabApp : public Thebe::Application
@@ -24,5 +25,6 @@ private:
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
 	Thebe::Reference<Thebe::CollisionObject> cubeA;
 	Thebe::Reference<Thebe::CollisionObject> cubeB;
+	Thebe::Reference<Thebe::Text> text;
 	MoverCam moverCam;
 };

@@ -103,6 +103,7 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 			{
 				this->collisionCacheMap.erase(pair);
 				collision = nullptr;
+				pair = this->collisionCacheMap.end();
 			}
 		}
 
@@ -122,7 +123,9 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 		if (collision.Get())
 		{
 			collisionArray.push_back(collision);
-			this->collisionCacheMap.insert(std::pair(key, collision));
+
+			if (pair == this->collisionCacheMap.end())
+				this->collisionCacheMap.insert(std::pair(key, collision));
 		}
 	}
 }
