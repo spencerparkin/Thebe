@@ -41,7 +41,9 @@ CollisionLabApp::CollisionLabApp()
 		return false;
 
 	Transform objectToWorld = this->cubeB->GetObjectToWorld();
-	objectToWorld.translation.x += 5.0;
+	objectToWorld.translation.x += 1.0;
+	objectToWorld.translation.y += 1.0;
+	objectToWorld.translation.z += 1.0;
 	this->cubeB->SetObjectToWorld(objectToWorld);
 
 	Transform cameraToWorld;
