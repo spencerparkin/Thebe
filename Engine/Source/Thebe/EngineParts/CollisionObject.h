@@ -13,7 +13,6 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	// TODO: Derive a class from this one called PhysicsObject?  Have it own mass and an inertia tensor?
 	class THEBE_API CollisionObject : public EnginePart, public BVHObject
 	{
 	public:
@@ -29,14 +28,16 @@ namespace Thebe
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;
 
+		void SetUserData(uintptr_t userData);
+		uintptr_t GetUserData() const;
+
 		void DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOffset) const;
 
 		UINT64 GetFrameWhenLastMoved() const;
 		GJKShape* GetShape();
+		const GJKShape* GetShape() const;
 
-#if defined _DEBUG
 		void SetDebugColor(const Vector3& color);
-#endif //_DEBUG
 
 	private:
 
@@ -44,10 +45,9 @@ namespace Thebe
 
 		GJKShape* shape;
 		UINT64 frameWhenLastMoved;
-#if defined _DEBUG
 		mutable Graph graph;
 		mutable std::set<Graph::UnorderedEdge, Graph::UnorderedEdge> edgeSet;
 		Vector3 color;
-#endif //_DEBUG
+		uintptr_t userData;
 	};
 }

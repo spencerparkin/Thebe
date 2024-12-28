@@ -1,5 +1,7 @@
 #include "Thebe/Math/GJKAlgorithm.h"
 #include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/Polygon.h"
+#include "Thebe/Math/Function.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -123,6 +125,21 @@ GJKShape::GJKShape()
 	return false;
 }
 
+void GJKShape::SetObjectToWorld(const Transform& objectToWorld)
+{
+	this->objectToWorld = objectToWorld;
+}
+
+const Transform& GJKShape::GetObjectToWorld() const
+{
+	return this->objectToWorld;
+}
+
+/*virtual*/ bool GJKShape::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
+{
+	return false;
+}
+
 //------------------------------------- GJKSimplex -------------------------------------
 
 GJKSimplex::GJKSimplex()
@@ -229,19 +246,15 @@ void GJKSimplex::MakeFaces()
 
 	if (this->CalcVolume() < 0.0)
 	{
-		this->faceArray[0].vertexArray[0] = 0;
 		this->faceArray[0].vertexArray[1] = 2;
 		this->faceArray[0].vertexArray[2] = 1;
 
-		this->faceArray[1].vertexArray[0] = 0;
 		this->faceArray[1].vertexArray[1] = 3;
 		this->faceArray[1].vertexArray[2] = 2;
 
-		this->faceArray[2].vertexArray[0] = 2;
 		this->faceArray[2].vertexArray[1] = 3;
 		this->faceArray[2].vertexArray[2] = 1;
 
-		this->faceArray[3].vertexArray[0] = 1;
 		this->faceArray[3].vertexArray[1] = 3;
 		this->faceArray[3].vertexArray[2] = 0;
 
@@ -266,14 +279,54 @@ GJKSphere::GJKSphere()
 	return this->objectToWorld.TransformPoint(this->center) + this->radius * unitDirection;
 }
 
+/*virtual*/ AxisAlignedBoundingBox GJKSphere::GetObjectBoundingBox() const
+{
+	AxisAlignedBoundingBox objectBoundingBox;
+	objectBoundingBox.minCorner.SetComponents(-this->radius, -this->radius, -this->radius);
+	objectBoundingBox.maxCorner.SetComponents(this->radius, this->radius, this->radius);
+	return objectBoundingBox;
+}
+
 /*virtual*/ AxisAlignedBoundingBox GJKSphere::GetWorldBoundingBox() const
 {
-	AxisAlignedBoundingBox worldBoundingBox;
-	worldBoundingBox.minCorner.SetComponents(-this->radius, -this->radius, -this->radius);
-	worldBoundingBox.maxCorner.SetComponents(this->radius, this->radius, this->radius);
+	AxisAlignedBoundingBox worldBoundingBox = this->GetObjectBoundingBox();
 	worldBoundingBox.minCorner += this->objectToWorld.translation;
 	worldBoundingBox.maxCorner += this->objectToWorld.translation;
 	return worldBoundingBox;
+}
+
+/*virtual*/ bool GJKSphere::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const
+{
+	Vector3 delta = ray.origin - this->center;
+
+	Quadratic quadratic;
+	quadratic.A = 1.0;
+	quadratic.B = 2.0 * unitSurfaceNormal.Dot(delta);
+	quadratic.C = delta.Dot(delta) - this->radius * this->radius;
+
+	std::vector<double> realRoots;
+	quadratic.Solve(realRoots);
+	if (realRoots.size() == 0)
+		return false;
+
+	alpha = std::numeric_limits<double>::max();
+	for (double root : realRoots)
+		if (root >= 0.0 && root < alpha)
+			alpha = root;
+
+	unitSurfaceNormal = (ray.CalculatePoint(alpha) - this->center).Normalized();
+	return true;
+}
+
+/*virtual*/ bool GJKSphere::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
+{
+	double volume = (4.0 / 3.0) * THEBE_PI * this->radius * this->radius * this->radius;
+	double diag = (2.0 / 5.0) * volume * this->radius * this->radius;
+	objectSpaceInertiaTensor.SetIdentity();
+	objectSpaceInertiaTensor.ele[0][0] = diag;
+	objectSpaceInertiaTensor.ele[1][1] = diag;
+	objectSpaceInertiaTensor.ele[2][2] = diag;
+	return true;
 }
 
 //------------------------------------- GJKConvexHull -------------------------------------
@@ -291,7 +344,7 @@ GJKConvexHull::GJKConvexHull()
 	double largestDistance = -std::numeric_limits<double>::max();
 	Vector3 chosenVertex(0.0, 0.0, 0.0);
 
-	for (const Vector3& objectVertex : this->vertexArray)
+	for (const Vector3& objectVertex : this->hull.GetVertexArray())
 	{
 		Vector3 worldVertex = this->objectToWorld.TransformPoint(objectVertex);
 		double distance = worldVertex.Dot(unitDirection);
@@ -305,12 +358,23 @@ GJKConvexHull::GJKConvexHull()
 	return chosenVertex;
 }
 
+/*virtual*/ AxisAlignedBoundingBox GJKConvexHull::GetObjectBoundingBox() const
+{
+	AxisAlignedBoundingBox objectBoundingBox;
+	objectBoundingBox.MakeReadyForExpansion();
+
+	for (const Vector3& objectVertex : this->hull.GetVertexArray())
+		objectBoundingBox.Expand(objectVertex);
+
+	return objectBoundingBox;
+}
+
 /*virtual*/ AxisAlignedBoundingBox GJKConvexHull::GetWorldBoundingBox() const
 {
 	AxisAlignedBoundingBox worldBoundingBox;
 	worldBoundingBox.MakeReadyForExpansion();
 
-	for (const Vector3& objectVertex : this->vertexArray)
+	for (const Vector3& objectVertex : this->hull.GetVertexArray())
 	{
 		Vector3 worldVertex = this->objectToWorld.TransformPoint(objectVertex);
 		worldBoundingBox.Expand(worldVertex);
@@ -319,20 +383,65 @@ GJKConvexHull::GJKConvexHull()
 	return worldBoundingBox;
 }
 
-bool GJKConvexHull::CalculateFromPointCloud(const std::vector<Vector3>& pointCloud)
+
+/*virtual*/ bool GJKConvexHull::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const
 {
-	PolygonMesh hull;
-	if (!hull.GenerateConvexHull(pointCloud))
-		return false;
-
-	this->vertexArray.clear();
-	for (const Vector3& vertex : hull.GetVertexArray())
-		this->vertexArray.push_back(vertex);
-
-	return true;
+	return this->hull.RayCast(ray, alpha, unitSurfaceNormal);
 }
 
-bool GJKConvexHull::GeneratePolygonMesh(PolygonMesh& polygonMesh) const
+/*virtual*/ bool GJKConvexHull::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
 {
-	return polygonMesh.GenerateConvexHull(this->vertexArray);
+	AxisAlignedBoundingBox objectBoundingBox = this->GetObjectBoundingBox();
+
+	for (uint32_t i = 0; i < 3; i++)
+		for (uint32_t j = 0; j < 3; j++)
+			objectSpaceInertiaTensor.ele[i][j] = 0.0;
+
+	std::vector<Polygon> standalonePolygonArray;
+	this->hull.ToStandalonePolygonArray(standalonePolygonArray);
+
+	std::vector<Plane> planeArray;
+	for (const Polygon& polygon : standalonePolygonArray)
+		planeArray.push_back(polygon.CalcPlane(true));
+
+	auto pointInConvexHull = [&planeArray](const Vector3& point) -> bool
+		{
+			for (const Plane& plane : planeArray)
+				if (plane.GetSide(point) == Plane::FRONT)
+					return false;
+			return true;
+		};
+
+	// This will be a crude approximate of the integrals involved.
+	// It is also very slow!  So it really only should be done during the asset build process.
+	const uint32_t numSlices = 100;
+	double voxelDimension = 1.0 / double(numSlices);
+	double voxelVolume = voxelDimension * voxelDimension * voxelDimension;
+	Vector3 voxelCenter;
+	for (uint32_t i = 0; i < numSlices; i++)
+	{
+		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.x - objectBoundingBox.minCorner.x);
+		for (uint32_t j = 0; j < numSlices; j++)
+		{
+			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.y - objectBoundingBox.minCorner.y);
+			for (uint32_t k = 0; k < numSlices; k++)
+			{
+				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.z - objectBoundingBox.minCorner.z);
+				if (pointInConvexHull(voxelCenter))
+				{
+					objectSpaceInertiaTensor.ele[0][0] += voxelVolume * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);
+					objectSpaceInertiaTensor.ele[0][1] += -voxelVolume * voxelCenter.x * voxelCenter.y;
+					objectSpaceInertiaTensor.ele[0][2] += -voxelVolume * voxelCenter.x * voxelCenter.z;
+					objectSpaceInertiaTensor.ele[1][0] += -voxelVolume * voxelCenter.y * voxelCenter.x;
+					objectSpaceInertiaTensor.ele[1][1] += voxelVolume * (voxelCenter.x * voxelCenter.x + voxelCenter.z * voxelCenter.z);
+					objectSpaceInertiaTensor.ele[1][2] += -voxelVolume * voxelCenter.y * voxelCenter.z;
+					objectSpaceInertiaTensor.ele[2][0] += -voxelVolume * voxelCenter.z * voxelCenter.x;
+					objectSpaceInertiaTensor.ele[2][1] += -voxelVolume * voxelCenter.z * voxelCenter.y;
+					objectSpaceInertiaTensor.ele[2][2] += voxelVolume * (voxelCenter.x * voxelCenter.x + voxelCenter.y * voxelCenter.y);
+				}
+			}
+		}
+	}
+
+	return true;
 }

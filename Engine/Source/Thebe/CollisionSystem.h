@@ -12,7 +12,6 @@ namespace Thebe
 	/**
 	 * 
 	 */
-	// TODO: Derive a class from this one called PhysicsSystem?  Rigid-body dynamics are a tall order, but would be great.
 	class THEBE_API CollisionSystem
 	{
 	public:

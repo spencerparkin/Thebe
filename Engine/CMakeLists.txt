@@ -21,6 +21,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/BoundingVolumeHierarchy.h
     Source/Thebe/CollisionSystem.cpp
     Source/Thebe/CollisionSystem.h
+    Source/Thebe/PhysicsSystem.cpp
+    Source/Thebe/PhysicsSystem.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
@@ -45,6 +47,12 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/Camera.h
     Source/Thebe/EngineParts/CollisionObject.cpp
     Source/Thebe/EngineParts/CollisionObject.h
+    Source/Thebe/EngineParts/PhysicsObject.cpp
+    Source/Thebe/EngineParts/PhysicsObject.h
+    Source/Thebe/EngineParts/FloppyBody.cpp
+    Source/Thebe/EngineParts/FloppyBody.h
+    Source/Thebe/EngineParts/RigidBody.cpp
+    Source/Thebe/EngineParts/RigidBody.h
     Source/Thebe/EngineParts/Material.cpp
     Source/Thebe/EngineParts/Material.h
     Source/Thebe/EngineParts/Mesh.cpp

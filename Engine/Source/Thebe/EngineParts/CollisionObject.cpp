@@ -12,9 +12,8 @@ CollisionObject::CollisionObject()
 {
 	this->shape = nullptr;
 	this->frameWhenLastMoved = -1;
-#if _DEBUG
 	this->color.SetComponents(1.0, 1.0, 1.0);
-#endif //_DEBUG
+	this->userData = 0;
 }
 
 /*virtual*/ CollisionObject::~CollisionObject()
@@ -31,9 +30,13 @@ CollisionObject::CollisionObject()
 		return false;
 
 	if (!graphicsEngine->GetCollisionSystem()->TrackObject(this))
-	{
-		THEBE_LOG("Failed to add collision object to collision system.");
 		return false;
+
+	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
+	if (convexHull)
+	{
+		this->graph.FromPolygohMesh(convexHull->hull);
+		this->graph.GenerateEdgeSet(this->edgeSet);
 	}
 
 	return true;
@@ -53,7 +56,7 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 	Reference<GraphicsEngine> graphicsEngine;
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
-		this->shape->objectToWorld = objectToWorld;
+		this->shape->SetObjectToWorld(objectToWorld);
 		this->frameWhenLastMoved = graphicsEngine->GetFrameCount();
 		bool updated = this->UpdateBVHLocation();
 		THEBE_ASSERT(updated);
@@ -62,7 +65,17 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 
 const Transform& CollisionObject::GetObjectToWorld() const
 {
-	return this->shape->objectToWorld;
+	return this->shape->GetObjectToWorld();
+}
+
+void CollisionObject::SetUserData(uintptr_t userData)
+{
+	this->userData = userData;
+}
+
+uintptr_t CollisionObject::GetUserData() const
+{
+	return this->userData;
 }
 
 UINT64 CollisionObject::GetFrameWhenLastMoved() const
@@ -71,6 +84,11 @@ UINT64 CollisionObject::GetFrameWhenLastMoved() const
 }
 
 GJKShape* CollisionObject::GetShape()
+{
+	return this->shape;
+}
+
+const GJKShape* CollisionObject::GetShape() const
 {
 	return this->shape;
 }
@@ -86,25 +104,18 @@ GJKShape* CollisionObject::GetShape()
 	if (!rootValue)
 		return false;
 
+	std::vector<Vector3> vertexArray;
+
+	double scale = 1.0;
+	auto scaleValue = dynamic_cast<const JsonFloat*>(rootValue->GetValue("scale"));
+	if (scaleValue)
+		scale = scaleValue->GetValue();
+
 	auto polyhedronValue = dynamic_cast<const JsonString*>(rootValue->GetValue("polyhedron"));
 	auto hullVerticesValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("hull_vertices"));
 
 	if (polyhedronValue)
 	{
-		auto scaleValue = dynamic_cast<const JsonFloat*>(rootValue->GetValue("scale"));
-		if (!scaleValue)
-		{
-			THEBE_LOG("No scale value given when specifying a polyhedron.");
-			return false;
-		}
-
-		double scale = scaleValue->GetValue();
-
-		auto convexHull = new GJKConvexHull();
-		this->shape = convexHull;
-
-		std::vector<Vector3> vertexArray;
-
 		std::string polyhedron = polyhedronValue->GetValue();
 		if (polyhedron == "hexadron")
 		{
@@ -142,23 +153,10 @@ GJKShape* CollisionObject::GetShape()
 		{
 			THEBE_LOG("Polyhedron \"%s\" not yet supported.", polyhedron.c_str());
 			return false;
-		}
-
-		for (Vector3& vertex : vertexArray)
-			vertex *= scale;
-
-		if (!convexHull->CalculateFromPointCloud(vertexArray))
-		{
-			THEBE_LOG("Failed to generate convex hull from point-cloud.");
-			return false;
-		}
+		}	
 	}
 	else if (hullVerticesValue)
 	{
-		auto convexHull = new GJKConvexHull();
-		this->shape = convexHull;
-
-		convexHull->vertexArray.clear();
 		for (UINT i = 0; i < hullVerticesValue->GetSize(); i++)
 		{
 			Vector3 vertex;
@@ -168,8 +166,25 @@ GJKShape* CollisionObject::GetShape()
 				return false;
 			}
 
-			convexHull->vertexArray.push_back(vertex);
+			vertexArray.push_back(vertex);
 		}
+	}
+
+	if(vertexArray.size() > 0)
+	{
+		auto convexHull = new GJKConvexHull();
+		this->shape = convexHull;
+	
+		for (Vector3& vertex : vertexArray)
+			vertex *= scale;
+
+		if (!convexHull->hull.GenerateConvexHull(vertexArray))
+		{
+			THEBE_LOG("Failed to generate convex hull from point-cloud.");
+			return false;
+		}
+
+		convexHull->hull.SimplifyFaces(true);
 	}
 
 	if (!this->shape)
@@ -178,11 +193,14 @@ GJKShape* CollisionObject::GetShape()
 		return false;
 	}
 
-	if (!JsonHelper::TransformFromJsonValue(rootValue->GetValue("object_to_world"), this->shape->objectToWorld))
+	Transform objectToWorld;
+	if (!JsonHelper::TransformFromJsonValue(rootValue->GetValue("object_to_world"), objectToWorld))
 	{
 		THEBE_LOG("Failed to get object-to-world transform from the JSON data.");
 		return false;
 	}
+
+	this->shape->SetObjectToWorld(objectToWorld);
 
 	return true;
 }
@@ -242,50 +260,33 @@ void CollisionObject::GenerateVertices(const Vector3& vertexBase, uint32_t axisF
 	{
 		auto verticesValue = new JsonArray();
 		rootValue->SetValue("hull_vertices", verticesValue);
-		for (const Vector3& vertex : convexHull->vertexArray)
+		for (const Vector3& vertex : convexHull->hull.GetVertexArray())
 			verticesValue->PushValue(JsonHelper::VectorToJsonValue(vertex));
 	}
 
-	rootValue->SetValue("object_to_world", JsonHelper::TransformToJsonValue(this->shape->objectToWorld));
+	rootValue->SetValue("object_to_world", JsonHelper::TransformToJsonValue(this->shape->GetObjectToWorld()));
 
 	return true;
 }
 
 void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOffset) const
 {
-#if defined _DEBUG
-	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
-	if (convexHull)
+	for (const auto& edge : this->edgeSet)
 	{
-		if (this->edgeSet.size() == 0)
-		{
-			PolygonMesh polygonMesh;
-			convexHull->GeneratePolygonMesh(polygonMesh);
-			polygonMesh.SimplifyFaces(true);
-			this->graph.FromPolygohMesh(polygonMesh);
-			this->graph.GenerateEdgeSet(this->edgeSet);
-		}
+		const Graph::Node* nodeA = this->graph.GetNode(edge.i);
+		const Graph::Node* nodeB = this->graph.GetNode(edge.j);
 
-		for (const auto& edge : this->edgeSet)
-		{
-			const Graph::Node* nodeA = this->graph.GetNode(edge.i);
-			const Graph::Node* nodeB = this->graph.GetNode(edge.j);
+		Vector3 vertexA = this->shape->GetObjectToWorld().TransformPoint(nodeA->GetVertex());
+		Vector3 vertexB = this->shape->GetObjectToWorld().TransformPoint(nodeB->GetVertex());
 
-			Vector3 vertexA = this->shape->objectToWorld.TransformPoint(nodeA->GetVertex());
-			Vector3 vertexB = this->shape->objectToWorld.TransformPoint(nodeB->GetVertex());
-
-			lineRenderer->SetLine(lineOffset++, vertexA, vertexB, &this->color, &this->color);
-		}
+		lineRenderer->SetLine(lineOffset++, vertexA, vertexB, &this->color, &this->color);
 	}
-#endif //_DEBUG
 }
 
-#if defined _DEBUG
 void CollisionObject::SetDebugColor(const Vector3& color)
 {
 	this->color = color;
 }
-#endif //_DEBUG
 
 /*virtual*/ AxisAlignedBoundingBox CollisionObject::GetWorldBoundingBox() const
 {

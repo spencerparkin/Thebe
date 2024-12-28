@@ -5,6 +5,7 @@
 #include "Thebe/Utilities/Clock.h"
 #include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/CollisionSystem.h"
+#include "Thebe/PhysicsSystem.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -145,6 +146,7 @@ namespace Thebe
 		}
 
 		CollisionSystem* GetCollisionSystem();
+		PhysicsSystem* GetPhysicsSystem();
 
 	private:
 		struct PSO
@@ -170,6 +172,7 @@ namespace Thebe
 		Reference<Light> light;
 		Reference<CubeMapBuffer> envMap;
 		CollisionSystem collisionSystem;
+		PhysicsSystem physicsSystem;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
