@@ -57,9 +57,9 @@ TestApplication::TestApplication()
 	this->lineRenderer.Set(new DynamicLineRenderer());
 	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
 	this->lineRenderer->SetLineMaxCount(128);
-	this->lineRenderer->SetLineRenderCount(this->lineRenderer->GetLineMaxCount());
 	if (!this->lineRenderer->Setup())
 		return false;
+	this->lineRenderer->SetLineRenderCount(this->lineRenderer->GetLineMaxCount());
 	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
 
 	// Add some lines to the line renderer.

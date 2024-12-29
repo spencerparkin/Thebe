@@ -279,7 +279,8 @@ bool DynamicLineRenderer::GetLine(UINT i, Vector3& pointA, Vector3& pointB, Vect
 void DynamicLineRenderer::SetLineRenderCount(UINT lineRenderCount)
 {
 	this->lineRenderCount = THEBE_MIN(lineRenderCount, this->lineMaxCount);
-	this->vertexBuffer->SetUploadSize(this->lineRenderCount * 2 * sizeof(Vertex));
+	if (this->vertexBuffer.Get())
+		this->vertexBuffer->SetUploadSize(this->lineRenderCount * 2 * sizeof(Vertex));
 }
 
 UINT DynamicLineRenderer::GetLineRenderCount() const
