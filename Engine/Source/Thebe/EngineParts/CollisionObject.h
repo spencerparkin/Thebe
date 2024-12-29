@@ -9,6 +9,7 @@
 namespace Thebe
 {
 	class DynamicLineRenderer;
+	class Space;
 
 	/**
 	 * 
@@ -39,6 +40,9 @@ namespace Thebe
 
 		void SetDebugColor(const Vector3& color);
 
+		void SetTargetSpace(Space* targetSpace);
+		Space* GetTargetSpace();
+
 	private:
 
 		void GenerateVertices(const Vector3& vertexBase, uint32_t axisFlags, std::vector<Vector3>& vertexArray);
@@ -49,5 +53,6 @@ namespace Thebe
 		mutable std::set<Graph::UnorderedEdge, Graph::UnorderedEdge> edgeSet;
 		Vector3 color;
 		uintptr_t userData;
+		Reference<Space> targetSpace;
 	};
 }

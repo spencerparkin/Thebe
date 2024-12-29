@@ -1,6 +1,5 @@
 #include "Thebe/PhysicsSystem.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
-#include "Thebe/EngineParts/Space.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -85,16 +84,6 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
 			physicsObject->ResolveCollisions();
-		}
-
-		// Lastly, physics objects don't draw in the world by themselves, but
-		// they do drive the object-to-world transforms of stuff that does draw.
-		for (auto& pair : this->physicsObjectMap)
-		{
-			PhysicsObject* physicsObject = pair.second.Get();
-			Space* targetSpace = physicsObject->GetTargetSpace();
-			if (targetSpace)
-				targetSpace->SetChildToParentTransform(physicsObject->GetObjectToWorld());
 		}
 	}
 }

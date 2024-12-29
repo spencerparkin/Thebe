@@ -11,7 +11,7 @@ namespace Thebe
 	class PhysicsObject;
 
 	/**
-	 * 
+	 * This is my attempt to do some basic rigid and floppy body simulations.
 	 */
 	class THEBE_API PhysicsSystem
 	{

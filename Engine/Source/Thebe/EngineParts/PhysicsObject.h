@@ -6,8 +6,6 @@
 
 namespace Thebe
 {
-	class Space;
-
 	/**
 	 * This serves as the base class for any object tracked
 	 * by the physics system.
@@ -62,9 +60,6 @@ namespace Thebe
 
 		void SetCollisionObjectPath(const std::filesystem::path& collisionObjectPath);
 
-		void SetTargetSpace(Space* targetSpace);
-		Space* GetTargetSpace();
-
 	protected:
 
 		std::map<std::string, Vector3> externalForceMap;
@@ -75,7 +70,5 @@ namespace Thebe
 
 		Reference<CollisionObject> collisionObject;
 		std::filesystem::path collisionObjectPath;
-
-		Reference<Space> targetSpace;
 	};
 }

@@ -10,7 +10,16 @@ namespace Thebe
 	class DynamicLineRenderer;
 
 	/**
-	 * 
+	 * This is a basic system for keeping track of various shapes in
+	 * space, making it easy to determine which pairs of shapes overlap
+	 * one another, and *how* they overlap.  Note that it is completely
+	 * decoupled from the physics system.  The physics system is a user
+	 * of the collision system, but not vice-versa.  Put another way, the
+	 * physics system knows about the collision system, but the collision
+	 * system knows nothing about physics.  As such, you can use the
+	 * collision system on its own without doing any sort of physics,
+	 * if you want.  You could also say that the collision system is a
+	 * lower-level sub-system than the physics system.
 	 */
 	class THEBE_API CollisionSystem
 	{

@@ -1,5 +1,6 @@
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
+#include "Thebe/EngineParts/Space.h"
 #include "Thebe/Utilities/JsonHelper.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
@@ -57,9 +58,14 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
 		this->shape->SetObjectToWorld(objectToWorld);
+		
 		this->frameWhenLastMoved = graphicsEngine->GetFrameCount();
+
 		bool updated = this->UpdateBVHLocation();
 		THEBE_ASSERT(updated);
+
+		if (this->targetSpace.Get())
+			this->targetSpace->SetChildToParentTransform(objectToWorld);
 	}
 }
 
@@ -291,4 +297,14 @@ void CollisionObject::SetDebugColor(const Vector3& color)
 /*virtual*/ AxisAlignedBoundingBox CollisionObject::GetWorldBoundingBox() const
 {
 	return this->shape->GetWorldBoundingBox();
+}
+
+void CollisionObject::SetTargetSpace(Space* targetSpace)
+{
+	this->targetSpace = targetSpace;
+}
+
+Space* CollisionObject::GetTargetSpace()
+{
+	return this->targetSpace;
 }

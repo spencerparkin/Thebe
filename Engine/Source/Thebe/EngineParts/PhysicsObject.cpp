@@ -1,5 +1,4 @@
 #include "Thebe/EngineParts/PhysicsObject.h"
-#include "Thebe/EngineParts/Space.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/PhysicsSystem.h"
 #include "Thebe/Log.h"
@@ -46,8 +45,6 @@ PhysicsObject::PhysicsObject()
 		this->collisionObject->Shutdown();
 		this->collisionObject = nullptr;
 	}
-
-	this->targetSpace = nullptr;
 
 	Reference<GraphicsEngine> graphicsEngine;
 	if (this->GetGraphicsEngine(graphicsEngine))
@@ -130,16 +127,6 @@ void PhysicsObject::SetObjectToWorld(const Transform& objectToWorld)
 const Transform& PhysicsObject::GetObjectToWorld() const
 {
 	return this->collisionObject->GetObjectToWorld();
-}
-
-void PhysicsObject::SetTargetSpace(Space* targetSpace)
-{
-	this->targetSpace = targetSpace;
-}
-
-Space* PhysicsObject::GetTargetSpace()
-{
-	return this->targetSpace;
 }
 
 void PhysicsObject::SetExternalForce(const std::string& name, const Vector3& force)
