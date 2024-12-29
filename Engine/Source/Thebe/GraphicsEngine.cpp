@@ -17,6 +17,8 @@
 #include "Thebe/EngineParts/Light.h"
 #include "Thebe/EngineParts/Font.h"
 #include "Thebe/EngineParts/CollisionObject.h"
+#include "Thebe/EngineParts/FloppyBody.h"
+#include "Thebe/EngineParts/RigidBody.h"
 #include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -726,6 +728,10 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new Font());
 	else if (ext == ".collision_object")
 		enginePart.Set(new CollisionObject());
+	else if (ext == ".rigid_body")
+		enginePart.Set(new RigidBody());
+	else if (ext == ".floppy_body")
+		enginePart.Set(new FloppyBody());
 
 	if (!enginePart.Get())
 	{

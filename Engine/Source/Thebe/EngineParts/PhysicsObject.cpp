@@ -35,7 +35,7 @@ PhysicsObject::PhysicsObject()
 		return false;
 	}
 
-	return false;
+	return true;
 }
 
 /*virtual*/ void PhysicsObject::Shutdown()
@@ -73,7 +73,7 @@ PhysicsObject::PhysicsObject()
 
 	this->collisionObjectPath = collisionObjectValue->GetValue();
 
-	return false;
+	return true;
 }
 
 /*virtual*/ bool PhysicsObject::DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const

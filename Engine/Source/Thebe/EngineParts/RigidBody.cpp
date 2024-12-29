@@ -28,7 +28,7 @@ RigidBody::RigidBody()
 	if (this->objectSpaceInertiaTensor.Determinant() == 0.0)
 	{
 		// We should never actually do this at run-time.  This should only happen during the asset build.
-		if (!this->collisionObject->GetShape()->CalculateObjectSpaceInertiaTensor(this->objectSpaceInertiaTensor))
+		if (!this->collisionObject->GetShape()->CalculateRigidBodyCharacteristics(this->objectSpaceInertiaTensor, this->totalMass, [](const Vector3&) -> double { return 1.0; }))
 		{
 			THEBE_LOG("Failed to calculate object-space inertia tensor.");
 			return false;
@@ -87,6 +87,12 @@ RigidBody::RigidBody()
 
 /*virtual*/ void RigidBody::IntegrateMotionUnconstrained(double timeStepSeconds)
 {
+	if (this->totalMass == 0.0)
+	{
+		THEBE_LOG("Can't integrate massless body.");
+		return;
+	}
+
 	Transform objectToWorld = this->collisionObject->GetObjectToWorld();
 
 	Vector3& position = objectToWorld.translation;
@@ -99,7 +105,11 @@ RigidBody::RigidBody()
 
 	Matrix3x3 worldSpaceInertiaTensorInverse;
 	bool inverted = worldSpaceInertiaTensorInverse.Invert(worldSpaceInertiaTensor);
-	THEBE_ASSERT(inverted);
+	if (!inverted)
+	{
+		THEBE_LOG("Could not invert inertia tensor matrix.");
+		return;
+	}
 
 	Vector3 angularVelocity = worldSpaceInertiaTensorInverse * this->angularMomentum;
 

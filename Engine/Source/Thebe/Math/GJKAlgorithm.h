@@ -8,6 +8,7 @@
 #include "Thebe/Math/PolygonMesh.h"
 #include "Thebe/Math/Ray.h"
 #include "Thebe/Math/Matrix3x3.h"
+#include <functional>
 
 namespace Thebe
 {
@@ -65,15 +66,19 @@ namespace Thebe
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const = 0;
 
 		/**
-		 * Assuming a uniform density of one (i.e., mass = volume), calculate
-		 * and return the inertia tensor of the shape as it sits in object space.
+		 * Calculate and return the mass and inertia tensor of this shape.
 		 * 
 		 * If my understanding is correct, the inertia tensor, when taken in a
 		 * quadratic form with an unit-axis vector, gives you the moment of inertia
 		 * of the shape about that axis.  This is a scalar value indicating how
 		 * "hard" or "easy" it is to rotate the body about this axis.
+		 * 
+		 * @param[out] objectSpaceInertiaTensor The inertia tensor of the shape in object space is returned in this matrix.
+		 * @param[out] totalMass The total mass of the shape is returned in this scalar.
+		 * @param[in] densityFunction This function is used to convert from volume to mass while performing calculations.
+		 * @return True is returned if successful; false, otherwise.
 		 */
-		virtual bool CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const;
+		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const;
 
 		/**
 		 * Tell the caller if the two given shapes interesect.
@@ -165,7 +170,6 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetObjectBoundingBox() const override;
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
-		virtual bool CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const override;
 
 		Vector3 center;
 		double radius;
@@ -184,7 +188,7 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetObjectBoundingBox() const override;
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
-		virtual bool CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const override;
+		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const override;
 
 		PolygonMesh hull;
 	};

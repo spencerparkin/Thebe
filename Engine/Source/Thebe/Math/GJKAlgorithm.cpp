@@ -135,7 +135,7 @@ const Transform& GJKShape::GetObjectToWorld() const
 	return this->objectToWorld;
 }
 
-/*virtual*/ bool GJKShape::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
+/*virtual*/ bool GJKShape::CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const
 {
 	return false;
 }
@@ -318,17 +318,6 @@ GJKSphere::GJKSphere()
 	return true;
 }
 
-/*virtual*/ bool GJKSphere::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
-{
-	double volume = (4.0 / 3.0) * THEBE_PI * this->radius * this->radius * this->radius;
-	double diag = (2.0 / 5.0) * volume * this->radius * this->radius;
-	objectSpaceInertiaTensor.SetIdentity();
-	objectSpaceInertiaTensor.ele[0][0] = diag;
-	objectSpaceInertiaTensor.ele[1][1] = diag;
-	objectSpaceInertiaTensor.ele[2][2] = diag;
-	return true;
-}
-
 //------------------------------------- GJKConvexHull -------------------------------------
 
 GJKConvexHull::GJKConvexHull()
@@ -389,8 +378,10 @@ GJKConvexHull::GJKConvexHull()
 	return this->hull.RayCast(ray, alpha, unitSurfaceNormal);
 }
 
-/*virtual*/ bool GJKConvexHull::CalculateObjectSpaceInertiaTensor(Matrix3x3& objectSpaceInertiaTensor) const
+/*virtual*/ bool GJKConvexHull::CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const
 {
+	totalMass = 0.0;
+
 	AxisAlignedBoundingBox objectBoundingBox = this->GetObjectBoundingBox();
 
 	for (uint32_t i = 0; i < 3; i++)
@@ -414,34 +405,38 @@ GJKConvexHull::GJKConvexHull()
 
 	// This will be a crude approximate of the integrals involved.
 	// It is also very slow!  So it really only should be done during the asset build process.
-	const uint32_t numSlices = 100;
-	double boxWidth, boxHeight, boxDepth;
-	objectBoundingBox.GetDimensions(boxWidth, boxHeight, boxDepth);
-	double voxelWidth = boxWidth / double(numSlices);
-	double voxelHeight = boxHeight / double(numSlices);
-	double voxelDepth = boxDepth / double(numSlices);
-	double voxelVolume = voxelWidth * voxelHeight * voxelDepth;
+	double boxSizeX, boxSizeY, boxSizeZ;
+	objectBoundingBox.GetDimensions(boxSizeX, boxSizeY, boxSizeZ);
+	double voxelExtent = 0.05;
+	int numVoxelsX = int(boxSizeX / voxelExtent);
+	int numVoxelsY = int(boxSizeY / voxelExtent);
+	int numVoxelsZ = int(boxSizeZ / voxelExtent);
+	double voxelVolume = voxelExtent * voxelExtent * voxelExtent;
 	Vector3 voxelCenter;
-	for (uint32_t i = 0; i < numSlices; i++)
+	for (int i = 0; i < numVoxelsX; i++)
 	{
-		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numSlices)) * boxWidth;
-		for (uint32_t j = 0; j < numSlices; j++)
+		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numVoxelsX)) * boxSizeX;
+		for (int j = 0; j < numVoxelsY; j++)
 		{
-			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numSlices)) * boxHeight;
-			for (uint32_t k = 0; k < numSlices; k++)
+			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numVoxelsY)) * boxSizeY;
+			for (int k = 0; k < numVoxelsZ; k++)
 			{
-				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numSlices)) * boxDepth;
+				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numVoxelsZ)) * boxSizeZ;
 				if (pointInConvexHull(voxelCenter))
 				{
-					objectSpaceInertiaTensor.ele[0][0] += voxelVolume * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);
-					objectSpaceInertiaTensor.ele[0][1] += -voxelVolume * voxelCenter.x * voxelCenter.y;
-					objectSpaceInertiaTensor.ele[0][2] += -voxelVolume * voxelCenter.x * voxelCenter.z;
-					objectSpaceInertiaTensor.ele[1][0] += -voxelVolume * voxelCenter.y * voxelCenter.x;
-					objectSpaceInertiaTensor.ele[1][1] += voxelVolume * (voxelCenter.x * voxelCenter.x + voxelCenter.z * voxelCenter.z);
-					objectSpaceInertiaTensor.ele[1][2] += -voxelVolume * voxelCenter.y * voxelCenter.z;
-					objectSpaceInertiaTensor.ele[2][0] += -voxelVolume * voxelCenter.z * voxelCenter.x;
-					objectSpaceInertiaTensor.ele[2][1] += -voxelVolume * voxelCenter.z * voxelCenter.y;
-					objectSpaceInertiaTensor.ele[2][2] += voxelVolume * (voxelCenter.x * voxelCenter.x + voxelCenter.y * voxelCenter.y);
+					double voxelMass = voxelVolume * densityFunction(voxelCenter);
+
+					totalMass += voxelMass;
+
+					objectSpaceInertiaTensor.ele[0][0] += voxelMass * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);
+					objectSpaceInertiaTensor.ele[0][1] += -voxelMass * voxelCenter.x * voxelCenter.y;
+					objectSpaceInertiaTensor.ele[0][2] += -voxelMass * voxelCenter.x * voxelCenter.z;
+					objectSpaceInertiaTensor.ele[1][0] += -voxelMass * voxelCenter.y * voxelCenter.x;
+					objectSpaceInertiaTensor.ele[1][1] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.z * voxelCenter.z);
+					objectSpaceInertiaTensor.ele[1][2] += -voxelMass * voxelCenter.y * voxelCenter.z;
+					objectSpaceInertiaTensor.ele[2][0] += -voxelMass * voxelCenter.z * voxelCenter.x;
+					objectSpaceInertiaTensor.ele[2][1] += -voxelMass * voxelCenter.z * voxelCenter.y;
+					objectSpaceInertiaTensor.ele[2][2] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.y * voxelCenter.y);
 				}
 			}
 		}
