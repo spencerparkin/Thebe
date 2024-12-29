@@ -127,3 +127,8 @@ CollisionLabApp::CollisionLabApp()
 
 	return 0;
 }
+
+/*virtual*/ const char* CollisionLabApp::GetWindowTitle()
+{
+	return "Collision Lab";
+}

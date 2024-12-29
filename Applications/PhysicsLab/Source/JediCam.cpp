@@ -38,21 +38,49 @@ JediCam::JediCam()
 				Vector2 leftJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_LEFT_THUMB);
 				Vector2 rightJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_RIGHT_THUMB);
 
-				double forceStrength = 1.0;
+				double forceStrength = 10.0;
 				Vector3 force(0.0, 0.0, 0.0);
 				force += xAxis * leftJoyStick.x * forceStrength;
 				force += yAxis * leftJoyStick.y * forceStrength;
 				object->SetExternalForce("jedi", force);
 
-				double torqueStrength = 1.0;
+				double torqueStrength = 10.0;
 				Vector3 torque(0.0, 0.0, 0.0);
-				torque += xAxis * leftJoyStick.y * torqueStrength;
-				torque += yAxis * leftJoyStick.x * torqueStrength;
+				torque += xAxis * -rightJoyStick.y * torqueStrength;
+				torque += yAxis * rightJoyStick.x * torqueStrength;
 				object->SetExternalTorque("jedi", torque);
 			}
 
 			break;
 		}
+	}
+
+	AxisAlignedBoundingBox box;
+	box.minCorner.SetComponents(-10.0, -10.0, -10.0);
+	box.maxCorner.SetComponents(10.0, 10.0, 10.0);
+	double boxSizeX, boxSizeY, boxSizeZ;
+	box.GetDimensions(boxSizeX, boxSizeY, boxSizeZ);
+	for (auto object : this->objectArray)
+	{
+		Transform objectToWorld = object->GetObjectToWorld();
+		
+		if (objectToWorld.translation.x < box.minCorner.x)
+			objectToWorld.translation.x += boxSizeX;
+		if (objectToWorld.translation.x > box.maxCorner.x)
+			objectToWorld.translation.x -= boxSizeX;
+
+		if (objectToWorld.translation.y < box.minCorner.y)
+			objectToWorld.translation.y += boxSizeY;
+		if (objectToWorld.translation.y > box.maxCorner.y)
+			objectToWorld.translation.y -= boxSizeY;
+
+		if (objectToWorld.translation.z < box.minCorner.z)
+			objectToWorld.translation.z += boxSizeZ;
+		if (objectToWorld.translation.z > box.maxCorner.z)
+			objectToWorld.translation.z -= boxSizeZ;
+
+		if (objectToWorld.translation != object->GetObjectToWorld().translation)
+			object->SetObjectToWorld(objectToWorld);
 	}
 }
 

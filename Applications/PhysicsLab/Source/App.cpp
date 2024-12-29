@@ -98,3 +98,8 @@ PhysicsLabApp::PhysicsLabApp()
 
 	return 0;
 }
+
+/*virtual*/ const char* PhysicsLabApp::GetWindowTitle()
+{
+	return "Physics Lab";
+}

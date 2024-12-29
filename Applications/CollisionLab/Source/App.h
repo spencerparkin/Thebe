@@ -18,6 +18,7 @@ public:
 	virtual void Shutdown(HINSTANCE instance) override;
 	virtual LRESULT OnPaint(WPARAM wParam, LPARAM lParam) override;
 	virtual LRESULT OnSize(WPARAM wParam, LPARAM lParam) override;
+	virtual const char* GetWindowTitle() override;
 
 private:
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
