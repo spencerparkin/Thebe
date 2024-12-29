@@ -415,18 +415,22 @@ GJKConvexHull::GJKConvexHull()
 	// This will be a crude approximate of the integrals involved.
 	// It is also very slow!  So it really only should be done during the asset build process.
 	const uint32_t numSlices = 100;
-	double voxelDimension = 1.0 / double(numSlices);
-	double voxelVolume = voxelDimension * voxelDimension * voxelDimension;
+	double boxWidth, boxHeight, boxDepth;
+	objectBoundingBox.GetDimensions(boxWidth, boxHeight, boxDepth);
+	double voxelWidth = boxWidth / double(numSlices);
+	double voxelHeight = boxHeight / double(numSlices);
+	double voxelDepth = boxDepth / double(numSlices);
+	double voxelVolume = voxelWidth * voxelHeight * voxelDepth;
 	Vector3 voxelCenter;
 	for (uint32_t i = 0; i < numSlices; i++)
 	{
-		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.x - objectBoundingBox.minCorner.x);
+		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numSlices)) * boxWidth;
 		for (uint32_t j = 0; j < numSlices; j++)
 		{
-			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.y - objectBoundingBox.minCorner.y);
+			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numSlices)) * boxHeight;
 			for (uint32_t k = 0; k < numSlices; k++)
 			{
-				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numSlices)) * (objectBoundingBox.maxCorner.z - objectBoundingBox.minCorner.z);
+				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numSlices)) * boxDepth;
 				if (pointInConvexHull(voxelCenter))
 				{
 					objectSpaceInertiaTensor.ele[0][0] += voxelVolume * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);

@@ -49,6 +49,9 @@ namespace Thebe
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 
+		void SetObjectToWorld(const Transform& objectToWorld);
+		const Transform& GetObjectToWorld() const;
+
 		void SetExternalForce(const std::string& name, const Vector3& force);
 		Vector3 GetExternalForce(const std::string& name) const;
 
