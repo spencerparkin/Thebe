@@ -94,14 +94,34 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 					collisionMap.insert(std::pair(collision->GetHandle(), collision));
 		}
 
-		// Go resolve all detected collisions.
-		for (auto& pair : collisionMap)
+		if (collisionMap.size() > 0)
 		{
-			const auto& collision = pair.second;
-			PhysicsCollision physicsCollision;
-			physicsCollision.SetObjects(collision);
-			physicsCollision.CalculateContacts(collision, &this->contactCalculatorArray);
-			physicsCollision.Resolve();
+			// Go calculate contact points for each collision pair.
+			std::unique_ptr<PhysicsCollision> physicsCollisionArray(new PhysicsCollision[collisionMap.size()]);
+			int i = 0;
+			for (auto& pair : collisionMap)
+			{
+				const auto& collision = pair.second;
+				PhysicsCollision& physicsCollision = physicsCollisionArray.get()[i++];
+				bool objectsSet = physicsCollision.SetObjects(collision);
+				THEBE_ASSERT(objectsSet);
+				bool contactsCalculated = physicsCollision.CalculateContacts(collision, &this->contactCalculatorArray);
+				THEBE_ASSERT(contactsCalculated);
+			}
+
+			// Go resolve all detected collisions until no collision needs resolving.
+			// Hmmm...something tells me that we might loop indefinitely here in some cases.
+			uint32_t resolutionCount = 0;
+			do
+			{
+				resolutionCount = 0;
+				for (int i = 0; i < (int)collisionMap.size(); i++)
+				{
+					PhysicsCollision& physicsCollision = physicsCollisionArray.get()[i];
+					if (physicsCollision.Resolve())
+						resolutionCount++;
+				}
+			} while (resolutionCount > 0);
 		}
 	}
 }
