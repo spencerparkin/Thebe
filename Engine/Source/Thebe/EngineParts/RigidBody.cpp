@@ -137,16 +137,6 @@ RigidBody::RigidBody()
 	this->collisionObject->SetObjectToWorld(objectToWorld);
 }
 
-/*virtual*/ void RigidBody::DetectCollisions()
-{
-	// TODO: Write this.  It will be hard.
-}
-
-/*virtual*/ void RigidBody::ResolveCollisions()
-{
-	// TODO: Write this.  It will be harder!
-}
-
 void RigidBody::GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const
 {
 	const Matrix3x3& objectToWorldOrientationMatrix = this->collisionObject->GetShape()->GetObjectToWorld().matrix;

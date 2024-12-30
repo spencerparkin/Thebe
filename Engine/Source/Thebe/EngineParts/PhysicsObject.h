@@ -33,19 +33,6 @@ namespace Thebe
 		 */
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) = 0;
 
-		/**
-		 * Use the collision system to detect contact with other
-		 * physics objects, but do not act on the information; just
-		 * collect it now for later use.
-		 */
-		virtual void DetectCollisions() = 0;
-
-		/**
-		 * Act on the information gathered in the @ref DetectCollisions() method.
-		 * Calculate and apply impulses.  Prevent bodies from intersecting one another.
-		 */
-		virtual void ResolveCollisions() = 0;
-
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 

@@ -116,7 +116,7 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 				collision->validFrameB = otherCollisionObject->GetFrameWhenLastMoved();
 				collision->objectA = collisionObject;
 				collision->objectB = otherCollisionObject;
-				// TODO: How do we set the separation delta and the contact points?!
+				// TODO: How do we calculate the separation delta?!  The GJK algorithm might contain this information near the end.
 			}
 		}
 

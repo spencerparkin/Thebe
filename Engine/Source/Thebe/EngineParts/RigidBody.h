@@ -21,8 +21,6 @@ namespace Thebe
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
 		virtual void AccumulateForcesAndTorques() override;
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
-		virtual void DetectCollisions() override;
-		virtual void ResolveCollisions() override;
 
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
 		void GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const;

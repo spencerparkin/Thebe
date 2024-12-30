@@ -61,13 +61,6 @@ namespace Thebe
 			 */
 			Vector3 separationDelta;
 
-			/**
-			 * These are the principle points of contact between the two the two objects.
-			 * Of cousre, two objects can be touching in an area of infinitely many points,
-			 * in which case, the convex hull of this point array should outline that area.
-			 */
-			std::vector<Vector3> contactPointArray;
-
 		private:
 			/**
 			 * 

@@ -40,11 +40,3 @@ FloppyBody::FloppyBody()
 /*virtual*/ void FloppyBody::IntegrateMotionUnconstrained(double timeStepSeconds)
 {
 }
-
-/*virtual*/ void FloppyBody::DetectCollisions()
-{
-}
-
-/*virtual*/ void FloppyBody::ResolveCollisions()
-{
-}

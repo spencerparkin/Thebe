@@ -75,12 +75,15 @@ PhysicsLabApp::PhysicsLabApp()
 
 /*virtual*/ LRESULT PhysicsLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	CollisionSystem* collisionSystem = this->graphicsEngine->GetCollisionSystem();
+	PhysicsSystem* physicsSystem = this->graphicsEngine->GetPhysicsSystem();
+
 	UINT lineOffset = 0;
-	this->graphicsEngine->GetCollisionSystem()->DebugDraw(this->lineRenderer.Get(), lineOffset);
+	collisionSystem->DebugDraw(this->lineRenderer.Get(), lineOffset);
 	this->lineRenderer->SetLineRenderCount(lineOffset);
 
 	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
-	this->graphicsEngine->GetPhysicsSystem()->StepSimulation(deltaTimeSeconds);
+	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);
 
 	this->graphicsEngine->Render();
 
