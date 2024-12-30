@@ -12,8 +12,13 @@ RigidBody::RigidBody()
 	this->angularMomentum.SetComponents(0.0, 0.0, 0.0);
 
 	for (int i = 0; i < 3; i++)
+	{
 		for (int j = 0; j < 3; j++)
+		{
 			this->objectSpaceInertiaTensor.ele[i][j] = 0.0;
+			this->objectSpaceInertiaTensorInverse.ele[i][j] = 0.0;
+		}
+	}
 }
 
 /*virtual*/ RigidBody::~RigidBody()
@@ -31,6 +36,12 @@ RigidBody::RigidBody()
 		if (!this->collisionObject->GetShape()->CalculateRigidBodyCharacteristics(this->objectSpaceInertiaTensor, this->totalMass, [](const Vector3&) -> double { return 1.0; }))
 		{
 			THEBE_LOG("Failed to calculate object-space inertia tensor.");
+			return false;
+		}
+
+		if (!this->objectSpaceInertiaTensorInverse.Invert(this->objectSpaceInertiaTensor))
+		{
+			THEBE_LOG("Failed to invert inertia tensor.");
 			return false;
 		}
 	}
@@ -59,6 +70,12 @@ RigidBody::RigidBody()
 		this->totalMass = totalMassValue->GetValue();
 
 	JsonHelper::MatrixFromJsonValue(rootValue->GetValue("object_space_inertia_tensor"), this->objectSpaceInertiaTensor);
+
+	if (!this->objectSpaceInertiaTensorInverse.Invert(this->objectSpaceInertiaTensor))
+	{
+		THEBE_LOG("Failed to invert inertia tensor.");
+		return false;
+	}
 
 	return true;
 }
@@ -100,16 +117,8 @@ RigidBody::RigidBody()
 
 	Vector3 linearVelocity = this->linearMomentum / this->totalMass;
 
-	Matrix3x3 worldSpaceInertiaTensor;
-	this->GetWorldSpaceInertiaTensor(worldSpaceInertiaTensor);
-
 	Matrix3x3 worldSpaceInertiaTensorInverse;
-	bool inverted = worldSpaceInertiaTensorInverse.Invert(worldSpaceInertiaTensor);
-	if (!inverted)
-	{
-		THEBE_LOG("Could not invert inertia tensor matrix.");
-		return;
-	}
+	this->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverse);
 
 	Vector3 angularVelocity = worldSpaceInertiaTensorInverse * this->angularMomentum;
 
@@ -144,4 +153,12 @@ void RigidBody::GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) c
 	const Matrix3x3& objectToWorldOrientationMatrixInverse = objectToWorldOrientationMatrix.Transposed();
 
 	worldSpaceInertiaTensor = objectToWorldOrientationMatrix * this->objectSpaceInertiaTensor * objectToWorldOrientationMatrixInverse;
+}
+
+void RigidBody::GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const
+{
+	const Matrix3x3& objectToWorldOrientationMatrix = this->collisionObject->GetShape()->GetObjectToWorld().matrix;
+	const Matrix3x3& objectToWorldOrientationMatrixInverse = objectToWorldOrientationMatrix.Transposed();
+
+	worldSpaceInertiaTensorInverse = objectToWorldOrientationMatrix * this->objectSpaceInertiaTensorInverse * objectToWorldOrientationMatrixInverse;
 }

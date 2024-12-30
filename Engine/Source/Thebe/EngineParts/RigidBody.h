@@ -25,6 +25,7 @@ namespace Thebe
 		virtual void ResolveCollisions() override;
 
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
+		void GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const;
 
 	private:
 		// Note that our position (center of mass) and orientation are stored in the collision object.
@@ -32,5 +33,6 @@ namespace Thebe
 		Vector3 angularMomentum;
 		double totalMass;
 		Matrix3x3 objectSpaceInertiaTensor;
+		Matrix3x3 objectSpaceInertiaTensorInverse;
 	};
 }
