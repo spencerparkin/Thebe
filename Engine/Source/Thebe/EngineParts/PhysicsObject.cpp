@@ -35,6 +35,8 @@ PhysicsObject::PhysicsObject()
 		return false;
 	}
 
+	this->collisionObject->SetUserData(this->GetHandle());
+
 	return true;
 }
 
