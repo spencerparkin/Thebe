@@ -65,7 +65,10 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 		THEBE_ASSERT(updated);
 
 		if (this->targetSpace.Get())
+		{
+			// For now, we're assuming the parent transform is identity.
 			this->targetSpace->SetChildToParentTransform(objectToWorld);
+		}
 	}
 }
 

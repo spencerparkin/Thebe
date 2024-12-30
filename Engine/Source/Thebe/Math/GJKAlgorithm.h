@@ -71,7 +71,7 @@ namespace Thebe
 		 * If my understanding is correct, the inertia tensor, when taken in a
 		 * quadratic form with an unit-axis vector, gives you the moment of inertia
 		 * of the shape about that axis.  This is a scalar value indicating how
-		 * "hard" or "easy" it is to rotate the body about this axis.
+		 * "hard" or "easy" it is to rotate the body about this axis.  TODO: Likely not true.  Need to research more.
 		 * 
 		 * @param[out] objectSpaceInertiaTensor The inertia tensor of the shape in object space is returned in this matrix.
 		 * @param[out] totalMass The total mass of the shape is returned in this scalar.
@@ -85,7 +85,6 @@ namespace Thebe
 		 * 
 		 * @return True is returned if and only if the two given shapes share at least one point in common.
 		 */
-		 // TODO: Can we extend GJK to give us the signed distance between two shapes, and in what direction that distance is measured?
 		static bool Intersect(const GJKShape* shapeA, const GJKShape* shapeB);
 
 		void SetObjectToWorld(const Transform& objectToWorld);
