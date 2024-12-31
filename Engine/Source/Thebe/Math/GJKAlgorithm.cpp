@@ -318,6 +318,11 @@ GJKSphere::GJKSphere()
 	return true;
 }
 
+/*virtual*/ Vector3 GJKSphere::CalcGeometricCenter() const
+{
+	return this->center;
+}
+
 //------------------------------------- GJKConvexHull -------------------------------------
 
 GJKConvexHull::GJKConvexHull()
@@ -371,7 +376,6 @@ GJKConvexHull::GJKConvexHull()
 
 	return worldBoundingBox;
 }
-
 
 /*virtual*/ bool GJKConvexHull::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const
 {
@@ -443,4 +447,42 @@ GJKConvexHull::GJKConvexHull()
 	}
 
 	return true;
+}
+
+void GJKConvexHull::GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& edgeSet) const
+{
+	edgeSet.clear();
+
+	for (const PolygonMesh::Polygon& polygon : this->hull.GetPolygonArray())
+	{
+		for (int i = 0; i < (int)polygon.vertexArray.size(); i++)
+		{
+			Graph::UnorderedEdge edge;
+			edge.i = polygon.vertexArray[i];
+			edge.j = polygon.vertexArray[polygon.Mod(i + 1)];
+			if (edgeSet.find(edge) == edgeSet.end())
+				edgeSet.insert(edge);
+		}
+	}
+}
+
+void GJKConvexHull::GeneratePlaneArray(std::vector<Plane>& planeArray) const
+{
+	planeArray.clear();
+
+	std::vector<Polygon> standalonePolygonArray;
+	this->hull.ToStandalonePolygonArray(standalonePolygonArray);
+
+	for (const Polygon& polygon : standalonePolygonArray)
+		planeArray.push_back(polygon.CalcPlane(true));
+}
+
+/*virtual*/ Vector3 GJKConvexHull::CalcGeometricCenter() const
+{
+	Vector3 center(0.0, 0.0, 0.0);
+	for (const Vector3& vertex : this->hull.GetVertexArray())
+		center += vertex;
+
+	center /= double(this->hull.GetNumVertices());
+	return center;
 }

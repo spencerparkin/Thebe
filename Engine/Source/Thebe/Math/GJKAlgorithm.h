@@ -8,6 +8,7 @@
 #include "Thebe/Math/PolygonMesh.h"
 #include "Thebe/Math/Ray.h"
 #include "Thebe/Math/Matrix3x3.h"
+#include "Thebe/Math/Graph.h"
 #include <functional>
 
 namespace Thebe
@@ -79,6 +80,11 @@ namespace Thebe
 		 * @return True is returned if successful; false, otherwise.
 		 */
 		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const;
+
+		/**
+		 * Calculate and return the geometric center of the shape.  This is not necessarily a center of mass.
+		 */
+		virtual Vector3 CalcGeometricCenter() const = 0;
 
 		/**
 		 * Tell the caller if the two given shapes interesect.
@@ -169,6 +175,7 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetObjectBoundingBox() const override;
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
+		virtual Vector3 CalcGeometricCenter() const override;
 
 		Vector3 center;
 		double radius;
@@ -188,6 +195,10 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
 		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const override;
+		virtual Vector3 CalcGeometricCenter() const override;
+
+		void GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& edgeSet) const;
+		void GeneratePlaneArray(std::vector<Plane>& planeArray) const;
 
 		PolygonMesh hull;
 	};

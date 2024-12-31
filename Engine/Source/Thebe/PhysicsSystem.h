@@ -30,14 +30,14 @@ namespace Thebe
 
 		struct Contact
 		{
-			Vector3 surfacePoint;			///< This is a point of contact shared between two rigid bodies.
-			Vector3 unitSurfaceNormal;		///< This is the normal to the surface at the contact point, pointing from object B to object A by convention.
+			Vector3 surfacePoint;		///< This is a point of contact shared between two rigid bodies.
+			Vector3 unitNormal;			///< This is the contact normal, always pointing from object B to object A by convention.
 		};
 
 		class ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const GJKShape* shapeA, const GJKShape* shapeB, std::vector<Contact>& contactArray) = 0;
+			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) = 0;
 
 			static void FlipContactNormals(std::vector<Contact>& contactArray);
 		};
@@ -46,7 +46,7 @@ namespace Thebe
 		class ContactCalculator : public ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const GJKShape* shapeA, const GJKShape* shapeB, std::vector<Contact>& contactArray) override
+			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) override
 			{
 				return false;
 			}
@@ -56,7 +56,7 @@ namespace Thebe
 		class ContactCalculator<GJKConvexHull, GJKConvexHull> : public ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const GJKShape* shapeA, const GJKShape* shapeB, std::vector<Contact>& contactArray) override;
+			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) override;
 		};
 
 		class PhysicsCollision

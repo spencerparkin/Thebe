@@ -1,5 +1,7 @@
 #include "Thebe/PhysicsSystem.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
+#include "Thebe/Math/Graph.h"
+#include "Thebe/Math/LineSegment.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -164,11 +166,8 @@ bool PhysicsSystem::PhysicsCollision::CalculateContacts(
 						const CollisionSystem::Collision* collision,
 						std::vector<ContactCalculatorInterface*>* contactCalculatorArray)
 {
-	const GJKShape* shapeA = collision->objectA->GetShape();
-	const GJKShape* shapeB = collision->objectB->GetShape();
-
 	for (auto calculator : *contactCalculatorArray)
-		if (calculator->CalculateContacts(shapeA, shapeB, this->contactArray))
+		if (calculator->CalculateContacts(collision->objectA, collision->objectB, this->contactArray))
 			return true;
 
 	return false;
@@ -189,23 +188,93 @@ bool PhysicsSystem::PhysicsCollision::Resolve()
 /*static*/ void PhysicsSystem::ContactCalculatorInterface::FlipContactNormals(std::vector<Contact>& contactArray)
 {
 	for (auto& contact : contactArray)
-		contact.unitSurfaceNormal = -contact.unitSurfaceNormal;
+		contact.unitNormal = -contact.unitNormal;
 }
 
 //------------------------------ PhysicsSystem::ContactCalculator<GJKConvexHull, GJKConvexHull> ------------------------------
 
 /*virtual*/ bool PhysicsSystem::ContactCalculator<GJKConvexHull, GJKConvexHull>::CalculateContacts(
-												const GJKShape* shapeA,
-												const GJKShape* shapeB,
+												const CollisionObject* objectA,
+												const CollisionObject* objectB,
 												std::vector<Contact>& contactArray)
 {
-	auto hullA = dynamic_cast<const GJKConvexHull*>(shapeA);
-	auto hullB = dynamic_cast<const GJKConvexHull*>(shapeB);
+	// Note that here we have the advantage of knowing that the shapes in question
+	// already intersect one another by the GJK algorithm.  Our job here is just to
+	// determine all the vertex/face and edge/edge contacts.
+
+	auto hullA = dynamic_cast<const GJKConvexHull*>(objectA->GetShape());
+	auto hullB = dynamic_cast<const GJKConvexHull*>(objectB->GetShape());
 
 	if (!hullA || !hullB)
 		return false;
 
-	// TODO: Write this.
+	// Look for vertex/face contacts.
+
+	for (int i = 0; i < hullA->hull.GetNumVertices(); i++)
+	{
+		const Vector3& vertexA = hullA->hull.GetVertex(i);
+		if (objectB->PointOnOrBehindAllPlanes(vertexA))
+		{
+			int j = objectB->FindPlaneNearestToPoint(vertexA);
+			THEBE_ASSERT(j >= 0);
+			const Plane& planeB = objectB->GetPlaneArray()[j];
+			Contact contact;
+			contact.unitNormal = planeB.unitNormal;		// Always point from object B to A.
+			contact.surfacePoint = planeB.ClosestPointTo(vertexA);
+			contactArray.push_back(contact);
+		}
+	}
+
+	for (int i = 0; i < hullB->hull.GetNumVertices(); i++)
+	{
+		const Vector3& vertexB = hullB->hull.GetVertex(i);
+		if (objectA->PointOnOrBehindAllPlanes(vertexB))
+		{
+			int j = objectA->FindPlaneNearestToPoint(vertexB);
+			THEBE_ASSERT(j >= 0);
+			const Plane& planeA = objectA->GetPlaneArray()[j];
+			Contact contact;
+			contact.unitNormal = -planeA.unitNormal;		// Always point from object B to A.
+			contact.surfacePoint = planeA.ClosestPointTo(vertexB);
+			contactArray.push_back(contact);
+		}
+	}
+
+	// Look for edge/edge contacts.
+
+	for (const Graph::UnorderedEdge& edgeA : objectA->GetEdgeSet())
+	{
+		LineSegment lineSegA;
+		lineSegA.point[0] = hullA->hull.GetVertex(edgeA.i);
+		lineSegA.point[1] = hullA->hull.GetVertex(edgeA.j);
+
+		for (const Graph::UnorderedEdge& edgeB : objectB->GetEdgeSet())
+		{
+			LineSegment lineSegB;
+			lineSegB.point[0] = hullB->hull.GetVertex(edgeB.i);
+			lineSegB.point[1] = hullB->hull.GetVertex(edgeB.j);
+
+			LineSegment shortestConnector;
+			if (shortestConnector.SetAsShortestConnector(lineSegA, lineSegB))
+			{
+				const Vector3& pointA = shortestConnector.point[0];
+				const Vector3& pointB = shortestConnector.point[1];
+
+				if (objectA->PointOnOrBehindAllPlanes(pointB) && objectB->PointOnOrBehindAllPlanes(pointA))
+				{
+					Contact contact;
+					contact.surfacePoint = shortestConnector.Lerp(0.5);
+					contact.unitNormal = lineSegA.GetDelta().Cross(lineSegB.GetDelta()).Normalized();
+
+					double dot = (contact.surfacePoint - objectB->GetGeometricCenter()).Dot(contact.unitNormal);
+					if (dot < 0.0)
+						contact.unitNormal = -contact.unitNormal;
+
+					contactArray.push_back(contact);
+				}
+			}
+		}
+	}
 
 	return true;
 }

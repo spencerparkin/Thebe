@@ -43,14 +43,22 @@ namespace Thebe
 		void SetTargetSpace(Space* targetSpace);
 		Space* GetTargetSpace();
 
+		const std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& GetEdgeSet() const;
+		const std::vector<Plane>& GetPlaneArray() const;
+		const Vector3& GetGeometricCenter() const;
+
+		bool PointOnOrBehindAllPlanes(const Vector3& point) const;
+		int FindPlaneNearestToPoint(const Vector3& point) const;
+
 	private:
 
 		void GenerateVertices(const Vector3& vertexBase, uint32_t axisFlags, std::vector<Vector3>& vertexArray);
 
 		GJKShape* shape;
 		UINT64 frameWhenLastMoved;
-		mutable Graph graph;
-		mutable std::set<Graph::UnorderedEdge, Graph::UnorderedEdge> edgeSet;
+		std::set<Graph::UnorderedEdge, Graph::UnorderedEdge> edgeSet;
+		std::vector<Plane> planeArray;
+		Vector3 geometricCenter;
 		Vector3 color;
 		uintptr_t userData;
 		Reference<Space> targetSpace;

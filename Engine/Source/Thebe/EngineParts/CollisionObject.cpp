@@ -36,9 +36,11 @@ CollisionObject::CollisionObject()
 	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
 	if (convexHull)
 	{
-		this->graph.FromPolygohMesh(convexHull->hull);
-		this->graph.GenerateEdgeSet(this->edgeSet);
+		convexHull->GenerateEdgeSet(this->edgeSet);
+		convexHull->GeneratePlaneArray(this->planeArray);
 	}
+
+	this->geometricCenter = this->shape->CalcGeometricCenter();
 
 	return true;
 }
@@ -48,6 +50,9 @@ CollisionObject::CollisionObject()
 	Reference<GraphicsEngine> graphicsEngine;
 	if (this->GetGraphicsEngine(graphicsEngine))
 		graphicsEngine->GetCollisionSystem()->UntrackObject(this);
+
+	this->edgeSet.clear();
+	this->planeArray.clear();
 
 	EnginePart::Shutdown();
 }
@@ -280,15 +285,16 @@ void CollisionObject::GenerateVertices(const Vector3& vertexBase, uint32_t axisF
 
 void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOffset) const
 {
-	for (const auto& edge : this->edgeSet)
+	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
+	if (convexHull)
 	{
-		const Graph::Node* nodeA = this->graph.GetNode(edge.i);
-		const Graph::Node* nodeB = this->graph.GetNode(edge.j);
+		for (const auto& edge : this->edgeSet)
+		{
+			Vector3 vertexA = this->shape->GetObjectToWorld().TransformPoint(convexHull->hull.GetVertex(edge.i));
+			Vector3 vertexB = this->shape->GetObjectToWorld().TransformPoint(convexHull->hull.GetVertex(edge.j));
 
-		Vector3 vertexA = this->shape->GetObjectToWorld().TransformPoint(nodeA->GetVertex());
-		Vector3 vertexB = this->shape->GetObjectToWorld().TransformPoint(nodeB->GetVertex());
-
-		lineRenderer->SetLine(lineOffset++, vertexA, vertexB, &this->color, &this->color);
+			lineRenderer->SetLine(lineOffset++, vertexA, vertexB, &this->color, &this->color);
+		}
 	}
 }
 
@@ -310,4 +316,46 @@ void CollisionObject::SetTargetSpace(Space* targetSpace)
 Space* CollisionObject::GetTargetSpace()
 {
 	return this->targetSpace;
+}
+
+const std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& CollisionObject::GetEdgeSet() const
+{
+	return this->edgeSet;
+}
+
+const std::vector<Plane>& CollisionObject::GetPlaneArray() const
+{
+	return this->planeArray;
+}
+
+const Vector3& CollisionObject::GetGeometricCenter() const
+{
+	return this->geometricCenter;
+}
+
+bool CollisionObject::PointOnOrBehindAllPlanes(const Vector3& point) const
+{
+	for (const Plane& plane : this->planeArray)
+		if (plane.GetSide(point) == Plane::FRONT)
+			return false;
+
+	return true;
+}
+
+int CollisionObject::FindPlaneNearestToPoint(const Vector3& point) const
+{
+	int j = -1;
+	double smallestDistance = std::numeric_limits<double>::max();
+	for (int i = 0; i < (int)this->planeArray.size(); i++)
+	{
+		const Plane& plane = this->planeArray[i];
+		double distance = ::fabs(plane.SignedDistanceTo(point));
+		if (distance < smallestDistance)
+		{
+			smallestDistance = distance;
+			j = i;
+		}
+	}
+
+	return j;
 }
