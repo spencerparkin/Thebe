@@ -19,10 +19,14 @@ CollisionObject::CollisionObject()
 
 /*virtual*/ CollisionObject::~CollisionObject()
 {
+	delete this->shape;
 }
 
 /*virtual*/ bool CollisionObject::Setup()
 {
+	if (!this->shape)
+		return false;
+
 	if (!EnginePart::Setup())
 		return false;
 	
