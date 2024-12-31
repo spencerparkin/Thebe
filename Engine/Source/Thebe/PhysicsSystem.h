@@ -30,23 +30,25 @@ namespace Thebe
 
 		struct Contact
 		{
-			Vector3 surfacePoint;		///< This is a point of contact shared between two rigid bodies.
+			Reference<PhysicsObject> objectA;
+			Reference<PhysicsObject> objectB;
+			Vector3 surfacePoint;		///< This is the point of contact shared between the two rigid bodies.
 			Vector3 unitNormal;			///< This is the contact normal, always pointing from object B to object A by convention.
 		};
 
 		class ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) = 0;
+			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) = 0;
 
-			static void FlipContactNormals(std::vector<Contact>& contactArray);
+			static void FlipContactNormals(std::list<Contact>& contactList);
 		};
 
 		template<typename ShapeTypeA, typename ShapeTypeB>
 		class ContactCalculator : public ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) override
+			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override
 			{
 				return false;
 			}
@@ -56,26 +58,12 @@ namespace Thebe
 		class ContactCalculator<GJKConvexHull, GJKConvexHull> : public ContactCalculatorInterface
 		{
 		public:
-			virtual bool CalculateContacts(const CollisionObject* objectA, const CollisionObject* objectB, std::vector<Contact>& contactArray) override;
-		};
-
-		class PhysicsCollision
-		{
-		public:
-			PhysicsCollision();
-			virtual ~PhysicsCollision();
-
-			bool SetObjects(const CollisionSystem::Collision* collision);
-			bool CalculateContacts(const CollisionSystem::Collision* collision, std::vector<ContactCalculatorInterface*>* contactCalculatorArray);
-			bool Resolve();
-
-			Reference<PhysicsObject> objectA;
-			Reference<PhysicsObject> objectB;
-
-			std::vector<Contact> contactArray;
+			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override;
 		};
 
 	private:
+		bool GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList);
+		bool ResolveContact(const Contact& contact);
 
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;

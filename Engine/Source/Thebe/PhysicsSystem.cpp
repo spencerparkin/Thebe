@@ -96,114 +96,82 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 					collisionMap.insert(std::pair(collision->GetHandle(), collision));
 		}
 
-		if (collisionMap.size() > 0)
+		// Generate all collision contacts.
+		std::list<Contact> contactList;
+		for (auto& pair : collisionMap)
 		{
-			// Go calculate contact points for each collision pair.
-			std::unique_ptr<PhysicsCollision> physicsCollisionArray(new PhysicsCollision[collisionMap.size()]);
-			int i = 0;
-			for (auto& pair : collisionMap)
-			{
-				const auto& collision = pair.second;
-				PhysicsCollision& physicsCollision = physicsCollisionArray.get()[i++];
-				bool objectsSet = physicsCollision.SetObjects(collision);
-				THEBE_ASSERT(objectsSet);
-				bool contactsCalculated = physicsCollision.CalculateContacts(collision, &this->contactCalculatorArray);
-				THEBE_ASSERT(contactsCalculated);
-			}
-
-			// Go resolve all detected collisions until no collision needs resolving.
-			// Hmmm...something tells me that we might loop indefinitely here in some cases.
-			uint32_t resolutionCount = 0;
-			do
-			{
-				resolutionCount = 0;
-				for (int i = 0; i < (int)collisionMap.size(); i++)
-				{
-					PhysicsCollision& physicsCollision = physicsCollisionArray.get()[i];
-					if (physicsCollision.Resolve())
-						resolutionCount++;
-				}
-			} while (resolutionCount > 0);
+			const auto& collision = pair.second;
+			this->GenerateContacts(collision.Get(), contactList);
 		}
+
+		// Go process all collision contacts.
+		// Hmmm...something tells me that we might loop here indefinitely in some cases.
+		uint32_t resolutionCount = 0;
+		do
+		{
+			resolutionCount = 0;
+			for (const Contact& contact : contactList)
+				if (this->ResolveContact(contact))
+					resolutionCount++;
+			
+		} while (resolutionCount > 0);
 	}
 }
 
-//------------------------------ PhysicsSystem::PhysicsCollision ------------------------------
-
-PhysicsSystem::PhysicsCollision::PhysicsCollision()
+bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList)
 {
-	this->objectA = nullptr;
-	this->objectB = nullptr;
-}
+	Reference<PhysicsObject> objectA, objectB;
+	Reference<ReferenceCounted> refA, refB;
 
-/*virtual*/ PhysicsSystem::PhysicsCollision::~PhysicsCollision()
-{
-}
+	RefHandle handleA = (RefHandle)collision->objectA->GetUserData();
+	RefHandle handleB = (RefHandle)collision->objectB->GetUserData();
 
-bool PhysicsSystem::PhysicsCollision::SetObjects(const CollisionSystem::Collision* collision)
-{
-	RefHandle handle = (RefHandle)collision->objectA->GetUserData();
-	Reference<ReferenceCounted> ref;
-	if (!HandleManager::Get()->GetObjectFromHandle(handle, ref))
+	if (!HandleManager::Get()->GetObjectFromHandle(handleA, refA) || !HandleManager::Get()->GetObjectFromHandle(handleB, refB))
 		return false;
 
-	this->objectA.SafeSet(ref.Get());
-	if (!this->objectA.Get())
+	objectA.SafeSet(refA.Get());
+	objectB.SafeSet(refB.Get());
+
+	if (!objectA.Get() || !objectB.Get())
 		return false;
 
-	handle = (RefHandle)collision->objectB->GetUserData();
-	if (!HandleManager::Get()->GetObjectFromHandle(handle, ref))
-		return false;
-
-	this->objectB.SafeSet(ref.Get());
-	if (!this->objectB.Get())
-		return false;
-
-	return true;
-}
-
-bool PhysicsSystem::PhysicsCollision::CalculateContacts(
-						const CollisionSystem::Collision* collision,
-						std::vector<ContactCalculatorInterface*>* contactCalculatorArray)
-{
-	for (auto calculator : *contactCalculatorArray)
-		if (calculator->CalculateContacts(collision->objectA, collision->objectB, this->contactArray))
+	for (auto calculator : this->contactCalculatorArray)
+		if (calculator->CalculateContacts(objectA, objectB, contactList))
 			return true;
 
-	return false;
+	return true;
 }
 
-bool PhysicsSystem::PhysicsCollision::Resolve()
+bool PhysicsSystem::ResolveContact(const Contact& contact)
 {
-	// This is where we apply impulses to the physics objects.
-	// We might delegate some work here to the physics objects in question.
-
-	// TODO: Write this.
-
-	return true;
+	// TODO: Write this.  Apply impulses if necessary.
+	return false;
 }
 
 //------------------------------ PhysicsSystem::ContactCalculatorInterface ------------------------------
 
-/*static*/ void PhysicsSystem::ContactCalculatorInterface::FlipContactNormals(std::vector<Contact>& contactArray)
+/*static*/ void PhysicsSystem::ContactCalculatorInterface::FlipContactNormals(std::list<Contact>& contactList)
 {
-	for (auto& contact : contactArray)
+	for (auto& contact : contactList)
 		contact.unitNormal = -contact.unitNormal;
 }
 
 //------------------------------ PhysicsSystem::ContactCalculator<GJKConvexHull, GJKConvexHull> ------------------------------
 
 /*virtual*/ bool PhysicsSystem::ContactCalculator<GJKConvexHull, GJKConvexHull>::CalculateContacts(
-												const CollisionObject* objectA,
-												const CollisionObject* objectB,
-												std::vector<Contact>& contactArray)
+												const PhysicsObject* objectA,
+												const PhysicsObject* objectB,
+												std::list<Contact>& contactList)
 {
 	// Note that here we have the advantage of knowing that the shapes in question
 	// already intersect one another by the GJK algorithm.  Our job here is just to
 	// determine all the vertex/face and edge/edge contacts.
 
-	auto hullA = dynamic_cast<const GJKConvexHull*>(objectA->GetShape());
-	auto hullB = dynamic_cast<const GJKConvexHull*>(objectB->GetShape());
+	const CollisionObject* collisionObjectA = objectA->GetCollisionObject();
+	const CollisionObject* collisionObjectB = objectB->GetCollisionObject();
+
+	auto hullA = dynamic_cast<const GJKConvexHull*>(collisionObjectA->GetShape());
+	auto hullB = dynamic_cast<const GJKConvexHull*>(collisionObjectB->GetShape());
 
 	if (!hullA || !hullB)
 		return false;
@@ -213,42 +181,46 @@ bool PhysicsSystem::PhysicsCollision::Resolve()
 	for (int i = 0; i < hullA->hull.GetNumVertices(); i++)
 	{
 		const Vector3& vertexA = hullA->hull.GetVertex(i);
-		if (objectB->PointOnOrBehindAllPlanes(vertexA))
+		if (collisionObjectB->PointOnOrBehindAllPlanes(vertexA))
 		{
-			int j = objectB->FindPlaneNearestToPoint(vertexA);
+			int j = collisionObjectB->FindPlaneNearestToPoint(vertexA);
 			THEBE_ASSERT(j >= 0);
-			const Plane& planeB = objectB->GetPlaneArray()[j];
+			const Plane& planeB = collisionObjectB->GetPlaneArray()[j];
 			Contact contact;
+			contact.objectA = const_cast<PhysicsObject*>(objectA);
+			contact.objectB = const_cast<PhysicsObject*>(objectB);
 			contact.unitNormal = planeB.unitNormal;		// Always point from object B to A.
 			contact.surfacePoint = planeB.ClosestPointTo(vertexA);
-			contactArray.push_back(contact);
+			contactList.push_back(contact);
 		}
 	}
 
 	for (int i = 0; i < hullB->hull.GetNumVertices(); i++)
 	{
 		const Vector3& vertexB = hullB->hull.GetVertex(i);
-		if (objectA->PointOnOrBehindAllPlanes(vertexB))
+		if (collisionObjectA->PointOnOrBehindAllPlanes(vertexB))
 		{
-			int j = objectA->FindPlaneNearestToPoint(vertexB);
+			int j = collisionObjectA->FindPlaneNearestToPoint(vertexB);
 			THEBE_ASSERT(j >= 0);
-			const Plane& planeA = objectA->GetPlaneArray()[j];
+			const Plane& planeA = collisionObjectA->GetPlaneArray()[j];
 			Contact contact;
+			contact.objectA = const_cast<PhysicsObject*>(objectA);
+			contact.objectB = const_cast<PhysicsObject*>(objectB);
 			contact.unitNormal = -planeA.unitNormal;		// Always point from object B to A.
 			contact.surfacePoint = planeA.ClosestPointTo(vertexB);
-			contactArray.push_back(contact);
+			contactList.push_back(contact);
 		}
 	}
 
 	// Look for edge/edge contacts.
 
-	for (const Graph::UnorderedEdge& edgeA : objectA->GetEdgeSet())
+	for (const Graph::UnorderedEdge& edgeA : collisionObjectA->GetEdgeSet())
 	{
 		LineSegment lineSegA;
 		lineSegA.point[0] = hullA->hull.GetVertex(edgeA.i);
 		lineSegA.point[1] = hullA->hull.GetVertex(edgeA.j);
 
-		for (const Graph::UnorderedEdge& edgeB : objectB->GetEdgeSet())
+		for (const Graph::UnorderedEdge& edgeB : collisionObjectB->GetEdgeSet())
 		{
 			LineSegment lineSegB;
 			lineSegB.point[0] = hullB->hull.GetVertex(edgeB.i);
@@ -260,17 +232,19 @@ bool PhysicsSystem::PhysicsCollision::Resolve()
 				const Vector3& pointA = shortestConnector.point[0];
 				const Vector3& pointB = shortestConnector.point[1];
 
-				if (objectA->PointOnOrBehindAllPlanes(pointB) && objectB->PointOnOrBehindAllPlanes(pointA))
+				if (collisionObjectA->PointOnOrBehindAllPlanes(pointB) && collisionObjectB->PointOnOrBehindAllPlanes(pointA))
 				{
 					Contact contact;
+					contact.objectA = const_cast<PhysicsObject*>(objectA);
+					contact.objectB = const_cast<PhysicsObject*>(objectB);
 					contact.surfacePoint = shortestConnector.Lerp(0.5);
 					contact.unitNormal = lineSegA.GetDelta().Cross(lineSegB.GetDelta()).Normalized();
 
-					double dot = (contact.surfacePoint - objectB->GetGeometricCenter()).Dot(contact.unitNormal);
+					double dot = (contact.surfacePoint - collisionObjectB->GetGeometricCenter()).Dot(contact.unitNormal);
 					if (dot < 0.0)
 						contact.unitNormal = -contact.unitNormal;
 
-					contactArray.push_back(contact);
+					contactList.push_back(contact);
 				}
 			}
 		}

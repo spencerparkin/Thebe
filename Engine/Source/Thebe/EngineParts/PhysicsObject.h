@@ -35,6 +35,7 @@ namespace Thebe
 
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
+		const CollisionObject* GetCollisionObject() const;
 
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;

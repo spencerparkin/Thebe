@@ -116,6 +116,11 @@ CollisionObject* PhysicsObject::GetCollisionObject()
 	return this->collisionObject;
 }
 
+const CollisionObject* PhysicsObject::GetCollisionObject() const
+{
+	return this->collisionObject;
+}
+
 void PhysicsObject::SetCollisionObjectPath(const std::filesystem::path& collisionObjectPath)
 {
 	this->collisionObjectPath = collisionObjectPath;
