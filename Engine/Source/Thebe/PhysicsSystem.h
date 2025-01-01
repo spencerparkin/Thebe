@@ -62,7 +62,14 @@ namespace Thebe
 		};
 
 	private:
+		/**
+		 * Add one or more collision contacts to the given list as a function of the given collision.
+		 */
 		bool GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList);
+
+		/**
+		 * True is returned here if and only if an impulse was applied to prevent interpenetration.
+		 */
 		bool ResolveContact(const Contact& contact);
 
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
