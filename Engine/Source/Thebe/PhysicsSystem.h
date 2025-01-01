@@ -16,6 +16,8 @@ namespace Thebe
 
 	/**
 	 * This is my attempt to do some basic rigid and floppy body simulations.
+	 * 
+	 * I used David Baraff's paper "An Introduction to Physically Based Modeling: Rigid Body Simulation I/II".
 	 */
 	class THEBE_API PhysicsSystem
 	{
