@@ -44,11 +44,11 @@ namespace Thebe
 		Space* GetTargetSpace();
 
 		const std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& GetEdgeSet() const;
-		const std::vector<Plane>& GetPlaneArray() const;
-		const Vector3& GetGeometricCenter() const;
+		const std::vector<Plane>& GetObjectSpacePlaneArray() const;
+		Vector3 GetWorldGeometricCenter() const;
 
-		bool PointOnOrBehindAllPlanes(const Vector3& point) const;
-		int FindPlaneNearestToPoint(const Vector3& point) const;
+		bool PointOnOrBehindAllWorldPlanes(const Vector3& point) const;
+		bool FindWorldPlaneNearestToPoint(const Vector3& point, Plane& foundWorldPlane) const;
 
 	private:
 
@@ -57,8 +57,8 @@ namespace Thebe
 		GJKShape* shape;
 		UINT64 frameWhenLastMoved;
 		std::set<Graph::UnorderedEdge, Graph::UnorderedEdge> edgeSet;
-		std::vector<Plane> planeArray;
-		Vector3 geometricCenter;
+		std::vector<Plane> objectSpacePlaneArray;
+		Vector3 objectSpaceGeometricCenter;
 		Vector3 color;
 		uintptr_t userData;
 		Reference<Space> targetSpace;

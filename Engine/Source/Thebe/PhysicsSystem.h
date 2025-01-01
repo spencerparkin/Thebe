@@ -28,7 +28,7 @@ namespace Thebe
 		void UntrackAllObjects();
 		void StepSimulation(double deltaTimeSeconds, CollisionSystem* collisionSystem);
 
-		struct Contact
+		struct THEBE_API Contact
 		{
 			Reference<PhysicsObject> objectA;
 			Reference<PhysicsObject> objectB;
@@ -36,7 +36,7 @@ namespace Thebe
 			Vector3 unitNormal;			///< This is the contact normal, always pointing from object B to object A by convention.
 		};
 
-		class ContactCalculatorInterface
+		class THEBE_API ContactCalculatorInterface
 		{
 		public:
 			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) = 0;
@@ -45,7 +45,7 @@ namespace Thebe
 		};
 
 		template<typename ShapeTypeA, typename ShapeTypeB>
-		class ContactCalculator : public ContactCalculatorInterface
+		class THEBE_API ContactCalculator : public ContactCalculatorInterface
 		{
 		public:
 			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override
@@ -55,7 +55,7 @@ namespace Thebe
 		};
 
 		template<>
-		class ContactCalculator<GJKConvexHull, GJKConvexHull> : public ContactCalculatorInterface
+		class THEBE_API ContactCalculator<GJKConvexHull, GJKConvexHull> : public ContactCalculatorInterface
 		{
 		public:
 			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override;

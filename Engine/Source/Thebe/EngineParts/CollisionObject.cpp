@@ -41,10 +41,10 @@ CollisionObject::CollisionObject()
 	if (convexHull)
 	{
 		convexHull->GenerateEdgeSet(this->edgeSet);
-		convexHull->GeneratePlaneArray(this->planeArray);
+		convexHull->GenerateObjectSpacePlaneArray(this->objectSpacePlaneArray);
 	}
 
-	this->geometricCenter = this->shape->CalcGeometricCenter();
+	this->objectSpaceGeometricCenter = this->shape->CalcGeometricCenter();
 
 	return true;
 }
@@ -56,7 +56,7 @@ CollisionObject::CollisionObject()
 		graphicsEngine->GetCollisionSystem()->UntrackObject(this);
 
 	this->edgeSet.clear();
-	this->planeArray.clear();
+	this->objectSpacePlaneArray.clear();
 
 	EnginePart::Shutdown();
 }
@@ -327,39 +327,43 @@ const std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& CollisionObject::Get
 	return this->edgeSet;
 }
 
-const std::vector<Plane>& CollisionObject::GetPlaneArray() const
+const std::vector<Plane>& CollisionObject::GetObjectSpacePlaneArray() const
 {
-	return this->planeArray;
+	return this->objectSpacePlaneArray;
 }
 
-const Vector3& CollisionObject::GetGeometricCenter() const
+Vector3 CollisionObject::GetWorldGeometricCenter() const
 {
-	return this->geometricCenter;
+	return this->GetObjectToWorld().TransformPoint(this->objectSpaceGeometricCenter);
 }
 
-bool CollisionObject::PointOnOrBehindAllPlanes(const Vector3& point) const
+bool CollisionObject::PointOnOrBehindAllWorldPlanes(const Vector3& point) const
 {
-	for (const Plane& plane : this->planeArray)
-		if (plane.GetSide(point) == Plane::FRONT)
+	for (const Plane& objectPlane : this->objectSpacePlaneArray)
+	{
+		Plane worldPlane = this->GetObjectToWorld().TransformPlane(objectPlane);
+		if (worldPlane.GetSide(point) == Plane::FRONT)
 			return false;
+	}
 
 	return true;
 }
 
-int CollisionObject::FindPlaneNearestToPoint(const Vector3& point) const
+bool CollisionObject::FindWorldPlaneNearestToPoint(const Vector3& point, Plane& foundWorldPlane) const
 {
-	int j = -1;
 	double smallestDistance = std::numeric_limits<double>::max();
-	for (int i = 0; i < (int)this->planeArray.size(); i++)
+
+	for (int i = 0; i < (int)this->objectSpacePlaneArray.size(); i++)
 	{
-		const Plane& plane = this->planeArray[i];
-		double distance = ::fabs(plane.SignedDistanceTo(point));
+		const Plane& objectPlane = this->objectSpacePlaneArray[i];
+		Plane worldPlane = this->GetObjectToWorld().TransformPlane(objectPlane);
+		double distance = ::fabs(worldPlane.SignedDistanceTo(point));
 		if (distance < smallestDistance)
 		{
 			smallestDistance = distance;
-			j = i;
+			foundWorldPlane = worldPlane;
 		}
 	}
 
-	return j;
+	return smallestDistance != std::numeric_limits<double>::max();
 }

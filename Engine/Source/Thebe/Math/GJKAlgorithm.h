@@ -198,7 +198,8 @@ namespace Thebe
 		virtual Vector3 CalcGeometricCenter() const override;
 
 		void GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& edgeSet) const;
-		void GeneratePlaneArray(std::vector<Plane>& planeArray) const;
+		void GenerateObjectSpacePlaneArray(std::vector<Plane>& objectSpacePlaneArray) const;
+		Vector3 GetWorldVertex(int i) const;
 
 		PolygonMesh hull;
 	};

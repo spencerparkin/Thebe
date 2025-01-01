@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/Text.h"
+#include "Thebe/CollisionSystem.h"
 #include "MoverCam.h"
 
 class CollisionLabApp : public Thebe::Application
@@ -21,6 +22,8 @@ public:
 	virtual const char* GetWindowTitle() override;
 
 private:
+	void RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer, UINT& lineOffset);
+
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;

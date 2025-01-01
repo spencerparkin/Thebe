@@ -466,15 +466,15 @@ void GJKConvexHull::GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::Unorde
 	}
 }
 
-void GJKConvexHull::GeneratePlaneArray(std::vector<Plane>& planeArray) const
+void GJKConvexHull::GenerateObjectSpacePlaneArray(std::vector<Plane>& objectSpacePlaneArray) const
 {
-	planeArray.clear();
+	objectSpacePlaneArray.clear();
 
 	std::vector<Polygon> standalonePolygonArray;
 	this->hull.ToStandalonePolygonArray(standalonePolygonArray);
 
 	for (const Polygon& polygon : standalonePolygonArray)
-		planeArray.push_back(polygon.CalcPlane(true));
+		objectSpacePlaneArray.push_back(polygon.CalcPlane(true));
 }
 
 /*virtual*/ Vector3 GJKConvexHull::CalcGeometricCenter() const
@@ -485,4 +485,10 @@ void GJKConvexHull::GeneratePlaneArray(std::vector<Plane>& planeArray) const
 
 	center /= double(this->hull.GetNumVertices());
 	return center;
+}
+
+Vector3 GJKConvexHull::GetWorldVertex(int i) const
+{
+	THEBE_ASSERT(0 <= i && i < (int)this->hull.GetNumVertices());
+	return this->objectToWorld.TransformPoint(this->hull.GetVertexArray()[i]);
 }

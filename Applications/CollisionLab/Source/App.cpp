@@ -1,6 +1,7 @@
 #include "App.h"
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Font.h"
+#include "Thebe/EngineParts/RigidBody.h"
 
 using namespace Thebe;
 
@@ -61,9 +62,9 @@ CollisionLabApp::CollisionLabApp()
 		return false;
 
 	Transform objectToWorld = this->shapeB->GetObjectToWorld();
-	objectToWorld.translation.x += 1.0;
-	objectToWorld.translation.y += 1.0;
-	objectToWorld.translation.z += 1.0;
+	objectToWorld.translation.x += 7.0;
+	objectToWorld.translation.y += 0.0;
+	objectToWorld.translation.z += 0.0;
 	this->shapeB->SetObjectToWorld(objectToWorld);
 
 	Transform cameraToWorld;
@@ -93,6 +94,8 @@ CollisionLabApp::CollisionLabApp()
 
 /*virtual*/ LRESULT CollisionLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	UINT lineOffset = 0;
+
 	this->text->SetText("No collision.");
 	this->text->SetTextColor(Vector3(1.0, 0.0, 0.0));
 	std::vector<Reference<CollisionSystem::Collision>> collisionArray;
@@ -103,11 +106,12 @@ CollisionLabApp::CollisionLabApp()
 		{
 			this->text->SetText("Yes collision!");
 			this->text->SetTextColor(Vector3(0.0, 1.0, 0.0));
+
+			this->RenderContacts(collision.Get(), this->lineRenderer.Get(), lineOffset);
 			break;
 		}
 	}
 
-	UINT lineOffset = 0;
 	this->graphicsEngine->GetCollisionSystem()->DebugDraw(this->lineRenderer.Get(), lineOffset);
 	this->lineRenderer->SetLineRenderCount(lineOffset);
 
@@ -116,6 +120,30 @@ CollisionLabApp::CollisionLabApp()
 	this->moverCam.Update(this->graphicsEngine->GetDeltaTime());
 
 	return 0;
+}
+
+void CollisionLabApp::RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer, UINT& lineOffset)
+{
+	Thebe::Reference<Thebe::RigidBody> bodyA, bodyB;
+
+	bodyA.Set(new Thebe::RigidBody());
+	bodyB.Set(new Thebe::RigidBody());
+
+	bodyA->SetCollisionObject(collision->objectA);
+	bodyB->SetCollisionObject(collision->objectB);
+
+	std::list<PhysicsSystem::Contact> contactList;
+	Thebe::PhysicsSystem::ContactCalculator<GJKConvexHull, GJKConvexHull> contactCalculator;
+	contactCalculator.CalculateContacts(bodyA, bodyB, contactList);
+
+	Vector3 color(0.0, 1.0, 0.0);
+
+	for (auto& contact : contactList)
+	{
+		Vector3 pointA = contact.surfacePoint;
+		Vector3 pointB = pointA + contact.unitNormal;
+		lineRenderer->SetLine(lineOffset++, pointA, pointB, &color, &color);
+	}
 }
 
 /*virtual*/ LRESULT CollisionLabApp::OnSize(WPARAM wParam, LPARAM lParam)

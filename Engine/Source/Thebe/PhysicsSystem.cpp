@@ -180,12 +180,12 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 
 	for (int i = 0; i < hullA->hull.GetNumVertices(); i++)
 	{
-		const Vector3& vertexA = hullA->hull.GetVertex(i);
-		if (collisionObjectB->PointOnOrBehindAllPlanes(vertexA))
+		const Vector3& vertexA = hullA->GetWorldVertex(i);
+		if (collisionObjectB->PointOnOrBehindAllWorldPlanes(vertexA))
 		{
-			int j = collisionObjectB->FindPlaneNearestToPoint(vertexA);
-			THEBE_ASSERT(j >= 0);
-			const Plane& planeB = collisionObjectB->GetPlaneArray()[j];
+			Plane planeB;
+			bool found = collisionObjectB->FindWorldPlaneNearestToPoint(vertexA, planeB);
+			THEBE_ASSERT(found);
 			Contact contact;
 			contact.objectA = const_cast<PhysicsObject*>(objectA);
 			contact.objectB = const_cast<PhysicsObject*>(objectB);
@@ -197,12 +197,12 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 
 	for (int i = 0; i < hullB->hull.GetNumVertices(); i++)
 	{
-		const Vector3& vertexB = hullB->hull.GetVertex(i);
-		if (collisionObjectA->PointOnOrBehindAllPlanes(vertexB))
+		const Vector3& vertexB = hullB->GetWorldVertex(i);
+		if (collisionObjectA->PointOnOrBehindAllWorldPlanes(vertexB))
 		{
-			int j = collisionObjectA->FindPlaneNearestToPoint(vertexB);
-			THEBE_ASSERT(j >= 0);
-			const Plane& planeA = collisionObjectA->GetPlaneArray()[j];
+			Plane planeA;
+			bool found = collisionObjectA->FindWorldPlaneNearestToPoint(vertexB, planeA);
+			THEBE_ASSERT(found);
 			Contact contact;
 			contact.objectA = const_cast<PhysicsObject*>(objectA);
 			contact.objectB = const_cast<PhysicsObject*>(objectB);
@@ -217,14 +217,14 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 	for (const Graph::UnorderedEdge& edgeA : collisionObjectA->GetEdgeSet())
 	{
 		LineSegment lineSegA;
-		lineSegA.point[0] = hullA->hull.GetVertex(edgeA.i);
-		lineSegA.point[1] = hullA->hull.GetVertex(edgeA.j);
+		lineSegA.point[0] = hullA->GetWorldVertex(edgeA.i);
+		lineSegA.point[1] = hullA->GetWorldVertex(edgeA.j);
 
 		for (const Graph::UnorderedEdge& edgeB : collisionObjectB->GetEdgeSet())
 		{
 			LineSegment lineSegB;
-			lineSegB.point[0] = hullB->hull.GetVertex(edgeB.i);
-			lineSegB.point[1] = hullB->hull.GetVertex(edgeB.j);
+			lineSegB.point[0] = hullB->GetWorldVertex(edgeB.i);
+			lineSegB.point[1] = hullB->GetWorldVertex(edgeB.j);
 
 			LineSegment shortestConnector;
 			if (shortestConnector.SetAsShortestConnector(lineSegA, lineSegB))
@@ -232,7 +232,7 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 				const Vector3& pointA = shortestConnector.point[0];
 				const Vector3& pointB = shortestConnector.point[1];
 
-				if (collisionObjectA->PointOnOrBehindAllPlanes(pointB) && collisionObjectB->PointOnOrBehindAllPlanes(pointA))
+				if (collisionObjectA->PointOnOrBehindAllWorldPlanes(pointB) && collisionObjectB->PointOnOrBehindAllWorldPlanes(pointA))
 				{
 					Contact contact;
 					contact.objectA = const_cast<PhysicsObject*>(objectA);
@@ -240,7 +240,7 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 					contact.surfacePoint = shortestConnector.Lerp(0.5);
 					contact.unitNormal = lineSegA.GetDelta().Cross(lineSegB.GetDelta()).Normalized();
 
-					double dot = (contact.surfacePoint - collisionObjectB->GetGeometricCenter()).Dot(contact.unitNormal);
+					double dot = (contact.surfacePoint - collisionObjectB->GetWorldGeometricCenter()).Dot(contact.unitNormal);
 					if (dot < 0.0)
 						contact.unitNormal = -contact.unitNormal;
 
