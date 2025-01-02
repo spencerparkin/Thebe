@@ -84,7 +84,7 @@ PhysicsLabApp::PhysicsLabApp()
 	Vector3 xAxis(1.0, 0.0, 0.0), yAxis(0.0, 1.0, 0.0), zAxis(0.0, 0.0, 1.0);
 	this->lineRenderer->SetLine(lineOffset++, origin, xAxis, &xAxis, &xAxis);
 	this->lineRenderer->SetLine(lineOffset++, origin, yAxis, &yAxis, &yAxis);
-	this->lineRenderer->SetLine(lineOffset++, origin, yAxis, &yAxis, &yAxis);
+	this->lineRenderer->SetLine(lineOffset++, origin, zAxis, &zAxis, &zAxis);
 
 	collisionSystem->DebugDraw(this->lineRenderer.Get(), lineOffset);
 	this->lineRenderer->SetLineRenderCount(lineOffset);
