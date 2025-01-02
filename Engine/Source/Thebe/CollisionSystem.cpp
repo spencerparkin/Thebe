@@ -141,12 +141,12 @@ std::string CollisionSystem::MakeCollisionCacheKey(const CollisionObject* object
 		return std::format("{}_{}", handleB, handleA);
 }
 
-void CollisionSystem::DebugDraw(DynamicLineRenderer* lineRenderer, uint32_t& lineOffset) const
+void CollisionSystem::DebugDraw(DynamicLineRenderer* lineRenderer) const
 {
 	for (auto pair : this->collisionObjectMap)
 	{
 		const CollisionObject* collisionObject = pair.second;
-		collisionObject->DebugDraw(lineRenderer, lineOffset);
+		collisionObject->DebugDraw(lineRenderer);
 	}
 }
 

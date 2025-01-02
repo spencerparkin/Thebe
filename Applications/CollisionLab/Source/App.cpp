@@ -94,7 +94,7 @@ CollisionLabApp::CollisionLabApp()
 
 /*virtual*/ LRESULT CollisionLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
-	UINT lineOffset = 0;
+	this->lineRenderer->ResetLines();
 
 	this->text->SetText("No collision.");
 	this->text->SetTextColor(Vector3(1.0, 0.0, 0.0));
@@ -107,13 +107,12 @@ CollisionLabApp::CollisionLabApp()
 			this->text->SetText("Yes collision!");
 			this->text->SetTextColor(Vector3(0.0, 1.0, 0.0));
 
-			this->RenderContacts(collision.Get(), this->lineRenderer.Get(), lineOffset);
+			this->RenderContacts(collision.Get(), this->lineRenderer.Get());
 			break;
 		}
 	}
 
-	this->graphicsEngine->GetCollisionSystem()->DebugDraw(this->lineRenderer.Get(), lineOffset);
-	this->lineRenderer->SetLineRenderCount(lineOffset);
+	this->graphicsEngine->GetCollisionSystem()->DebugDraw(this->lineRenderer.Get());
 
 	this->graphicsEngine->Render();
 
@@ -122,7 +121,7 @@ CollisionLabApp::CollisionLabApp()
 	return 0;
 }
 
-void CollisionLabApp::RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer, UINT& lineOffset)
+void CollisionLabApp::RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer)
 {
 	Thebe::Reference<Thebe::RigidBody> bodyA, bodyB;
 
@@ -142,7 +141,7 @@ void CollisionLabApp::RenderContacts(Thebe::CollisionSystem::Collision* collisio
 	{
 		Vector3 pointA = contact.surfacePoint;
 		Vector3 pointB = pointA + contact.unitNormal;
-		lineRenderer->SetLine(lineOffset++, pointA, pointB, &color, &color);
+		lineRenderer->AddLine(pointA, pointB, &color, &color);
 	}
 }
 

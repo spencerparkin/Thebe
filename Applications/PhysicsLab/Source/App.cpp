@@ -78,16 +78,15 @@ PhysicsLabApp::PhysicsLabApp()
 	CollisionSystem* collisionSystem = this->graphicsEngine->GetCollisionSystem();
 	PhysicsSystem* physicsSystem = this->graphicsEngine->GetPhysicsSystem();
 
-	UINT lineOffset = 0;
+	this->lineRenderer->ResetLines();
 
 	Vector3 origin(0.0, 0.0, 0.0);
 	Vector3 xAxis(1.0, 0.0, 0.0), yAxis(0.0, 1.0, 0.0), zAxis(0.0, 0.0, 1.0);
-	this->lineRenderer->SetLine(lineOffset++, origin, xAxis, &xAxis, &xAxis);
-	this->lineRenderer->SetLine(lineOffset++, origin, yAxis, &yAxis, &yAxis);
-	this->lineRenderer->SetLine(lineOffset++, origin, zAxis, &zAxis, &zAxis);
+	this->lineRenderer->AddLine(origin, xAxis, &xAxis, &xAxis);
+	this->lineRenderer->AddLine(origin, yAxis, &yAxis, &yAxis);
+	this->lineRenderer->AddLine(origin, zAxis, &zAxis, &zAxis);
 
-	collisionSystem->DebugDraw(this->lineRenderer.Get(), lineOffset);
-	this->lineRenderer->SetLineRenderCount(lineOffset);
+	collisionSystem->DebugDraw(this->lineRenderer.Get());
 
 	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
 	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);

@@ -32,7 +32,7 @@ namespace Thebe
 		void SetUserData(uintptr_t userData);
 		uintptr_t GetUserData() const;
 
-		void DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOffset) const;
+		void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
 		UINT64 GetFrameWhenLastMoved() const;
 		GJKShape* GetShape();

@@ -145,6 +145,8 @@ DynamicLineRenderer::DynamicLineRenderer()
 
 	if (this->vertexBufferUpdateNeeded)
 	{
+		this->vertexBuffer->SetUploadSize(this->lineRenderCount * 2 * sizeof(Vertex));
+
 		if (!this->vertexBuffer->UpdateIfNecessary(commandList))
 			return false;
 
@@ -189,15 +191,20 @@ DynamicLineRenderer::DynamicLineRenderer()
 	return renderTarget->GetName() == "SwapChain";
 }
 
-bool DynamicLineRenderer::SetLine(UINT i, const Vector3& pointA, const Vector3& pointB, const Vector3* colorA /*= nullptr*/, const Vector3* colorB /*= nullptr*/)
+void DynamicLineRenderer::ResetLines()
 {
-	if (i >= this->lineMaxCount)
+	this->lineRenderCount = 0;
+}
+
+bool DynamicLineRenderer::AddLine(const Vector3& pointA, const Vector3& pointB, const Vector3* colorA /*= nullptr*/, const Vector3* colorB /*= nullptr*/)
+{
+	if (this->lineRenderCount >= this->lineMaxCount)
 	{
-		THEBE_LOG("Given index (%d) larger than max line count (%d).", i, this->lineMaxCount);
+		THEBE_LOG("Line overflow.  Max lines: %d", this->lineMaxCount);
 		return false;
 	}
 
-	auto vertex = &reinterpret_cast<Vertex*>(this->vertexBuffer->GetBufferPtr())[i * 2];
+	auto vertex = &reinterpret_cast<Vertex*>(this->vertexBuffer->GetBufferPtr())[this->lineRenderCount * 2];
 
 	vertex->x = (float)pointA.x;
 	vertex->y = (float)pointA.y;
@@ -236,56 +243,8 @@ bool DynamicLineRenderer::SetLine(UINT i, const Vector3& pointA, const Vector3& 
 	}
 
 	this->vertexBufferUpdateNeeded = true;
+	this->lineRenderCount++;
 	return true;
-}
-
-bool DynamicLineRenderer::GetLine(UINT i, Vector3& pointA, Vector3& pointB, Vector3* colorA /*= nullptr*/, Vector3* colorB /*= nullptr*/) const
-{
-	if (i >= this->lineMaxCount)
-	{
-		THEBE_LOG("Given index (%d) larger than max line count (%d).", i, this->lineMaxCount);
-		return false;
-	}
-
-	auto vertex = &reinterpret_cast<const Vertex*>(this->vertexBuffer->GetBufferPtr())[i * 2];
-
-	pointA.x = vertex->x;
-	pointA.y = vertex->y;
-	pointA.z = vertex->z;
-
-	if (colorA)
-	{
-		colorA->x = vertex->r;
-		colorA->y = vertex->g;
-		colorA->z = vertex->b;
-	}
-
-	vertex++;
-
-	pointB.x = vertex->x;
-	pointB.y = vertex->y;
-	pointB.z = vertex->z;
-
-	if (colorA)
-	{
-		colorB->x = vertex->r;
-		colorB->y = vertex->g;
-		colorB->z = vertex->b;
-	}
-
-	return true;
-}
-
-void DynamicLineRenderer::SetLineRenderCount(UINT lineRenderCount)
-{
-	this->lineRenderCount = THEBE_MIN(lineRenderCount, this->lineMaxCount);
-	if (this->vertexBuffer.Get())
-		this->vertexBuffer->SetUploadSize(this->lineRenderCount * 2 * sizeof(Vertex));
-}
-
-UINT DynamicLineRenderer::GetLineRenderCount() const
-{
-	return this->lineRenderCount;
 }
 
 void DynamicLineRenderer::SetLineMaxCount(UINT lineMaxCount)

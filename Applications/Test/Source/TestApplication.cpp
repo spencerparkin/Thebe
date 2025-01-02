@@ -59,28 +59,27 @@ TestApplication::TestApplication()
 	this->lineRenderer->SetLineMaxCount(128);
 	if (!this->lineRenderer->Setup())
 		return false;
-	this->lineRenderer->SetLineRenderCount(this->lineRenderer->GetLineMaxCount());
 	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
 
 	// Add some lines to the line renderer.
 	double radius = 10.0;
 	std::vector<Vector3> pointArray;
 	std::vector<Vector3> colorArray;
-	for (UINT i = 0; i < this->lineRenderer->GetLineRenderCount(); i++)
+	for (UINT i = 0; i < this->lineRenderer->GetLineMaxCount(); i++)
 	{
-		double angle = 2.0 * M_PI * double(i) / double(this->lineRenderer->GetLineRenderCount());
+		double angle = 2.0 * M_PI * double(i) / double(this->lineRenderer->GetLineMaxCount());
 		Vector3 point(radius * cos(angle), 50.0, radius * sin(angle));
 		pointArray.push_back(point);
 		Vector3 color = ((i % 2) == 0) ? Vector3(1.0, 1.0, 1.0) : Vector3(0.0, 0.0, 0.0);
 		colorArray.push_back(color);
 	}
-	for (UINT i = 0; i < this->lineRenderer->GetLineRenderCount(); i++)
+	for (UINT i = 0; i < this->lineRenderer->GetLineMaxCount(); i++)
 	{
 		const Vector3& pointA = pointArray[i];
-		const Vector3& pointB = pointArray[(i + 1) % this->lineRenderer->GetLineRenderCount()];
+		const Vector3& pointB = pointArray[(i + 1) % this->lineRenderer->GetLineMaxCount()];
 		const Vector3& colorA = colorArray[i];
-		const Vector3& colorB = colorArray[(i + 1) % this->lineRenderer->GetLineRenderCount()];
-		this->lineRenderer->SetLine(i, pointA, pointB, &colorA, &colorB);
+		const Vector3& colorB = colorArray[(i + 1) % this->lineRenderer->GetLineMaxCount()];
+		this->lineRenderer->AddLine(pointA, pointB, &colorA, &colorB);
 	}
 
 	// Load and configure a light source.

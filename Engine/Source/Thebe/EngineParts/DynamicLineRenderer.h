@@ -28,11 +28,8 @@ namespace Thebe
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context);
 		virtual bool RendersToTarget(RenderTarget* renderTarget) const;
 
-		bool SetLine(UINT i, const Vector3& pointA, const Vector3& pointB, const Vector3* colorA = nullptr, const Vector3* colorB = nullptr);
-		bool GetLine(UINT i, Vector3& pointA, Vector3& pointB, Vector3* colorA = nullptr, Vector3* colorB = nullptr) const;
-
-		void SetLineRenderCount(UINT lineRenderCount);
-		UINT GetLineRenderCount() const;
+		bool AddLine(const Vector3& pointA, const Vector3& pointB, const Vector3* colorA = nullptr, const Vector3* colorB = nullptr);
+		void ResetLines();
 
 		void SetLineMaxCount(UINT lineMaxCount);
 		UINT GetLineMaxCount() const;

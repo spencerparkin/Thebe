@@ -287,7 +287,7 @@ void CollisionObject::GenerateVertices(const Vector3& vertexBase, uint32_t axisF
 	return true;
 }
 
-void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOffset) const
+void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer) const
 {
 	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
 	if (convexHull)
@@ -297,7 +297,7 @@ void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer, UINT& lineOff
 			Vector3 vertexA = this->shape->GetObjectToWorld().TransformPoint(convexHull->hull.GetVertex(edge.i));
 			Vector3 vertexB = this->shape->GetObjectToWorld().TransformPoint(convexHull->hull.GetVertex(edge.j));
 
-			lineRenderer->SetLine(lineOffset++, vertexA, vertexB, &this->color, &this->color);
+			lineRenderer->AddLine(vertexA, vertexB, &this->color, &this->color);
 		}
 	}
 }

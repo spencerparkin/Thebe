@@ -75,7 +75,7 @@ namespace Thebe
 		 */
 		void FindAllCollisions(CollisionObject* collisionObject, std::vector<Reference<Collision>>& collisionArray);
 
-		void DebugDraw(DynamicLineRenderer* lineRenderer, uint32_t& lineOffset) const;
+		void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
 	protected:
 		std::string MakeCollisionCacheKey(const CollisionObject* objectA, const CollisionObject* objectB);
