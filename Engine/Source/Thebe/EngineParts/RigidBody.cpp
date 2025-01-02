@@ -69,12 +69,13 @@ RigidBody::RigidBody()
 	if (totalMassValue)
 		this->totalMass = totalMassValue->GetValue();
 
-	JsonHelper::MatrixFromJsonValue(rootValue->GetValue("object_space_inertia_tensor"), this->objectSpaceInertiaTensor);
-
-	if (!this->objectSpaceInertiaTensorInverse.Invert(this->objectSpaceInertiaTensor))
+	if (JsonHelper::MatrixFromJsonValue(rootValue->GetValue("object_space_inertia_tensor"), this->objectSpaceInertiaTensor))
 	{
-		THEBE_LOG("Failed to invert inertia tensor.");
-		return false;
+		if (!this->objectSpaceInertiaTensorInverse.Invert(this->objectSpaceInertiaTensor))
+		{
+			THEBE_LOG("Failed to invert object space inertia tensor.");
+			return false;
+		}
 	}
 
 	return true;
