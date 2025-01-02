@@ -3,6 +3,7 @@
 #include "Thebe/Math/Polygon.h"
 #include "Thebe/Math/Function.h"
 #include "Thebe/Log.h"
+#include <format>
 
 using namespace Thebe;
 
@@ -84,6 +85,7 @@ GJKShape::GJKShape()
 	// Try to walk the simplex to the origin.
 	Vector3 origin(0.0, 0.0, 0.0);
 	bool newSimplexFound = false;
+	std::set<std::string> facePlaneSet;
 	do
 	{
 		if (simplex.ContainsOrigin())
@@ -97,34 +99,50 @@ GJKShape::GJKShape()
 		for (int i = 0; i < 4; i++)
 		{
 			const Plane* facePlane = &planeArray[i];
-			if (facePlane->GetSide(origin) == Plane::FRONT)
+			if (facePlane->GetSide(origin) != Plane::FRONT)
+				continue;
+			
+			// This seems like a hack to me.  It is not obvious to me how it is
+			// possible for this algorithm to contain a simplex-cycle, but I'm seeing
+			// it happen.  Either my math has a bug in it, or it really can happen.
+			std::string facePlaneKey = std::format("{}_{}_{}_{}_{}_{}",
+				facePlane->center.x, facePlane->center.y, facePlane->center.z,
+				facePlane->unitNormal.x, facePlane->unitNormal.y, facePlane->unitNormal.z);
+			if (facePlaneSet.find(facePlaneKey) != facePlaneSet.end())
 			{
-				const GJKSimplex::Face* face = faceArray[i];
-
-				pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
-				pointB = shapeB->FurthestPoint(facePlane->unitNormal);
-
-				// Formulate the simplex such that it *should* have positive area.
-				GJKSimplex newSimplex;
-				newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[2]];
-				newSimplex.vertexArray[1] = simplex.vertexArray[face->vertexArray[1]];
-				newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
-				newSimplex.vertexArray[3] = pointB - pointA;
-
-				bool inverted = false;
-				newSimplex.MakeFaces(&inverted);
-				if (!inverted)
-				{
-					static double epsilon = 1e-5;
-					double simplexVolume = newSimplex.CalcVolume();
-					if (simplexVolume > epsilon)
-					{
-						simplex = newSimplex;
-						newSimplexFound = true;
-						break;
-					}
-				}
+				// TODO: Dump the input shapes to file so that we can reproduce this exact case.
+				continue;
 			}
+			facePlaneSet.insert(facePlaneKey);
+
+			const GJKSimplex::Face* face = faceArray[i];
+
+			pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
+			pointB = shapeB->FurthestPoint(facePlane->unitNormal);
+
+			// Formulate the simplex such that it *should* have positive area.
+			GJKSimplex newSimplex;
+			newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[2]];
+			newSimplex.vertexArray[1] = simplex.vertexArray[face->vertexArray[1]];
+			newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
+			newSimplex.vertexArray[3] = pointB - pointA;
+
+			if (facePlane->GetSide(newSimplex.vertexArray[3]) != Plane::FRONT)
+				continue;
+
+			bool inverted = false;
+			newSimplex.MakeFaces(&inverted);
+			if (inverted)
+				continue;
+
+			static double epsilon = 1e-5;
+			double simplexVolume = newSimplex.CalcVolume();
+			if (simplexVolume <= epsilon)
+				continue;
+					
+			simplex = newSimplex;
+			newSimplexFound = true;
+			break;
 		}
 	} while (newSimplexFound);
 
