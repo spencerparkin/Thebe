@@ -111,6 +111,7 @@ GJKShape::GJKShape()
 			if (facePlaneSet.find(facePlaneKey) != facePlaneSet.end())
 			{
 				// TODO: Dump the input shapes to file so that we can reproduce this exact case.
+				// TODO: Or, dump the sequence of tetrahedrons.  I'd really like to see them.
 				continue;
 			}
 			facePlaneSet.insert(facePlaneKey);
