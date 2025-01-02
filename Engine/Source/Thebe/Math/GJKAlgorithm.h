@@ -128,8 +128,10 @@ namespace Thebe
 		/**
 		 * Having populated the vertex array, populate the face array automatically,
 		 * making sure that the volume of the tetrahedron is non-negative.
+		 * 
+		 * @param[out] inverted If given, set to true if and only if the tetrahedron had to be inverted.
 		 */
-		void MakeFaces();
+		void MakeFaces(bool* inverted = nullptr);
 
 		/**
 		 * Tell us if this simplex contains the origin.

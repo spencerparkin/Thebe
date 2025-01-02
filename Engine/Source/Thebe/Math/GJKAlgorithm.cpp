@@ -104,19 +104,25 @@ GJKShape::GJKShape()
 				pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
 				pointB = shapeB->FurthestPoint(facePlane->unitNormal);
 
+				// Formulate the simplex such that it *should* have positive area.
 				GJKSimplex newSimplex;
-				newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[0]];
+				newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[2]];
 				newSimplex.vertexArray[1] = simplex.vertexArray[face->vertexArray[1]];
-				newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[2]];
+				newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
 				newSimplex.vertexArray[3] = pointB - pointA;
-				newSimplex.MakeFaces();
 
-				static double epsilon = 1e-5;
-				if (newSimplex.CalcVolume() > epsilon)
+				bool inverted = false;
+				newSimplex.MakeFaces(&inverted);
+				if (!inverted)
 				{
-					simplex = newSimplex;
-					newSimplexFound = true;
-					break;
+					static double epsilon = 1e-5;
+					double simplexVolume = newSimplex.CalcVolume();
+					if (simplexVolume > epsilon)
+					{
+						simplex = newSimplex;
+						newSimplexFound = true;
+						break;
+					}
 				}
 			}
 		}
@@ -226,8 +232,11 @@ void GJKSimplex::CalcFacePlanes(Plane* planeArray, const Face** givenFaceArray) 
 	}
 }
 
-void GJKSimplex::MakeFaces()
+void GJKSimplex::MakeFaces(bool* inverted /*= nullptr*/)
 {
+	if (inverted)
+		*inverted = false;
+
 	this->faceArray[0].vertexArray[0] = 0;
 	this->faceArray[0].vertexArray[1] = 1;
 	this->faceArray[0].vertexArray[2] = 2;
@@ -246,6 +255,9 @@ void GJKSimplex::MakeFaces()
 
 	if (this->CalcVolume() < 0.0)
 	{
+		if (inverted)
+			*inverted = true;
+
 		this->faceArray[0].vertexArray[1] = 2;
 		this->faceArray[0].vertexArray[2] = 1;
 
