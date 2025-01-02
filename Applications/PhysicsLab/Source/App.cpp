@@ -43,9 +43,9 @@ PhysicsLabApp::PhysicsLabApp()
 		return false;
 
 	Transform objectToWorld = this->objectB->GetObjectToWorld();
-	objectToWorld.translation.x += 1.0;
-	objectToWorld.translation.y += 1.0;
-	objectToWorld.translation.z += 1.0;
+	objectToWorld.translation.x += 5.0;
+	objectToWorld.translation.y += 5.0;
+	objectToWorld.translation.z += 0.0;
 	this->objectB->SetObjectToWorld(objectToWorld);
 
 	Transform cameraToWorld;
@@ -79,6 +79,13 @@ PhysicsLabApp::PhysicsLabApp()
 	PhysicsSystem* physicsSystem = this->graphicsEngine->GetPhysicsSystem();
 
 	UINT lineOffset = 0;
+
+	Vector3 origin(0.0, 0.0, 0.0);
+	Vector3 xAxis(1.0, 0.0, 0.0), yAxis(0.0, 1.0, 0.0), zAxis(0.0, 0.0, 1.0);
+	this->lineRenderer->SetLine(lineOffset++, origin, xAxis, &xAxis, &xAxis);
+	this->lineRenderer->SetLine(lineOffset++, origin, yAxis, &yAxis, &yAxis);
+	this->lineRenderer->SetLine(lineOffset++, origin, yAxis, &yAxis, &yAxis);
+
 	collisionSystem->DebugDraw(this->lineRenderer.Get(), lineOffset);
 	this->lineRenderer->SetLineRenderCount(lineOffset);
 
