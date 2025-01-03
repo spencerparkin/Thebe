@@ -81,12 +81,20 @@ GJKShape::GJKShape()
 
 	simplex.MakeFaces();
 
+	int iterationCount = 0;
+
 	// Try to walk the simplex to the origin.
 	Vector3 origin(0.0, 0.0, 0.0);
 	bool newSimplexFound = false;
 	std::set<std::string> facePlaneSet;
 	do
 	{
+		// TODO: This is a total hack.  I don't know why we're getting into an infinite loop or how that's even possible.
+		//       I guess I need to record the simplex cycle and then study a visualization of it.  It's had to visualize, though.
+		//       If every tetrahedron is validly produced, then this is geometrically possible?
+		if (iterationCount++ > 32)
+			return false;
+
 		if (simplex.ContainsOrigin())
 			return true;
 
