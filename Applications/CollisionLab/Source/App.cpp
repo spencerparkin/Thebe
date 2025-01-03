@@ -96,6 +96,12 @@ CollisionLabApp::CollisionLabApp()
 {
 	this->lineRenderer->ResetLines();
 
+	Vector3 origin(0.0, 0.0, 0.0);
+	Vector3 xAxis(1.0, 0.0, 0.0), yAxis(0.0, 1.0, 0.0), zAxis(0.0, 0.0, 1.0);
+	this->lineRenderer->AddLine(origin, xAxis, &xAxis, &xAxis);
+	this->lineRenderer->AddLine(origin, yAxis, &yAxis, &yAxis);
+	this->lineRenderer->AddLine(origin, zAxis, &zAxis, &zAxis);
+
 	this->text->SetText("No collision.");
 	this->text->SetTextColor(Vector3(1.0, 0.0, 0.0));
 	std::vector<Reference<CollisionSystem::Collision>> collisionArray;

@@ -3,7 +3,6 @@
 #include "Thebe/Math/Polygon.h"
 #include "Thebe/Math/Function.h"
 #include "Thebe/Log.h"
-#include <format>
 
 using namespace Thebe;
 
@@ -92,8 +91,7 @@ GJKShape::GJKShape()
 			return true;
 
 		Plane planeArray[4];
-		const GJKSimplex::Face* faceArray[4];
-		simplex.CalcFacePlanes(planeArray, faceArray);
+		simplex.CalcFacePlanes(planeArray);
 
 		newSimplexFound = false;
 		for (int i = 0; i < 4; i++)
@@ -101,22 +99,8 @@ GJKShape::GJKShape()
 			const Plane* facePlane = &planeArray[i];
 			if (facePlane->GetSide(origin) != Plane::FRONT)
 				continue;
-			
-			// This seems like a hack to me.  It is not obvious to me how it is
-			// possible for this algorithm to contain a simplex-cycle, but I'm seeing
-			// it happen.  Either my math has a bug in it, or it really can happen.
-			std::string facePlaneKey = std::format("{}_{}_{}_{}_{}_{}",
-				facePlane->center.x, facePlane->center.y, facePlane->center.z,
-				facePlane->unitNormal.x, facePlane->unitNormal.y, facePlane->unitNormal.z);
-			if (facePlaneSet.find(facePlaneKey) != facePlaneSet.end())
-			{
-				// TODO: Dump the input shapes to file so that we can reproduce this exact case.
-				// TODO: Or, dump the sequence of tetrahedrons.  I'd really like to see them.
-				continue;
-			}
-			facePlaneSet.insert(facePlaneKey);
 
-			const GJKSimplex::Face* face = faceArray[i];
+			const GJKSimplex::Face* face = &simplex.faceArray[i];
 
 			pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
 			pointB = shapeB->FurthestPoint(facePlane->unitNormal);
@@ -128,7 +112,8 @@ GJKShape::GJKShape()
 			newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
 			newSimplex.vertexArray[3] = pointB - pointA;
 
-			if (facePlane->GetSide(newSimplex.vertexArray[3]) != Plane::FRONT)
+			static double planeThickness = 0.1;
+			if (facePlane->GetSide(newSimplex.vertexArray[3], planeThickness) != Plane::FRONT)
 				continue;
 
 			bool inverted = false;
@@ -174,6 +159,11 @@ GJKSimplex::GJKSimplex()
 			this->faceArray[i].vertexArray[j] = 0;
 }
 
+GJKSimplex::GJKSimplex(const GJKSimplex& simplex)
+{
+	*this = simplex;
+}
+
 /*virtual*/ GJKSimplex::~GJKSimplex()
 {
 }
@@ -192,7 +182,7 @@ void GJKSimplex::operator=(const GJKSimplex& simplex)
 bool GJKSimplex::ContainsOrigin() const
 {
 	Plane planeArray[4];
-	this->CalcFacePlanes(planeArray, nullptr);
+	this->CalcFacePlanes(planeArray);
 
 	Vector3 origin(0.0, 0.0, 0.0);
 	for (int i = 0; i < 4; i++)
@@ -234,14 +224,11 @@ double GJKSimplex::CalcVolume() const
 	return volume;
 }
 
-void GJKSimplex::CalcFacePlanes(Plane* planeArray, const Face** givenFaceArray) const
+void GJKSimplex::CalcFacePlanes(Plane* planeArray) const
 {
 	for (int i = 0; i < 4; i++)
 	{
 		const Face* face = &this->faceArray[i];
-
-		if (givenFaceArray)
-			givenFaceArray[i] = face;
 
 		const Vector3& vertexA = this->vertexArray[face->vertexArray[0]];
 		const Vector3& vertexB = this->vertexArray[face->vertexArray[1]];

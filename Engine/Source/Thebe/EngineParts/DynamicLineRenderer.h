@@ -28,7 +28,31 @@ namespace Thebe
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context);
 		virtual bool RendersToTarget(RenderTarget* renderTarget) const;
 
+		/**
+		 * These can be useful for debugging algorithm where it's not a good time to draw any lines.
+		 * Rather than do that, just record a bunch of lines here, then dump it to file.  Then, later,
+		 * some other program can load the lines up so that you can visualize them.
+		 */
+		class THEBE_API LineSet
+		{
+			friend class DynamicLineRenderer;
+
+		public:
+			LineSet();
+			virtual ~LineSet();
+
+			void AddLine(const Vector3& pointA, const Vector3& pointB, const Vector3* colorA = nullptr, const Vector3* colorB = nullptr);
+			void Clear();
+			void Dump(std::ostream& stream) const;
+			void Restore(std::istream& stream);
+
+		private:
+			std::vector<Vector3> colorArray;
+			std::vector<Vector3> pointArray;
+		};
+
 		bool AddLine(const Vector3& pointA, const Vector3& pointB, const Vector3* colorA = nullptr, const Vector3* colorB = nullptr);
+		bool AddLineSet(const LineSet& lineSet, int minLine = -1, int maxLine = -1);
 		void ResetLines();
 
 		void SetLineMaxCount(UINT lineMaxCount);

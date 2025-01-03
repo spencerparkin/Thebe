@@ -109,6 +109,7 @@ namespace Thebe
 	{
 	public:
 		GJKSimplex();
+		GJKSimplex(const GJKSimplex& simplex);
 		virtual ~GJKSimplex();
 
 		struct Face;
@@ -123,7 +124,7 @@ namespace Thebe
 		/**
 		 * The given plane array is expected to have four elements.
 		 */
-		void CalcFacePlanes(Plane* planeArray, const Face** givenFaceArray) const;
+		void CalcFacePlanes(Plane* planeArray) const;
 
 		/**
 		 * Having populated the vertex array, populate the face array automatically,

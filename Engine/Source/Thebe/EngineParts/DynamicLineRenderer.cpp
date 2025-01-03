@@ -7,6 +7,8 @@
 
 using namespace Thebe;
 
+//----------------------------------------- DynamicLineRenderer -----------------------------------------
+
 DynamicLineRenderer::DynamicLineRenderer()
 {
 	this->lineMaxCount = 0;
@@ -247,12 +249,96 @@ bool DynamicLineRenderer::AddLine(const Vector3& pointA, const Vector3& pointB, 
 	return true;
 }
 
+bool DynamicLineRenderer::AddLineSet(const LineSet& lineSet, int minLine /*= -1*/, int maxLine /*= -1*/)
+{
+	for (int i = 0; i < (int)lineSet.pointArray.size() - 1; i += 2)
+	{
+		if (minLine != -1 && maxLine != -1 && !(minLine <= i / 2 && i / 2 <= maxLine))
+			continue;
+
+		const Vector3& pointA = lineSet.pointArray[i];
+		const Vector3& pointB = lineSet.pointArray[i + 1];
+		const Vector3& colorA = lineSet.colorArray[i];
+		const Vector3& colorB = lineSet.colorArray[i + 1];
+
+		if (!this->AddLine(pointA, pointB, &colorA, &colorB))
+			return false;
+	}
+
+	return true;
+}
+
 void DynamicLineRenderer::SetLineMaxCount(UINT lineMaxCount)
 {
+	THEBE_ASSERT(this->vertexBuffer.Get() == nullptr);
 	this->lineMaxCount = lineMaxCount;
 }
 
 UINT DynamicLineRenderer::GetLineMaxCount() const
 {
 	return this->lineMaxCount;
+}
+
+//----------------------------------------- DynamicLineRenderer::LineSet -----------------------------------------
+
+DynamicLineRenderer::LineSet::LineSet()
+{
+}
+
+/*virtual*/ DynamicLineRenderer::LineSet::~LineSet()
+{
+}
+
+void DynamicLineRenderer::LineSet::AddLine(const Vector3& pointA, const Vector3& pointB, const Vector3* colorA /*= nullptr*/, const Vector3* colorB /*= nullptr*/)
+{
+	this->pointArray.push_back(pointA);
+	this->pointArray.push_back(pointB);
+
+	this->colorArray.push_back(colorA ? *colorA : Vector3(1.0, 1.0, 1.0));
+	this->colorArray.push_back(colorB ? *colorB : Vector3(1.0, 1.0, 1.0));
+}
+
+void DynamicLineRenderer::LineSet::Clear()
+{
+	this->pointArray.clear();
+	this->colorArray.clear();
+}
+
+void DynamicLineRenderer::LineSet::Dump(std::ostream& stream) const
+{
+	size_t size = this->pointArray.size();
+	stream.write((const char*)&size, sizeof(size_t));
+
+	for (const Vector3& point : this->pointArray)
+		point.Dump(stream);
+
+	size = this->colorArray.size();
+	stream.write((const char*)&size, sizeof(size_t));
+
+	for (const Vector3& color : this->colorArray)
+		color.Dump(stream);
+}
+
+void DynamicLineRenderer::LineSet::Restore(std::istream& stream)
+{
+	size_t size = 0;
+	stream.read((char*)&size, sizeof(size_t));
+
+	this->pointArray.clear();
+	for (size_t i = 0; i < size; i++)
+	{
+		Vector3 point;
+		point.Restore(stream);
+		this->pointArray.push_back(point);
+	}
+
+	stream.read((char*)&size, sizeof(size_t));
+
+	this->colorArray.clear();
+	for (size_t i = 0; i < size; i++)
+	{
+		Vector3 color;
+		color.Restore(stream);
+		this->colorArray.push_back(color);
+	}
 }
