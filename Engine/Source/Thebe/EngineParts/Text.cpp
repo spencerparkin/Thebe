@@ -377,6 +377,8 @@ Text::RenderSpace Text::GetRenderSpace() const
 FramerateText::FramerateText()
 {
 	this->deltaTimeListSizeMax = 16;
+	this->waterMarkResetFrequency = 128;
+	this->ResetWaterMarks();
 }
 
 /*virtual*/ FramerateText::~FramerateText()
@@ -419,6 +421,9 @@ FramerateText::FramerateText()
 			this->deltaTimeList.pop_front();
 	}
 
+	if (graphicsEngine->GetFrameCount() % this->waterMarkResetFrequency == 0)
+		this->ResetWaterMarks();
+
 	if (this->deltaTimeList.size() == 0)
 		this->SetText("Framerate: ?");
 	else
@@ -428,8 +433,24 @@ FramerateText::FramerateText()
 			averageDeltaTime += deltaTime;
 		averageDeltaTime /= double(this->deltaTimeList.size());
 		double framerateFPS = 1.0 / averageDeltaTime;
-		this->SetText(std::format("Framerate: {:2.2f}", framerateFPS));
+
+		if (framerateFPS > this->frameRateHighWaterMark)
+			this->frameRateHighWaterMark = framerateFPS;
+
+		if (framerateFPS < this->frameRateLowWaterMark)
+			this->frameRateLowWaterMark = framerateFPS;
+
+		this->SetText(std::format("Framerate: {:2.2f}\nBest FPS: {:2.2f}\nWorst FPS: {:2.2f}",
+									framerateFPS,
+									this->frameRateHighWaterMark,
+									this->frameRateLowWaterMark));
 	}
 
 	Text::PrepareForRender();
+}
+
+void FramerateText::ResetWaterMarks()
+{
+	this->frameRateLowWaterMark = std::numeric_limits<double>::max();
+	this->frameRateHighWaterMark = -std::numeric_limits<double>::max();
 }

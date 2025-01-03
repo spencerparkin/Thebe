@@ -91,8 +91,13 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual void PrepareForRender() override;
 
+		void ResetWaterMarks();
+
 	private:
 		std::list<double> deltaTimeList;
 		size_t deltaTimeListSizeMax;
+		double frameRateLowWaterMark;
+		double frameRateHighWaterMark;
+		UINT64 waterMarkResetFrequency;
 	};
 }

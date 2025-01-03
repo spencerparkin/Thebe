@@ -176,11 +176,21 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 	if (!hullA || !hullB)
 		return false;
 
+	std::vector<Vector3> worldVerticesA;
+	worldVerticesA.resize(hullA->hull.GetNumVertices());
+	for (int i = 0; i < (int)worldVerticesA.size(); i++)
+		worldVerticesA[i] = hullA->GetWorldVertex(i);
+
+	std::vector<Vector3> worldVerticesB;
+	worldVerticesB.resize(hullB->hull.GetNumVertices());
+	for (int i = 0; i < (int)worldVerticesB.size(); i++)
+		worldVerticesB[i] = hullB->GetWorldVertex(i);
+
 	// Look for vertex/face contacts.
 
 	for (int i = 0; i < hullA->hull.GetNumVertices(); i++)
 	{
-		const Vector3& vertexA = hullA->GetWorldVertex(i);
+		const Vector3& vertexA = worldVerticesA[i];
 		if (collisionObjectB->PointOnOrBehindAllWorldPlanes(vertexA))
 		{
 			Plane planeB;
@@ -197,7 +207,7 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 
 	for (int i = 0; i < hullB->hull.GetNumVertices(); i++)
 	{
-		const Vector3& vertexB = hullB->GetWorldVertex(i);
+		const Vector3& vertexB = worldVerticesB[i];
 		if (collisionObjectA->PointOnOrBehindAllWorldPlanes(vertexB))
 		{
 			Plane planeA;
@@ -217,14 +227,14 @@ bool PhysicsSystem::ResolveContact(const Contact& contact)
 	for (const Graph::UnorderedEdge& edgeA : collisionObjectA->GetEdgeSet())
 	{
 		LineSegment lineSegA;
-		lineSegA.point[0] = hullA->GetWorldVertex(edgeA.i);
-		lineSegA.point[1] = hullA->GetWorldVertex(edgeA.j);
+		lineSegA.point[0] = worldVerticesA[edgeA.i];
+		lineSegA.point[1] = worldVerticesA[edgeA.j];
 
 		for (const Graph::UnorderedEdge& edgeB : collisionObjectB->GetEdgeSet())
 		{
 			LineSegment lineSegB;
-			lineSegB.point[0] = hullB->GetWorldVertex(edgeB.i);
-			lineSegB.point[1] = hullB->GetWorldVertex(edgeB.j);
+			lineSegB.point[0] = worldVerticesB[edgeB.i];
+			lineSegB.point[1] = worldVerticesB[edgeB.j];
 
 			LineSegment shortestConnector;
 			if (shortestConnector.SetAsShortestConnector(lineSegA, lineSegB))

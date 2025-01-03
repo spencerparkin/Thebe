@@ -3,6 +3,7 @@
 #include "Thebe/Math/Polygon.h"
 #include "Thebe/Math/Function.h"
 #include "Thebe/Log.h"
+#include <format>
 
 using namespace Thebe;
 
@@ -81,20 +82,13 @@ GJKShape::GJKShape()
 
 	simplex.MakeFaces();
 
-	int iterationCount = 0;
-
 	// Try to walk the simplex to the origin.
+	std::set<std::string> faceSet;
 	Vector3 origin(0.0, 0.0, 0.0);
 	bool newSimplexFound = false;
 	std::set<std::string> facePlaneSet;
 	do
 	{
-		// TODO: This is a total hack.  I don't know why we're getting into an infinite loop or how that's even possible.
-		//       I guess I need to record the simplex cycle and then study a visualization of it.  It's had to visualize, though.
-		//       If every tetrahedron is validly produced, then this is geometrically possible?
-		if (iterationCount++ > 32)
-			return false;
-
 		if (simplex.ContainsOrigin())
 			return true;
 
@@ -109,6 +103,19 @@ GJKShape::GJKShape()
 				continue;
 
 			const GJKSimplex::Face* face = &simplex.faceArray[i];
+
+			// This looks like a hack, but as far as I can tell, it isn't.  My GJK implimentation is
+			// probably wrong, but until I learn more about GJK, this is a necessary check.  It is not
+			// obvious at all, but a cycle *CAN* occur in our search for a simplex containing the origin,
+			// and if we do find a cycle without detecting it, we'll loop forever!  My only guess at this
+			// point is that I don't know the correct criteria for selecting the next simplex, because
+			// I doubt that the original GJK algorithm has any need to do this kind of check.  Also, is
+			// it possible to detect a cycle, conclude there's no intersection, but be wrong in that conclusion?!
+			// After all, we always just use the first face we find when multiple faces could work at each iteration.
+			std::string key = face->MakeKey(simplex.vertexArray);
+			if (faceSet.find(key) != faceSet.end())
+				return false;
+			faceSet.insert(key);
 
 			pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
 			pointB = shapeB->FurthestPoint(facePlane->unitNormal);
@@ -133,7 +140,7 @@ GJKShape::GJKShape()
 			double simplexVolume = newSimplex.CalcVolume();
 			if (simplexVolume <= epsilon)
 				continue;
-					
+
 			simplex = newSimplex;
 			newSimplexFound = true;
 			break;
@@ -217,6 +224,20 @@ bool GJKSimplex::Face::HasVertex(int i) const
 			return true;
 
 	return false;
+}
+
+std::string GJKSimplex::Face::MakeKey(const Vector3* givenVertexArray) const
+{
+	return std::format("<{},{},{}>, <{},{},{}>, <{},{},{}>",
+		givenVertexArray[this->vertexArray[0]].x,
+		givenVertexArray[this->vertexArray[0]].y,
+		givenVertexArray[this->vertexArray[0]].z,
+		givenVertexArray[this->vertexArray[1]].x,
+		givenVertexArray[this->vertexArray[1]].y,
+		givenVertexArray[this->vertexArray[1]].z,
+		givenVertexArray[this->vertexArray[2]].x,
+		givenVertexArray[this->vertexArray[2]].y,
+		givenVertexArray[this->vertexArray[2]].z);
 }
 
 double GJKSimplex::CalcVolume() const
