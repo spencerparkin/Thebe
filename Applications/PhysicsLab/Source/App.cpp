@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Thebe/GraphicsEngine.h"
+#include "Thebe/EngineParts/Text.h"
 #include "Thebe/EngineParts/Scene.h"
 
 using namespace Thebe;
@@ -47,6 +48,14 @@ PhysicsLabApp::PhysicsLabApp()
 	objectToWorld.translation.y += 5.0;
 	objectToWorld.translation.z += 0.0;
 	this->objectB->SetObjectToWorld(objectToWorld);
+
+	Thebe::Reference<FramerateText> framerateText;
+	framerateText.Set(new FramerateText());
+	framerateText->SetGraphicsEngine(this->graphicsEngine);
+	framerateText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	if (!framerateText->Setup())
+		return false;
+	scene->SetRootSpace(framerateText);
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
