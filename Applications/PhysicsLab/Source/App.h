@@ -25,5 +25,6 @@ private:
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
 	Thebe::Reference<Thebe::PhysicsObject> objectA;
 	Thebe::Reference<Thebe::PhysicsObject> objectB;
+	Thebe::Reference<Thebe::PhysicsObject> groundSlab;
 	JediCam jediCam;
 };

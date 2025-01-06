@@ -10,6 +10,7 @@ RigidBody::RigidBody()
 	this->totalMass = 0.0;
 	this->linearMomentum.SetComponents(0.0, 0.0, 0.0);
 	this->angularMomentum.SetComponents(0.0, 0.0, 0.0);
+	this->stationary = false;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -30,7 +31,7 @@ RigidBody::RigidBody()
 	if (!PhysicsObject::Setup())
 		return false;
 
-	if (this->objectSpaceInertiaTensor.Determinant() == 0.0)
+	if (this->objectSpaceInertiaTensor.Determinant() == 0.0 && !this->stationary)
 	{
 		// We should never actually do this at run-time.  This should only happen during the asset build.
 		if (!this->collisionObject->GetShape()->CalculateRigidBodyCharacteristics(this->objectSpaceInertiaTensor, this->totalMass, [](const Vector3&) -> double { return 1.0; }))
@@ -78,6 +79,9 @@ RigidBody::RigidBody()
 		}
 	}
 
+	auto stationaryValue = dynamic_cast<const JsonBool*>(rootValue->GetValue("stationary"));
+	this->stationary = stationaryValue ? stationaryValue->GetValue() : false;
+
 	return true;
 }
 
@@ -94,22 +98,32 @@ RigidBody::RigidBody()
 
 	rootValue->SetValue("total_mass", new JsonFloat(this->totalMass));
 	rootValue->SetValue("object_space_inertia_tensor", JsonHelper::MatrixToJsonValue(this->objectSpaceInertiaTensor));
+	rootValue->SetValue("stationary", new JsonBool(this->stationary));
 
 	return true;
 }
 
-/*virtual*/ void RigidBody::AccumulateForcesAndTorques()
+/*virtual*/ void RigidBody::AccumulateForcesAndTorques(PhysicsSystem* physicsSystem)
 {
-	PhysicsObject::AccumulateForcesAndTorques();
+	PhysicsObject::AccumulateForcesAndTorques(physicsSystem);
+
+	Vector3 gravityForce = physicsSystem->GetGravity() * this->totalMass;
+	this->totalForce += gravityForce;
 }
 
 Vector3 RigidBody::GetLinearVelocity() const
 {
+	if (this->stationary)
+		return Vector3(0.0, 0.0, 0.0);
+
 	return this->linearMomentum / this->totalMass;
 }
 
 Vector3 RigidBody::GetAngularVelocity() const
 {
+	if (this->stationary)
+		return Vector3(0.0, 0.0, 0.0);
+
 	Matrix3x3 worldSpaceInertiaTensorInverse;
 	this->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverse);
 	return worldSpaceInertiaTensorInverse * this->angularMomentum;
@@ -143,6 +157,16 @@ const Vector3& RigidBody::GetAngularMomentum() const
 void RigidBody::SetAngularMomentum(const Vector3& angularMomentum)
 {
 	this->angularMomentum = angularMomentum;
+}
+
+void RigidBody::SetStationary(bool stationary)
+{
+	this->stationary = stationary;
+}
+
+bool RigidBody::IsStationary() const
+{
+	return this->stationary;
 }
 
 /*virtual*/ void RigidBody::IntegrateMotionUnconstrained(double timeStepSeconds)

@@ -12,12 +12,23 @@ using namespace Thebe;
 PhysicsSystem::PhysicsSystem()
 {
 	this->contactCalculatorArray.push_back(new ContactCalculator<GJKConvexHull, GJKConvexHull>());
+	this->accelerationDueToGravity.SetComponents(0.0, -9.8, 0.0);
 }
 
 /*virtual*/ PhysicsSystem::~PhysicsSystem()
 {
 	for (auto& contactCalculator : this->contactCalculatorArray)
 		delete contactCalculator;
+}
+
+void PhysicsSystem::SetGravity(const Vector3& accelerationDueToGravity)
+{
+	this->accelerationDueToGravity = accelerationDueToGravity;
+}
+
+const Vector3& PhysicsSystem::GetGravity() const
+{
+	return this->accelerationDueToGravity;
 }
 
 bool PhysicsSystem::TrackObject(PhysicsObject* physicsObject)
@@ -74,7 +85,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
-			physicsObject->AccumulateForcesAndTorques();
+			physicsObject->AccumulateForcesAndTorques(this);
 		}
 
 		// Numerically integreate the equations of motion or whatever ODEs are applicable.
@@ -164,11 +175,20 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 		rigidBodyA->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseA);
 		rigidBodyB->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseB);
 
-		double denumPartA = (worldSpaceInertiaTensorInverseA * contactVectorA.Cross(contact.unitNormal)).Cross(contactVectorA).Dot(contact.unitNormal) + 1.0 / rigidBodyA->GetTotalMass();
-		double denumPartB = (worldSpaceInertiaTensorInverseB * contactVectorB.Cross(contact.unitNormal)).Cross(contactVectorB).Dot(contact.unitNormal) + 1.0 / rigidBodyB->GetTotalMass();
+		double denomPartA = 0.0;
+		double denomPartB = 0.0;
 
-		double coeficientOfRestitution = 1.0;
-		double impulseMagnitude = -(1.0 + coeficientOfRestitution) * relativeVelocity / (denumPartA + denumPartB);
+		if (!rigidBodyA->IsStationary())
+			denomPartA = (worldSpaceInertiaTensorInverseA * contactVectorA.Cross(contact.unitNormal)).Cross(contactVectorA).Dot(contact.unitNormal) + 1.0 / rigidBodyA->GetTotalMass();
+
+		if (!rigidBodyB->IsStationary())
+			denomPartB = (worldSpaceInertiaTensorInverseB * contactVectorB.Cross(contact.unitNormal)).Cross(contactVectorB).Dot(contact.unitNormal) + 1.0 / rigidBodyB->GetTotalMass();
+
+		double denominator = denomPartA + denomPartB;
+		THEBE_ASSERT(denominator != 0.0);
+
+		double coeficientOfRestitution = 0.5;		// TODO: Maybe get this from a setting somewhere?
+		double impulseMagnitude = -(1.0 + coeficientOfRestitution) * relativeVelocity / denominator;
 
 		Vector3 impulse = impulseMagnitude * contact.unitNormal;
 

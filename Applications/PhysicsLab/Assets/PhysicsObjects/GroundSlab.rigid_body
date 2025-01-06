@@ -1,0 +1,4 @@
+{
+    "collision_object": "CollisionObjects/GroundSlab.collision_object",
+    "stationary": true
+}

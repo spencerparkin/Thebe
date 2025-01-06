@@ -6,6 +6,8 @@
 
 namespace Thebe
 {
+	class PhysicsSystem;
+
 	/**
 	 * This serves as the base class for any object tracked
 	 * by the physics system.
@@ -25,7 +27,7 @@ namespace Thebe
 		 * Calculate and accumulate all external forces and torques acting
 		 * on this physics objects.
 		 */
-		virtual void AccumulateForcesAndTorques();
+		virtual void AccumulateForcesAndTorques(PhysicsSystem* physicsSystem);
 
 		/**
 		 * Move and/or rotate this physics object using numerical integration

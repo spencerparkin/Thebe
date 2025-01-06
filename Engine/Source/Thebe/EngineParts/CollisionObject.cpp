@@ -124,10 +124,13 @@ const GJKShape* CollisionObject::GetShape() const
 
 	std::vector<Vector3> vertexArray;
 
-	double scale = 1.0;
+	double uniformScale = 1.0;
 	auto scaleValue = dynamic_cast<const JsonFloat*>(rootValue->GetValue("scale"));
 	if (scaleValue)
-		scale = scaleValue->GetValue();
+		uniformScale = scaleValue->GetValue();
+
+	Vector3 nonUniformScale(1.0, 1.0, 1.0);
+	JsonHelper::VectorFromJsonValue(rootValue->GetValue("non_uniform_scale"), nonUniformScale);
 
 	auto polyhedronValue = dynamic_cast<const JsonString*>(rootValue->GetValue("polyhedron"));
 	auto hullVerticesValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("hull_vertices"));
@@ -194,7 +197,10 @@ const GJKShape* CollisionObject::GetShape() const
 		this->shape = convexHull;
 	
 		for (Vector3& vertex : vertexArray)
-			vertex *= scale;
+		{
+			vertex *= uniformScale;
+			vertex *= nonUniformScale;
+		}
 
 		if (!convexHull->hull.GenerateConvexHull(vertexArray))
 		{

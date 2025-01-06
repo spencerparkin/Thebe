@@ -94,7 +94,7 @@ PhysicsObject::PhysicsObject()
 	return true;
 }
 
-/*virtual*/ void PhysicsObject::AccumulateForcesAndTorques()
+/*virtual*/ void PhysicsObject::AccumulateForcesAndTorques(PhysicsSystem* physicsSystem)
 {
 	this->totalForce.SetComponents(0.0, 0.0, 0.0);
 	this->totalTorque.SetComponents(0.0, 0.0, 0.0);

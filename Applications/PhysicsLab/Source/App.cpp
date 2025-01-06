@@ -43,11 +43,17 @@ PhysicsLabApp::PhysicsLabApp()
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Icosahedron.rigid_body", this->objectB))
 		return false;
 
-	Transform objectToWorld = this->objectB->GetObjectToWorld();
-	objectToWorld.translation.x += 5.0;
-	objectToWorld.translation.y += 5.0;
-	objectToWorld.translation.z += 0.0;
-	this->objectB->SetObjectToWorld(objectToWorld);
+	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
+		return false;
+
+	if (this->objectA.Get())
+	{
+		Transform objectToWorld = this->objectA->GetObjectToWorld();
+		objectToWorld.translation.x += 0.0;
+		objectToWorld.translation.y += 5.0;
+		objectToWorld.translation.z += 0.0;
+		this->objectA->SetObjectToWorld(objectToWorld);
+	}
 
 	Thebe::Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
@@ -59,14 +65,14 @@ PhysicsLabApp::PhysicsLabApp()
 
 	Transform cameraToWorld;
 	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 0.0, 20.0);
+	cameraToWorld.translation.SetComponents(0.0, 0.0, 40.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);
 	this->jediCam.SetCamera(this->camera);
 
 	this->jediCam.AddObject(this->objectA);
-	this->jediCam.AddObject(this->objectB);
+	//this->jediCam.AddObject(this->objectB);
 
 	return true;
 }

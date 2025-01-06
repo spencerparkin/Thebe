@@ -107,6 +107,20 @@ namespace Thebe
 			this->z /= scalar;
 		}
 
+		void operator*=(const Vector3& vector)
+		{
+			this->x *= vector.x;
+			this->y *= vector.y;
+			this->z *= vector.z;
+		}
+
+		void operator/=(const Vector3& vector)
+		{
+			this->x /= vector.x;
+			this->y /= vector.y;
+			this->z /= vector.z;
+		}
+
 		/**
 		 * Tell the caller if an Inf of NaN exists in the components of this vector.
 		 * 
@@ -512,6 +526,15 @@ namespace Thebe
 			vectorA.x * vectorB.x,
 			vectorA.y * vectorB.y,
 			vectorA.z * vectorB.z
+		);
+	}
+
+	inline Vector3 operator/(const Vector3& vectorA, const Vector3& vectorB)
+	{
+		return Vector3(
+			vectorA.x / vectorB.x,
+			vectorA.y / vectorB.y,
+			vectorA.z / vectorB.z
 		);
 	}
 

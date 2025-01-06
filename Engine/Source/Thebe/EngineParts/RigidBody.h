@@ -19,7 +19,7 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
-		virtual void AccumulateForcesAndTorques() override;
+		virtual void AccumulateForcesAndTorques(PhysicsSystem* physicsSystem) override;
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
 
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
@@ -36,6 +36,9 @@ namespace Thebe
 		const Vector3& GetAngularMomentum() const;
 		void SetAngularMomentum(const Vector3& angularMomentum);
 
+		void SetStationary(bool stationary);
+		bool IsStationary() const;
+
 	private:
 		// Note that our position (center of mass) and orientation are stored in the collision object.
 		Vector3 linearMomentum;
@@ -43,5 +46,6 @@ namespace Thebe
 		double totalMass;
 		Matrix3x3 objectSpaceInertiaTensor;
 		Matrix3x3 objectSpaceInertiaTensorInverse;
+		bool stationary;
 	};
 }

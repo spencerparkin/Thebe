@@ -54,34 +54,6 @@ JediCam::JediCam()
 			break;
 		}
 	}
-
-	AxisAlignedBoundingBox box;
-	box.minCorner.SetComponents(-10.0, -10.0, -10.0);
-	box.maxCorner.SetComponents(10.0, 10.0, 10.0);
-	double boxSizeX, boxSizeY, boxSizeZ;
-	box.GetDimensions(boxSizeX, boxSizeY, boxSizeZ);
-	for (auto object : this->objectArray)
-	{
-		Transform objectToWorld = object->GetObjectToWorld();
-		
-		if (objectToWorld.translation.x < box.minCorner.x)
-			objectToWorld.translation.x += boxSizeX;
-		if (objectToWorld.translation.x > box.maxCorner.x)
-			objectToWorld.translation.x -= boxSizeX;
-
-		if (objectToWorld.translation.y < box.minCorner.y)
-			objectToWorld.translation.y += boxSizeY;
-		if (objectToWorld.translation.y > box.maxCorner.y)
-			objectToWorld.translation.y -= boxSizeY;
-
-		if (objectToWorld.translation.z < box.minCorner.z)
-			objectToWorld.translation.z += boxSizeZ;
-		if (objectToWorld.translation.z > box.maxCorner.z)
-			objectToWorld.translation.z -= boxSizeZ;
-
-		if (objectToWorld.translation != object->GetObjectToWorld().translation)
-			object->SetObjectToWorld(objectToWorld);
-	}
 }
 
 /*virtual*/ void JediCam::OnButtonPressed(DWORD button)

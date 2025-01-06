@@ -33,7 +33,7 @@ FloppyBody::FloppyBody()
 	return false;
 }
 
-/*virtual*/ void FloppyBody::AccumulateForcesAndTorques()
+/*virtual*/ void FloppyBody::AccumulateForcesAndTorques(PhysicsSystem* phsyicsSystem)
 {
 }
 

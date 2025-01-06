@@ -63,6 +63,9 @@ namespace Thebe
 			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override;
 		};
 
+		void SetGravity(const Vector3& accelerationDueToGravity);
+		const Vector3& GetGravity() const;
+
 	private:
 		/**
 		 * Add one or more collision contacts to the given list as a function of the given collision.
@@ -76,5 +79,7 @@ namespace Thebe
 
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;
+
+		Vector3 accelerationDueToGravity;
 	};
 }
