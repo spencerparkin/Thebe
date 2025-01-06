@@ -103,6 +103,48 @@ RigidBody::RigidBody()
 	PhysicsObject::AccumulateForcesAndTorques();
 }
 
+Vector3 RigidBody::GetLinearVelocity() const
+{
+	return this->linearMomentum / this->totalMass;
+}
+
+Vector3 RigidBody::GetAngularVelocity() const
+{
+	Matrix3x3 worldSpaceInertiaTensorInverse;
+	this->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverse);
+	return worldSpaceInertiaTensorInverse * this->angularMomentum;
+}
+
+Vector3 RigidBody::GetCenterOfMass() const
+{
+	return this->collisionObject->GetObjectToWorld().translation;
+}
+
+double RigidBody::GetTotalMass() const
+{
+	return this->totalMass;
+}
+
+const Vector3& RigidBody::GetLinearMomentum() const
+{
+	return this->linearMomentum;
+}
+
+void RigidBody::SetLinearMomentum(const Vector3& linearMomentum)
+{
+	this->linearMomentum = linearMomentum;
+}
+
+const Vector3& RigidBody::GetAngularMomentum() const
+{
+	return this->angularMomentum;
+}
+
+void RigidBody::SetAngularMomentum(const Vector3& angularMomentum)
+{
+	this->angularMomentum = angularMomentum;
+}
+
 /*virtual*/ void RigidBody::IntegrateMotionUnconstrained(double timeStepSeconds)
 {
 	if (this->totalMass == 0.0)
@@ -116,12 +158,8 @@ RigidBody::RigidBody()
 	Vector3& position = objectToWorld.translation;
 	Matrix3x3& orientation = objectToWorld.matrix;
 
-	Vector3 linearVelocity = this->linearMomentum / this->totalMass;
-
-	Matrix3x3 worldSpaceInertiaTensorInverse;
-	this->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverse);
-
-	Vector3 angularVelocity = worldSpaceInertiaTensorInverse * this->angularMomentum;
+	Vector3 linearVelocity = this->GetLinearVelocity();
+	Vector3 angularVelocity = this->GetAngularVelocity();
 
 	Matrix3x3 angularVelocityMatrix;
 	angularVelocityMatrix.SetForCrossProduct(angularVelocity);

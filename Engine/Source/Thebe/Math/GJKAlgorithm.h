@@ -69,10 +69,8 @@ namespace Thebe
 		/**
 		 * Calculate and return the mass and inertia tensor of this shape.
 		 * 
-		 * If my understanding is correct, the inertia tensor, when taken in a
-		 * quadratic form with an unit-axis vector, gives you the moment of inertia
-		 * of the shape about that axis.  This is a scalar value indicating how
-		 * "hard" or "easy" it is to rotate the body about this axis.  TODO: Likely not true.  Need to research more.
+		 * Note that it will be assumed that the center of mass of the object in object space is
+		 * also the origin of object space.
 		 * 
 		 * @param[out] objectSpaceInertiaTensor The inertia tensor of the shape in object space is returned in this matrix.
 		 * @param[out] totalMass The total mass of the shape is returned in this scalar.
@@ -82,7 +80,7 @@ namespace Thebe
 		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const;
 
 		/**
-		 * Calculate and return the geometric center of the shape.  This is not necessarily a center of mass.
+		 * Calculate and return the geometric center of the shape.  This is not necessarily the center of mass.
 		 */
 		virtual Vector3 CalcGeometricCenter() const = 0;
 

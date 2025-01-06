@@ -72,7 +72,7 @@ namespace Thebe
 		/**
 		 * True is returned here if and only if an impulse was applied to prevent interpenetration.
 		 */
-		bool ResolveContact(const Contact& contact);
+		bool ResolveContact(Contact& contact);
 
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;

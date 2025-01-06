@@ -25,6 +25,17 @@ namespace Thebe
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
 		void GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const;
 
+		Vector3 GetLinearVelocity() const;
+		Vector3 GetAngularVelocity() const;
+		Vector3 GetCenterOfMass() const;
+		double GetTotalMass() const;
+
+		const Vector3& GetLinearMomentum() const;
+		void SetLinearMomentum(const Vector3& linearMomentum);
+
+		const Vector3& GetAngularMomentum() const;
+		void SetAngularMomentum(const Vector3& angularMomentum);
+
 	private:
 		// Note that our position (center of mass) and orientation are stored in the collision object.
 		Vector3 linearMomentum;
