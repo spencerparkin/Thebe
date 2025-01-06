@@ -157,7 +157,6 @@ namespace Thebe
 
 			int OtherVertex() const;
 			bool HasVertex(int i) const;
-			std::string MakeKey(const Vector3* givenVertexArray) const;
 		};
 
 		/**

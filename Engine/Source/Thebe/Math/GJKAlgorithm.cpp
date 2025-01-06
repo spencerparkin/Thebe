@@ -92,8 +92,16 @@ GJKShape::GJKShape()
 	std::set<std::string> faceSet;
 	Vector3 origin(0.0, 0.0, 0.0);
 	std::vector<Candidate> candidateArray;
+	int iterationCount = 0;
+	int maxIterationCount = 128;
 	while (true)
 	{
+		if (++iterationCount >= maxIterationCount)
+		{
+			THEBE_ASSERT(false);
+			return false;
+		}
+
 		if (simplex.ContainsOrigin())
 			return true;
 
@@ -239,20 +247,6 @@ bool GJKSimplex::Face::HasVertex(int i) const
 			return true;
 
 	return false;
-}
-
-std::string GJKSimplex::Face::MakeKey(const Vector3* givenVertexArray) const
-{
-	return std::format("<{},{},{}>, <{},{},{}>, <{},{},{}>",
-		givenVertexArray[this->vertexArray[0]].x,
-		givenVertexArray[this->vertexArray[0]].y,
-		givenVertexArray[this->vertexArray[0]].z,
-		givenVertexArray[this->vertexArray[1]].x,
-		givenVertexArray[this->vertexArray[1]].y,
-		givenVertexArray[this->vertexArray[1]].z,
-		givenVertexArray[this->vertexArray[2]].x,
-		givenVertexArray[this->vertexArray[2]].y,
-		givenVertexArray[this->vertexArray[2]].z);
 }
 
 double GJKSimplex::CalcVolume() const
