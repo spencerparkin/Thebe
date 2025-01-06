@@ -82,12 +82,17 @@ GJKShape::GJKShape()
 
 	simplex.MakeFaces();
 
+	struct Candidate
+	{
+		GJKSimplex newSimplex;
+		double dot;
+	};
+
 	// Try to walk the simplex to the origin.
 	std::set<std::string> faceSet;
 	Vector3 origin(0.0, 0.0, 0.0);
-	bool newSimplexFound = false;
-	std::set<std::string> facePlaneSet;
-	do
+	std::vector<Candidate> candidateArray;
+	while (true)
 	{
 		if (simplex.ContainsOrigin())
 			return true;
@@ -95,7 +100,11 @@ GJKShape::GJKShape()
 		Plane planeArray[4];
 		simplex.CalcFacePlanes(planeArray);
 
-		newSimplexFound = false;
+		Vector3 centerArray[4];
+		simplex.CalcFaceCenters(centerArray);
+
+		candidateArray.clear();
+
 		for (int i = 0; i < 4; i++)
 		{
 			const Plane* facePlane = &planeArray[i];
@@ -104,48 +113,53 @@ GJKShape::GJKShape()
 
 			const GJKSimplex::Face* face = &simplex.faceArray[i];
 
-			// This looks like a hack, but as far as I can tell, it isn't.  My GJK implimentation is
-			// probably wrong, but until I learn more about GJK, this is a necessary check.  It is not
-			// obvious at all, but a cycle *CAN* occur in our search for a simplex containing the origin,
-			// and if we do find a cycle without detecting it, we'll loop forever!  My only guess at this
-			// point is that I don't know the correct criteria for selecting the next simplex, because
-			// I doubt that the original GJK algorithm has any need to do this kind of check.  Also, is
-			// it possible to detect a cycle, conclude there's no intersection, but be wrong in that conclusion?!
-			// After all, we always just use the first face we find when multiple faces could work at each iteration.
-			std::string key = face->MakeKey(simplex.vertexArray);
-			if (faceSet.find(key) != faceSet.end())
-				return false;
-			faceSet.insert(key);
-
 			pointA = shapeA->FurthestPoint(-facePlane->unitNormal);
 			pointB = shapeB->FurthestPoint(facePlane->unitNormal);
 
 			// Formulate the simplex such that it *should* have positive area.
-			GJKSimplex newSimplex;
-			newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[2]];
-			newSimplex.vertexArray[1] = simplex.vertexArray[face->vertexArray[1]];
-			newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
-			newSimplex.vertexArray[3] = pointB - pointA;
+			Candidate candidate;
+			candidate.newSimplex.vertexArray[0] = simplex.vertexArray[face->vertexArray[2]];
+			candidate.newSimplex.vertexArray[1] = simplex.vertexArray[face->vertexArray[1]];
+			candidate.newSimplex.vertexArray[2] = simplex.vertexArray[face->vertexArray[0]];
+			candidate.newSimplex.vertexArray[3] = pointB - pointA;
 
-			static double planeThickness = 0.1;
-			if (facePlane->GetSide(newSimplex.vertexArray[3], planeThickness) != Plane::FRONT)
+			// How far is the new Minkowski point in the direction of the face normal?
+			double distanceA = (candidate.newSimplex.vertexArray[3] - centerArray[i]).Dot(facePlane->unitNormal);
+
+			// How far is the origin in the direction of the face normal?
+			double distanceB = -centerArray[i].Dot(facePlane->unitNormal);
+
+			// If the new Minkowki point is not at least as far as the origin in the face normal direction, then this simplex won't work.
+			if (distanceA < distanceB)
 				continue;
 
-			bool inverted = false;
-			newSimplex.MakeFaces(&inverted);
-			if (inverted)
-				continue;
+			candidate.newSimplex.MakeFaces();
 
 			static double epsilon = 1e-5;
-			double simplexVolume = newSimplex.CalcVolume();
+			double simplexVolume = candidate.newSimplex.CalcVolume();
 			if (simplexVolume <= epsilon)
 				continue;
 
-			simplex = newSimplex;
-			newSimplexFound = true;
+			candidate.dot = (-centerArray[i].Normalized()).Dot(facePlane->unitNormal);
+			candidateArray.push_back(candidate);
 			break;
 		}
-	} while (newSimplexFound);
+
+		if (candidateArray.size() == 0)
+			break;
+
+		// Chose the candidate simplex that faces most toward the origin.
+		const Candidate* chosenCandidate = nullptr;
+		for (int i = 0; i < (int)candidateArray.size(); i++)
+		{
+			const Candidate* candidate = &candidateArray[i];
+			if (!chosenCandidate || chosenCandidate->dot < candidate->dot)
+				chosenCandidate = candidate;
+		}
+
+		THEBE_ASSERT_FATAL(chosenCandidate != nullptr);
+		simplex = chosenCandidate->newSimplex;
+	}
 
 	return false;
 }
@@ -264,6 +278,20 @@ void GJKSimplex::CalcFacePlanes(Plane* planeArray) const
 		const Vector3& vertexC = this->vertexArray[face->vertexArray[2]];
 
 		planeArray[i] = Plane(vertexA, (vertexB - vertexA).Cross(vertexC - vertexA).Normalized());
+	}
+}
+
+void GJKSimplex::CalcFaceCenters(Vector3* centerArray) const
+{
+	for (int i = 0; i < 4; i++)
+	{
+		const Face* face = &this->faceArray[i];
+
+		const Vector3& vertexA = this->vertexArray[face->vertexArray[0]];
+		const Vector3& vertexB = this->vertexArray[face->vertexArray[1]];
+		const Vector3& vertexC = this->vertexArray[face->vertexArray[2]];
+
+		centerArray[i] = (vertexA + vertexB + vertexC) / 3.0;
 	}
 }
 

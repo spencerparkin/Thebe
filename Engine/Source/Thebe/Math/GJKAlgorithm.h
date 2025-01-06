@@ -127,6 +127,11 @@ namespace Thebe
 		void CalcFacePlanes(Plane* planeArray) const;
 
 		/**
+		 * The given center array is expected to have four elements.
+		 */
+		void CalcFaceCenters(Vector3* centerArray) const;
+
+		/**
 		 * Having populated the vertex array, populate the face array automatically,
 		 * making sure that the volume of the tetrahedron is non-negative.
 		 * 
