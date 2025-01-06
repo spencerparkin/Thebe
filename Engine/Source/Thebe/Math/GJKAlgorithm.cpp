@@ -108,7 +108,8 @@ GJKShape::GJKShape()
 		for (int i = 0; i < 4; i++)
 		{
 			const Plane* facePlane = &planeArray[i];
-			if (facePlane->GetSide(origin) != Plane::FRONT)
+			constexpr double planeThickness = 0.001;
+			if (facePlane->GetSide(origin, planeThickness) != Plane::FRONT)
 				continue;
 
 			const GJKSimplex::Face* face = &simplex.faceArray[i];
