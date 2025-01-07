@@ -20,8 +20,9 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
-		virtual void AccumulateForcesAndTorques(PhysicsSystem* phsyicsSystem) override;
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
+		virtual Vector3 GetCenterOfMass() const override;
+		virtual double GetTotalMass() const override;
 
 	private:
 		struct PointMass

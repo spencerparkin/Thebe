@@ -104,6 +104,27 @@ PhysicsObject::PhysicsObject()
 
 	for (const auto& pair : this->externalTorqueMap)
 		this->totalTorque += pair.second;
+
+	for (const auto& pair : this->externalContactForceMap)
+	{
+		const ContactForce& contactForce = pair.second;
+		Vector3 vector = this->GetCenterOfMass() - contactForce.point;
+		double length = vector.Length();
+		double scale = (length == 0.0) ? 0.0 : (1.0 / length);
+		if (scale == 0.0 || scale != scale)
+			this->totalForce += contactForce.force;
+		else
+		{
+			Vector3 unitVector = vector * scale;
+			Vector3 force = unitVector * unitVector.Dot(contactForce.force);
+			this->totalForce += force;
+			Vector3 torque = (contactForce.force - force).Cross(vector);
+			this->totalTorque += torque;
+		}
+	}
+
+	Vector3 gravityForce = physicsSystem->GetGravity() * this->GetTotalMass();
+	this->totalForce += gravityForce;
 }
 
 /*virtual*/ void PhysicsObject::ZeroMomentum()
@@ -174,4 +195,23 @@ Vector3 PhysicsObject::GetExternalTorque(const std::string& name) const
 		return pair->second;
 
 	return Vector3(0.0, 0.0, 0.0);
+}
+
+void PhysicsObject::SetExternalContactForce(const std::string& name, const ContactForce& contactForce)
+{
+	auto pair = this->externalContactForceMap.find(name);
+	if (pair != this->externalContactForceMap.end())
+		this->externalContactForceMap.erase(pair);
+
+	this->externalContactForceMap.insert(std::pair(name, contactForce));
+}
+
+bool PhysicsObject::GetExternalContactForce(const std::string& name, ContactForce& contactForce) const
+{
+	auto pair = this->externalContactForceMap.find(name);
+	if (pair == this->externalContactForceMap.end())
+		return false;
+
+	contactForce = pair->second;
+	return true;
 }

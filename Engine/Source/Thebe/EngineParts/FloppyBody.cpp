@@ -33,10 +33,16 @@ FloppyBody::FloppyBody()
 	return false;
 }
 
-/*virtual*/ void FloppyBody::AccumulateForcesAndTorques(PhysicsSystem* phsyicsSystem)
+/*virtual*/ void FloppyBody::IntegrateMotionUnconstrained(double timeStepSeconds)
 {
 }
 
-/*virtual*/ void FloppyBody::IntegrateMotionUnconstrained(double timeStepSeconds)
+/*virtual*/ Vector3 FloppyBody::GetCenterOfMass() const
 {
+	return Vector3(0.0, 0.0, 0.0);
+}
+
+/*virtual*/ double FloppyBody::GetTotalMass() const
+{
+	return 0.0;
 }

@@ -40,6 +40,16 @@ namespace Thebe
 		 */
 		virtual void ZeroMomentum();
 
+		/**
+		 * Return the world-space center of mass.
+		 */
+		virtual Vector3 GetCenterOfMass() const = 0;
+
+		/**
+		 * Return the mass of this object.
+		 */
+		virtual double GetTotalMass() const = 0;
+
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 		const CollisionObject* GetCollisionObject() const;
@@ -55,10 +65,20 @@ namespace Thebe
 
 		void SetCollisionObjectPath(const std::filesystem::path& collisionObjectPath);
 
+		struct ContactForce
+		{
+			Vector3 point;
+			Vector3 force;
+		};
+
+		void SetExternalContactForce(const std::string& name, const ContactForce& contactForce);
+		bool GetExternalContactForce(const std::string& name, ContactForce& contactForce) const;
+
 	protected:
 
 		std::map<std::string, Vector3> externalForceMap;
 		std::map<std::string, Vector3> externalTorqueMap;
+		std::map<std::string, ContactForce> externalContactForceMap;
 
 		Vector3 totalForce;
 		Vector3 totalTorque;

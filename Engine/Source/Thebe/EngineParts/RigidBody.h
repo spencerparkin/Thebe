@@ -19,17 +19,16 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
-		virtual void AccumulateForcesAndTorques(PhysicsSystem* physicsSystem) override;
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
 		virtual void ZeroMomentum() override;
+		virtual Vector3 GetCenterOfMass() const override;
+		virtual double GetTotalMass() const override;
 
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
 		void GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const;
 
 		Vector3 GetLinearVelocity() const;
 		Vector3 GetAngularVelocity() const;
-		Vector3 GetCenterOfMass() const;
-		double GetTotalMass() const;
 
 		const Vector3& GetLinearMomentum() const;
 		void SetLinearMomentum(const Vector3& linearMomentum);

@@ -128,7 +128,7 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
 	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);
 
-	eventSystem->DispatchAllEventHandlers();
+	eventSystem->DispatchAllEvents();
 
 	this->graphicsEngine->Render();
 

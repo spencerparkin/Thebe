@@ -103,14 +103,6 @@ RigidBody::RigidBody()
 	return true;
 }
 
-/*virtual*/ void RigidBody::AccumulateForcesAndTorques(PhysicsSystem* physicsSystem)
-{
-	PhysicsObject::AccumulateForcesAndTorques(physicsSystem);
-
-	Vector3 gravityForce = physicsSystem->GetGravity() * this->totalMass;
-	this->totalForce += gravityForce;
-}
-
 Vector3 RigidBody::GetLinearVelocity() const
 {
 	if (this->stationary)
@@ -129,12 +121,12 @@ Vector3 RigidBody::GetAngularVelocity() const
 	return worldSpaceInertiaTensorInverse * this->angularMomentum;
 }
 
-Vector3 RigidBody::GetCenterOfMass() const
+/*virtual*/ Vector3 RigidBody::GetCenterOfMass() const
 {
 	return this->collisionObject->GetObjectToWorld().translation;
 }
 
-double RigidBody::GetTotalMass() const
+/*virtual*/ double RigidBody::GetTotalMass() const
 {
 	return this->totalMass;
 }

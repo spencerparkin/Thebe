@@ -51,7 +51,7 @@ void EventSystem::SendEvent(Event* event)
 	this->eventQueue.push_back(event);
 }
 
-void EventSystem::DispatchAllEventHandlers()
+void EventSystem::DispatchAllEvents()
 {
 	while (this->eventQueue.size() > 0)
 	{
@@ -65,29 +65,26 @@ void EventSystem::DispatchAllEventHandlers()
 void EventSystem::DispatchEvent(Event* event)
 {
 	const std::string& eventCategory = event->GetCategory();
-	CategoryHandlerMap::iterator pair = this->categoryHandlerMap.find(eventCategory);
-	if (pair == this->categoryHandlerMap.end())
+	CategoryHandlerMap::iterator categoryPair = this->categoryHandlerMap.find(eventCategory);
+	if (categoryPair == this->categoryHandlerMap.end())
 		return;
 
-	std::list<EventHandlerID>* eventHandlerIDList = pair->second;
-	std::list<EventHandlerID>::iterator listIter = eventHandlerIDList->begin();
-	while (listIter != eventHandlerIDList->end())
+	std::vector<EventHandlerMap::iterator> doomedHandlerArray;
+	std::list<EventHandlerID>* eventHandlerIDList = categoryPair->second;
+	for(auto eventHandlerID : *eventHandlerIDList)
 	{
-		std::list<EventHandlerID>::iterator nextListIter(listIter);
-		nextListIter++;
-
-		EventHandlerID eventHandlerID = *listIter;
-		EventHandlerMap::iterator mapIter = this->eventHandlerMap.find(eventHandlerID);
-		if (mapIter == this->eventHandlerMap.end())
-			eventHandlerIDList->erase(listIter);
+		EventHandlerMap::iterator handlerPair = this->eventHandlerMap.find(eventHandlerID);
+		if (handlerPair == this->eventHandlerMap.end())
+			doomedHandlerArray.push_back(handlerPair);
 		else
 		{
-			EventHandler eventHandler = mapIter->second;
+			EventHandler eventHandler = handlerPair->second;
 			eventHandler(event);
 		}
-
-		listIter = nextListIter;
 	}
+
+	for (auto& handlerPair : doomedHandlerArray)
+		this->eventHandlerMap.erase(handlerPair);
 }
 
 //---------------------------------- Event ----------------------------------

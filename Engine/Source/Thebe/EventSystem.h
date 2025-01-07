@@ -50,7 +50,7 @@ namespace Thebe
 		/**
 		 * Process the event queue until it's empty.
 		 */
-		void DispatchAllEventHandlers();
+		void DispatchAllEvents();
 
 	private:
 
