@@ -40,6 +40,8 @@ namespace Thebe
 		bool IsStationary() const;
 
 	private:
+		bool CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction);
+
 		// Note that our position (center of mass) and orientation are stored in the collision object.
 		Vector3 linearMomentum;
 		Vector3 angularMomentum;

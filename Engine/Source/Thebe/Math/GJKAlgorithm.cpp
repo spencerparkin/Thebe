@@ -185,9 +185,16 @@ const Transform& GJKShape::GetObjectToWorld() const
 	return this->objectToWorld;
 }
 
-/*virtual*/ bool GJKShape::CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const
+/*virtual*/ bool GJKShape::ContainsObjectPoint(const Vector3& point, void* cache /*= nullptr*/) const
 {
 	return false;
+}
+
+/*virtual*/ bool GJKShape::ContainsWorldPoint(const Vector3& point, void* cache /*= nullptr*/) const
+{
+	Transform worldToObject;
+	worldToObject.Invert(this->objectToWorld);
+	return this->ContainsObjectPoint(worldToObject.TransformPoint(point), cache);
 }
 
 //------------------------------------- GJKSimplex -------------------------------------
@@ -395,6 +402,21 @@ GJKSphere::GJKSphere()
 	return this->center;
 }
 
+/*virtual*/ void GJKSphere::Shift(const Vector3& translation)
+{
+	this->center += translation;
+}
+
+/*virtual*/ bool GJKSphere::ContainsObjectPoint(const Vector3& point, void* cache /*= nullptr*/) const
+{
+	return point.Length() <= this->radius;
+}
+
+/*virtual*/ bool GJKSphere::ContainsWorldPoint(const Vector3& point, void* cache /*= nullptr*/) const
+{
+	return this->ContainsObjectPoint(point - this->center, cache);
+}
+
 //------------------------------------- GJKConvexHull -------------------------------------
 
 GJKConvexHull::GJKConvexHull()
@@ -454,71 +476,10 @@ GJKConvexHull::GJKConvexHull()
 	return this->hull.RayCast(ray, alpha, unitSurfaceNormal);
 }
 
-/*virtual*/ bool GJKConvexHull::CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const
+/*virtual*/ void GJKConvexHull::Shift(const Vector3& translation)
 {
-	totalMass = 0.0;
-
-	AxisAlignedBoundingBox objectBoundingBox = this->GetObjectBoundingBox();
-
-	for (uint32_t i = 0; i < 3; i++)
-		for (uint32_t j = 0; j < 3; j++)
-			objectSpaceInertiaTensor.ele[i][j] = 0.0;
-
-	std::vector<Polygon> standalonePolygonArray;
-	this->hull.ToStandalonePolygonArray(standalonePolygonArray);
-
-	std::vector<Plane> planeArray;
-	for (const Polygon& polygon : standalonePolygonArray)
-		planeArray.push_back(polygon.CalcPlane(true));
-
-	auto pointInConvexHull = [&planeArray](const Vector3& point) -> bool
-		{
-			for (const Plane& plane : planeArray)
-				if (plane.GetSide(point) == Plane::FRONT)
-					return false;
-			return true;
-		};
-
-	// This will be a crude approximate of the integrals involved.
-	// It is also very slow!  So it really only should be done during the asset build process.
-	double boxSizeX, boxSizeY, boxSizeZ;
-	objectBoundingBox.GetDimensions(boxSizeX, boxSizeY, boxSizeZ);
-	double voxelExtent = 0.05;
-	int numVoxelsX = int(boxSizeX / voxelExtent);
-	int numVoxelsY = int(boxSizeY / voxelExtent);
-	int numVoxelsZ = int(boxSizeZ / voxelExtent);
-	double voxelVolume = voxelExtent * voxelExtent * voxelExtent;
-	Vector3 voxelCenter;
-	for (int i = 0; i < numVoxelsX; i++)
-	{
-		voxelCenter.x = objectBoundingBox.minCorner.x + ((double(i) + 0.5) / double(numVoxelsX)) * boxSizeX;
-		for (int j = 0; j < numVoxelsY; j++)
-		{
-			voxelCenter.y = objectBoundingBox.minCorner.y + ((double(j) + 0.5) / double(numVoxelsY)) * boxSizeY;
-			for (int k = 0; k < numVoxelsZ; k++)
-			{
-				voxelCenter.z = objectBoundingBox.minCorner.z + ((double(k) + 0.5) / double(numVoxelsZ)) * boxSizeZ;
-				if (pointInConvexHull(voxelCenter))
-				{
-					double voxelMass = voxelVolume * densityFunction(voxelCenter);
-
-					totalMass += voxelMass;
-
-					objectSpaceInertiaTensor.ele[0][0] += voxelMass * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);
-					objectSpaceInertiaTensor.ele[0][1] += -voxelMass * voxelCenter.x * voxelCenter.y;
-					objectSpaceInertiaTensor.ele[0][2] += -voxelMass * voxelCenter.x * voxelCenter.z;
-					objectSpaceInertiaTensor.ele[1][0] += -voxelMass * voxelCenter.y * voxelCenter.x;
-					objectSpaceInertiaTensor.ele[1][1] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.z * voxelCenter.z);
-					objectSpaceInertiaTensor.ele[1][2] += -voxelMass * voxelCenter.y * voxelCenter.z;
-					objectSpaceInertiaTensor.ele[2][0] += -voxelMass * voxelCenter.z * voxelCenter.x;
-					objectSpaceInertiaTensor.ele[2][1] += -voxelMass * voxelCenter.z * voxelCenter.y;
-					objectSpaceInertiaTensor.ele[2][2] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.y * voxelCenter.y);
-				}
-			}
-		}
-	}
-
-	return true;
+	for (int i = 0; i < (int)this->hull.GetNumVertices(); i++)
+		this->hull.SetVertex(i, this->hull.GetVertex(i) + translation);
 }
 
 void GJKConvexHull::GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& edgeSet) const
@@ -563,4 +524,29 @@ Vector3 GJKConvexHull::GetWorldVertex(int i) const
 {
 	THEBE_ASSERT(0 <= i && i < (int)this->hull.GetNumVertices());
 	return this->objectToWorld.TransformPoint(this->hull.GetVertexArray()[i]);
+}
+
+/*virtual*/ bool GJKConvexHull::ContainsObjectPoint(const Vector3& point, void* cache /*= nullptr*/) const
+{
+	THEBE_ASSERT(cache != nullptr);
+	if (!cache)
+		return false;
+
+	auto pointContainmentCache = static_cast<PointContainmentCache*>(cache);
+	if(pointContainmentCache->planeArray.size() == 0)
+	{
+		for (const PolygonMesh::Polygon& polygon : this->hull.GetPolygonArray())
+		{
+			Polygon standalonePolygon;
+			polygon.ToStandalonePolygon(standalonePolygon, &this->hull);
+			Plane plane = standalonePolygon.CalcPlane(true);
+			pointContainmentCache->planeArray.push_back(plane);
+		}
+	}
+
+	for (const Plane& plane : pointContainmentCache->planeArray)
+		if (plane.GetSide(point) == Plane::FRONT)
+			return false;
+
+	return true;
 }

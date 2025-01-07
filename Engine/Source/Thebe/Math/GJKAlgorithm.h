@@ -67,22 +67,26 @@ namespace Thebe
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const = 0;
 
 		/**
-		 * Calculate and return the mass and inertia tensor of this shape.
+		 * Shift the representation of this shape in object-space.
 		 * 
-		 * Note that it will be assumed that the center of mass of the object in object space is
-		 * also the origin of object space.
-		 * 
-		 * @param[out] objectSpaceInertiaTensor The inertia tensor of the shape in object space is returned in this matrix.
-		 * @param[out] totalMass The total mass of the shape is returned in this scalar.
-		 * @param[in] densityFunction This function is used to convert from volume to mass while performing calculations.
-		 * @return True is returned if successful; false, otherwise.
+		 * @param[in] translation The shape should be shifted by this vector.
 		 */
-		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const;
+		virtual void Shift(const Vector3& translation) = 0;
 
 		/**
 		 * Calculate and return the geometric center of the shape.  This is not necessarily the center of mass.
 		 */
 		virtual Vector3 CalcGeometricCenter() const = 0;
+
+		/**
+		 * Tell the caller if the given point (in object space) is contained within this shape (in object space.)
+		 */
+		virtual bool ContainsObjectPoint(const Vector3& point, void* cache = nullptr) const;
+
+		/**
+		 * Tell the caller if the given point (in world space) is contained within this shape (in world space.);
+		 */
+		virtual bool ContainsWorldPoint(const Vector3& point, void* cache = nullptr) const;
 
 		/**
 		 * Tell the caller if the two given shapes interesect.
@@ -182,6 +186,9 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
 		virtual Vector3 CalcGeometricCenter() const override;
+		virtual void Shift(const Vector3& translation) override;
+		virtual bool ContainsObjectPoint(const Vector3& point, void* cache = nullptr) const override;
+		virtual bool ContainsWorldPoint(const Vector3& point, void* cache = nullptr) const override;
 
 		Vector3 center;
 		double radius;
@@ -200,8 +207,14 @@ namespace Thebe
 		virtual AxisAlignedBoundingBox GetObjectBoundingBox() const override;
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
 		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
-		virtual bool CalculateRigidBodyCharacteristics(Matrix3x3& objectSpaceInertiaTensor, double& totalMass, std::function<double(const Vector3&)> densityFunction) const override;
 		virtual Vector3 CalcGeometricCenter() const override;
+		virtual void Shift(const Vector3& translation) override;
+		virtual bool ContainsObjectPoint(const Vector3& point, void* cache = nullptr) const override;
+
+		struct PointContainmentCache
+		{
+			std::vector<Plane> planeArray;
+		};
 
 		void GenerateEdgeSet(std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& edgeSet) const;
 		void GenerateObjectSpacePlaneArray(std::vector<Plane>& objectSpacePlaneArray) const;

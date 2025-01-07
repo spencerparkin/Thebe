@@ -454,6 +454,34 @@ void AxisAlignedBoundingBox::SetFromSphere(const Vector3& center, double radius)
 	this->maxCorner = center - delta;
 }
 
+void AxisAlignedBoundingBox::Integrate(std::function<void(const AxisAlignedBoundingBox& voxel)> callback, double voxelExtent) const
+{
+	double boxSizeX, boxSizeY, boxSizeZ;
+	this->GetDimensions(boxSizeX, boxSizeY, boxSizeZ);
+
+	Vector3 voxelDelta(voxelExtent, voxelExtent, voxelExtent);
+
+	int numVoxelsX = int(boxSizeX / voxelExtent);
+	int numVoxelsY = int(boxSizeY / voxelExtent);
+	int numVoxelsZ = int(boxSizeZ / voxelExtent);
+
+	AxisAlignedBoundingBox voxel;
+	for (int i = 0; i < numVoxelsX; i++)
+	{
+		voxel.minCorner.x = this->minCorner.x + (double(i) / double(numVoxelsX)) * boxSizeX;
+		for (int j = 0; j < numVoxelsY; j++)
+		{
+			voxel.minCorner.y = this->minCorner.y + (double(j) / double(numVoxelsY)) * boxSizeY;
+			for (int k = 0; k < numVoxelsZ; k++)
+			{
+				voxel.minCorner.z = this->minCorner.z + (double(k) / double(numVoxelsZ)) * boxSizeZ;
+				voxel.maxCorner = voxel.minCorner + voxelDelta;
+				callback(voxel);
+			}
+		}
+	}
+}
+
 void AxisAlignedBoundingBox::Dump(std::ostream& stream) const
 {
 	this->minCorner.Dump(stream);

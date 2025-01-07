@@ -34,11 +34,14 @@ RigidBody::RigidBody()
 	if (this->objectSpaceInertiaTensor.Determinant() == 0.0 && !this->stationary)
 	{
 		// We should never actually do this at run-time.  This should only happen during the asset build.
-		if (!this->collisionObject->GetShape()->CalculateRigidBodyCharacteristics(this->objectSpaceInertiaTensor, this->totalMass, [](const Vector3&) -> double { return 1.0; }))
+		if (!this->CalculateRigidBodyCharacteristics([](const Vector3&) -> double { return 1.0; }))
 		{
 			THEBE_LOG("Failed to calculate object-space inertia tensor.");
 			return false;
 		}
+
+		// In case the center of mass was not at origin, update our BVH location.
+		this->collisionObject->UpdateBVHLocation();
 
 		if (!this->objectSpaceInertiaTensorInverse.Invert(this->objectSpaceInertiaTensor))
 		{
@@ -99,6 +102,60 @@ RigidBody::RigidBody()
 	rootValue->SetValue("total_mass", new JsonFloat(this->totalMass));
 	rootValue->SetValue("object_space_inertia_tensor", JsonHelper::MatrixToJsonValue(this->objectSpaceInertiaTensor));
 	rootValue->SetValue("stationary", new JsonBool(this->stationary));
+
+	return true;
+}
+
+bool RigidBody::CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction)
+{
+	GJKShape* shape = this->collisionObject->GetShape();
+	AxisAlignedBoundingBox objectBoundingBox = shape->GetObjectBoundingBox();
+	
+	GJKConvexHull::PointContainmentCache pointContainmentCache;
+	void* cache = dynamic_cast<GJKConvexHull*>(shape) ? &pointContainmentCache : nullptr;
+
+	this->totalMass = 0.0;
+	double voxelExtent = 0.05;
+	Vector3 centerOfMass(0.0, 0.0, 0.0);
+	objectBoundingBox.Integrate([this, &densityFunction, &centerOfMass, shape, cache](const AxisAlignedBoundingBox& voxel)
+		{
+			Vector3 voxelCenter = voxel.GetCenter();
+			if (shape->ContainsObjectPoint(voxelCenter, cache))
+			{
+				double voxelMass = densityFunction(voxelCenter) * voxel.GetVolume();
+				this->totalMass += voxelMass;
+				centerOfMass += voxelMass * voxelCenter;
+			}
+		}, voxelExtent);
+	
+	centerOfMass /= this->totalMass;
+
+	// We need the object-space origin to represent the center of mass.
+	shape->Shift(-centerOfMass);
+
+	for (uint32_t i = 0; i < 3; i++)
+		for (uint32_t j = 0; j < 3; j++)
+			this->objectSpaceInertiaTensor.ele[i][j] = 0.0;
+
+	pointContainmentCache.planeArray.clear();
+	objectBoundingBox.Integrate([this, &densityFunction, shape, cache](const AxisAlignedBoundingBox& voxel)
+		{
+			Vector3 voxelCenter = voxel.GetCenter();
+			if (shape->ContainsObjectPoint(voxelCenter, cache))
+			{
+				double voxelMass = densityFunction(voxelCenter) * voxel.GetVolume();
+
+				this->objectSpaceInertiaTensor.ele[0][0] += voxelMass * (voxelCenter.y * voxelCenter.y + voxelCenter.z * voxelCenter.z);
+				this->objectSpaceInertiaTensor.ele[0][1] += -voxelMass * voxelCenter.x * voxelCenter.y;
+				this->objectSpaceInertiaTensor.ele[0][2] += -voxelMass * voxelCenter.x * voxelCenter.z;
+				this->objectSpaceInertiaTensor.ele[1][0] += -voxelMass * voxelCenter.y * voxelCenter.x;
+				this->objectSpaceInertiaTensor.ele[1][1] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.z * voxelCenter.z);
+				this->objectSpaceInertiaTensor.ele[1][2] += -voxelMass * voxelCenter.y * voxelCenter.z;
+				this->objectSpaceInertiaTensor.ele[2][0] += -voxelMass * voxelCenter.z * voxelCenter.x;
+				this->objectSpaceInertiaTensor.ele[2][1] += -voxelMass * voxelCenter.z * voxelCenter.y;
+				this->objectSpaceInertiaTensor.ele[2][2] += voxelMass * (voxelCenter.x * voxelCenter.x + voxelCenter.y * voxelCenter.y);
+			}
+		}, voxelExtent);
 
 	return true;
 }

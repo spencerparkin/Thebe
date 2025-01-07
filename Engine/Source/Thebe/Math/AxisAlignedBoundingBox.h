@@ -2,6 +2,7 @@
 
 #include "Thebe/Math/Vector3.h"
 #include <vector>
+#include <functional>
 
 namespace Thebe
 {
@@ -242,6 +243,12 @@ namespace Thebe
 		 * Return a random point inside this box.
 		 */
 		Vector3 GetRandomContainingPoint() const;
+
+		/**
+		 * The idea here is to make it easy to integrate (or just iterate) over the volume of
+		 * this box one little voxel at a time.
+		 */
+		void Integrate(std::function<void(const AxisAlignedBoundingBox& voxel)> callback, double voxelExtent) const;
 
 		/**
 		 * Write this AABB to the given stream in binary form.
