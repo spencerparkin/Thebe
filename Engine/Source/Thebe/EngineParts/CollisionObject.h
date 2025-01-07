@@ -2,6 +2,7 @@
 
 #include "Thebe/EnginePart.h"
 #include "Thebe/BoundingVolumeHierarchy.h"
+#include "Thebe/EventSystem.h"
 #include "Thebe/Math/GJKAlgorithm.h"
 #include "Thebe/Math/PolygonMesh.h"
 #include "Thebe/Math/Graph.h"
@@ -62,5 +63,24 @@ namespace Thebe
 		Vector3 color;
 		uintptr_t userData;
 		Reference<Space> targetSpace;
+	};
+
+	/**
+	 * This event is sent when something happens to a collision object.
+	 */
+	class CollisionObjectEvent : public Event
+	{
+	public:
+		CollisionObjectEvent();
+		virtual ~CollisionObjectEvent();
+
+		enum What
+		{
+			UNKNOWN,
+			COLLISION_OBJECT_NOT_IN_COLLISION_WORLD
+		};
+
+		What what;
+		Reference<CollisionObject> collisionObject;
 	};
 }

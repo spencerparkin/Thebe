@@ -221,6 +221,8 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	this->renderTargetArray.push_back(shadowBuffer.Get());
 	this->renderTargetArray.push_back(swapChain.Get());
 	
+	this->physicsSystem.Initialize(&this->eventSystem);
+
 	this->clock.Reset();
 
 	return true;
@@ -540,6 +542,11 @@ CollisionSystem* GraphicsEngine::GetCollisionSystem()
 PhysicsSystem* GraphicsEngine::GetPhysicsSystem()
 {
 	return &this->physicsSystem;
+}
+
+EventSystem* GraphicsEngine::GetEventSystem()
+{
+	return &this->eventSystem;
 }
 
 bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)

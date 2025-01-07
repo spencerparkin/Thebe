@@ -60,7 +60,7 @@ bool CollisionSystem::UntrackObject(CollisionObject* collisionObject)
 		return false;
 	}
 
-	if (!this->boxTree->RemoveObject(collisionObject))
+	if (collisionObject->IsInBVH() && !this->boxTree->RemoveObject(collisionObject))
 	{
 		THEBE_LOG("Failed to remove BVH object from the tree.");
 		return false;

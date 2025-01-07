@@ -106,6 +106,10 @@ PhysicsObject::PhysicsObject()
 		this->totalTorque += pair.second;
 }
 
+/*virtual*/ void PhysicsObject::ZeroMomentum()
+{
+}
+
 void PhysicsObject::SetCollisionObject(CollisionObject* collisionObject)
 {
 	this->collisionObject = collisionObject;

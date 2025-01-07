@@ -3,9 +3,9 @@
     "polyhedron": "hexadron",
     "non_uniform_scale":
     {
-        "x": 50.0,
+        "x": 20.0,
         "y": 0.5,
-        "z": 50.0
+        "z": 20.0
     },
     "object_to_world":
     {

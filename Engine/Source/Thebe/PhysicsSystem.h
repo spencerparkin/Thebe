@@ -13,6 +13,8 @@ namespace Thebe
 {
 	class PhysicsObject;
 	class CollisionSystem;
+	class EventSystem;
+	class Event;
 
 	/**
 	 * This is my attempt to do some basic rigid and floppy body simulations.
@@ -25,6 +27,7 @@ namespace Thebe
 		PhysicsSystem();
 		virtual ~PhysicsSystem();
 
+		void Initialize(EventSystem* eventSystem);
 		bool TrackObject(PhysicsObject* physicsObject);
 		bool UntrackObject(PhysicsObject* physicsObject);
 		void UntrackAllObjects();
@@ -67,6 +70,8 @@ namespace Thebe
 		const Vector3& GetGravity() const;
 
 	private:
+		void HandleCollisionObjectEvent(const Event* event);
+
 		/**
 		 * Add one or more collision contacts to the given list as a function of the given collision.
 		 */

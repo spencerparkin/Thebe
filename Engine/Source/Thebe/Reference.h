@@ -212,6 +212,17 @@ namespace Thebe
 		 */
 		bool GetObjectFromHandle(RefHandle& handle, Reference<ReferenceCounted>& ref);
 
+		template<typename T>
+		bool GetObjectFromHandle(RefHandle& handle, Reference<T>& object)
+		{
+			Reference<ReferenceCounted> ref;
+			if (!this->GetObjectFromHandle(handle, ref))
+				return false;
+
+			object.SafeSet(ref.Get());
+			return object.Get() != nullptr;
+		}
+
 		static HandleManager* Get();
 
 	private:

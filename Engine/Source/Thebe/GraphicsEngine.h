@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/CubeMapBuffer.h"
 #include "Thebe/CollisionSystem.h"
 #include "Thebe/PhysicsSystem.h"
+#include "Thebe/EventSystem.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -147,6 +148,7 @@ namespace Thebe
 
 		CollisionSystem* GetCollisionSystem();
 		PhysicsSystem* GetPhysicsSystem();
+		EventSystem* GetEventSystem();
 
 	private:
 		struct PSO
@@ -173,12 +175,12 @@ namespace Thebe
 		Reference<CubeMapBuffer> envMap;
 		CollisionSystem collisionSystem;
 		PhysicsSystem physicsSystem;
+		EventSystem eventSystem;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
 		void RemoveExpiredPSOs(bool removeAllNow = false);
 
-		double CalcFramerate();
 		Clock clock;
 		UINT64 frameCount;
 		double deltaTimeSeconds;

@@ -169,6 +169,12 @@ bool RigidBody::IsStationary() const
 	return this->stationary;
 }
 
+/*virtual*/ void RigidBody::ZeroMomentum()
+{
+	this->linearMomentum.SetComponents(0.0, 0.0, 0.0);
+	this->angularMomentum.SetComponents(0.0, 0.0, 0.0);
+}
+
 /*virtual*/ void RigidBody::IntegrateMotionUnconstrained(double timeStepSeconds)
 {
 	if (this->totalMass == 0.0)

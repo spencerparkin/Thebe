@@ -1,4 +1,5 @@
 #include "Thebe/PhysicsSystem.h"
+#include "Thebe/EventSystem.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
 #include "Thebe/EngineParts/RigidBody.h"
 #include "Thebe/Math/Graph.h"
@@ -19,6 +20,25 @@ PhysicsSystem::PhysicsSystem()
 {
 	for (auto& contactCalculator : this->contactCalculatorArray)
 		delete contactCalculator;
+}
+
+void PhysicsSystem::Initialize(EventSystem* eventSystem)
+{
+	eventSystem->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
+}
+
+void PhysicsSystem::HandleCollisionObjectEvent(const Event* event)
+{
+	auto collisionObjectEvent = dynamic_cast<const CollisionObjectEvent*>(event);
+	if (collisionObjectEvent && collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
+	{
+		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetUserData();
+		Reference<PhysicsObject> physicsObject;
+		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
+		{
+			physicsObject->ZeroMomentum();
+		}
+	}
 }
 
 void PhysicsSystem::SetGravity(const Vector3& accelerationDueToGravity)
@@ -133,18 +153,11 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList)
 {
 	Reference<PhysicsObject> objectA, objectB;
-	Reference<ReferenceCounted> refA, refB;
 
 	RefHandle handleA = (RefHandle)collision->objectA->GetUserData();
 	RefHandle handleB = (RefHandle)collision->objectB->GetUserData();
 
-	if (!HandleManager::Get()->GetObjectFromHandle(handleA, refA) || !HandleManager::Get()->GetObjectFromHandle(handleB, refB))
-		return false;
-
-	objectA.SafeSet(refA.Get());
-	objectB.SafeSet(refB.Get());
-
-	if (!objectA.Get() || !objectB.Get())
+	if (!HandleManager::Get()->GetObjectFromHandle(handleA, objectA) || !HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
 		return false;
 
 	for (auto calculator : this->contactCalculatorArray)

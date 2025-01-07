@@ -99,6 +99,11 @@ namespace Thebe
 		 */
 		bool UpdateBVHLocation(bool allowCuts = false);
 
+		/**
+		 * Tell us if this object is inside a BVH.
+		 */
+		bool IsInBVH() const;
+
 	private:
 		bool GetNode(Reference<BVHNode>& node);
 		void SetNode(BVHNode* Node);

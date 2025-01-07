@@ -20,6 +20,8 @@ public:
 	virtual const char* GetWindowTitle() override;
 
 private:
+	void HandleCollisionObjectEvent(const Thebe::Event* event);
+
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;

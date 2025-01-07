@@ -35,6 +35,11 @@ namespace Thebe
 		 */
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) = 0;
 
+		/**
+		 * Zero any kind of momentum (linear or angular) that the object has.
+		 */
+		virtual void ZeroMomentum();
+
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 		const CollisionObject* GetCollisionObject() const;

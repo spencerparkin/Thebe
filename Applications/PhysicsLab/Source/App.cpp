@@ -72,7 +72,9 @@ PhysicsLabApp::PhysicsLabApp()
 	this->jediCam.SetCamera(this->camera);
 
 	this->jediCam.AddObject(this->objectA);
-	//this->jediCam.AddObject(this->objectB);
+	this->jediCam.AddObject(this->objectB);
+
+	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
 
 	return true;
 }
@@ -88,10 +90,24 @@ PhysicsLabApp::PhysicsLabApp()
 	Application::Shutdown(instance);
 }
 
+void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
+{
+	auto collisionObjectEvent = (CollisionObjectEvent*)event;
+	if (collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
+	{
+		Transform objectToWorld;
+		objectToWorld.SetIdentity();
+		objectToWorld.translation.SetComponents(0.0, 5.0, 0.0);
+		collisionObjectEvent->collisionObject->SetObjectToWorld(objectToWorld);
+		this->graphicsEngine->GetCollisionSystem()->TrackObject(collisionObjectEvent->collisionObject);
+	}
+}
+
 /*virtual*/ LRESULT PhysicsLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
 	CollisionSystem* collisionSystem = this->graphicsEngine->GetCollisionSystem();
 	PhysicsSystem* physicsSystem = this->graphicsEngine->GetPhysicsSystem();
+	EventSystem* eventSystem = this->graphicsEngine->GetEventSystem();
 
 	this->lineRenderer->ResetLines();
 
@@ -105,6 +121,8 @@ PhysicsLabApp::PhysicsLabApp()
 
 	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
 	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);
+
+	eventSystem->DispatchAllEventHandlers();
 
 	this->graphicsEngine->Render();
 

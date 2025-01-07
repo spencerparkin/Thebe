@@ -70,8 +70,16 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 		
 		this->frameWhenLastMoved = graphicsEngine->GetFrameCount();
 
-		bool updated = this->UpdateBVHLocation();
-		THEBE_ASSERT(updated);
+		if (this->IsInBVH() && !this->UpdateBVHLocation())
+		{
+			auto event = new CollisionObjectEvent();
+			event->collisionObject = this;
+			event->what = CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD;
+			event->SetCategory("collision_object");
+			graphicsEngine->GetEventSystem()->SendEvent(event);
+
+			graphicsEngine->GetCollisionSystem()->UntrackObject(this);
+		}
 
 		if (this->targetSpace.Get())
 		{
@@ -372,4 +380,15 @@ bool CollisionObject::FindWorldPlaneNearestToPoint(const Vector3& point, Plane& 
 	}
 
 	return smallestDistance != std::numeric_limits<double>::max();
+}
+
+//----------------------------------- CollisionObjectEvent -----------------------------------
+
+CollisionObjectEvent::CollisionObjectEvent()
+{
+	this->what = What::UNKNOWN;
+}
+
+/*virtual*/ CollisionObjectEvent::~CollisionObjectEvent()
+{
 }

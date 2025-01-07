@@ -172,6 +172,11 @@ void BVHObject::SetNode(BVHNode* node)
 	this->nodeHandle = node ? node->GetHandle() : THEBE_INVALID_REF_HANDLE;
 }
 
+bool BVHObject::IsInBVH() const
+{
+	return this->nodeHandle != THEBE_INVALID_REF_HANDLE;
+}
+
 bool BVHObject::UpdateBVHLocation(bool allowCuts /*= false*/)
 {
 	Reference<BVHNode> node;

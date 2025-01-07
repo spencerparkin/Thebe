@@ -15,6 +15,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/NetLog.h
     Source/Thebe/FreeCam.cpp
     Source/Thebe/FreeCam.h
+    Source/Thebe/EventSystem.cpp
+    Source/Thebe/EventSystem.h
     Source/Thebe/XBoxController.cpp
     Source/Thebe/XBoxController.h
     Source/Thebe/BoundingVolumeHierarchy.cpp
