@@ -43,17 +43,23 @@ PhysicsLabApp::PhysicsLabApp()
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Icosahedron.rigid_body", this->objectB))
 		return false;
 
+	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectC, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
+		return false;
+
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
 		return false;
 
-	if (this->objectA.Get())
-	{
-		Transform objectToWorld = this->objectA->GetObjectToWorld();
-		objectToWorld.translation.x += 0.0;
-		objectToWorld.translation.y += 5.0;
-		objectToWorld.translation.z += 0.0;
-		this->objectA->SetObjectToWorld(objectToWorld);
-	}
+	Transform objectToWorld = this->objectA->GetObjectToWorld();
+	objectToWorld.translation.x += 0.0;
+	objectToWorld.translation.y += 5.0;
+	objectToWorld.translation.z += 0.0;
+	this->objectA->SetObjectToWorld(objectToWorld);
+
+	objectToWorld = this->objectC->GetObjectToWorld();
+	objectToWorld.translation.x += 0.0;
+	objectToWorld.translation.y += 10.0;
+	objectToWorld.translation.z += 0.0;
+	this->objectC->SetObjectToWorld(objectToWorld);
 
 	Thebe::Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());

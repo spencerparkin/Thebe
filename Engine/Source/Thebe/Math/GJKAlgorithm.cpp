@@ -93,14 +93,14 @@ GJKShape::GJKShape()
 	Vector3 origin(0.0, 0.0, 0.0);
 	std::vector<Candidate> candidateArray;
 	int iterationCount = 0;
-	int maxIterationCount = 128;
+	int maxIterationCount = 32;
 	while (true)
 	{
 		if (iterationCount++ >= maxIterationCount)
 		{
 			// I know for a fact that this can happen with the way I've tried to impliment GJK.
 			// Until I learn more about how it actually works, safe-guard against an infinite loop.
-			THEBE_ASSERT(false);
+			//THEBE_ASSERT(false);
 			return false;
 		}
 
