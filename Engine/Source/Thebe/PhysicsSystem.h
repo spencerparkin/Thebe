@@ -15,6 +15,7 @@ namespace Thebe
 	class CollisionSystem;
 	class EventSystem;
 	class Event;
+	class DynamicLineRenderer;
 
 	/**
 	 * This is my attempt to do some basic rigid and floppy body simulations.
@@ -32,6 +33,7 @@ namespace Thebe
 		bool UntrackObject(PhysicsObject* physicsObject);
 		void UntrackAllObjects();
 		void StepSimulation(double deltaTimeSeconds, CollisionSystem* collisionSystem);
+		void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
 		struct THEBE_API Contact
 		{

@@ -131,6 +131,10 @@ PhysicsObject::PhysicsObject()
 {
 }
 
+/*virtual*/ void PhysicsObject::DebugDraw(DynamicLineRenderer* lineRenderer) const
+{
+}
+
 void PhysicsObject::SetCollisionObject(CollisionObject* collisionObject)
 {
 	this->collisionObject = collisionObject;

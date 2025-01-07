@@ -7,6 +7,7 @@
 namespace Thebe
 {
 	class PhysicsSystem;
+	class DynamicLineRenderer;
 
 	/**
 	 * This serves as the base class for any object tracked
@@ -49,6 +50,11 @@ namespace Thebe
 		 * Return the mass of this object.
 		 */
 		virtual double GetTotalMass() const = 0;
+
+		/**
+		 * Provide any debug drawing support you wish.
+		 */
+		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();

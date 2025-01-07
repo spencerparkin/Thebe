@@ -37,6 +37,11 @@ FloppyBody::FloppyBody()
 {
 }
 
+/*virtual*/ void FloppyBody::DebugDraw(DynamicLineRenderer* lineRenderer) const
+{
+	// TODO: Render the springs here.
+}
+
 /*virtual*/ Vector3 FloppyBody::GetCenterOfMass() const
 {
 	return Vector3(0.0, 0.0, 0.0);

@@ -27,6 +27,15 @@ void PhysicsSystem::Initialize(EventSystem* eventSystem)
 	eventSystem->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
 }
 
+void PhysicsSystem::DebugDraw(DynamicLineRenderer* lineRenderer) const
+{
+	for (const auto& pair : this->physicsObjectMap)
+	{
+		const PhysicsObject* physicsObject = pair.second;
+		physicsObject->DebugDraw(lineRenderer);
+	}
+}
+
 void PhysicsSystem::HandleCollisionObjectEvent(const Event* event)
 {
 	auto collisionObjectEvent = dynamic_cast<const CollisionObjectEvent*>(event);

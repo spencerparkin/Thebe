@@ -23,6 +23,7 @@ namespace Thebe
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
 		virtual Vector3 GetCenterOfMass() const override;
 		virtual double GetTotalMass() const override;
+		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const override;
 
 	private:
 		struct PointMass
@@ -36,6 +37,7 @@ namespace Thebe
 			PointMass* pointMassA;
 			PointMass* pointMassB;
 			double stiffness;
+			double equilibriumLength;
 		};
 		
 		// TODO: Own array of point-masses.

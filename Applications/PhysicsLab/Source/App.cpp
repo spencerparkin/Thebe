@@ -124,6 +124,7 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	this->lineRenderer->AddLine(origin, zAxis, &zAxis, &zAxis);
 
 	collisionSystem->DebugDraw(this->lineRenderer.Get());
+	physicsSystem->DebugDraw(this->lineRenderer.Get());
 
 	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
 	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);
