@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
+#include "Thebe/Math/Random.h"
 #include "JediCam.h"
 
 class PhysicsLabApp : public Thebe::Application
@@ -29,5 +30,6 @@ private:
 	Thebe::Reference<Thebe::PhysicsObject> objectB;
 	Thebe::Reference<Thebe::PhysicsObject> objectC;
 	Thebe::Reference<Thebe::PhysicsObject> groundSlab;
+	Thebe::Random random;
 	JediCam jediCam;
 };

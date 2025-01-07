@@ -4,10 +4,13 @@ Some things I'd like to achieve...
 [x] Compress textures.
 [x] Add cube-maps for a dome.
 [ ] Add cube-map environment lighting.
-[ ] Add font renderer.  Use the freetype library to make glyph atlas.
+[x] Add font renderer.  Use the freetype library to make glyph atlas.
 [x] Fix bugs in PBR shading.
 [ ] Add height maps to PBR shading.
 [x] Add AO maps to PBR shading.
 [ ] Can we soften the edges of shadows?
 [ ] Build a cube map by using the render engine itself.
 [x] Add FSAA or MSAA.  Can some of the principles here be used for soft shadows?  Can't see how right now.
+[ ] Impulses should not be the primary means of preventing interpenetration between physics objects.  Collision objects should get separated by the collision system whether or not impulses are applied.
+[ ] Figure out why my crappy GJK implimentation is just plain wrong.
+[ ] Figure out why the physics system occationally bogs down the frame-rate.  Probably an explosion of contact points is generated.

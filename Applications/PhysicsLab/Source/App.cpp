@@ -103,7 +103,7 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	{
 		Transform objectToWorld;
 		objectToWorld.SetIdentity();
-		objectToWorld.translation.SetComponents(0.0, 5.0, 0.0);
+		objectToWorld.translation.SetComponents(0.0, this->random.InRange(4.0, 15.0), 0.0);
 		collisionObjectEvent->collisionObject->SetObjectToWorld(objectToWorld);
 		this->graphicsEngine->GetCollisionSystem()->TrackObject(collisionObjectEvent->collisionObject);
 	}
