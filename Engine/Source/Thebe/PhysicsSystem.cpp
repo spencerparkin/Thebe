@@ -137,10 +137,16 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		}
 
 		// Go process all collision contacts.
-		// Hmmm...something tells me that we might loop here indefinitely in some cases.
 		uint32_t resolutionCount = 0;
+		uint32_t iterationCount = 0;
+		constexpr uint32_t maxIterationCount = 8;
 		do
 		{
+			if (++iterationCount >= maxIterationCount)
+				break;
+
+			// Note that Baraff says a more advanced technique involves handling
+			// multiple contact points for a single object simultaneously.
 			resolutionCount = 0;
 			for (Contact& contact : contactList)
 				if (this->ResolveContact(contact))

@@ -96,8 +96,10 @@ GJKShape::GJKShape()
 	int maxIterationCount = 128;
 	while (true)
 	{
-		if (++iterationCount >= maxIterationCount)
+		if (iterationCount++ >= maxIterationCount)
 		{
+			// I know for a fact that this can happen with the way I've tried to impliment GJK.
+			// Until I learn more about how it actually works, safe-guard against an infinite loop.
 			THEBE_ASSERT(false);
 			return false;
 		}
