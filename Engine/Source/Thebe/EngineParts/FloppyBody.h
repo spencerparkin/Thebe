@@ -20,27 +20,36 @@ namespace Thebe
 		virtual void Shutdown() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
+		virtual void AccumulateForcesAndTorques(PhysicsSystem* physicsSystem) override;
 		virtual void IntegrateMotionUnconstrained(double timeStepSeconds) override;
 		virtual Vector3 GetCenterOfMass() const override;
 		virtual double GetTotalMass() const override;
 		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const override;
+		virtual void SetObjectToWorld(const Transform& objectToWorld) override;
+		virtual Transform GetObjectToWorld() const override;
 
 	private:
+		void SetSpringEquilibriumLengths();
+
 		struct PointMass
 		{
-			Vector3* point;		///< This points into the collision object's vertex array.
+			unsigned int offset;		//< This is an offset into the shape's array of vertices.
 			double mass;
+			Vector3 totalForce;
+			Vector3 velocity;
 		};
 
 		struct Spring
 		{
-			PointMass* pointMassA;
-			PointMass* pointMassB;
+			unsigned int offset[2];
 			double stiffness;
 			double equilibriumLength;
 		};
 		
-		// TODO: Own array of point-masses.
-		// TODO: Own array of springs.
+		bool GetSpringWorldVertices(const Spring& spring, Vector3& vertexA, Vector3& vertexB);
+		bool GetWorldVertex(const PointMass& pointMass, Vector3& vertex);
+
+		std::vector<PointMass> pointMassArray;
+		std::vector<Spring> springArray;
 	};
 }

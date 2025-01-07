@@ -42,7 +42,7 @@ namespace Thebe
 		virtual void ZeroMomentum();
 
 		/**
-		 * Return the world-space center of mass.
+		 * Return the world space center of mass.
 		 */
 		virtual Vector3 GetCenterOfMass() const = 0;
 
@@ -56,12 +56,12 @@ namespace Thebe
 		 */
 		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
+		virtual void SetObjectToWorld(const Transform& objectToWorld);
+		virtual Transform GetObjectToWorld() const;
+
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 		const CollisionObject* GetCollisionObject() const;
-
-		void SetObjectToWorld(const Transform& objectToWorld);
-		const Transform& GetObjectToWorld() const;
 
 		void SetExternalForce(const std::string& name, const Vector3& force);
 		Vector3 GetExternalForce(const std::string& name) const;

@@ -155,12 +155,12 @@ void PhysicsObject::SetCollisionObjectPath(const std::filesystem::path& collisio
 	this->collisionObjectPath = collisionObjectPath;
 }
 
-void PhysicsObject::SetObjectToWorld(const Transform& objectToWorld)
+/*virtual*/ void PhysicsObject::SetObjectToWorld(const Transform& objectToWorld)
 {
 	this->collisionObject->SetObjectToWorld(objectToWorld);
 }
 
-const Transform& PhysicsObject::GetObjectToWorld() const
+/*virtual*/ Transform PhysicsObject::GetObjectToWorld() const
 {
 	return this->collisionObject->GetObjectToWorld();
 }

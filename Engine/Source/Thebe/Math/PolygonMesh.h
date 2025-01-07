@@ -192,6 +192,7 @@ namespace Thebe
 		};
 
 		const std::vector<Vector3>& GetVertexArray() const { return this->vertexArray; }
+		std::vector<Vector3>& GetVertexArray() { return this->vertexArray; }
 		const std::vector<Polygon>& GetPolygonArray() const { return this->polygonArray; }
 
 		const Vector3& GetVertex(int i) const { return this->vertexArray[i]; }
