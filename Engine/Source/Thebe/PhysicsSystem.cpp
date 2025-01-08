@@ -16,6 +16,7 @@ PhysicsSystem::PhysicsSystem()
 	this->contactCalculatorArray.push_back(new ContactCalculator<GJKConvexHull, GJKConvexHull>());
 	this->contactResolverArray.push_back(new ContactResolver<RigidBody, RigidBody>());
 	this->contactResolverArray.push_back(new ContactResolver<RigidBody, FloppyBody>());
+	this->contactResolverArray.push_back(new ContactResolver<FloppyBody, FloppyBody>());
 	this->accelerationDueToGravity.SetComponents(0.0, -9.8, 0.0);
 }
 
@@ -291,11 +292,20 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 		// TODO: Do rigid body response to floppy body here.
 	}
 
+	// TODO: This is just wrong, I think.  We have to handle the collision response
+	//       of the floppy body along with the rigid body simultaneously, and it has
+	//       to be based on some real physics math derivations.
 	Plane contactPlane(contact.surfacePoint, unitNormalRigidToFloppy);
 	if (floppyBody->RespondToCollisionContact(contactPlane))
 		resolved = true;
 
 	return resolved;
+}
+
+/*virtual*/ bool PhysicsSystem::ContactResolver<FloppyBody, FloppyBody>::ResolveContact(Contact& contact)
+{
+	// TODO: Write this.
+	return false;
 }
 
 //------------------------------ PhysicsSystem::ContactCalculatorInterface ------------------------------

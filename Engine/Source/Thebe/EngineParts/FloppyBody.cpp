@@ -41,7 +41,7 @@ FloppyBody::FloppyBody()
 		{
 			PointMass pointMass;
 			pointMass.offset = i;
-			pointMass.mass = 1.0;
+			pointMass.mass = 0.2;
 			pointMass.currentContactNormal.SetComponents(0.0, 0.0, 0.0);
 			pointMass.velocity.SetComponents(0.0, 0.0, 0.0);
 			this->pointMassArray.push_back(pointMass);
@@ -325,7 +325,7 @@ void FloppyBody::SetSpringEquilibriumLengths()
 		if(squareLength > 0.0)
 		{
 			Vector3 frictionForceDirection = -pointMass.velocity.RejectedFrom(pointMass.currentContactNormal).Normalized();
-			static double coeficientOfFriction = 100.0;
+			static double coeficientOfFriction = 5.0;
 			pointMass.totalForce += coeficientOfFriction * frictionForceDirection;
 			pointMass.currentContactNormal.SetComponents(0.0, 0.0, 0.0);
 		}

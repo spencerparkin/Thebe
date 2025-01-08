@@ -100,6 +100,13 @@ namespace Thebe
 			virtual bool ResolveContact(Contact& contact) override;
 		};
 
+		template<>
+		class THEBE_API ContactResolver<FloppyBody, FloppyBody> : public ContactResolverInterface
+		{
+		public:
+			virtual bool ResolveContact(Contact& contact) override;
+		};
+
 		void SetGravity(const Vector3& accelerationDueToGravity);
 		const Vector3& GetGravity() const;
 

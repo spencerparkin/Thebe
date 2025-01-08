@@ -43,23 +43,32 @@ PhysicsLabApp::PhysicsLabApp()
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectA))
 		return false;
 
-	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Icosahedron.rigid_body", this->objectB))
+	//if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Icosahedron.rigid_body", this->objectB))
+	//	return false;
+
+	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectB, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 		return false;
 
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectC, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 		return false;
 
-	Transform objectToWorld = this->objectA->GetObjectToWorld();
-	objectToWorld.translation.x += 0.0;
-	objectToWorld.translation.y += 5.0;
-	objectToWorld.translation.z += 0.0;
-	this->objectA->SetObjectToWorld(objectToWorld);
+	if (this->objectA.Get())
+	{
+		Transform objectToWorld = this->objectA->GetObjectToWorld();
+		objectToWorld.translation.x += 0.0;
+		objectToWorld.translation.y += 5.0;
+		objectToWorld.translation.z += 0.0;
+		this->objectA->SetObjectToWorld(objectToWorld);
+	}
 
-	objectToWorld = this->objectC->GetObjectToWorld();
-	objectToWorld.translation.x += 0.0;
-	objectToWorld.translation.y += 10.0;
-	objectToWorld.translation.z += 0.0;
-	this->objectC->SetObjectToWorld(objectToWorld);
+	if (this->objectC.Get())
+	{
+		Transform objectToWorld = this->objectC->GetObjectToWorld();
+		objectToWorld.translation.x += 0.0;
+		objectToWorld.translation.y += 10.0;
+		objectToWorld.translation.z += 0.0;
+		this->objectC->SetObjectToWorld(objectToWorld);
+	}
 
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
 		return false;
@@ -86,9 +95,10 @@ PhysicsLabApp::PhysicsLabApp()
 	if (this->objectB.Get())
 		this->jediCam.AddObject(this->objectB);
 
-	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
+	if (this->objectC.Get())
+		this->jediCam.AddObject(this->objectC);
 
-	//this->graphicsEngine->GetPhysicsSystem()->SetGravity(Vector3(0.0, -1.0, 0.0));
+	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
 
 	return true;
 }
