@@ -37,10 +37,9 @@ PhysicsLabApp::PhysicsLabApp()
 	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
 	this->graphicsEngine->GetCollisionSystem()->SetWorldBox(worldBox);
 
-	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.floppy_body", this->objectA))
-		return false;
+	//if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.floppy_body", this->objectA))
+	//	return false;
 
-#if false
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectA))
 		return false;
 
@@ -61,7 +60,6 @@ PhysicsLabApp::PhysicsLabApp()
 	objectToWorld.translation.y += 10.0;
 	objectToWorld.translation.z += 0.0;
 	this->objectC->SetObjectToWorld(objectToWorld);
-#endif
 
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
 		return false;
@@ -88,12 +86,9 @@ PhysicsLabApp::PhysicsLabApp()
 	if (this->objectB.Get())
 		this->jediCam.AddObject(this->objectB);
 
-	if (this->objectC.Get())
-		this->jediCam.AddObject(this->objectC);
-
 	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
 
-	this->graphicsEngine->GetPhysicsSystem()->SetGravity(Vector3(0.0, -1.0, 0.0));
+	//this->graphicsEngine->GetPhysicsSystem()->SetGravity(Vector3(0.0, -1.0, 0.0));
 
 	return true;
 }
