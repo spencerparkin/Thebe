@@ -42,6 +42,7 @@ FloppyBody::FloppyBody()
 			PointMass pointMass;
 			pointMass.offset = i;
 			pointMass.mass = 1.0;
+			pointMass.currentContactNormal.SetComponents(0.0, 0.0, 0.0);
 			pointMass.velocity.SetComponents(0.0, 0.0, 0.0);
 			this->pointMassArray.push_back(pointMass);
 		}
@@ -67,7 +68,7 @@ FloppyBody::FloppyBody()
 			Spring spring;
 			spring.offset[0] = edge.i;
 			spring.offset[1] = edge.j;
-			spring.stiffness = 100.0;
+			spring.stiffness = 200.0;
 			spring.equilibriumLength = 0.0;
 			this->springArray.push_back(spring);
 		}
@@ -77,7 +78,7 @@ FloppyBody::FloppyBody()
 			Spring spring;
 			spring.offset[0] = i;
 			spring.offset[1] = -1;
-			spring.stiffness = 100.0;
+			spring.stiffness = 200.0;
 			spring.equilibriumLength = 0.0;
 
 			// This can create some redundant springs, but...I'm okay with that for now.
@@ -105,7 +106,7 @@ FloppyBody::FloppyBody()
 				Spring spring;
 				spring.offset[0] = polygon.vertexArray[j];
 				spring.offset[1] = polygon.vertexArray[k];
-				spring.stiffness = 100.0;
+				spring.stiffness = 200.0;
 				spring.equilibriumLength = 0.0;
 				this->springArray.push_back(spring);
 			}
@@ -314,6 +315,20 @@ void FloppyBody::SetSpringEquilibriumLengths()
 		Vector3 vertex;
 		if (this->GetWorldVertex(pointMass, vertex))
 			pointMass.totalForce += this->totalTorque.Cross(vertex - centerOfMass);
+
+		// Provide some air resistence here so that we don't jiggle forever.
+		static double airResistance = 0.1;
+		pointMass.totalForce += -pointMass.velocity * airResistance;
+
+		// If this point-mass is currently in contact with something, apply a friction force.
+		double squareLength = pointMass.currentContactNormal.SquareLength();
+		if(squareLength > 0.0)
+		{
+			Vector3 frictionForceDirection = -pointMass.velocity.RejectedFrom(pointMass.currentContactNormal).Normalized();
+			static double coeficientOfFriction = 100.0;
+			pointMass.totalForce += coeficientOfFriction * frictionForceDirection;
+			pointMass.currentContactNormal.SetComponents(0.0, 0.0, 0.0);
+		}
 	}
 }
 
@@ -331,7 +346,7 @@ void FloppyBody::SetSpringEquilibriumLengths()
 
 		Vector3 acceleration = pointMass.totalForce / pointMass.mass;
 		pointMass.velocity += acceleration * timeStepSeconds;
-		
+
 		Vector3& vertex = vertexArray[pointMass.offset];
 		vertex += pointMass.velocity * timeStepSeconds;
 	}
@@ -350,6 +365,39 @@ void FloppyBody::SetSpringEquilibriumLengths()
 		this->GetSpringWorldVertices(spring, vertexA, vertexB);
 		lineRenderer->AddLine(vertexA, vertexB, &color, &color);
 	}
+}
+
+bool FloppyBody::RespondToCollisionContact(const Plane& contactPlane)
+{
+	auto convexHull = dynamic_cast<GJKConvexHull*>(this->collisionObject->GetShape());
+	if (!convexHull)
+		return false;
+
+	constexpr double elasticityFactor = 0.5;
+
+	bool responded = false;
+	double planeThickness = 1e-4;
+	std::vector<Vector3>& vertexArray = convexHull->hull.GetVertexArray();
+	for (PointMass& pointMass : this->pointMassArray)
+	{
+		Vector3& vertex = vertexArray[pointMass.offset];
+		double distance = contactPlane.SignedDistanceTo(vertex);
+		if (distance < -planeThickness / 2.0)
+		{
+			vertex -= contactPlane.unitNormal * distance;
+
+			double dot = pointMass.velocity.Dot(contactPlane.unitNormal);
+			if (dot < 0.0)
+			{
+				pointMass.currentContactNormal = contactPlane.unitNormal;
+				Vector3 impulse = -(1.0 + elasticityFactor) * dot * contactPlane.unitNormal;
+				pointMass.velocity += impulse;
+				responded = true;
+			}
+		}
+	}
+
+	return responded;
 }
 
 /*virtual*/ Vector3 FloppyBody::GetCenterOfMass() const

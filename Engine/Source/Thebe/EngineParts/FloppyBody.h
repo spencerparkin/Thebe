@@ -29,15 +29,18 @@ namespace Thebe
 		virtual Transform GetObjectToWorld() const override;
 		virtual void ZeroMomentum() override;
 
+		bool RespondToCollisionContact(const Plane& contactPlane);
+
 	private:
 		void SetSpringEquilibriumLengths();
 
 		struct PointMass
 		{
-			unsigned int offset;		//< This is an offset into the shape's array of vertices.
+			unsigned int offset;			//< This is an offset into the shape's array of vertices.
 			double mass;
 			Vector3 totalForce;
 			Vector3 velocity;
+			Vector3 currentContactNormal;	//< This will be zero if the point mass is not in contact with something.
 		};
 
 		struct Spring

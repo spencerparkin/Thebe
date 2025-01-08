@@ -16,6 +16,8 @@ namespace Thebe
 	class EventSystem;
 	class Event;
 	class DynamicLineRenderer;
+	class RigidBody;
+	class FloppyBody;
 
 	/**
 	 * This is my attempt to do some basic rigid and floppy body simulations.
@@ -68,6 +70,36 @@ namespace Thebe
 			virtual bool CalculateContacts(const PhysicsObject* objectA, const PhysicsObject* objectB, std::list<Contact>& contactList) override;
 		};
 
+		class THEBE_API ContactResolverInterface
+		{
+		public:
+			virtual bool ResolveContact(Contact& contact) = 0;
+		};
+
+		template<typename ObjectTypeA, typename ObjectTypeB>
+		class THEBE_API ContactResolver : public ContactResolverInterface
+		{
+		public:
+			virtual bool ResolveContact(Contact& contact) override
+			{
+				return false;
+			}
+		};
+
+		template<>
+		class THEBE_API ContactResolver<RigidBody, RigidBody> : public ContactResolverInterface
+		{
+		public:
+			virtual bool ResolveContact(Contact& contact) override;
+		};
+
+		template<>
+		class THEBE_API ContactResolver<RigidBody, FloppyBody> : public ContactResolverInterface
+		{
+		public:
+			virtual bool ResolveContact(Contact& contact) override;
+		};
+
 		void SetGravity(const Vector3& accelerationDueToGravity);
 		const Vector3& GetGravity() const;
 
@@ -86,6 +118,7 @@ namespace Thebe
 
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;
+		std::vector<ContactResolverInterface*> contactResolverArray;
 
 		Vector3 accelerationDueToGravity;
 	};

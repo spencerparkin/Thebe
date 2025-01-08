@@ -2,6 +2,7 @@
 #include "Thebe/EventSystem.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
 #include "Thebe/EngineParts/RigidBody.h"
+#include "Thebe/EngineParts/FloppyBody.h"
 #include "Thebe/Math/Graph.h"
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/Log.h"
@@ -13,6 +14,8 @@ using namespace Thebe;
 PhysicsSystem::PhysicsSystem()
 {
 	this->contactCalculatorArray.push_back(new ContactCalculator<GJKConvexHull, GJKConvexHull>());
+	this->contactResolverArray.push_back(new ContactResolver<RigidBody, RigidBody>());
+	this->contactResolverArray.push_back(new ContactResolver<RigidBody, FloppyBody>());
 	this->accelerationDueToGravity.SetComponents(0.0, -9.8, 0.0);
 }
 
@@ -20,6 +23,9 @@ PhysicsSystem::PhysicsSystem()
 {
 	for (auto& contactCalculator : this->contactCalculatorArray)
 		delete contactCalculator;
+
+	for (auto& contactResolver : this->contactResolverArray)
+		delete contactResolver;
 }
 
 void PhysicsSystem::Initialize(EventSystem* eventSystem)
@@ -184,58 +190,112 @@ bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision
 
 bool PhysicsSystem::ResolveContact(Contact& contact)
 {
-	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
-	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
-	if (rigidBodyA && rigidBodyB)
-	{
-		Vector3 contactVectorA = contact.surfacePoint - rigidBodyA->GetCenterOfMass();
-		Vector3 contactVectorB = contact.surfacePoint - rigidBodyB->GetCenterOfMass();
-
-		Vector3 velocityA = rigidBodyA->GetLinearVelocity() + rigidBodyA->GetAngularVelocity().Cross(contactVectorA);
-		Vector3 velocityB = rigidBodyB->GetLinearVelocity() + rigidBodyB->GetAngularVelocity().Cross(contactVectorB);
-
-		double relativeVelocity = contact.unitNormal.Dot(velocityA - velocityB);
-		if (relativeVelocity >= 0.0)
-			return false;
-
-		Matrix3x3 worldSpaceInertiaTensorInverseA, worldSpaceInertiaTensorInverseB;
-
-		rigidBodyA->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseA);
-		rigidBodyB->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseB);
-
-		double denomPartA = 0.0;
-		double denomPartB = 0.0;
-
-		if (!rigidBodyA->IsStationary())
-			denomPartA = (worldSpaceInertiaTensorInverseA * contactVectorA.Cross(contact.unitNormal)).Cross(contactVectorA).Dot(contact.unitNormal) + 1.0 / rigidBodyA->GetTotalMass();
-
-		if (!rigidBodyB->IsStationary())
-			denomPartB = (worldSpaceInertiaTensorInverseB * contactVectorB.Cross(contact.unitNormal)).Cross(contactVectorB).Dot(contact.unitNormal) + 1.0 / rigidBodyB->GetTotalMass();
-
-		double denominator = denomPartA + denomPartB;
-		THEBE_ASSERT(denominator != 0.0);
-
-		double coeficientOfRestitution = 0.5;		// TODO: Maybe get this from a setting somewhere?
-		double impulseMagnitude = -(1.0 + coeficientOfRestitution) * relativeVelocity / denominator;
-
-		Vector3 impulse = impulseMagnitude * contact.unitNormal;
-
-		Vector3 impulseForceA = impulse;
-		Vector3 impulseForceB = -impulse;
-
-		rigidBodyA->SetLinearMomentum(rigidBodyA->GetLinearMomentum() + impulseForceA);
-		rigidBodyB->SetLinearMomentum(rigidBodyB->GetLinearMomentum() + impulseForceB);
-
-		Vector3 impulseTorqueA = (contact.surfacePoint - rigidBodyA->GetCenterOfMass()).Cross(impulseForceA);
-		Vector3 impulseTorqueB = (contact.surfacePoint - rigidBodyB->GetCenterOfMass()).Cross(impulseForceB);
-
-		rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
-		rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
-
-		return true;
-	}
+	for (auto& contactResolver : this->contactResolverArray)
+		if (contactResolver->ResolveContact(contact))
+			return true;
 
 	return false;
+}
+
+//------------------------------ PhysicsSystem::ContactResolver<RigidBody, RigidBody> ------------------------------
+
+/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, RigidBody>::ResolveContact(Contact& contact)
+{
+	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
+	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
+	if (!(rigidBodyA && rigidBodyB))
+		return false;
+	
+	Vector3 contactVectorA = contact.surfacePoint - rigidBodyA->GetCenterOfMass();
+	Vector3 contactVectorB = contact.surfacePoint - rigidBodyB->GetCenterOfMass();
+
+	Vector3 velocityA = rigidBodyA->GetLinearVelocity() + rigidBodyA->GetAngularVelocity().Cross(contactVectorA);
+	Vector3 velocityB = rigidBodyB->GetLinearVelocity() + rigidBodyB->GetAngularVelocity().Cross(contactVectorB);
+
+	double relativeVelocity = contact.unitNormal.Dot(velocityA - velocityB);
+	if (relativeVelocity >= 0.0)
+		return false;
+
+	Matrix3x3 worldSpaceInertiaTensorInverseA, worldSpaceInertiaTensorInverseB;
+
+	rigidBodyA->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseA);
+	rigidBodyB->GetWorldSpaceInertiaTensorInverse(worldSpaceInertiaTensorInverseB);
+
+	double denomPartA = 0.0;
+	double denomPartB = 0.0;
+
+	if (!rigidBodyA->IsStationary())
+		denomPartA = (worldSpaceInertiaTensorInverseA * contactVectorA.Cross(contact.unitNormal)).Cross(contactVectorA).Dot(contact.unitNormal) + 1.0 / rigidBodyA->GetTotalMass();
+
+	if (!rigidBodyB->IsStationary())
+		denomPartB = (worldSpaceInertiaTensorInverseB * contactVectorB.Cross(contact.unitNormal)).Cross(contactVectorB).Dot(contact.unitNormal) + 1.0 / rigidBodyB->GetTotalMass();
+
+	double denominator = denomPartA + denomPartB;
+	THEBE_ASSERT(denominator != 0.0);
+
+	double coeficientOfRestitution = 0.5;		// TODO: Maybe get this from a setting somewhere?
+	double impulseMagnitude = -(1.0 + coeficientOfRestitution) * relativeVelocity / denominator;
+
+	Vector3 impulse = impulseMagnitude * contact.unitNormal;
+
+	Vector3 impulseForceA = impulse;
+	Vector3 impulseForceB = -impulse;
+
+	rigidBodyA->SetLinearMomentum(rigidBodyA->GetLinearMomentum() + impulseForceA);
+	rigidBodyB->SetLinearMomentum(rigidBodyB->GetLinearMomentum() + impulseForceB);
+
+	Vector3 impulseTorqueA = (contact.surfacePoint - rigidBodyA->GetCenterOfMass()).Cross(impulseForceA);
+	Vector3 impulseTorqueB = (contact.surfacePoint - rigidBodyB->GetCenterOfMass()).Cross(impulseForceB);
+
+	rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
+	rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
+
+	return true;
+}
+
+//------------------------------ PhysicsSystem::ContactResolver<RigidBody, FloppyBody> ------------------------------
+
+/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, FloppyBody>::ResolveContact(Contact& contact)
+{
+	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
+	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
+
+	auto floppyBodyA = dynamic_cast<FloppyBody*>(contact.objectA.Get());
+	auto floppyBodyB = dynamic_cast<FloppyBody*>(contact.objectB.Get());
+
+	RigidBody* rigidBody = nullptr;
+	FloppyBody* floppyBody = nullptr;
+
+	Vector3 unitNormalRigidToFloppy;
+
+	if (rigidBodyA && floppyBodyB)
+	{
+		rigidBody = rigidBodyA;
+		floppyBody = floppyBodyB;
+		unitNormalRigidToFloppy = -contact.unitNormal;
+	}
+	else if (floppyBodyA && rigidBodyB)
+	{
+		rigidBody = rigidBodyB;
+		floppyBody = floppyBodyA;
+		unitNormalRigidToFloppy = contact.unitNormal;
+	}
+
+	if (!rigidBody || !floppyBody)
+		return false;
+
+	bool resolved = false;
+
+	if (!rigidBody->IsStationary())
+	{
+		// TODO: Do rigid body response to floppy body here.
+	}
+
+	Plane contactPlane(contact.surfacePoint, unitNormalRigidToFloppy);
+	if (floppyBody->RespondToCollisionContact(contactPlane))
+		resolved = true;
+
+	return resolved;
 }
 
 //------------------------------ PhysicsSystem::ContactCalculatorInterface ------------------------------
