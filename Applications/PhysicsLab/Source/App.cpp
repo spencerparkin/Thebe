@@ -37,6 +37,10 @@ PhysicsLabApp::PhysicsLabApp()
 	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
 	this->graphicsEngine->GetCollisionSystem()->SetWorldBox(worldBox);
 
+	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.floppy_body", this->objectA))
+		return false;
+
+#if false
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectA))
 		return false;
 
@@ -44,9 +48,6 @@ PhysicsLabApp::PhysicsLabApp()
 		return false;
 
 	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/Cube.rigid_body", this->objectC, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
-		return false;
-
-	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
 		return false;
 
 	Transform objectToWorld = this->objectA->GetObjectToWorld();
@@ -60,6 +61,10 @@ PhysicsLabApp::PhysicsLabApp()
 	objectToWorld.translation.y += 10.0;
 	objectToWorld.translation.z += 0.0;
 	this->objectC->SetObjectToWorld(objectToWorld);
+#endif
+
+	if (!this->graphicsEngine->LoadEnginePartFromFile("PhysicsObjects/GroundSlab.rigid_body", this->groundSlab))
+		return false;
 
 	Thebe::Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
@@ -77,10 +82,18 @@ PhysicsLabApp::PhysicsLabApp()
 	this->graphicsEngine->SetCamera(this->camera);
 	this->jediCam.SetCamera(this->camera);
 
-	this->jediCam.AddObject(this->objectA);
-	this->jediCam.AddObject(this->objectB);
+	if (this->objectA.Get())
+		this->jediCam.AddObject(this->objectA);
+
+	if (this->objectB.Get())
+		this->jediCam.AddObject(this->objectB);
+
+	if (this->objectC.Get())
+		this->jediCam.AddObject(this->objectC);
 
 	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
+
+	this->graphicsEngine->GetPhysicsSystem()->SetGravity(Vector3(0.0, -1.0, 0.0));
 
 	return true;
 }
@@ -101,11 +114,16 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	auto collisionObjectEvent = (CollisionObjectEvent*)event;
 	if (collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
 	{
-		Transform objectToWorld;
-		objectToWorld.SetIdentity();
-		objectToWorld.translation.SetComponents(0.0, this->random.InRange(4.0, 15.0), 0.0);
-		collisionObjectEvent->collisionObject->SetObjectToWorld(objectToWorld);
-		this->graphicsEngine->GetCollisionSystem()->TrackObject(collisionObjectEvent->collisionObject);
+		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetUserData();
+		Reference<PhysicsObject> physicsObject;
+		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
+		{
+			Transform objectToWorld;
+			objectToWorld.SetIdentity();
+			objectToWorld.translation.SetComponents(0.0, this->random.InRange(4.0, 15.0), 0.0);
+			physicsObject->SetObjectToWorld(objectToWorld);
+			this->graphicsEngine->GetCollisionSystem()->TrackObject(collisionObjectEvent->collisionObject);
+		}
 	}
 }
 

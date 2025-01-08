@@ -60,6 +60,11 @@ namespace Thebe
 		virtual ~Transform();
 
 		/**
+		 * Return the identity transform.
+		 */
+		static const Transform& Identity();
+
+		/**
 		 * Return true if and only if this transform and the given transform are the same transform.
 		 * That is, distinct objects that represent the same transform exactly.  We do not check here
 		 * that the transforms are approximately equal, but identical.

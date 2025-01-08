@@ -35,6 +35,12 @@ Transform::Transform(const Transform& transform)
 {
 }
 
+/*static*/ const Transform& Transform::Identity()
+{
+	static Transform identity;
+	return identity;
+}
+
 bool Transform::operator==(const Transform& transform) const
 {
 	return this->translation == transform.translation && this->matrix == transform.matrix;

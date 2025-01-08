@@ -1,4 +1,5 @@
 #include "Thebe/EngineParts/FloppyBody.h"
+#include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -25,12 +26,14 @@ FloppyBody::FloppyBody()
 
 	// Note that floppy-bodies are a special case where the local
 	// (or object) space of the body is always the same as the world space.
+	// In other words, the local-to-world transform is always identity.
+	// Also note that while being floppy, the hope is that the collision
+	// object will always remain convex, despite any deformations it is
+	// undergoing as the simulation unfolds.
 	std::vector<Vector3>& vertexArray = convexHull->hull.GetVertexArray();
 	for (Vector3& vertex : vertexArray)
 		vertex = convexHull->GetObjectToWorld().TransformPoint(vertex);
-	Transform identity;
-	identity.SetIdentity();
-	convexHull->SetObjectToWorld(identity);
+	this->collisionObject->SetObjectToWorld(Transform::Identity());
 
 	if (this->pointMassArray.size() == 0)
 	{
@@ -40,6 +43,7 @@ FloppyBody::FloppyBody()
 			pointMass.offset = i;
 			pointMass.mass = 1.0;
 			pointMass.velocity.SetComponents(0.0, 0.0, 0.0);
+			this->pointMassArray.push_back(pointMass);
 		}
 	}
 	else
@@ -63,7 +67,7 @@ FloppyBody::FloppyBody()
 			Spring spring;
 			spring.offset[0] = edge.i;
 			spring.offset[1] = edge.j;
-			spring.stiffness = 1.0;
+			spring.stiffness = 100.0;
 			spring.equilibriumLength = 0.0;
 			this->springArray.push_back(spring);
 		}
@@ -73,11 +77,12 @@ FloppyBody::FloppyBody()
 			Spring spring;
 			spring.offset[0] = i;
 			spring.offset[1] = -1;
-			spring.stiffness = 1.0;
+			spring.stiffness = 100.0;
 			spring.equilibriumLength = 0.0;
 
+			// This can create some redundant springs, but...I'm okay with that for now.
 			double largestDistance = -1.0;
-			for (unsigned int j = 0; j < convexHull->hull.GetNumPolygons(); j++)
+			for (unsigned int j = 0; j < convexHull->hull.GetNumVertices(); j++)
 			{
 				double distance = (convexHull->hull.GetVertex(i) - convexHull->hull.GetVertex(j)).Length();
 				if (distance > largestDistance)
@@ -85,6 +90,24 @@ FloppyBody::FloppyBody()
 					largestDistance = distance;
 					spring.offset[1] = j;
 				}
+			}
+
+			this->springArray.push_back(spring);
+		}
+
+		for (unsigned int i = 0; i < convexHull->hull.GetNumPolygons(); i++)
+		{
+			const PolygonMesh::Polygon& polygon = convexHull->hull.GetPolygon(i);
+
+			for (unsigned int j = 0; j < (unsigned int)polygon.vertexArray.size() / 2; j++)
+			{
+				int k = polygon.Mod(j + (unsigned int)polygon.vertexArray.size() / 2);
+				Spring spring;
+				spring.offset[0] = polygon.vertexArray[j];
+				spring.offset[1] = polygon.vertexArray[k];
+				spring.stiffness = 100.0;
+				spring.equilibriumLength = 0.0;
+				this->springArray.push_back(spring);
 			}
 		}
 
@@ -120,9 +143,7 @@ FloppyBody::FloppyBody()
 	}
 
 	// Tell the collision system that we moved.
-	Transform identity;
-	identity.SetIdentity();
-	this->collisionObject->SetObjectToWorld(identity);
+	this->collisionObject->SetObjectToWorld(Transform::Identity());
 }
 
 /*virtual*/ Transform FloppyBody::GetObjectToWorld() const
@@ -133,9 +154,9 @@ FloppyBody::FloppyBody()
 	return objectToWorld;
 }
 
-bool FloppyBody::GetWorldVertex(const PointMass& pointMass, Vector3& vertex)
+bool FloppyBody::GetWorldVertex(const PointMass& pointMass, Vector3& vertex) const
 {
-	auto convexHull = dynamic_cast<GJKConvexHull*>(this->collisionObject->GetShape());
+	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->collisionObject->GetShape());
 	if (!convexHull)
 		return false;
 
@@ -143,9 +164,9 @@ bool FloppyBody::GetWorldVertex(const PointMass& pointMass, Vector3& vertex)
 	return true;
 }
 
-bool FloppyBody::GetSpringWorldVertices(const Spring& spring, Vector3& vertexA, Vector3& vertexB)
+bool FloppyBody::GetSpringWorldVertices(const Spring& spring, Vector3& vertexA, Vector3& vertexB) const
 {
-	auto convexHull = dynamic_cast<GJKConvexHull*>(this->collisionObject->GetShape());
+	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->collisionObject->GetShape());
 	if (!convexHull)
 		return false;
 
@@ -317,14 +338,18 @@ void FloppyBody::SetSpringEquilibriumLengths()
 
 	// We need to do this so that the collision object updates itself within the collision system.
 	// The transform doesn't change, but the vertices do.
-	Transform identity;
-	identity.SetIdentity();
-	this->collisionObject->SetObjectToWorld(identity);
+	this->collisionObject->SetObjectToWorld(Transform::Identity());
 }
 
 /*virtual*/ void FloppyBody::DebugDraw(DynamicLineRenderer* lineRenderer) const
 {
-	// TODO: Render the springs here.
+	Vector3 color(1.0, 1.0, 0.0);
+	for (const Spring& spring : this->springArray)
+	{
+		Vector3 vertexA, vertexB;
+		this->GetSpringWorldVertices(spring, vertexA, vertexB);
+		lineRenderer->AddLine(vertexA, vertexB, &color, &color);
+	}
 }
 
 /*virtual*/ Vector3 FloppyBody::GetCenterOfMass() const
@@ -332,7 +357,7 @@ void FloppyBody::SetSpringEquilibriumLengths()
 	Vector3 centerOfMass(0.0, 0.0, 0.0);
 
 	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->collisionObject->GetShape());
-	if (convexHull)
+	if (convexHull && this->pointMassArray.size() > 0)
 	{
 		for (const PointMass& pointMass : this->pointMassArray)
 			centerOfMass += pointMass.mass * convexHull->GetWorldVertex(pointMass.offset);
@@ -351,4 +376,10 @@ void FloppyBody::SetSpringEquilibriumLengths()
 		totalMass += pointMass.mass;
 
 	return totalMass;
+}
+
+/*virtual*/ void FloppyBody::ZeroMomentum()
+{
+	for (PointMass& pointMass : this->pointMassArray)
+		pointMass.velocity.SetComponents(0.0, 0.0, 0.0);
 }

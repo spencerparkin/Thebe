@@ -27,6 +27,7 @@ namespace Thebe
 		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const override;
 		virtual void SetObjectToWorld(const Transform& objectToWorld) override;
 		virtual Transform GetObjectToWorld() const override;
+		virtual void ZeroMomentum() override;
 
 	private:
 		void SetSpringEquilibriumLengths();
@@ -46,8 +47,8 @@ namespace Thebe
 			double equilibriumLength;
 		};
 		
-		bool GetSpringWorldVertices(const Spring& spring, Vector3& vertexA, Vector3& vertexB);
-		bool GetWorldVertex(const PointMass& pointMass, Vector3& vertex);
+		bool GetSpringWorldVertices(const Spring& spring, Vector3& vertexA, Vector3& vertexB) const;
+		bool GetWorldVertex(const PointMass& pointMass, Vector3& vertex) const;
 
 		std::vector<PointMass> pointMassArray;
 		std::vector<Spring> springArray;
