@@ -35,6 +35,12 @@ Quaternion::Quaternion(const Vector3& unitAxis, double angle)
 {
 }
 
+/*static*/ const Quaternion& Quaternion::Identity()
+{
+	static Quaternion identity;
+	return identity;
+}
+
 void Quaternion::operator=(const Quaternion& quat)
 {
 	this->w = quat.w;

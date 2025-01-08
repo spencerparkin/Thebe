@@ -62,6 +62,12 @@ Matrix4x4::Matrix4x4(const Matrix3x3& matrix, const Vector3& translation)
 {
 }
 
+/*static*/ const Matrix4x4& Matrix4x4::Identity()
+{
+	static Matrix4x4 identity;
+	return identity;
+}
+
 void Matrix4x4::operator=(const Matrix4x4& matrix)
 {
 	for (int i = 0; i < 4; i++)

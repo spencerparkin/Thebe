@@ -20,6 +20,8 @@ namespace Thebe
 		Matrix2x2(const Matrix2x2& matrix);
 		virtual ~Matrix2x2();
 
+		static const Matrix2x2& Identity();
+
 		/**
 		 * Set this matrix as a copy of the given matrix.
 		 */

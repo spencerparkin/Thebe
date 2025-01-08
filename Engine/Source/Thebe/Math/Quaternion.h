@@ -24,6 +24,8 @@ namespace Thebe
 		Quaternion(const Vector3& unitAxis, double angle);
 		virtual ~Quaternion();
 
+		static const Quaternion& Identity();
+
 		void operator=(const Quaternion& quat);
 		void operator+=(const Quaternion& quat);
 		void operator-=(const Quaternion& quat);

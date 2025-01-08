@@ -24,6 +24,8 @@ namespace Thebe
 		Matrix4x4(const Matrix3x3& matrix, const Vector3& translation);
 		virtual ~Matrix4x4();
 
+		static const Matrix4x4& Identity();
+
 		void SetIdentity();
 
 		bool SetCol(int col, const Vector3& vector);

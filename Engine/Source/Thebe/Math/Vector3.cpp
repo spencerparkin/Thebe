@@ -6,6 +6,30 @@
 
 using namespace Thebe;
 
+/*static*/ const Vector3& Vector3::Zero()
+{
+	static Vector3 zero(0.0, 0.0, 0.0);
+	return zero;
+}
+
+/*static*/ const Vector3& Vector3::XAxis()
+{
+	static Vector3 xAxis(1.0, 0.0, 0.0);
+	return xAxis;
+}
+
+/*static*/ const Vector3& Vector3::YAxis()
+{
+	static Vector3 yAxis(0.0, 1.0, 0.0);
+	return yAxis;
+}
+
+/*static*/ const Vector3& Vector3::ZAxis()
+{
+	static Vector3 zAxis(0.0, 0.0, 1.0);
+	return zAxis;
+}
+
 bool Vector3::Normalize(double* length /*= nullptr*/)
 {
 	double scalar = 0.0;

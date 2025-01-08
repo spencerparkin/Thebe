@@ -34,6 +34,12 @@ Matrix3x3::Matrix3x3(const Vector3& unitAxis, double angle)
 {
 }
 
+/*static*/ const Matrix3x3& Matrix3x3::Identity()
+{
+	static Matrix3x3 identity;
+	return identity;
+}
+
 void Matrix3x3::operator=(const Matrix3x3& matrix)
 {
 	for (int i = 0; i < 3; i++)

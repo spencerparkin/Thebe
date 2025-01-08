@@ -56,6 +56,11 @@ namespace Thebe
 		{
 		}
 
+		static const Vector3& Zero();
+		static const Vector3& XAxis();
+		static const Vector3& YAxis();
+		static const Vector3& ZAxis();
+
 		void operator=(const Vector3& vector)
 		{
 			this->x = vector.x;

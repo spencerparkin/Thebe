@@ -19,6 +19,12 @@ Matrix2x2::Matrix2x2(const Matrix2x2& matrix)
 {
 }
 
+/*static*/ const Matrix2x2& Matrix2x2::Identity()
+{
+	static Matrix2x2 identity;
+	return identity;
+}
+
 void Matrix2x2::operator=(const Matrix2x2& matrix)
 {
 	for (int i = 0; i < 2; i++)

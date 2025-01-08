@@ -23,6 +23,8 @@ namespace Thebe
 		Matrix3x3(const Vector3& unitAxis, double angle);
 		virtual ~Matrix3x3();
 
+		static const Matrix3x3& Identity();
+
 		/**
 		 * Set this matrix as a copy of the given matrix.
 		 */
