@@ -51,6 +51,12 @@ ChineseCheckersApp::ChineseCheckersApp()
 	if (!this->graphicsEngine->Setup(windowHandle))
 		return false;
 
+	if (!this->graphicsEngine->AddAssetFolder("Engine/Assets"))
+		return false;
+
+	if (!this->graphicsEngine->AddAssetFolder("Applications/ChineseCheckersExtreme/Assets"))
+		return false;
+
 	this->frame->Show();
 
 	return true;

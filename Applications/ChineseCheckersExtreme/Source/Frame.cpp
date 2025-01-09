@@ -69,7 +69,7 @@ void ChineseCheckersFrame::OnAbout(wxCommandEvent& event)
 	developerArray.Add("Spencer T. Parkin");
 	aboutDialogInfo.SetDevelopers(developerArray);
 
-	aboutDialogInfo.SetCopyright("Copyright (c) 2024, All Rights Reserved");
+	aboutDialogInfo.SetCopyright("Copyright (c) 2025, All Rights Reserved");
 
 	wxAboutBox(aboutDialogInfo);
 }
