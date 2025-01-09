@@ -66,7 +66,7 @@ void ChineseCheckersFrame::OnAbout(wxCommandEvent& event)
 	aboutDialogInfo.SetDescription("This is a variation of the traditional game of Chinese Checkers.");
 	
 	wxArrayString developerArray;
-	developerArray.Add("Spencer T. Parkin");
+	developerArray.Add("Spencer T. Parkin (spencer.parkin@proton.me)");
 	aboutDialogInfo.SetDevelopers(developerArray);
 
 	aboutDialogInfo.SetCopyright("Copyright (c) 2025, All Rights Reserved");
