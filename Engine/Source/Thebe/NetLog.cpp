@@ -107,8 +107,12 @@ NetLogCollector::Socket::Socket(SOCKET socket, NetLogCollector* collector) : Net
 		if (buffer[i] == '\0')
 			nullTerminal = true;
 
-	std::string msg((const char*)buffer);
-	this->collector->AddLogMessage(msg);
-	numBytesProcessed = msg.length() + 1;
+	if (nullTerminal)
+	{
+		std::string msg((const char*)buffer);
+		this->collector->AddLogMessage(msg);
+		numBytesProcessed = msg.length() + 1;
+	}
+
 	return true;
 }
