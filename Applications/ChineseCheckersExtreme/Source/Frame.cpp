@@ -1,5 +1,6 @@
 #include "Frame.h"
 #include "Canvas.h"
+#include "Application.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
@@ -80,5 +81,7 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 
 void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 {
-	this->canvas->Update();
+	this->canvas->Refresh(false);
+	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
+	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 }

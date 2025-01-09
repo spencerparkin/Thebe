@@ -2,6 +2,8 @@
 #include "Frame.h"
 #include "Canvas.h"
 #include "Thebe/NetLog.h"
+#include "Thebe/EngineParts/Scene.h"
+#include "Thebe/EngineParts/DirectionalLight.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -17,6 +19,16 @@ ChineseCheckersApp::ChineseCheckersApp()
 
 /*virtual*/ ChineseCheckersApp::~ChineseCheckersApp()
 {
+}
+
+Thebe::FreeCam* ChineseCheckersApp::GetFreeCam()
+{
+	return &this->freeCam;
+}
+
+Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
+{
+	return this->lineRenderer.Get();
 }
 
 /*virtual*/ bool ChineseCheckersApp::OnInit(void)
@@ -57,6 +69,33 @@ ChineseCheckersApp::ChineseCheckersApp()
 	if (!this->graphicsEngine->AddAssetFolder("Applications/ChineseCheckersExtreme/Assets"))
 		return false;
 
+	this->lineRenderer.Set(new DynamicLineRenderer());
+	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
+	this->lineRenderer->SetLineMaxCount(1024);
+	if (!this->lineRenderer->Setup())
+		return false;
+
+	Reference<Scene> scene;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\OceanScene.scene)", scene))
+		return false;
+	this->graphicsEngine->SetRenderObject(scene);
+	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+
+	Reference<DirectionalLight> light(new DirectionalLight());
+	light->Setup();
+	Transform lightToWorld;
+	lightToWorld.LookAt(Vector3(50.0, 100.0, 50.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
+	light->SetLightToWorldTransform(lightToWorld);
+	this->graphicsEngine->SetLight(light);
+
+	Transform cameraToWorld;
+	cameraToWorld.matrix.SetIdentity();
+	cameraToWorld.translation.SetComponents(0.0, 0.0, 50.0);
+	this->camera.Set(new PerspectiveCamera());
+	this->camera->SetCameraToWorldTransform(cameraToWorld);
+	this->graphicsEngine->SetCamera(this->camera);
+	this->freeCam.SetCamera(this->camera);
+
 	this->frame->Show();
 
 	return true;
@@ -64,6 +103,11 @@ ChineseCheckersApp::ChineseCheckersApp()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
+	this->graphicsEngine->WaitForGPUIdle();
+
+	this->lineRenderer->Shutdown();
+	this->lineRenderer = nullptr;
+
 	this->graphicsEngine->Shutdown();
 	this->graphicsEngine = nullptr;
 
