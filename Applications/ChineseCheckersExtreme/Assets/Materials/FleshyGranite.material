@@ -1,0 +1,14 @@
+{
+	"alpha_blending": false,
+	"casts_shadows": true,
+	"name": "FleshyGranite",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\FleshyGranite\\fleshy_granite1_albedo.texture_buffer",
+		"ambient_occlusion": "Textures\\FleshyGranite\\fleshy_granite1_ao.texture_buffer",
+		"metalic": "Textures\\FleshyGranite\\fleshy_granite1_Metallic.texture_buffer",
+		"normal": "Textures\\FleshyGranite\\fleshy_granite1_Normal-dx.texture_buffer",
+		"roughness": "Textures\\FleshyGranite\\fleshy_granite1_Roughness.texture_buffer"
+	}
+}

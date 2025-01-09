@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\HexagonalPlatform.index_buffer_data",
+	"format": 42,
+	"name": "HexagonalPlatform_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 288,
+	"type": 1
+}

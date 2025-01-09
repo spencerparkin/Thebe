@@ -1,0 +1,12 @@
+{
+	"compressed": true,
+	"compressed_size": 5453,
+	"data": "Textures\\FleshyGranite\\fleshy_granite1_Metallic.texture_buffer_data",
+	"height": 2048,
+	"name": "fleshy_granite1_Metallic",
+	"num_mips": 12,
+	"pixel_format": 61,
+	"size": 5592405,
+	"type": 1,
+	"width": 2048
+}

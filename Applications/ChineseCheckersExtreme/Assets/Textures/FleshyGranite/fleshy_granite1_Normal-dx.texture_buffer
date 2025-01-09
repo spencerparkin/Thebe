@@ -1,0 +1,12 @@
+{
+	"compressed": true,
+	"compressed_size": 1553375,
+	"data": "Textures\\FleshyGranite\\fleshy_granite1_Normal-dx.texture_buffer_data",
+	"height": 2048,
+	"name": "fleshy_granite1_Normal-dx",
+	"num_mips": 12,
+	"pixel_format": 28,
+	"size": 22369620,
+	"type": 1,
+	"width": 2048
+}

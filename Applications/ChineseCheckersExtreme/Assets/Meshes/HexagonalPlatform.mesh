@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\HexagonalPlatform.index_buffer",
+	"material": "Materials\\FleshyGranite.material",
+	"name": "HexagonalPlatform",
+	"vertex_buffer": "Buffers\\HexagonalPlatform.vertex_buffer"
+}
