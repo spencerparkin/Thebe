@@ -39,10 +39,22 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Utilities/CompressionHelper.h
     Source/Thebe/Utilities/RingBuffer.cpp
     Source/Thebe/Utilities/RingBuffer.h
+    Source/Thebe/Utilities/Thread.cpp
+    Source/Thebe/Utilities/Thread.h
     Source/Thebe/Containers/AVLTree.cpp
     Source/Thebe/Containers/AVLTree.h
     Source/Thebe/Containers/LinkedList.cpp
     Source/Thebe/Containers/LinkedList.h
+    Source/Thebe/Network/Address.cpp
+    Source/Thebe/Network/Address.h
+    Source/Thebe/Network/Client.cpp
+    Source/Thebe/Network/Client.h
+    Source/Thebe/Network/Socket.cpp
+    Source/Thebe/Network/Socket.h
+    Source/Thebe/Network/Server.cpp
+    Source/Thebe/Network/Server.h
+    Source/Thebe/Network/Agent.cpp
+    Source/Thebe/Network/Agent.h
     Source/Thebe/EnginePart.cpp
     Source/Thebe/EnginePart.h
     Source/Thebe/EngineParts/Camera.cpp

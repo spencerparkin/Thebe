@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/Log.h"
+#include "Thebe/Network/Address.h"
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <list>
@@ -8,31 +9,6 @@
 
 namespace Thebe
 {
-	/**
-	 * 
-	 */
-	class THEBE_API NetworkAddress
-	{
-	public:
-		NetworkAddress();
-		NetworkAddress(const NetworkAddress& address);
-		virtual ~NetworkAddress();
-
-		void operator=(const NetworkAddress& address);
-
-		bool SetAddress(const std::string& ipAddrAndPort);
-		std::string GetAddress() const;
-		void SetIPAddress(const std::string& ipAddr);
-		const std::string& GetIPAddress() const;
-		void SetPort(uint32_t port);
-		uint32_t GetPort() const;
-		void GetSockAddr(sockaddr_in& addr) const;
-
-	private:
-		std::string ipAddr;
-		uint32_t port;
-	};
-
 	/**
 	 * Define an interface to log collection on a host.
 	 */
