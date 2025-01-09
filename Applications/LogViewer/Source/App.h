@@ -20,8 +20,7 @@ public:
 
 private:
 	LogViewerFrame* frame;
-	Thebe::NetLogCollector* logCollector;
-	Thebe::NetworkAddress address;
+	Thebe::NetLogCollector logCollector;
 };
 
 wxDECLARE_APP(LogViewerApp);

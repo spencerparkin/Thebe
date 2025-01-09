@@ -18,8 +18,8 @@ Thread::Thread()
 	if (this->thread)
 		return false;
 
+	this->isRunning = true;
 	this->thread = new std::thread([=]() {
-			this->isRunning = true;
 			this->Run();
 			this->isRunning = false;
 		});

@@ -8,6 +8,7 @@ NetworkClient::NetworkClient()
 	this->clientSocket = nullptr;
 	this->maxConnectionAttempts = 10;
 	this->retryWaitTimeMilliseconds = 200;
+	this->needsSocketRead = true;
 }
 
 /*virtual*/ NetworkClient::~NetworkClient()
@@ -23,6 +24,11 @@ void NetworkClient::SetMaxConnectionAttempts(int maxConnectionAttempts)
 void NetworkClient::SetRetryWaitTime(int retryWaitTimeMilliseconds)
 {
 	this->retryWaitTimeMilliseconds = retryWaitTimeMilliseconds;
+}
+
+void NetworkClient::SetNeedsSocketRead(bool needsSocketRead)
+{
+	this->needsSocketRead = needsSocketRead;
 }
 
 NetworkSocket* NetworkClient::GetSocket()
@@ -77,7 +83,7 @@ NetworkSocket* NetworkClient::GetSocket()
 		return false;
 	}
 
-	if (!this->clientSocket->Split())
+	if (this->needsSocketRead && !this->clientSocket->Split())
 	{
 		THEBE_LOG("Failed to kick-off client thread.");
 		return false;

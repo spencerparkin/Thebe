@@ -69,7 +69,7 @@ void LogViewerFrame::OnExit(wxCommandEvent& event)
 void LogViewerFrame::OnTimer(wxTimerEvent& event)
 {
 	std::string logMessage;
-	if (wxGetApp().GetLogCollector()->RemoveLogMessage(logMessage))
+	if (wxGetApp().GetLogCollector()->GetLogMessage(logMessage))
 	{
 		wxString logMessageStr(logMessage.c_str());
 		this->textCtrl->AppendText(logMessageStr);

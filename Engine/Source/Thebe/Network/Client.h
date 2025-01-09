@@ -24,11 +24,13 @@ namespace Thebe
 
 		void SetMaxConnectionAttempts(int maxConnectionAttempts);
 		void SetRetryWaitTime(int retryWaitTimeMilliseconds);
+		void SetNeedsSocketRead(bool needsSocketRead);
 
 	protected:
 
 		NetworkSocket* clientSocket;
 		int maxConnectionAttempts;
 		int retryWaitTimeMilliseconds;
+		bool needsSocketRead;
 	};
 }

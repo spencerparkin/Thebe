@@ -7,7 +7,6 @@ wxIMPLEMENT_APP(LogViewerApp);
 LogViewerApp::LogViewerApp()
 {
 	this->frame = nullptr;
-	this->logCollector = nullptr;
 }
 
 /*virtual*/ LogViewerApp::~LogViewerApp()
@@ -19,10 +18,7 @@ LogViewerApp::LogViewerApp()
 	if (!wxApp::OnInit())
 		return false;
 
-	auto server = new Thebe::NetServerLogCollector();
-	server->SetListeningAddress(this->address);
-	this->logCollector = server;
-	if (!this->logCollector->Setup())
+	if (!this->logCollector.Setup())
 	{
 		wxMessageBox("Failed to setup log collector!", "Error!", wxICON_ERROR | wxOK, nullptr);
 		return false;
@@ -36,19 +32,14 @@ LogViewerApp::LogViewerApp()
 
 /*virtual*/ int LogViewerApp::OnExit(void)
 {
-	if (this->logCollector)
-	{
-		this->logCollector->Shutdown();
-		delete this->logCollector;
-		this->logCollector = nullptr;
-	}
-
+	this->logCollector.Shutdown();
+	
 	return 0;
 }
 
 Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 {
-	return this->logCollector;
+	return &this->logCollector;
 }
 
 /*virtual*/ void LogViewerApp::OnInitCmdLine(wxCmdLineParser& parser)
@@ -65,13 +56,16 @@ Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 
 /*virtual*/ bool LogViewerApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
+	Thebe::NetworkAddress address;
+
 	long port = 0;
 	if (parser.Found("port", &port))
-		this->address.SetPort((uint32_t)port);
+		address.SetPort((uint32_t)port);
 
 	wxString addr;
 	if (parser.Found("addr", &addr))
-		this->address.SetIPAddress((const char*)addr.c_str());
+		address.SetIPAddress((const char*)addr.c_str());
 
+	this->logCollector.SetAddress(address);
 	return true;
 }

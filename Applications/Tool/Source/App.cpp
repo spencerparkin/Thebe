@@ -52,7 +52,7 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 		if (loggerPID != 0)
 		{
 			this->log.Set(new Thebe::Log());
-			Thebe::Reference<Thebe::NetClientLogSink> logSink(new Thebe::NetClientLogSink());
+			Thebe::Reference<Thebe::NetLogSink> logSink(new Thebe::NetLogSink());
 			Thebe::NetworkAddress address;
 			address.SetIPAddress("127.0.0.1");
 			address.SetPort(12345);

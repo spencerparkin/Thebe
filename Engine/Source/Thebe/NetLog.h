@@ -1,84 +1,20 @@
 #pragma once
 
 #include "Thebe/Log.h"
-#include "Thebe/Network/Address.h"
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <list>
-#include <thread>
+#include "Thebe/Network/Client.h"
+#include "Thebe/Network/Server.h"
+#include <mutex>
 
 namespace Thebe
 {
 	/**
-	 * Define an interface to log collection on a host.
+	 *
 	 */
-	class THEBE_API NetLogCollector
+	class THEBE_API NetLogSink : public LogSink
 	{
 	public:
-		NetLogCollector();
-		virtual ~NetLogCollector();
-
-		virtual bool Setup() = 0;
-		virtual void Shutdown() = 0;
-		
-		bool RemoveLogMessage(std::string& logMessage);
-		void AddLogMessage(const std::string& logMessage);
-
-	protected:
-		std::list<std::string> logMessageList;
-		std::mutex logMessageListMutex;
-	};
-
-	/**
-	 * Send log messages over UDP to a collector.
-	 */
-	class THEBE_API DatagramLogSink : public LogSink
-	{
-	public:
-		DatagramLogSink();
-		virtual ~DatagramLogSink();
-
-		virtual bool Setup() override;
-		virtual void Print(const std::string& msg) override;
-
-		void SetSendAddress(const NetworkAddress& sendAddress);
-
-	private:
-		NetworkAddress sendAddress;
-		SOCKET socket;
-	};
-
-	/**
-	 * This can be owned by a host application that consumes the log messages.
-	 */
-	class THEBE_API DatagramLogCollector : public NetLogCollector
-	{
-	public:
-		DatagramLogCollector();
-		virtual ~DatagramLogCollector();
-
-		virtual bool Setup() override;
-		virtual void Shutdown() override;
-
-		void SetReceptionAddress(const NetworkAddress& receptionAddress);
-		const NetworkAddress& GetReceptionAddress() const;
-
-	private:
-		void ThreadRun();
-
-		NetworkAddress receptionAddress;
-		SOCKET socket;
-		std::thread* thread;
-	};
-
-	/**
-	 * Send log messages over TCP to a collector.
-	 */
-	class THEBE_API NetClientLogSink : public LogSink
-	{
-	public:
-		NetClientLogSink();
-		virtual ~NetClientLogSink();
+		NetLogSink();
+		virtual ~NetLogSink();
 
 		virtual bool Setup() override;
 		virtual void Print(const std::string& msg) override;
@@ -86,43 +22,39 @@ namespace Thebe
 		void SetConnectAddress(const NetworkAddress& connectAddress);
 
 	private:
-		NetworkAddress connectAddress;
-		SOCKET socket;
+		NetworkClient* client;
 	};
 
 	/**
-	 * This can also be owned by a host application that consumes the log messages.
+	 *
 	 */
-	class THEBE_API NetServerLogCollector : public NetLogCollector
+	class THEBE_API NetLogCollector : public NetworkServer
 	{
 	public:
-		NetServerLogCollector();
-		virtual ~NetServerLogCollector();
+		NetLogCollector();
+		virtual ~NetLogCollector();
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 
-		void SetListeningAddress(const NetworkAddress& listenAddress);
+		void AddLogMessage(const std::string& msg);
+		bool GetLogMessage(std::string& msg);
 
 	private:
-		NetworkAddress listenAddress;
 
-		struct Client;
-
-		void ListenThreadRun();
-		void ClientThreadRun(Client* client);
-		void RemoveExitedClients();
-
-		std::thread* listenThread;
-		SOCKET listenSocket;
-
-		struct Client
+		class Socket : public NetworkSocket
 		{
-			std::thread* thread;
-			SOCKET socket;
-			bool exited;
+		public:
+			Socket(SOCKET socket, NetLogCollector* collector);
+			virtual ~Socket();
+
+			virtual bool ReceiveData(const uint8_t* buffer, uint32_t bufferSize, uint32_t& numBytesProcessed) override;
+
+		private:
+			NetLogCollector* collector;
 		};
 
-		std::list<Client*> clientList;
+		std::list<std::string> logMessageList;
+		std::mutex logMessageListMutex;
 	};
 }

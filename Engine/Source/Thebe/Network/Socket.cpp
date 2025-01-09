@@ -38,7 +38,10 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 		// Block here until we receive some data.
 		int numBytes = ::recv(this->socket, recvBuffer.get(), recvBufferSize, 0);
 		if (numBytes <= 0)
+		{
+			int error = WSAGetLastError();
 			break;
+		}
 
 		// Append whatever we got from the socket.
 		if (!ringBuffer.WriteBytes((uint8_t*)recvBuffer.get(), numBytes))
