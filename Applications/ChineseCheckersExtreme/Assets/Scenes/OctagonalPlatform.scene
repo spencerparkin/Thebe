@@ -61,11 +61,11 @@
 							{
 								"elements":
 								[
-									0.866025,
-									-0.500000,
+									0.923436,
+									-0.383753,
 									0.000000,
-									0.500000,
-									0.866025,
+									0.383753,
+									0.923436,
 									0.000000,
 									0.000000,
 									0.000000,
@@ -137,16 +137,16 @@
 										[
 
 										],
-										"mesh_instance": "Meshes\\TriangularPlatform.mesh"
+										"mesh_instance": "Meshes\\OctagonalPlatform.mesh"
 									}
 								],
-								"name": "TriangularPlatform"
+								"name": "OctagonalPlatform"
 							}
 						],
-						"name": "TriangularPlatform_$AssimpFbx$_Rotation"
+						"name": "OctagonalPlatform_$AssimpFbx$_Rotation"
 					}
 				],
-				"name": "TriangularPlatform_$AssimpFbx$_PreRotation"
+				"name": "OctagonalPlatform_$AssimpFbx$_PreRotation"
 			}
 		],
 		"name": "RootNode"

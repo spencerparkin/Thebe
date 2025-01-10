@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\OctagonalPlatform.index_buffer",
+	"material": "Materials\\SpeckledRust.material",
+	"name": "OctagonalPlatform",
+	"vertex_buffer": "Buffers\\OctagonalPlatform.vertex_buffer"
+}

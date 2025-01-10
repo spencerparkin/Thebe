@@ -11,8 +11,8 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/Game.h
     Source/HexagonalGame.cpp
     Source/HexagonalGame.h
-    Source/TriangularGame.cpp
-    Source/TriangularGame.h
+    Source/OctagonalGame.cpp
+    Source/OctagonalGame.h
     Source/CubicGame.cpp
     Source/CubicGame.h
 )

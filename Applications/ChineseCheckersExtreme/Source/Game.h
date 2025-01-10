@@ -44,7 +44,9 @@ protected:
 
 	/**
 	 * Populate the scene with a visual manifestation of the game.
-	 * Of course, the clients will do this, but the server will not.
+	 * Of course, the human-controlled clients will do this, but the
+	 * server will not.  Computer-controlled clients won't need to
+	 * do this either.
 	 */
 	virtual bool PopulateScene(Thebe::Space* space) = 0;
 

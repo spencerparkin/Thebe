@@ -1,6 +1,6 @@
 {
 	"compressed": false,
-	"data": "Buffers\\TriangularPlatform.vertex_buffer_data",
+	"data": "Buffers\\OctagonalPlatform.vertex_buffer_data",
 	"element_desc_array":
 	[
 		{
@@ -41,7 +41,7 @@
 		}
 	],
 	"primitive_topology": 0,
-	"size": 1728,
+	"size": 4608,
 	"stride": 48,
 	"type": 1
 }

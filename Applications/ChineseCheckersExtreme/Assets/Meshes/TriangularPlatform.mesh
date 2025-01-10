@@ -1,6 +1,0 @@
-{
-	"index_buffer": "Buffers\\TriangularPlatform.index_buffer",
-	"material": "Materials\\SpeckledRust.material",
-	"name": "TriangularPlatform",
-	"vertex_buffer": "Buffers\\TriangularPlatform.vertex_buffer"
-}
