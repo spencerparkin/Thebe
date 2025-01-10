@@ -9,12 +9,12 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/Canvas.h
     Source/Game.cpp
     Source/Game.h
-    Source/HexagonalGame.cpp
-    Source/HexagonalGame.h
-    Source/OctagonalGame.cpp
-    Source/OctagonalGame.h
-    Source/CubicGame.cpp
-    Source/CubicGame.h
+    Source/GameShapes/HexagonalGame.cpp
+    Source/GameShapes/HexagonalGame.h
+    Source/GameShapes/OctagonalGame.cpp
+    Source/GameShapes/OctagonalGame.h
+    Source/GameShapes/CubicGame.cpp
+    Source/GameShapes/CubicGame.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})
@@ -47,4 +47,5 @@ endif()
 target_include_directories(ChineseCheckersGame PRIVATE
     "${WX_WIDGETS_ROOT}/include"
     "${WX_WIDGETS_ROOT}/include/msvc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source"
 )
