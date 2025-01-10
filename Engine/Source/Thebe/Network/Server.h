@@ -26,6 +26,17 @@ namespace Thebe
 	protected:
 		virtual void Run() override;
 
+		/**
+		 * This happens when a client connects to the server.
+		 */
+		virtual void OnClientAdded(NetworkSocket* networkSocket);
+
+		/**
+		 * This happens when the server detects that a client is no longer connected,
+		 * which is not necessary at the time that the client disconnects.
+		 */
+		virtual void OnClientRemoved(NetworkSocket* networkSocket);
+
 		void RemoveStaleClients();
 
 		std::list<NetworkSocket*> connectedClientList;

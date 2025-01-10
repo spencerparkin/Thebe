@@ -34,7 +34,7 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class JsonNetworkSocket : public NetworkSocket
+	class THEBE_API JsonNetworkSocket : public NetworkSocket
 	{
 	public:
 		JsonNetworkSocket(SOCKET socket);

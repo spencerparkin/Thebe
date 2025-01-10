@@ -75,6 +75,11 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 
 bool NetworkSocket::SendData(const uint8_t* buffer, uint32_t bufferSize)
 {
+	// Note that instead of looping here until it's all sent,
+	// a better way might be to add all the data to a stream
+	// that we are constantly trying to flush down the socket
+	// whenever we have some spare time.
+
 	uint32_t totalBytesSent = 0;
 	while (totalBytesSent < bufferSize)
 	{

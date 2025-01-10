@@ -88,6 +88,8 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 		// Before we go back to accepting new connections, take this opportunity
 		// to clean up any clients that have exited while we were blocked.
 		this->RemoveStaleClients();
+
+		this->OnClientAdded(client);
 	}
 
 	for (NetworkSocket* client : this->connectedClientList)
@@ -95,6 +97,14 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 
 	while (this->connectedClientList.size() > 0)
 		this->RemoveStaleClients();
+}
+
+/*virtual*/ void NetworkServer::OnClientAdded(NetworkSocket* networkSocket)
+{
+}
+
+/*virtual*/ void NetworkServer::OnClientRemoved(NetworkSocket* networkSocket)
+{
 }
 
 void NetworkServer::RemoveStaleClients()
@@ -107,6 +117,7 @@ void NetworkServer::RemoveStaleClients()
 		if (!client->IsRunning())
 		{
 			client->Join();
+			this->OnClientRemoved(client);
 			delete client;
 			staleClientArray.push_back(iter);
 		}

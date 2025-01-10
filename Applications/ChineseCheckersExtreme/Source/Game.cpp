@@ -194,6 +194,11 @@ bool ChineseCheckersGame::FromJson(const ParseParty::JsonValue* jsonRootValue)
 	return true;
 }
 
+/*static*/ ChineseCheckersGame* ChineseCheckersGame::Factory(const char* gameType)
+{
+	return nullptr;
+}
+
 //---------------------------------- ChineseCheckersGame::Occupant ----------------------------------
 
 ChineseCheckersGame::Occupant::Occupant()

@@ -60,6 +60,11 @@ public:
 		int zoneID;
 	};
 
+	virtual int GetMaxPossiblePlayers() const = 0;
+	virtual const char* GetGameType() const = 0;
+
+	static ChineseCheckersGame* Factory(const char* gameType);
+
 protected:
 
 	/**

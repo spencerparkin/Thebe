@@ -8,7 +8,7 @@ namespace Thebe
 	/**
 	 * Thin wrapper around standard threading API.
 	 */
-	class Thread
+	class THEBE_API Thread
 	{
 	public:
 		Thread();
@@ -43,6 +43,6 @@ namespace Thebe
 		virtual void Run() = 0;
 
 		std::thread* thread;
-		bool isRunning;
+		volatile bool isRunning;
 	};
 }

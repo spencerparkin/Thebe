@@ -15,6 +15,10 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/GameShapes/OctagonalGame.h
     Source/GameShapes/CubicGame.cpp
     Source/GameShapes/CubicGame.h
+    Source/Network/GameServer.cpp
+    Source/Network/GameServer.h
+    Source/Network/GameClient.cpp
+    Source/Network/GameClient.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})
