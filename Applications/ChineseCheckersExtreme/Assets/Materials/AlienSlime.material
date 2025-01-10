@@ -1,0 +1,13 @@
+{
+	"alpha_blending": false,
+	"casts_shadows": true,
+	"name": "AlienSlime",
+	"shader": "Shaders/PBRShader.shader",
+	"texture_map":
+	{
+		"albedo": "Textures\\AlientSlime\\alien-slime1-albedo.texture_buffer",
+		"metalic": "Textures\\AlientSlime\\alien-slime1-metallic.texture_buffer",
+		"normal": "Textures\\AlientSlime\\alien-slime1-normal-dx.texture_buffer",
+		"roughness": "Textures\\AlientSlime\\alien-slime1-roughness.texture_buffer"
+	}
+}

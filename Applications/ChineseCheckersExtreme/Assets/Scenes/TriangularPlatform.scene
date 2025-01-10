@@ -1,0 +1,154 @@
+{
+	"root":
+	{
+		"child_to_parent_transform":
+		{
+			"matrix":
+			{
+				"elements":
+				[
+					1.000000,
+					0.000000,
+					0.000000,
+					0.000000,
+					1.000000,
+					0.000000,
+					0.000000,
+					0.000000,
+					1.000000
+				]
+			},
+			"translation":
+			{
+				"x": 0.000000,
+				"y": 0.000000,
+				"z": 0.000000
+			}
+		},
+		"children":
+		[
+			{
+				"child_to_parent_transform":
+				{
+					"matrix":
+					{
+						"elements":
+						[
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							-0.000000,
+							1.000000,
+							0.000000,
+							-1.000000,
+							-0.000000
+						]
+					},
+					"translation":
+					{
+						"x": 0.000000,
+						"y": 0.000000,
+						"z": 0.000000
+					}
+				},
+				"children":
+				[
+					{
+						"child_to_parent_transform":
+						{
+							"matrix":
+							{
+								"elements":
+								[
+									0.866025,
+									-0.500000,
+									0.000000,
+									0.500000,
+									0.866025,
+									0.000000,
+									0.000000,
+									0.000000,
+									1.000000
+								]
+							},
+							"translation":
+							{
+								"x": 0.000000,
+								"y": 0.000000,
+								"z": 0.000000
+							}
+						},
+						"children":
+						[
+							{
+								"child_to_parent_transform":
+								{
+									"matrix":
+									{
+										"elements":
+										[
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000
+										]
+									},
+									"translation":
+									{
+										"x": 0.000000,
+										"y": 0.000000,
+										"z": 0.000000
+									}
+								},
+								"children":
+								[
+									{
+										"child_to_parent_transform":
+										{
+											"matrix":
+											{
+												"elements":
+												[
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000
+												]
+											},
+											"translation":
+											{
+												"x": 0.000000,
+												"y": 0.000000,
+												"z": 0.000000
+											}
+										},
+										"children":
+										[
+
+										],
+										"mesh_instance": "Meshes\\TriangularPlatform.mesh"
+									}
+								],
+								"name": "TriangularPlatform"
+							}
+						],
+						"name": "TriangularPlatform_$AssimpFbx$_Rotation"
+					}
+				],
+				"name": "TriangularPlatform_$AssimpFbx$_PreRotation"
+			}
+		],
+		"name": "RootNode"
+	}
+}

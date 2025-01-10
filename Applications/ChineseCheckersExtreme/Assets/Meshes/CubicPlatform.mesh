@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\CubicPlatform.index_buffer",
+	"material": "Materials\\AlienSlime.material",
+	"name": "CubicPlatform",
+	"vertex_buffer": "Buffers\\CubicPlatform.vertex_buffer"
+}

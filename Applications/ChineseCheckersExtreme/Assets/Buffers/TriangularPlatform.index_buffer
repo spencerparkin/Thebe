@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\TriangularPlatform.index_buffer_data",
+	"format": 42,
+	"name": "TriangularPlatform_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 144,
+	"type": 1
+}
