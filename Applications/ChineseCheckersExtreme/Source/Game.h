@@ -33,7 +33,7 @@ public:
 	virtual ~ChineseCheckersGame();
 
 	bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) const;
-	bool FromJson(const ParseParty::JsonArray* jsonRootValue);
+	bool FromJson(const ParseParty::JsonValue* jsonRootValue);
 
 	class Occupant : public Thebe::ReferenceCounted
 	{
