@@ -7,6 +7,14 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/Frame.h
     Source/Canvas.cpp
     Source/Canvas.h
+    Source/Game.cpp
+    Source/Game.h
+    Source/HexagonalGame.cpp
+    Source/HexagonalGame.h
+    Source/TriangularGame.cpp
+    Source/TriangularGame.h
+    Source/CubicGame.cpp
+    Source/CubicGame.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})
