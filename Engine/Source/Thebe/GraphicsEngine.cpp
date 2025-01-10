@@ -578,9 +578,12 @@ bool GraphicsEngine::GetRelativeToAssetFolder(std::filesystem::path& assetPath, 
 	for (auto assetFolderUsed : this->assetFolderList)
 	{
 		std::error_code error;
-		assetPath = std::filesystem::relative(assetPath, assetFolderUsed, error);
-		if (error.value() == 0)
+		std::filesystem::path relativePath = std::filesystem::relative(assetPath, assetFolderUsed, error);
+		if (relativePath.string().find("..") != 0 && error.value() == 0)
+		{
+			assetPath = relativePath;
 			return true;
+		}
 	}
 	
 	THEBE_LOG("Failed to get path (%s) relative to a configured asset folder.", assetPath.string().c_str());

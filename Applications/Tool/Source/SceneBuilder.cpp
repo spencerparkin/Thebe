@@ -29,6 +29,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->RemoveAllAssetFolders();
 	graphicsEngine->AddAssetFolder(this->outputAssetsFolder);
+	graphicsEngine->AddAssetFolder("Engine/Assets");
 
 	this->importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1.0);
 
@@ -104,7 +105,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		}
 	}
 
-	if (!this->textureBuilder.GenerateTextures(this->outputAssetsFolder))
+	if (!this->textureBuilder.GenerateTextures())
 		return false;
 
 	return true;

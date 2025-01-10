@@ -20,7 +20,7 @@ void TextureBuilder::AddTexture(const std::filesystem::path& inputTexturePath, c
 	this->texturesToBuildMap.insert(std::pair(inputTexturePath.lexically_normal(), textureBuildInfo));
 }
 
-bool TextureBuilder::GenerateTextures(const std::filesystem::path& outputAssetsFolder)
+bool TextureBuilder::GenerateTextures()
 {
 	THEBE_LOG("Processing %d textures...", this->texturesToBuildMap.size());
 	for (auto pair : this->texturesToBuildMap)
@@ -36,7 +36,14 @@ bool TextureBuilder::GenerateTextures(const std::filesystem::path& outputAssetsF
 			return false;
 		}
 
-		std::filesystem::path outputTexturePath = (outputAssetsFolder / this->GenerateTextureBufferPath(inputTexturePath)).lexically_normal();
+		std::filesystem::path assetsFolder;
+		if (!wxGetApp().GetGraphicsEngine()->GleanAssetsFolderFromPath(inputTexturePath, assetsFolder))
+		{
+			THEBE_LOG("Failed to glean assets folder from path: %s", inputTexturePath.string().c_str());
+			return false;
+		}
+
+		std::filesystem::path outputTexturePath = (assetsFolder / this->GenerateTextureBufferPath(inputTexturePath)).lexically_normal();
 		if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(outputTexturePath, outputTexture, THEBE_DUMP_FLAG_CAN_OVERWRITE))
 		{
 			THEBE_LOG("Failed to dump texture: %s", outputTexturePath.string().c_str());

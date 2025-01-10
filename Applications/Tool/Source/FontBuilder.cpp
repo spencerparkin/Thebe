@@ -218,7 +218,7 @@ bool FontBuilder::GenerateFont(const wxString& fontFile, const std::filesystem::
 		std::filesystem::path inputTexturePath((const char*)atlasFileName.GetFullPath().c_str());
 		TextureBuilder textureBuilder;
 		textureBuilder.AddTexture(inputTexturePath, TextureBuilder::TextureBuildInfo{ DXGI_FORMAT_A8_UNORM, 1 });
-		if (!textureBuilder.GenerateTextures(outputAssetsFolder))
+		if (!textureBuilder.GenerateTextures())
 		{
 			THEBE_LOG("Failed to generate atlas texture!");
 			break;

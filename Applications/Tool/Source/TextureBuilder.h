@@ -20,7 +20,7 @@ public:
 	void AddTexture(const std::filesystem::path& inputTexturePath, const TextureBuildInfo& textureBuildInfo);
 	void ClearTextures();
 
-	bool GenerateTextures(const std::filesystem::path& outputAssetsFolder);
+	bool GenerateTextures();
 
 	std::filesystem::path GenerateTextureBufferPath(const std::filesystem::path& inputTexturePath);
 
