@@ -35,26 +35,6 @@ public:
 	bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) const;
 	bool FromJson(const ParseParty::JsonArray* jsonRootValue);
 
-protected:
-
-	/**
-	 * Generate the graph data-structure on which the game is played.
-	 */
-	virtual void GenerateGraph() = 0;
-
-	/**
-	 * Populate the scene with a visual manifestation of the game.
-	 * Of course, the human-controlled clients will do this, but the
-	 * server will not.  Computer-controlled clients won't need to
-	 * do this either.
-	 */
-	virtual bool PopulateScene(Thebe::Space* space) = 0;
-
-	virtual bool GetInitialZoneForPlayer(int playerID, int& initialZoneID) = 0;
-	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
-
-	void Clear();
-
 	class Occupant : public Thebe::ReferenceCounted
 	{
 	public:
@@ -74,9 +54,29 @@ protected:
 
 		std::vector<Node*> adjacentNodeArray;
 		Thebe::Vector3 location;
-		Thebe::Reference<Occupant> occupant;
+		Occupant* occupant;
 		int zoneID;
 	};
+
+protected:
+
+	/**
+	 * Generate the graph data-structure on which the game is played.
+	 */
+	virtual void GenerateGraph() = 0;
+
+	/**
+	 * Populate the scene with a visual manifestation of the game.
+	 * Of course, the human-controlled clients will do this, but the
+	 * server will not.  Computer-controlled clients won't need to
+	 * do this either.
+	 */
+	virtual bool PopulateScene(Thebe::Space* space) = 0;
+
+	virtual bool GetInitialZoneForPlayer(int playerID, int& initialZoneID) = 0;
+	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
+
+	void Clear();
 
 	std::vector<Thebe::Reference<Node>> nodeArray;
 	std::vector<Thebe::Reference<Occupant>> occupantArray;

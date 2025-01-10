@@ -48,6 +48,7 @@ ChineseCheckersGame::Node::Node()
 {
 	this->occupant = 0;
 	this->zoneID = 0;
+	this->occupant = nullptr;
 }
 
 /*virtual*/ ChineseCheckersGame::Node::~Node()
