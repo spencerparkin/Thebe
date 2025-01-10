@@ -54,3 +54,13 @@ ChineseCheckersGame::Node::Node()
 /*virtual*/ ChineseCheckersGame::Node::~Node()
 {
 }
+
+void ChineseCheckersGame::Node::RemoveNullAdjacencies()
+{
+	std::vector<Node*> nodeArray;
+	for (auto node : this->adjacentNodeArray)
+		if (node)
+			nodeArray.push_back(node);
+
+	this->adjacentNodeArray = nodeArray;
+}

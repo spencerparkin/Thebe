@@ -52,6 +52,8 @@ public:
 		Node();
 		virtual ~Node();
 
+		void RemoveNullAdjacencies();
+
 		std::vector<Node*> adjacentNodeArray;
 		Thebe::Vector3 location;
 		Occupant* occupant;

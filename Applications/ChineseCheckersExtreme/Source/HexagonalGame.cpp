@@ -75,18 +75,12 @@ HexagonalGame::HexagonalGame()
 			Node* node = matrix[i][j];
 			if (node)
 			{
-				if (j < numCols - 1 && matrix[i][j + 1])
-					node->adjacentNodeArray.push_back(matrix[i][j + 1]);
-				if (j < numCols - 1 && i > 0 && matrix[i - 1][j + 1])
-					node->adjacentNodeArray.push_back(matrix[i - 1][j + 1]);
-				if (i > 0 && matrix[i - 1][j])
-					node->adjacentNodeArray.push_back(matrix[i - 1][j]);
-				if (j > 0 && matrix[i][j - 1])
-					node->adjacentNodeArray.push_back(matrix[i][j - 1]);
-				if (j > 0 && i < numRows - 1 && matrix[i + 1][j - 1])
-					node->adjacentNodeArray.push_back(matrix[i + 1][j - 1]);
-				if (i < numRows - 1 && matrix[i + 1][j])
-					node->adjacentNodeArray.push_back(matrix[i + 1][j]);
+				node->adjacentNodeArray.push_back((j < numCols - 1 && matrix[i][j + 1]) ? matrix[i][j + 1] : nullptr);
+				node->adjacentNodeArray.push_back((j < numCols - 1 && i > 0 && matrix[i - 1][j + 1]) ? matrix[i - 1][j + 1] : nullptr);
+				node->adjacentNodeArray.push_back((i > 0 && matrix[i - 1][j]) ? matrix[i - 1][j] : nullptr);
+				node->adjacentNodeArray.push_back((j > 0 && matrix[i][j - 1]) ? matrix[i][j - 1] : nullptr);
+				node->adjacentNodeArray.push_back((j > 0 && i < numRows - 1 && matrix[i + 1][j - 1]) ? matrix[i + 1][j - 1] : nullptr);
+				node->adjacentNodeArray.push_back((i < numRows - 1 && matrix[i + 1][j]) ? matrix[i + 1][j] : nullptr);
 			}
 		}
 	}
@@ -105,7 +99,7 @@ HexagonalGame::HexagonalGame()
 		for (int i = 0; i < (int)node->adjacentNodeArray.size(); i++)
 		{
 			Node* adjacentNode = node->adjacentNodeArray[i];
-			if (locationAssignedSet.find(adjacentNode) == locationAssignedSet.end())
+			if (adjacentNode && locationAssignedSet.find(adjacentNode) == locationAssignedSet.end())
 			{
 				double angle = 2.0 * THEBE_PI * double(i) / double(node->adjacentNodeArray.size() - 1);
 				Vector3 delta(radius * cos(angle), 0.0, -radius * sin(angle));
@@ -115,6 +109,10 @@ HexagonalGame::HexagonalGame()
 			}
 		}
 	}
+
+	// Remove null adjacencies that were just convenient for us during the graph generation process.
+	for (auto node : this->nodeArray)
+		node->RemoveNullAdjacencies();
 }
 
 /*virtual*/ bool HexagonalGame::PopulateScene(Thebe::Space* space)
