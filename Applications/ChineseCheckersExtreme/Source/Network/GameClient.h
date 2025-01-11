@@ -4,7 +4,7 @@
 #include "Game.h"
 
 /**
- * These can be human or computer controlled.
+ *
  */
 class ChineseCheckersClient : public Thebe::NetworkClient
 {

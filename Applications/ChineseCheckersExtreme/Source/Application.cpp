@@ -13,7 +13,6 @@ using namespace Thebe;
 
 ChineseCheckersApp::ChineseCheckersApp()
 {
-	this->gameClient = nullptr;
 	this->gameServer = nullptr;
 	this->frame = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
@@ -21,6 +20,8 @@ ChineseCheckersApp::ChineseCheckersApp()
 
 /*virtual*/ ChineseCheckersApp::~ChineseCheckersApp()
 {
+	THEBE_ASSERT(this->gameServer == nullptr);
+	THEBE_ASSERT(this->gameClientArray.size() == 0);
 }
 
 Thebe::FreeCam* ChineseCheckersApp::GetFreeCam()
@@ -105,19 +106,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
-	if (this->gameClient)
-	{
-		this->gameClient->Shutdown();
-		delete this->gameClient;
-		this->gameClient = nullptr;
-	}
-
-	if (this->gameServer)
-	{
-		this->gameServer->Shutdown();
-		delete this->gameServer;
-		this->gameServer = nullptr;
-	}
+	this->ShutdownClientsAndServer();
 
 	this->graphicsEngine->WaitForGPUIdle();
 
@@ -132,14 +121,27 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	return 0;
 }
 
+void ChineseCheckersApp::ShutdownClientsAndServer()
+{
+	for (ChineseCheckersClient* gameClient : this->gameClientArray)
+	{
+		gameClient->Shutdown();
+		delete gameClient;
+	}
+
+	this->gameClientArray.clear();
+
+	if (this->gameServer)
+	{
+		this->gameServer->Shutdown();
+		delete this->gameServer;
+		this->gameServer = nullptr;
+	}
+}
+
 GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
 {
 	return this->graphicsEngine.Get();
-}
-
-ChineseCheckersClient* ChineseCheckersApp::GetGameClient()
-{
-	return this->gameClient;
 }
 
 ChineseCheckersServer* ChineseCheckersApp::GetGameServer()
@@ -147,12 +149,12 @@ ChineseCheckersServer* ChineseCheckersApp::GetGameServer()
 	return this->gameServer;
 }
 
-void ChineseCheckersApp::SetGameClient(ChineseCheckersClient* gameClient)
-{
-	this->gameClient = gameClient;
-}
-
 void ChineseCheckersApp::SetGameServer(ChineseCheckersServer* gameServer)
 {
 	this->gameServer = gameServer;
+}
+
+std::vector<ChineseCheckersClient*>& ChineseCheckersApp::GetGameClientArray()
+{
+	return this->gameClientArray;
 }

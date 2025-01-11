@@ -24,11 +24,12 @@ public:
 	Thebe::FreeCam* GetFreeCam();
 	Thebe::DynamicLineRenderer* GetLineRenderer();
 
-	ChineseCheckersClient* GetGameClient();
 	ChineseCheckersServer* GetGameServer();
-
-	void SetGameClient(ChineseCheckersClient* gameClient);
 	void SetGameServer(ChineseCheckersServer* gameServer);
+
+	std::vector<ChineseCheckersClient*>& GetGameClientArray();
+
+	void ShutdownClientsAndServer();
 
 private:
 	ChineseCheckersFrame* frame;
@@ -37,7 +38,7 @@ private:
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
 	Thebe::FreeCam freeCam;
-	ChineseCheckersClient* gameClient;
+	std::vector<ChineseCheckersClient*> gameClientArray;
 	ChineseCheckersServer* gameServer;
 };
 

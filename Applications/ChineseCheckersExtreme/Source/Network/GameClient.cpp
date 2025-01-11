@@ -39,16 +39,20 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	std::unique_ptr<JsonObject> jsonRequestValue(new JsonObject());
 	jsonRequestValue->SetValue("request", new JsonString("get_game_state"));
 	client->SendJson(jsonRequestValue.get());
+	THEBE_LOG("Client sent game state request.");
 
 	jsonRequestValue.reset(new JsonObject());
 	jsonRequestValue->SetValue("request", new JsonString("get_player_id"));
 	client->SendJson(jsonRequestValue.get());
+	THEBE_LOG("Client sent player ID request.");
 
 	return true;
 }
 
 /*virtual*/ void ChineseCheckersClient::Shutdown()
 {
+	THEBE_LOG("Game client shutdown");
+
 	NetworkClient::Shutdown();
 }
 

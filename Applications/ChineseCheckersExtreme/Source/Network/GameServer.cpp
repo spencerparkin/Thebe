@@ -24,7 +24,7 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 	this->freePlayerIDStack.clear();
 	for (int i = 1; i <= this->game->GetMaxPossiblePlayers(); i++)
-		this->freePlayerIDStack.push_back(i);
+		this->freePlayerIDStack.push_back(i);		// TODO: Should probably get this order from the game derivative.
 
 	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
 		{
@@ -36,6 +36,8 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 /*virtual*/ void ChineseCheckersServer::Shutdown()
 {
+	THEBE_LOG("Game server shutdown");
+
 	this->SetGame(nullptr);
 
 	NetworkServer::Shutdown();

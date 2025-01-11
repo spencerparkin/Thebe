@@ -2,6 +2,8 @@
 #include "Canvas.h"
 #include "Application.h"
 #include "HostGameDialog.h"
+#include "Network/HumanClient.h"
+#include "Network/ComputerClient.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
@@ -77,18 +79,33 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 
 	wxGetApp().SetGameServer(server.release());
 
-	std::unique_ptr<ChineseCheckersClient> client(new ChineseCheckersClient());
-	client->SetAddress(data.hostAddress);
-	if (!client->Setup())
+	if (data.numAIPlayers < data.numPlayers)
 	{
-		wxMessageBox("Client setup failed.  See log for details.", "Error", wxICON_ERROR | wxOK, this);
-		client->Shutdown();
-		return;
+		std::unique_ptr<ChineseCheckersClient> client(new HumanClient());
+		client->SetAddress(data.hostAddress);
+		if (!client->Setup())
+		{
+			wxMessageBox("Human client setup failed.  See log for details.", "Error", wxICON_ERROR | wxOK, this);
+			client->Shutdown();
+			return;
+		}
+
+		wxGetApp().GetGameClientArray().push_back(client.release());
 	}
 
-	wxGetApp().SetGameClient(client.release());
+	for (int i = 0; i < data.numAIPlayers; i++)
+	{
+		std::unique_ptr<ChineseCheckersClient> client(new ComputerClient());
+		client->SetAddress(data.hostAddress);
+		if (!client->Setup())
+		{
+			wxMessageBox(wxString::Format("Computer client %d setup failed.", i), "Error", wxICON_ERROR | wxOK, this);
+			client->Shutdown();
+			return;
+		}
 
-	// TODO: Setup AI clients here.
+		wxGetApp().GetGameClientArray().push_back(client.release());
+	}
 }
 
 void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
@@ -97,6 +114,7 @@ void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
 
 void ChineseCheckersFrame::OnLeaveGame(wxCommandEvent& event)
 {
+	wxGetApp().ShutdownClientsAndServer();
 }
 
 void ChineseCheckersFrame::OnExit(wxCommandEvent& event)
@@ -129,12 +147,12 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_HostGame:
 		case ID_JoinGame:
 		{
-			event.Enable(wxGetApp().GetGameClient() == nullptr && wxGetApp().GetGameServer() == nullptr);
+			event.Enable(wxGetApp().GetGameClientArray().size() == 0 && wxGetApp().GetGameServer() == nullptr);
 			break;
 		}
 		case ID_LeaveGame:
 		{
-			event.Enable(wxGetApp().GetGameClient() != nullptr || wxGetApp().GetGameServer() != nullptr);
+			event.Enable(wxGetApp().GetGameClientArray().size() > 0 || wxGetApp().GetGameServer() != nullptr);
 			break;
 		}
 	}
@@ -143,10 +161,10 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 {
 	this->canvas->Refresh(false);
+
 	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
 	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 
-	ChineseCheckersClient* client = wxGetApp().GetGameClient();
-	if (client)
+	for (ChineseCheckersClient* client : wxGetApp().GetGameClientArray())
 		client->Update();
 }
