@@ -3,19 +3,19 @@
 
 using namespace Thebe;
 
-//---------------------------------- ChineseCheckersGameServer ----------------------------------
+//---------------------------------- ChineseCheckersServer ----------------------------------
 
-ChineseCheckersGameServer::ChineseCheckersGameServer()
+ChineseCheckersServer::ChineseCheckersServer()
 {
 	this->game = nullptr;
 }
 
-/*virtual*/ ChineseCheckersGameServer::~ChineseCheckersGameServer()
+/*virtual*/ ChineseCheckersServer::~ChineseCheckersServer()
 {
 	delete this->game;
 }
 
-/*virtual*/ bool ChineseCheckersGameServer::Setup()
+/*virtual*/ bool ChineseCheckersServer::Setup()
 {
 	if (!this->game)
 	{
@@ -35,20 +35,20 @@ ChineseCheckersGameServer::ChineseCheckersGameServer()
 	return NetworkServer::Setup();
 }
 
-/*virtual*/ void ChineseCheckersGameServer::Shutdown()
+/*virtual*/ void ChineseCheckersServer::Shutdown()
 {
 	this->SetGame(nullptr);
 
 	NetworkServer::Shutdown();
 }
 
-void ChineseCheckersGameServer::SetGame(ChineseCheckersGame* game)
+void ChineseCheckersServer::SetGame(ChineseCheckersGame* game)
 {
 	delete this->game;
 	this->game = game;
 }
 
-bool ChineseCheckersGameServer::ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client)
+bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client)
 {
 	using namespace ParseParty;
 
@@ -111,7 +111,7 @@ bool ChineseCheckersGameServer::ServeRequest(const ParseParty::JsonValue* jsonRe
 	return true;
 }
 
-/*virtual*/ void ChineseCheckersGameServer::OnClientAdded(Thebe::NetworkSocket* networkSocket)
+/*virtual*/ void ChineseCheckersServer::OnClientAdded(Thebe::NetworkSocket* networkSocket)
 {
 	auto client = dynamic_cast<Socket*>(networkSocket);
 	THEBE_ASSERT_FATAL(client);
@@ -125,7 +125,7 @@ bool ChineseCheckersGameServer::ServeRequest(const ParseParty::JsonValue* jsonRe
 	}
 }
 
-/*virtual*/ void ChineseCheckersGameServer::OnClientRemoved(Thebe::NetworkSocket* networkSocket)
+/*virtual*/ void ChineseCheckersServer::OnClientRemoved(Thebe::NetworkSocket* networkSocket)
 {
 	auto client = dynamic_cast<Socket*>(networkSocket);
 	THEBE_ASSERT_FATAL(client);
@@ -135,19 +135,19 @@ bool ChineseCheckersGameServer::ServeRequest(const ParseParty::JsonValue* jsonRe
 	this->freePlayerIDStack.push_back(client->playerID);
 }
 
-//---------------------------------- ChineseCheckersGameServer::Socket ----------------------------------
+//---------------------------------- ChineseCheckersServer::Socket ----------------------------------
 
-ChineseCheckersGameServer::Socket::Socket(SOCKET socket, ChineseCheckersGameServer* server) : JsonNetworkSocket(socket)
+ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket)
 {
 	this->playerID = 0;
 	this->server = server;
 }
 
-/*virtual*/ ChineseCheckersGameServer::Socket::~Socket()
+/*virtual*/ ChineseCheckersServer::Socket::~Socket()
 {
 }
 
-/*virtual*/ bool ChineseCheckersGameServer::Socket::ReceiveJson(const ParseParty::JsonValue* jsonRootValue)
+/*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(const ParseParty::JsonValue* jsonRootValue)
 {
 	std::unique_ptr<ParseParty::JsonValue> jsonResponse;
 

@@ -1,4 +1,7 @@
 #include "Game.h"
+#include "GameShapes/CubicGame.h"
+#include "GameShapes/HexagonalGame.h"
+#include "GameShapes/OctagonalGame.h"
 #include "Thebe/Utilities/JsonHelper.h"
 #include "Thebe/Log.h"
 
@@ -196,6 +199,13 @@ bool ChineseCheckersGame::FromJson(const ParseParty::JsonValue* jsonRootValue)
 
 /*static*/ ChineseCheckersGame* ChineseCheckersGame::Factory(const char* gameType)
 {
+	if (0 == ::strcmp(gameType, "cubic"))
+		return new CubicGame();
+	else if (0 == ::strcmp(gameType, "hexagonal"))
+		return new HexagonalGame();
+	else if (0 == ::strcmp(gameType, "octagonal"))
+		return new OctagonalGame();
+
 	return nullptr;
 }
 

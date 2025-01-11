@@ -9,6 +9,8 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/Canvas.h
     Source/Game.cpp
     Source/Game.h
+    Source/HostGameDialog.cpp
+    Source/HostGameDialog.h
     Source/GameShapes/HexagonalGame.cpp
     Source/GameShapes/HexagonalGame.h
     Source/GameShapes/OctagonalGame.cpp

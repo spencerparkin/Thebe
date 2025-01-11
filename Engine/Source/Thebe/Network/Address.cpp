@@ -29,10 +29,42 @@ void NetworkAddress::operator=(const NetworkAddress& address)
 
 bool NetworkAddress::SetAddress(const std::string& ipAddrAndPort)
 {
-	int colonPos = ipAddrAndPort.find(':');
-	if (colonPos == std::string::npos)
-		return false;
-	//...
+	if (ipAddrAndPort.length() > 0 && ::isdigit(ipAddrAndPort.c_str()[0]))
+	{
+		int colonPos = ipAddrAndPort.find(':');
+		if (colonPos == std::string::npos)
+		{
+			this->ipAddr = ipAddrAndPort;
+			this->port = 0;
+		}
+		else
+		{
+			this->ipAddr = ipAddrAndPort.substr(0, colonPos);
+			this->port = ::atoi(ipAddrAndPort.substr(colonPos + 1).c_str());
+		}
+	}
+	else
+	{
+		char hostNameBuffer[128];
+		const char* hostNamePtr = nullptr;
+		if (!ipAddrAndPort.empty())
+			hostNamePtr = ipAddrAndPort.c_str();
+		else
+		{
+			if (::gethostname(hostNameBuffer, sizeof(hostNameBuffer)) == SOCKET_ERROR)
+				return false;
+
+			hostNamePtr = hostNameBuffer;
+		}
+
+		hostent* host = ::gethostbyname(hostNamePtr);
+		if (!host)
+			return false;
+
+		this->ipAddr = std::string(::inet_ntoa(*(struct in_addr*)host->h_addr_list[0]));
+		this->port = 0;
+	}
+
 	return true;
 }
 

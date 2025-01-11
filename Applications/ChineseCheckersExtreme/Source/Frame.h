@@ -17,6 +17,7 @@ public:
 		ID_Exit,
 		ID_HostGame,
 		ID_JoinGame,
+		ID_LeaveGame,
 		ID_Timer
 	};
 
@@ -25,6 +26,7 @@ public:
 private:
 	void OnHostGame(wxCommandEvent& event);
 	void OnJoinGame(wxCommandEvent& event);
+	void OnLeaveGame(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);

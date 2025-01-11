@@ -13,6 +13,8 @@ using namespace Thebe;
 
 ChineseCheckersApp::ChineseCheckersApp()
 {
+	this->gameClient = nullptr;
+	this->gameServer = nullptr;
 	this->frame = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
 }
@@ -119,4 +121,24 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
 {
 	return this->graphicsEngine.Get();
+}
+
+ChineseCheckersClient* ChineseCheckersApp::GetGameClient()
+{
+	return this->gameClient;
+}
+
+ChineseCheckersServer* ChineseCheckersApp::GetGameServer()
+{
+	return this->gameServer;
+}
+
+void ChineseCheckersApp::SetGameClient(ChineseCheckersClient* gameClient)
+{
+	this->gameClient = gameClient;
+}
+
+void ChineseCheckersApp::SetGameServer(ChineseCheckersServer* gameServer)
+{
+	this->gameServer = gameServer;
 }

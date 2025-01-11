@@ -26,3 +26,13 @@ OctagonalGame::OctagonalGame()
 {
 	return true;
 }
+
+/*virtual*/ int OctagonalGame::GetMaxPossiblePlayers() const
+{
+	return 8;
+}
+
+/*virtual*/ const char* OctagonalGame::GetGameType() const
+{
+	return "octagonal";
+}

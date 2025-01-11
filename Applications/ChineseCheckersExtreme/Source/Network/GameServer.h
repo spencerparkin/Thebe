@@ -7,11 +7,11 @@
  * This is the single source of truth for the state of the game
  * across all partipants on the network.
  */
-class ChineseCheckersGameServer : public Thebe::NetworkServer
+class ChineseCheckersServer : public Thebe::NetworkServer
 {
 public:
-	ChineseCheckersGameServer();
-	virtual ~ChineseCheckersGameServer();
+	ChineseCheckersServer();
+	virtual ~ChineseCheckersServer();
 
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
@@ -21,12 +21,12 @@ public:
 	class Socket : public Thebe::JsonNetworkSocket
 	{
 	public:
-		Socket(SOCKET socket, ChineseCheckersGameServer* server);
+		Socket(SOCKET socket, ChineseCheckersServer* server);
 		virtual ~Socket();
 
 		virtual bool ReceiveJson(const ParseParty::JsonValue* jsonRootValue) override;
 
-		ChineseCheckersGameServer* server;
+		ChineseCheckersServer* server;
 		int playerID;
 	};
 

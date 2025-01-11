@@ -129,3 +129,13 @@ HexagonalGame::HexagonalGame()
 {
 	return true;
 }
+
+/*virtual*/ int HexagonalGame::GetMaxPossiblePlayers() const
+{
+	return 6;
+}
+
+/*virtual*/ const char* HexagonalGame::GetGameType() const
+{
+	return "hexagonal";
+}

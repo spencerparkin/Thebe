@@ -26,3 +26,13 @@ CubicGame::CubicGame()
 {
 	return true;
 }
+
+/*virtual*/ int CubicGame::GetMaxPossiblePlayers() const
+{
+	return 4;
+}
+
+/*virtual*/ const char* CubicGame::GetGameType() const
+{
+	return "cubic";
+}
