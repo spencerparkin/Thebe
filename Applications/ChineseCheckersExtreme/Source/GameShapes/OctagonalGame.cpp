@@ -17,11 +17,6 @@ OctagonalGame::OctagonalGame()
 	return true;
 }
 
-/*virtual*/ bool OctagonalGame::GetInitialZoneForPlayer(int playerID, int& initialZoneID)
-{
-	return true;
-}
-
 /*virtual*/ bool OctagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
 {
 	return true;

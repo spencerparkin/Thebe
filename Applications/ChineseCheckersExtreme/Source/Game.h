@@ -78,7 +78,6 @@ public:
 	 */
 	virtual bool PopulateScene(Thebe::Space* space) = 0;
 
-	virtual bool GetInitialZoneForPlayer(int playerID, int& initialZoneID) = 0;
 	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
 
 	void Clear();

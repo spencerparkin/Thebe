@@ -67,6 +67,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	}
 
 	std::string request = requestValue->GetValue();
+	THEBE_LOG("Server got request \"%s\" from client.", request.c_str());
 
 	if (request == "get_game_state")
 	{
@@ -147,11 +148,11 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 {
 }
 
-/*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(const ParseParty::JsonValue* jsonRootValue)
+/*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
 	std::unique_ptr<ParseParty::JsonValue> jsonResponse;
 
-	if (this->server->ServeRequest(jsonRootValue, jsonResponse, this))
+	if (this->server->ServeRequest(jsonRootValue.get(), jsonResponse, this))
 	{
 		// Not all requests require a response.
 		if (jsonResponse.get())

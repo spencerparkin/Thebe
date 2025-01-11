@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <string>
 #include <functional>
+#include <mutex>
 
 namespace Thebe
 {
@@ -42,6 +43,7 @@ namespace Thebe
 
 		/**
 		 * Enqueue the given event to be dispatched/handled later.
+		 * It is safe to send an event from any thread.
 		 * 
 		 * @param[in] event This should be a point to an event allocated on the heap.  The event system takes ownership of the memory.
 		 */
@@ -53,6 +55,8 @@ namespace Thebe
 		void DispatchAllEvents();
 
 	private:
+		void EnqueueEvent(Event* event);
+		Event* DequeueEvent();
 
 		void DispatchEvent(Event* event);
 
@@ -60,6 +64,7 @@ namespace Thebe
 		typedef std::unordered_map<EventHandlerID, EventHandler> EventHandlerMap;
 
 		std::list<Event*> eventQueue;
+		std::mutex eventQueueMutex;
 		CategoryHandlerMap categoryHandlerMap;
 		EventHandlerMap eventHandlerMap;
 		EventHandlerID nextEventHandlerID;

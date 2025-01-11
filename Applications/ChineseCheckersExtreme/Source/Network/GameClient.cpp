@@ -1,3 +1,4 @@
+#include "Application.h"
 #include "GameClient.h"
 #include "Thebe/Log.h"
 
@@ -51,12 +52,16 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	NetworkClient::Shutdown();
 }
 
-bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
+/*virtual*/ void ChineseCheckersClient::Update()
+{
+	std::unique_ptr<const ParseParty::JsonValue> jsonResponse;
+	while (this->RemoveResponse(jsonResponse))
+		this->HandleResponse(jsonResponse.get());
+}
+
+/*virtual*/ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
 {
 	using namespace ParseParty;
-
-	// Typically we'd want any mutex lock to be much tighter than this, but I think this will be okay.
-	std::lock_guard<std::mutex> lock(this->clientMutex);
 
 	auto responseRootValue = dynamic_cast<const JsonObject*>(jsonResponse);
 	if (!responseRootValue)
@@ -73,6 +78,7 @@ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResp
 	}
 
 	std::string response = responseValue->GetValue();
+	THEBE_LOG("Client got response \"%s\" from server.", response.c_str());
 
 	if (response == "get_game_state")
 	{
@@ -126,6 +132,28 @@ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResp
 	return true;
 }
 
+void ChineseCheckersClient::AddResponse(const ParseParty::JsonValue* jsonResponse)
+{
+	std::lock_guard<std::mutex> lock(this->responseListMutex);
+	this->responseList.push_back(jsonResponse);
+}
+
+bool ChineseCheckersClient::RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse)
+{
+	if (this->responseList.size() > 0)
+	{
+		std::lock_guard<std::mutex> lock(this->responseListMutex);
+		if (this->responseList.size() > 0)
+		{
+			jsonResponse.reset(*this->responseList.begin());
+			this->responseList.pop_front();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 //------------------------------------- ChineseCheckersClient::Socket -------------------------------------
 
 ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket)
@@ -140,8 +168,8 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 {
 }
 
-/*virtual*/ bool ChineseCheckersClient::Socket::ReceiveJson(const ParseParty::JsonValue* jsonRootValue)
+/*virtual*/ bool ChineseCheckersClient::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
-	this->client->HandleResponse(jsonRootValue);
+	this->client->AddResponse(jsonRootValue.release());
 	return true;
 }

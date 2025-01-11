@@ -81,5 +81,15 @@ bool NetworkAgent::MakeTCPSocket(SOCKET& socket, addrinfo*& addressInfo)
 		return false;
 	}
 
+	// I'm not sure if this is really necessary.  I'm seeing that sometimes I'll send data,
+	// but then it will never get received.  Maybe I'm doing something else entirely wrong.
+	int flag = 1;
+	result = ::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&flag, sizeof(flag));
+	if (result == SOCKET_ERROR)
+	{
+		THEBE_LOG("Couldn't set the TCP no-delay socket option.  Error: %d", WSAGetLastError());
+		return false;
+	}
+
 	return true;
 }

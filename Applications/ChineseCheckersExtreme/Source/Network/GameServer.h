@@ -24,7 +24,7 @@ public:
 		Socket(SOCKET socket, ChineseCheckersServer* server);
 		virtual ~Socket();
 
-		virtual bool ReceiveJson(const ParseParty::JsonValue* jsonRootValue) override;
+		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) override;
 
 		ChineseCheckersServer* server;
 		int playerID;

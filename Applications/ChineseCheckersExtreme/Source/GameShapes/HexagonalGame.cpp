@@ -120,11 +120,6 @@ HexagonalGame::HexagonalGame()
 	return true;
 }
 
-/*virtual*/ bool HexagonalGame::GetInitialZoneForPlayer(int playerID, int& initialZoneID)
-{
-	return true;
-}
-
 /*virtual*/ bool HexagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
 {
 	return true;

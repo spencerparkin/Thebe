@@ -45,7 +45,7 @@ namespace Thebe
 
 		virtual bool ReceiveData(const uint8_t* buffer, uint32_t bufferSize, uint32_t& numBytesProcessed) override;
 
-		virtual bool ReceiveJson(const ParseParty::JsonValue* jsonRootValue);
+		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue);
 
 		bool SendJson(const ParseParty::JsonValue* jsonRootValue);
 	};

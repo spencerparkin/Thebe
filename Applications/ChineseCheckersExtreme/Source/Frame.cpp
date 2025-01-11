@@ -145,4 +145,8 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 	this->canvas->Refresh(false);
 	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
 	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
+
+	ChineseCheckersClient* client = wxGetApp().GetGameClient();
+	if (client)
+		client->Update();
 }

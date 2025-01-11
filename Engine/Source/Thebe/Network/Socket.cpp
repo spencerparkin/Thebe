@@ -130,13 +130,13 @@ JsonNetworkSocket::JsonNetworkSocket(SOCKET socket) : NetworkSocket(socket)
 
 	numBytesProcessed = jsonString.length() + 1;
 
-	if (!this->ReceiveJson(jsonRootValue.get()))
+	if (!this->ReceiveJson(jsonRootValue))
 		return false;
 
 	return true;
 }
 
-/*virtual*/ bool JsonNetworkSocket::ReceiveJson(const ParseParty::JsonValue* jsonRootValue)
+/*virtual*/ bool JsonNetworkSocket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
 	return true;
 }

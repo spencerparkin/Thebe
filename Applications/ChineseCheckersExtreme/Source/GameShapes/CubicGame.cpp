@@ -17,11 +17,6 @@ CubicGame::CubicGame()
 	return true;
 }
 
-/*virtual*/ bool CubicGame::GetInitialZoneForPlayer(int playerID, int& initialZoneID)
-{
-	return true;
-}
-
 /*virtual*/ bool CubicGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
 {
 	return true;

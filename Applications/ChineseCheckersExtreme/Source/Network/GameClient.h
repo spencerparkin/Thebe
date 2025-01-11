@@ -15,9 +15,9 @@ public:
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
 
-	ChineseCheckersGame* GetGame();
+	virtual void Update();
 
-	bool HandleResponse(const ParseParty::JsonValue* jsonResponse);
+	ChineseCheckersGame* GetGame();
 
 	class Socket : public Thebe::JsonNetworkSocket
 	{
@@ -25,13 +25,21 @@ public:
 		Socket(SOCKET socket, ChineseCheckersClient* client);
 		virtual ~Socket();
 
-		virtual bool ReceiveJson(const ParseParty::JsonValue* jsonRootValue) override;
+		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) override;
 
 		ChineseCheckersClient* client;
 		int playerID;
 	};
 
+	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse);
+
+	void AddResponse(const ParseParty::JsonValue* jsonResponse);
+
 private:
+
+	bool RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse);
+
 	Thebe::Reference<ChineseCheckersGame> game;
-	std::mutex clientMutex;
+	std::list<const ParseParty::JsonValue*> responseList;
+	std::mutex responseListMutex;
 };

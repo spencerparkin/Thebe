@@ -46,17 +46,42 @@ bool EventSystem::UnregisterEventHandler(EventHandlerID eventHandlerID)
 	return true;
 }
 
+void EventSystem::EnqueueEvent(Event* event)
+{
+	std::lock_guard<std::mutex> lock(this->eventQueueMutex);
+	this->eventQueue.push_back(event);
+}
+
+Event* EventSystem::DequeueEvent()
+{
+	Event* event = nullptr;
+
+	if (this->eventQueue.size() > 0)
+	{
+		std::lock_guard<std::mutex> lock(this->eventQueueMutex);
+		if (this->eventQueue.size() > 0)
+		{
+			event = *this->eventQueue.begin();
+			this->eventQueue.pop_front();
+		}
+	}
+
+	return event;
+}
+
 void EventSystem::SendEvent(Event* event)
 {
-	this->eventQueue.push_back(event);
+	this->EnqueueEvent(event);
 }
 
 void EventSystem::DispatchAllEvents()
 {
-	while (this->eventQueue.size() > 0)
+	while (true)
 	{
-		Event* event = *this->eventQueue.begin();
-		this->eventQueue.pop_front();
+		Event* event = this->DequeueEvent();
+		if (!event)
+			break;
+
 		this->DispatchEvent(event);
 		delete event;
 	}
