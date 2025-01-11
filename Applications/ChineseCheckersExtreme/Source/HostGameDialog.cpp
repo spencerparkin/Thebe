@@ -104,7 +104,7 @@ void HostGameDialog::OnOkayButton(wxCommandEvent& event)
 		return;
 	}
 
-	this->data.maxPlayers = this->numPlayersSpin->GetValue();
+	this->data.numPlayers = this->numPlayersSpin->GetValue();
 	this->data.numAIPlayers = this->numAIPlayersSpin->GetValue();
 	this->data.hostAddress.SetAddress((const char*)this->hostAddressText->GetValue().c_str());
 	this->data.hostAddress.SetPort(::atoi((const char*)this->hostPortText->GetValue().c_str()));

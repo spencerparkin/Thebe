@@ -65,8 +65,6 @@ public:
 
 	static ChineseCheckersGame* Factory(const char* gameType);
 
-protected:
-
 	/**
 	 * Generate the graph data-structure on which the game is played.
 	 */
@@ -84,6 +82,8 @@ protected:
 	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
 
 	void Clear();
+
+protected:
 
 	std::vector<Thebe::Reference<Node>> nodeArray;
 	std::vector<Thebe::Reference<Occupant>> occupantArray;

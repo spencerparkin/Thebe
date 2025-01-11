@@ -5,6 +5,7 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
+#include <wx/msgdlg.h>
 
 ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Chinese Checkers Extreme", pos, size), timer(this, ID_Timer)
 {
@@ -55,10 +56,39 @@ ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 {
 	HostGameDialog hostGameDialog(this);
-	if (hostGameDialog.ShowModal() == wxID_OK)
+	if (hostGameDialog.ShowModal() != wxID_OK)
+		return;
+	
+	const HostGameDialog::Data& data = hostGameDialog.GetData();
+
+	ChineseCheckersGame* game = ChineseCheckersGame::Factory((const char*)data.gameType.c_str());
+	game->GenerateGraph();
+
+	std::unique_ptr<ChineseCheckersServer> server(new ChineseCheckersServer());
+	server->SetAddress(data.hostAddress);
+	server->SetGame(game);
+	server->SetMaxConnections(data.numPlayers);
+	if (!server->Setup())
 	{
-		const HostGameDialog::Data& data = hostGameDialog.GetData();
+		wxMessageBox("Server setup failed.  See log for details.", "Error", wxICON_ERROR | wxOK, this);
+		server->Shutdown();
+		return;
 	}
+
+	wxGetApp().SetGameServer(server.release());
+
+	std::unique_ptr<ChineseCheckersClient> client(new ChineseCheckersClient());
+	client->SetAddress(data.hostAddress);
+	if (!client->Setup())
+	{
+		wxMessageBox("Client setup failed.  See log for details.", "Error", wxICON_ERROR | wxOK, this);
+		client->Shutdown();
+		return;
+	}
+
+	wxGetApp().SetGameClient(client.release());
+
+	// TODO: Setup AI clients here.
 }
 
 void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)

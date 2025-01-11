@@ -105,6 +105,20 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
+	if (this->gameClient)
+	{
+		this->gameClient->Shutdown();
+		delete this->gameClient;
+		this->gameClient = nullptr;
+	}
+
+	if (this->gameServer)
+	{
+		this->gameServer->Shutdown();
+		delete this->gameServer;
+		this->gameServer = nullptr;
+	}
+
 	this->graphicsEngine->WaitForGPUIdle();
 
 	this->lineRenderer->Shutdown();

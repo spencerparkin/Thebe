@@ -15,6 +15,11 @@ ChineseCheckersClient::ChineseCheckersClient()
 	delete this->game;
 }
 
+ChineseCheckersGame* ChineseCheckersClient::GetGame()
+{
+	return this->game;
+}
+
 /*virtual*/ bool ChineseCheckersClient::Setup()
 {
 	using namespace ParseParty;

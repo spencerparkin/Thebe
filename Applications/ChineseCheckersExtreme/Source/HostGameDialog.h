@@ -14,7 +14,7 @@ public:
 
 	struct Data
 	{
-		int maxPlayers;
+		int numPlayers;
 		int numAIPlayers;
 		std::string gameType;
 		Thebe::NetworkAddress hostAddress;
