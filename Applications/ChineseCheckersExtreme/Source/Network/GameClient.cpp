@@ -84,9 +84,8 @@ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResp
 		}
 
 		std::string gameType = gameTypeValue->GetValue();
-		delete this->game;
 		this->game = ChineseCheckersGame::Factory(gameType.c_str());
-		if (!this->game)
+		if (!this->game.Get())
 		{
 			THEBE_LOG("Game type %s not recognized.", gameType.c_str());
 			return false;
@@ -131,6 +130,8 @@ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResp
 
 ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket)
 {
+	this->ringBufferSize = 64 * 1024;
+	this->recvBufferSize = 4 * 1024;
 	this->playerID = 0;
 	this->client = client;
 }

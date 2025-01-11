@@ -97,7 +97,6 @@ void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
 
 void ChineseCheckersFrame::OnLeaveGame(wxCommandEvent& event)
 {
-
 }
 
 void ChineseCheckersFrame::OnExit(wxCommandEvent& event)

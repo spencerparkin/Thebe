@@ -32,6 +32,6 @@ public:
 	};
 
 private:
-	ChineseCheckersGame* game;
+	Thebe::Reference<ChineseCheckersGame> game;
 	std::mutex clientMutex;
 };

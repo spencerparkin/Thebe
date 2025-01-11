@@ -9,6 +9,8 @@ using namespace Thebe;
 NetworkSocket::NetworkSocket(SOCKET socket)
 {
 	this->socket = socket;
+	this->ringBufferSize = 2048;
+	this->recvBufferSize = 128;
 }
 
 /*virtual*/ NetworkSocket::~NetworkSocket()
@@ -28,15 +30,14 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 
 /*virtual*/ void NetworkSocket::Run()
 {
-	RingBuffer ringBuffer(2048);
-	uint32_t recvBufferSize = 128;
-	std::unique_ptr<char> recvBuffer(new char[recvBufferSize]);
+	RingBuffer ringBuffer(this->ringBufferSize);
+	std::unique_ptr<char> recvBuffer(new char[this->recvBufferSize]);
 	std::vector<char> byteArray;
 
 	while (true)
 	{
 		// Block here until we receive some data.
-		int numBytes = ::recv(this->socket, recvBuffer.get(), recvBufferSize, 0);
+		int numBytes = ::recv(this->socket, recvBuffer.get(), this->recvBufferSize, 0);
 		if (numBytes <= 0)
 		{
 			int error = WSAGetLastError();

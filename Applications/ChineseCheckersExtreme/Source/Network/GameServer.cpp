@@ -12,7 +12,6 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 /*virtual*/ ChineseCheckersServer::~ChineseCheckersServer()
 {
-	delete this->game;
 }
 
 /*virtual*/ bool ChineseCheckersServer::Setup()
@@ -44,7 +43,6 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 void ChineseCheckersServer::SetGame(ChineseCheckersGame* game)
 {
-	delete this->game;
 	this->game = game;
 }
 
@@ -139,6 +137,8 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 
 ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket)
 {
+	this->ringBufferSize = 64 * 1024;
+	this->recvBufferSize = 4 * 1024;
 	this->playerID = 0;
 	this->server = server;
 }

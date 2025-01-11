@@ -26,6 +26,9 @@ namespace Thebe
 		virtual bool Join() override;
 		virtual void Run() override;
 
+	protected:
+		int ringBufferSize;
+		int recvBufferSize;
 		SOCKET socket;
 	};
 

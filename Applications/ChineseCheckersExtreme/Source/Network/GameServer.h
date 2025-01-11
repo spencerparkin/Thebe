@@ -36,7 +36,7 @@ protected:
 	virtual void OnClientAdded(Thebe::NetworkSocket* networkSocket) override;
 	virtual void OnClientRemoved(Thebe::NetworkSocket* networkSocket) override;
 
-	ChineseCheckersGame* game;
+	Thebe::Reference<ChineseCheckersGame> game;
 	std::mutex serverMutex;
 	std::vector<int> freePlayerIDStack;
 };
