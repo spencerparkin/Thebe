@@ -37,15 +37,20 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 	while (true)
 	{
 		// Block here until we receive some data.
-		int numBytes = ::recv(this->socket, recvBuffer.get(), this->recvBufferSize, 0);
-		if (numBytes <= 0)
+		WSABUF buffer;
+		buffer.buf = recvBuffer.get();
+		buffer.len = this->recvBufferSize;
+		DWORD numBytesReceived = 0;
+		DWORD flags = MSG_PUSH_IMMEDIATE;
+		int result = WSARecv(this->socket, (LPWSABUF)&buffer, 1, &numBytesReceived, &flags, nullptr, nullptr);
+		if (result == SOCKET_ERROR)
 		{
-			int error = WSAGetLastError();
+			THEBE_LOG("Failed to receive data on socket.  Error: %d", WSAGetLastError());
 			break;
 		}
 
 		// Append whatever we got from the socket.
-		if (!ringBuffer.WriteBytes((uint8_t*)recvBuffer.get(), numBytes))
+		if (!ringBuffer.WriteBytes((uint8_t*)recvBuffer.get(), numBytesReceived))
 			break;
 
 		// Grab all the bytes we've read thus far into a buffer.
@@ -62,7 +67,7 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 
 		// Bite off as much of the stream as we can.
 		THEBE_ASSERT(numBytesProcessed <= numBytesStored);
-		if (!ringBuffer.DeleteBytes(numBytesProcessed))
+		if (!ringBuffer.DeleteBytes(THEBE_MIN(numBytesProcessed, numBytesStored)))
 			break;
 	}
 }
