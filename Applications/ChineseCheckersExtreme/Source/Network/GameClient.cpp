@@ -128,10 +128,6 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		THEBE_ASSERT_FATAL(client != nullptr);
 		client->playerID = playerIDValue->GetValue();
 	}
-	else if (response == "flush")
-	{
-		return true;
-	}
 	else
 	{
 		THEBE_LOG("Response \"%s\" not recognized.", response.c_str());
@@ -181,15 +177,4 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 {
 	this->client->AddResponse(jsonRootValue.release());
 	return true;
-}
-
-/*virtual*/ void ChineseCheckersClient::Socket::OnWakeup()
-{
-	using namespace ParseParty;
-
-	auto rootValue = new JsonObject();
-	rootValue->SetValue("request", new JsonString("flush"));
-
-	std::unique_ptr<JsonValue> jsonDummyResponse(rootValue);
-	this->SendJson(jsonDummyResponse.get());
 }

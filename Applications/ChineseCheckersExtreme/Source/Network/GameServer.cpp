@@ -105,10 +105,6 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 			//...
 		}
 	}
-	else if (request == "flush")
-	{
-		return true;
-	}
 	else
 	{
 		THEBE_LOG("Request \"%s\" not recognized.", request.c_str());
@@ -170,15 +166,4 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 	}
 
 	return true;
-}
-
-/*virtual*/ void ChineseCheckersServer::Socket::OnWakeup()
-{
-	using namespace ParseParty;
-
-	auto rootValue = new JsonObject();
-	rootValue->SetValue("response", new JsonString("flush"));
-
-	std::unique_ptr<JsonValue> jsonDummyResponse(rootValue);
-	this->SendJson(jsonDummyResponse.get());
 }
