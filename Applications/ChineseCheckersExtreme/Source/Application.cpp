@@ -42,6 +42,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 	this->frame = new ChineseCheckersFrame(wxPoint(10, 10), wxSize(1200, 800));
 
+#if !defined THEBE_NO_LOGGING
 	wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
 	loggerPath.SetName("ThebeLogViewer");
 	loggerPath.SetExt("exe");
@@ -62,6 +63,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 			Thebe::Log::Set(this->log);
 		}
 	}
+#endif //THEBE_NO_LOGGING
 
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))

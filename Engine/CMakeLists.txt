@@ -185,9 +185,9 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
 )
 
 #if(CMAKE_BUILD_TYPE MATCHES Release)
-#    target_compile_definitions(ThebeGraphicsEngine PUBLIC
-#        THEBE_NO_LOGGING
-#    )
+    target_compile_definitions(ThebeGraphicsEngine PUBLIC
+        THEBE_NO_LOGGING
+    )
 #endif()
 
 target_link_libraries(ThebeGraphicsEngine PRIVATE
