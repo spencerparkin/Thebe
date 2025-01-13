@@ -3,7 +3,7 @@
 #include "Thebe/Common.h"
 #include "Thebe/Reference.h"
 
-#if defined THEBE_LOGGING
+#if !defined THEBE_NO_LOGGING
 #	define THEBE_LOG(msg, ...)			do { if (Thebe::Log::Get()) Thebe::Log::Get()->Print(msg, __VA_ARGS__); } while(false)
 #else
 #	define THEBE_LOG(msg, ...)

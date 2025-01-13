@@ -209,6 +209,11 @@ bool ChineseCheckersGame::FromJson(const ParseParty::JsonValue* jsonRootValue)
 	return nullptr;
 }
 
+const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& ChineseCheckersGame::GetNodeArray() const
+{
+	return this->nodeArray;
+}
+
 //---------------------------------- ChineseCheckersGame::Occupant ----------------------------------
 
 ChineseCheckersGame::Occupant::Occupant()

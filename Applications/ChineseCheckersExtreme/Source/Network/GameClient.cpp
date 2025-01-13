@@ -1,4 +1,3 @@
-#include "Application.h"
 #include "GameClient.h"
 #include "Thebe/Log.h"
 

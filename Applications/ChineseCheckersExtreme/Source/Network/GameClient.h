@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Application.h"
 #include "Thebe/Network/Client.h"
 #include "Game.h"
 
@@ -35,11 +36,12 @@ public:
 
 	void AddResponse(const ParseParty::JsonValue* jsonResponse);
 
-private:
-
-	bool RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse);
-
+protected:
 	Thebe::Reference<ChineseCheckersGame> game;
+
+private:
+	bool RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse);
+	
 	std::list<const ParseParty::JsonValue*> responseList;
 	std::mutex responseListMutex;
 };

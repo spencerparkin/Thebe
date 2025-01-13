@@ -12,11 +12,6 @@ OctagonalGame::OctagonalGame()
 {
 }
 
-/*virtual*/ bool OctagonalGame::PopulateScene(Thebe::Space* space)
-{
-	return true;
-}
-
 /*virtual*/ bool OctagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
 {
 	return true;

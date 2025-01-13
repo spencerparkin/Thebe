@@ -12,11 +12,6 @@ CubicGame::CubicGame()
 {
 }
 
-/*virtual*/ bool CubicGame::PopulateScene(Thebe::Space* space)
-{
-	return true;
-}
-
 /*virtual*/ bool CubicGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
 {
 	return true;

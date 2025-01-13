@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Thebe/Reference.h"
-#include "Thebe/EngineParts/Space.h"
 #include "Thebe/Math/Vector3.h"
 #include "JsonValue.h"
 
@@ -70,17 +69,11 @@ public:
 	 */
 	virtual void GenerateGraph() = 0;
 
-	/**
-	 * Populate the scene with a visual manifestation of the game.
-	 * Of course, the human-controlled clients will do this, but the
-	 * server will not.  Computer-controlled clients won't need to
-	 * do this either.
-	 */
-	virtual bool PopulateScene(Thebe::Space* space) = 0;
-
 	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
 
 	void Clear();
+
+	const std::vector<Thebe::Reference<Node>>& GetNodeArray() const;
 
 protected:
 

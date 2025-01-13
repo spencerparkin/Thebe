@@ -101,7 +101,7 @@ HexagonalGame::HexagonalGame()
 			Node* adjacentNode = node->adjacentNodeArray[i];
 			if (adjacentNode && locationAssignedSet.find(adjacentNode) == locationAssignedSet.end())
 			{
-				double angle = 2.0 * THEBE_PI * double(i) / double(node->adjacentNodeArray.size() - 1);
+				double angle = 2.0 * THEBE_PI * double(i) / double(node->adjacentNodeArray.size());
 				Vector3 delta(radius * cos(angle), 0.0, -radius * sin(angle));
 				adjacentNode->location = node->location + delta;
 				locationAssignedSet.insert(adjacentNode);
@@ -113,11 +113,6 @@ HexagonalGame::HexagonalGame()
 	// Remove null adjacencies that were just convenient for us during the graph generation process.
 	for (auto node : this->nodeArray)
 		node->RemoveNullAdjacencies();
-}
-
-/*virtual*/ bool HexagonalGame::PopulateScene(Thebe::Space* space)
-{
-	return true;
 }
 
 /*virtual*/ bool HexagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)

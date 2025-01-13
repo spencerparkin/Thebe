@@ -33,6 +33,8 @@ namespace Thebe
 
 		static Space* Factory(const ParseParty::JsonObject* jsonObject);
 
+		Space* FindSpaceByName(const std::string& searchName);
+
 	protected:
 		Transform childToParent;
 		Transform objectToWorld;

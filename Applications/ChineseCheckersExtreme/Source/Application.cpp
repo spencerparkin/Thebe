@@ -4,6 +4,7 @@
 #include "Thebe/NetLog.h"
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/DirectionalLight.h"
+#include "Thebe/EngineParts/Text.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -78,10 +79,19 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	if (!this->lineRenderer->Setup())
 		return false;
 
+	Thebe::Reference<FramerateText> framerateText;
+	framerateText.Set(new FramerateText());
+	framerateText->SetGraphicsEngine(this->graphicsEngine);
+	framerateText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	if (!framerateText->Setup())
+		return false;
+
 	Reference<Scene> scene;
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\OceanScene.scene)", scene))
 		return false;
+
 	this->graphicsEngine->SetRenderObject(scene);
+	scene->GetRootSpace()->AddSubSpace(framerateText);
 	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
 
 	Reference<DirectionalLight> light(new DirectionalLight());

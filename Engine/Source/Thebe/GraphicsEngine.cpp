@@ -165,7 +165,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	this->csuDescriptorHeap.Set(new DescriptorHeap());
 	this->csuDescriptorHeap->SetGraphicsEngine(this);
 	D3D12_DESCRIPTOR_HEAP_DESC& csuDescriptorHeapDesc = this->csuDescriptorHeap->GetDescriptorHeapDesc();
-	csuDescriptorHeapDesc.NumDescriptors = 512;
+	csuDescriptorHeapDesc.NumDescriptors = 5 * 1024;
 	csuDescriptorHeapDesc.NodeMask = 0;
 	csuDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	csuDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;

@@ -179,3 +179,18 @@ void Space::ClearAllSubSpaces()
 {
 	this->subSpaceArray.clear();
 }
+
+Space* Space::FindSpaceByName(const std::string& searchName)
+{
+	if (this->name == searchName)
+		return this;
+
+	for (Space* subSpace : this->subSpaceArray)
+	{
+		Space* foundSpace = subSpace->FindSpaceByName(searchName);
+		if (foundSpace)
+			return foundSpace;
+	}
+
+	return nullptr;
+}

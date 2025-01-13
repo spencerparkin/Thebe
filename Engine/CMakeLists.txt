@@ -184,11 +184,11 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
     NOMINMAX
 )
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    target_compile_definitions(ThebeGraphicsEngine PUBLIC
-        THEBE_LOGGING
-    )
-endif()
+#if(CMAKE_BUILD_TYPE MATCHES Release)
+#    target_compile_definitions(ThebeGraphicsEngine PUBLIC
+#        THEBE_NO_LOGGING
+#    )
+#endif()
 
 target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib

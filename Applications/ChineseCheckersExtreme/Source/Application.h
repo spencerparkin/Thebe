@@ -10,6 +10,8 @@
 #include "Network/GameServer.h"
 
 class ChineseCheckersFrame;
+class ChineseCheckersClient;
+class ChineseCheckersServer;
 
 class ChineseCheckersApp : public wxApp
 {
