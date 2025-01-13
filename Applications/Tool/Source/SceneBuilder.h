@@ -8,13 +8,7 @@
 #include "Thebe/EngineParts/VertexBuffer.h"
 #include "Thebe/EngineParts/TextureBuffer.h"
 #include "Thebe/EngineParts/Material.h"
-#include "Thebe/Math/Transform.h"
-#include "Thebe/Math/Vector3.h"
-#include "Thebe/Math/Vector2.h"
-#include "Thebe/Math/Quaternion.h"
 #include "TextureBuilder.h"
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <set>
 
 class SceneBuilder : public Builder
@@ -34,11 +28,6 @@ private:
 	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::VertexBuffer> GenerateVertexBuffer(const aiMesh* inputMesh);
 	Thebe::Reference<Thebe::Material> GenerateMaterial(const aiMaterial* inputMaterial);
-
-	Thebe::Transform MakeTransform(const aiMatrix4x4& givenMatrix);
-	Thebe::Vector3 MakeVector(const aiVector3D& givenVector);
-	Thebe::Vector2 MakeTexCoords(const aiVector3D& givenTexCoords);
-	Thebe::Quaternion MakeQuat(const aiQuaternion& quatQuaternion);
 
 	std::string PrefixWithSceneName(const std::string& givenString);
 

@@ -39,8 +39,9 @@ namespace Thebe
 		void SetStationary(bool stationary);
 		bool IsStationary() const;
 
+		bool CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction = [](const Vector3) -> double { return 1.0; });
+
 	private:
-		bool CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction);
 
 		// Note that our position (center of mass) and orientation are stored in the collision object.
 		Vector3 linearMomentum;

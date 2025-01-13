@@ -15,6 +15,8 @@ set(GRAPHICS_TOOL_SOURCES
     Source/FontBuilder.h
     Source/TextureBuilder.cpp
     Source/TextureBuilder.h
+    Source/RBDBuilder.cpp
+    Source/RBDBuilder.h
     Source/Builder.cpp
     Source/Builder.h
 )

@@ -109,6 +109,12 @@ UINT64 CollisionObject::GetFrameWhenLastMoved() const
 	return this->frameWhenLastMoved;
 }
 
+void CollisionObject::SetShape(GJKShape* shape)
+{
+	delete this->shape;
+	this->shape = shape;
+}
+
 GJKShape* CollisionObject::GetShape()
 {
 	return this->shape;
@@ -142,6 +148,7 @@ const GJKShape* CollisionObject::GetShape() const
 
 	auto polyhedronValue = dynamic_cast<const JsonString*>(rootValue->GetValue("polyhedron"));
 	auto hullVerticesValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("hull_vertices"));
+	auto polygonMeshValue = dynamic_cast<const JsonObject*>(rootValue->GetValue("polygon_mesh"));
 
 	if (polyhedronValue)
 	{
@@ -196,6 +203,16 @@ const GJKShape* CollisionObject::GetShape() const
 			}
 
 			vertexArray.push_back(vertex);
+		}
+	}
+	else if (polygonMeshValue)
+	{
+		auto convexHull = new GJKConvexHull();
+		this->shape = convexHull;
+		if (!convexHull->hull.FromJson(polygonMeshValue))
+		{
+			THEBE_LOG("Failed to load collision object's polygon mesh.");
+			return false;
 		}
 	}
 
@@ -290,10 +307,11 @@ void CollisionObject::GenerateVertices(const Vector3& vertexBase, uint32_t axisF
 	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);
 	if (convexHull)
 	{
-		auto verticesValue = new JsonArray();
-		rootValue->SetValue("hull_vertices", verticesValue);
-		for (const Vector3& vertex : convexHull->hull.GetVertexArray())
-			verticesValue->PushValue(JsonHelper::VectorToJsonValue(vertex));
+		std::unique_ptr<ParseParty::JsonValue> hullValue;
+		if (!convexHull->hull.ToJson(hullValue))
+			return false;
+
+		rootValue->SetValue("polygon_mesh", hullValue.release());
 	}
 
 	rootValue->SetValue("object_to_world", JsonHelper::TransformToJsonValue(this->shape->GetObjectToWorld()));

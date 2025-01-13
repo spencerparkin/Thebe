@@ -4,6 +4,7 @@
 #include "SceneBuilder.h"
 #include "CubeMapBuilder.h"
 #include "FontBuilder.h"
+#include "RBDBuilder.h"
 #include "Thebe/EngineParts/Scene.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -12,6 +13,7 @@
 #include <wx/msgdlg.h>
 #include <wx/dirdlg.h>
 #include <wx/busyinfo.h>
+#include <wx/textdlg.h>
 #include <filesystem>
 
 GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Graphics Tool", pos, size), timer(this, ID_Timer)
@@ -20,6 +22,7 @@ GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : w
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildScene, "Build Scene", "Build a scene for the Thebe graphics engine using a file exported from 3Ds Max, Maya or Blender."));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildCubeMap, "Build Cube Map", "Build a cube map that can be used for a sky-dome or environment lighting."));
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildFont, "Build Font", "Build a font asset that can be used to render text in the engine."));
+	fileMenu->Append(new wxMenuItem(fileMenu, ID_BuildRigidBody, "Build Rigid Body", "Build an RBD object as the convex hull of a specified mesh."));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(new wxMenuItem(fileMenu, ID_PreviewScene, "Preview Scene", "Load and render a Thebe graphics engine scene file."));
 	fileMenu->AppendSeparator();
@@ -38,6 +41,7 @@ GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : w
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildScene, this, ID_BuildScene);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildCubeMap, this, ID_BuildCubeMap);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildFont, this, ID_BuildFont);
+	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnBuildRigidBody, this, ID_BuildRigidBody);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnPreviewScene, this, ID_PreviewScene);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_MENU, &GraphicsToolFrame::OnAbout, this, ID_About);
@@ -152,6 +156,45 @@ void GraphicsToolFrame::OnBuildFont(wxCommandEvent& event)
 
 	if (succeeded)
 		wxMessageBox(wxString::Format("Built %d font(s) successfully!", (int)inputFilePathArray.size()), "Success!", wxICON_INFORMATION | wxOK, this);
+}
+
+void GraphicsToolFrame::OnBuildRigidBody(wxCommandEvent& event)
+{
+	wxFileDialog inputFileDialog(this, "Choose input file.", wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
+	if (inputFileDialog.ShowModal() != wxID_OK)
+		return;
+
+	wxTextEntryDialog meshNameDialog(this, "Specify mesh name.", "Mesh Name");
+	if (meshNameDialog.ShowModal() != wxID_OK)
+		return;
+
+	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	std::filesystem::path inputSceneFile((const char*)inputFileDialog.GetPath().c_str());
+	std::filesystem::path outputAssetsFolder;
+	if (!graphicsEngine->GleanAssetsFolderFromPath(inputSceneFile, outputAssetsFolder))
+	{
+		wxMessageBox(wxString::Format("Could not glean assets folder from file path: %s", inputSceneFile.string().c_str()), "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
+
+	RBDBuilder rbdBuilder;
+	rbdBuilder.SetDesiredMeshName(aiString((const char*)meshNameDialog.GetValue().c_str()));
+
+	if (wxMessageBox("Will the physics object move?", "Stationary?", wxYES_NO | wxICON_QUESTION, this) == wxID_YES)
+		rbdBuilder.SetStationary(true);
+	else
+		rbdBuilder.SetStationary(false);
+
+	bool bodyBuilt = false;
+	{
+		wxBusyCursor busyCursor;
+		bodyBuilt = rbdBuilder.BuildRigidBody(inputSceneFile, outputAssetsFolder);
+	}
+
+	if (!bodyBuilt)
+		wxMessageBox("Scene build RBD object!", "Error!", wxICON_ERROR | wxOK, this);
+	else
+		wxMessageBox("Scene build succeeded!", "Success!", wxICON_INFORMATION | wxOK, this);
 }
 
 void GraphicsToolFrame::OnPreviewScene(wxCommandEvent& event)

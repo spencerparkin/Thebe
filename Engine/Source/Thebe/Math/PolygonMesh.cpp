@@ -1,6 +1,7 @@
 #include "Thebe/Math/PolygonMesh.h"
 #include "Thebe/Math/Polygon.h"
 #include "Thebe/Math/Graph.h"
+#include "Thebe/Utilities/JsonHelper.h"
 
 using namespace Thebe;
 
@@ -334,6 +335,71 @@ bool PolygonMesh::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNor
 	return alpha != std::numeric_limits<double>::max();
 }
 
+bool PolygonMesh::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
+{
+	using namespace ParseParty;
+
+	auto rootValue = new JsonObject();
+	jsonValue.reset(rootValue);
+
+	auto vertexArrayValue = new JsonArray();
+	rootValue->SetValue("vertex_array", vertexArrayValue);
+	for (const Vector3& vertex : this->vertexArray)
+		vertexArrayValue->PushValue(JsonHelper::VectorToJsonValue(vertex));
+	
+	auto polygonArrayValue = new JsonArray();
+	rootValue->SetValue("polygon_array", polygonArrayValue);
+	for (const Polygon& polygon : this->polygonArray)
+	{
+		std::unique_ptr<JsonValue> polygonValue;
+		if (!polygon.ToJson(polygonValue))
+			return false;
+
+		polygonArrayValue->PushValue(polygonValue.release());
+	}
+
+	return true;
+}
+
+bool PolygonMesh::FromJson(const ParseParty::JsonValue* jsonValue)
+{
+	using namespace ParseParty;
+
+	auto rootValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!rootValue)
+		return false;
+
+	auto vertexArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("vertex_array"));
+	if (!vertexArrayValue)
+		return false;
+
+	this->vertexArray.clear();
+	for (int i = 0; i < (int)vertexArrayValue->GetSize(); i++)
+	{
+		Vector3 vertex;
+		if (!JsonHelper::VectorFromJsonValue(vertexArrayValue->GetValue(i), vertex))
+			return false;
+
+		this->vertexArray.push_back(vertex);
+	}
+
+	auto polygonArrayValue = dynamic_cast<const JsonArray*>(rootValue->GetValue("polygon_array"));
+	if (!polygonArrayValue)
+		return false;
+
+	this->polygonArray.clear();
+	for (int i = 0; i < (int)polygonArrayValue->GetSize(); i++)
+	{
+		Polygon polygon;
+		if (!polygon.FromJson(polygonArrayValue->GetValue(i)))
+			return false;
+
+		this->polygonArray.push_back(polygon);
+	}
+
+	return this->IsValid();
+}
+
 void PolygonMesh::Dump(std::ostream& stream) const
 {
 	uint32_t numVertices = (uint32_t)this->vertexArray.size();
@@ -462,6 +528,39 @@ void PolygonMesh::Polygon::Reverse()
 		vertexStack.pop_back();
 		this->vertexArray.push_back(i);
 	}
+}
+
+bool PolygonMesh::Polygon::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
+{
+	using namespace ParseParty;
+
+	auto vertexArrayValue = new JsonArray();
+	jsonValue.reset(vertexArrayValue);
+	for (int i = 0; i < (int)this->vertexArray.size(); i++)
+		vertexArrayValue->PushValue(new JsonInt(this->vertexArray[i]));
+
+	return true;
+}
+
+bool PolygonMesh::Polygon::FromJson(const ParseParty::JsonValue* jsonValue)
+{
+	using namespace ParseParty;
+
+	auto vertexArrayValue = dynamic_cast<const JsonArray*>(jsonValue);
+	if (!vertexArrayValue)
+		return false;
+
+	this->vertexArray.clear();
+	for (int i = 0; i < (int)vertexArrayValue->GetSize(); i++)
+	{
+		auto indexValue = dynamic_cast<const JsonInt*>(vertexArrayValue->GetValue(i));
+		if (!indexValue)
+			return false;
+
+		this->vertexArray.push_back((int)indexValue->GetValue());
+	}
+
+	return true;
 }
 
 void PolygonMesh::Polygon::Dump(std::ostream& stream) const

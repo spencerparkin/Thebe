@@ -36,6 +36,8 @@ namespace Thebe
 		void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
 		UINT64 GetFrameWhenLastMoved() const;
+
+		void SetShape(GJKShape* shape);
 		GJKShape* GetShape();
 		const GJKShape* GetShape() const;
 
@@ -50,6 +52,8 @@ namespace Thebe
 
 		bool PointOnOrBehindAllWorldPlanes(const Vector3& point) const;
 		bool FindWorldPlaneNearestToPoint(const Vector3& point, Plane& foundWorldPlane) const;
+
+		PolygonMesh& GetPolygonMesh();
 
 	private:
 

@@ -15,6 +15,7 @@ using namespace Thebe;
 
 Log::Log()
 {
+	this->inLogPrint = false;
 }
 
 /*virtual*/ Log::~Log()
@@ -26,16 +27,23 @@ void Log::Print(const char* msg, ...)
 	va_list args;
 	va_start(args, msg);
 
-	char formattedMessageBuffer[1024];
-	vsprintf_s(formattedMessageBuffer, sizeof(formattedMessageBuffer), msg, args);
+	if (!this->inLogPrint)
+	{
+		this->inLogPrint = true;
 
-	std::time_t time = std::time(nullptr);
-	char timeBuffer[128];
-	std::strftime(timeBuffer, sizeof(timeBuffer), "%T", std::localtime(&time));
-	std::string formattedMessage = std::format("{}: {}\n", timeBuffer, formattedMessageBuffer);
-	
-	for (LogSink* logSink : this->logSinkArray)
-		logSink->Print(formattedMessage);
+		char formattedMessageBuffer[1024];
+		vsprintf_s(formattedMessageBuffer, sizeof(formattedMessageBuffer), msg, args);
+
+		std::time_t time = std::time(nullptr);
+		char timeBuffer[128];
+		std::strftime(timeBuffer, sizeof(timeBuffer), "%T", std::localtime(&time));
+		std::string formattedMessage = std::format("{}: {}\n", timeBuffer, formattedMessageBuffer);
+
+		for (LogSink* logSink : this->logSinkArray)
+			logSink->Print(formattedMessage);
+
+		this->inLogPrint = false;
+	}
 
 	va_end(args);
 }

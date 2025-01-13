@@ -1,0 +1,21 @@
+{
+	"collision_object": "CollisionObjects\\HexagonalPlatform.collision",
+	"name": "HexagonalPlatform_RigidBody",
+	"object_space_inertia_tensor":
+	{
+		"elements":
+		[
+			171.585707,
+			0.000000,
+			-0.000000,
+			0.000000,
+			171.622456,
+			0.000240,
+			0.000000,
+			0.000240,
+			337.815844
+		]
+	},
+	"stationary": false,
+	"total_mass": 64.870000
+}

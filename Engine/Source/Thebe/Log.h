@@ -37,6 +37,7 @@ namespace Thebe
 	private:
 		static Log* log;
 		std::vector<Reference<LogSink>> logSinkArray;
+		bool inLogPrint;
 	};
 
 	/**

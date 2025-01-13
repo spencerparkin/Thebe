@@ -106,7 +106,7 @@ RigidBody::RigidBody()
 	return true;
 }
 
-bool RigidBody::CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction)
+bool RigidBody::CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction /*= [](const Vector3) -> double { return 1.0; }*/)
 {
 	GJKShape* shape = this->collisionObject->GetShape();
 	AxisAlignedBoundingBox objectBoundingBox = shape->GetObjectBoundingBox();

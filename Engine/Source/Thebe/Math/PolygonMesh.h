@@ -2,6 +2,7 @@
 
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/Plane.h"
+#include "JsonValue.h"
 #include <vector>
 
 namespace Thebe
@@ -124,6 +125,16 @@ namespace Thebe
 		bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const;
 
 		/**
+		 * Write this mesh to JSON.
+		 */
+		bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+
+		/**
+		 * Read this mesh from JSON.
+		 */
+		bool FromJson(const ParseParty::JsonValue* jsonValue);
+
+		/**
 		 * Write this mesh to the given stream in binary form.
 		 */
 		void Dump(std::ostream& stream) const;
@@ -176,6 +187,16 @@ namespace Thebe
 			 * Reverse the winding of this polygon from CCW to CW, or vice-versa.
 			 */
 			void Reverse();
+
+			/**
+			 * Write this polygon to JSON.
+			 */
+			bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+
+			/**
+			 * Read this polygon from JSON.
+			 */
+			bool FromJson(const ParseParty::JsonValue* jsonValue);
 
 			/**
 			 * Write this polygon to the given stream in binary form.
