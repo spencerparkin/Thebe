@@ -28,7 +28,9 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
 		{
-			return new Socket(socket, this);
+			NetworkSocket* networkSocket = new Socket(socket, this);
+			networkSocket->SetPeriodicWakeup(0);
+			return networkSocket;
 		});
 
 	return NetworkServer::Setup();
@@ -103,6 +105,10 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 			//...
 		}
 	}
+	else if (request == "flush")
+	{
+		return true;
+	}
 	else
 	{
 		THEBE_LOG("Request \"%s\" not recognized.", request.c_str());
@@ -152,7 +158,9 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 
 /*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
-	std::unique_ptr<ParseParty::JsonValue> jsonResponse;
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonValue> jsonResponse;
 
 	if (this->server->ServeRequest(jsonRootValue.get(), jsonResponse, this))
 	{
@@ -162,4 +170,18 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 	}
 
 	return true;
+}
+
+/*virtual*/ void ChineseCheckersServer::Socket::OnWakeup()
+{
+#if 0
+	using namespace ParseParty;
+
+	// When we periodically wake up, send a dummy message in an attempt to flush the socket.
+	auto rootValue = new JsonObject();
+	rootValue->SetValue("response", new JsonString("flush"));
+
+	std::unique_ptr<JsonValue> jsonDummyResponse(rootValue);
+	this->SendJson(jsonDummyResponse.get());
+#endif
 }

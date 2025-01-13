@@ -27,6 +27,7 @@ public:
 		virtual ~Socket();
 
 		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) override;
+		virtual void OnWakeup() override;
 
 		ChineseCheckersClient* client;
 		int playerID;

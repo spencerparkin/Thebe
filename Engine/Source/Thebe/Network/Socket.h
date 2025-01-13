@@ -26,7 +26,12 @@ namespace Thebe
 		virtual bool Join() override;
 		virtual void Run() override;
 
+		void SetPeriodicWakeup(long periodicWakeupTimeSeconds);
+
 	protected:
+		virtual void OnWakeup();
+
+		long periodicWakeupTimeSeconds;
 		int ringBufferSize;
 		int recvBufferSize;
 		SOCKET socket;

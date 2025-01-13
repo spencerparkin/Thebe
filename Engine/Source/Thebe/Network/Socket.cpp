@@ -11,10 +11,16 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 	this->socket = socket;
 	this->ringBufferSize = 2048;
 	this->recvBufferSize = 128;
+	this->periodicWakeupTimeSeconds = 0;
 }
 
 /*virtual*/ NetworkSocket::~NetworkSocket()
 {
+}
+
+void NetworkSocket::SetPeriodicWakeup(long periodicWakeupTimeSeconds)
+{
+	this->periodicWakeupTimeSeconds = periodicWakeupTimeSeconds;
 }
 
 /*virtual*/ bool NetworkSocket::Join()
@@ -28,6 +34,10 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 	return Thread::Join();
 }
 
+/*virtual*/ void NetworkSocket::OnWakeup()
+{
+}
+
 /*virtual*/ void NetworkSocket::Run()
 {
 	RingBuffer ringBuffer(this->ringBufferSize);
@@ -36,24 +46,62 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 
 	while (true)
 	{
+		int result = 0;
+#if 0
+		timeval tval{};
+		tval.tv_sec = this->periodicWakeupTimeSeconds;
+		tval.tv_usec = 0;
+
+		fd_set readSet, errorSet;
+		FD_ZERO(&readSet);
+		FD_ZERO(&errorSet);
+		FD_SET(this->socket, &readSet);
+		FD_SET(this->socket, &errorSet);
+
+		result = ::select(0, &readSet, nullptr, &errorSet, (this->periodicWakeupTimeSeconds > 0) ? &tval : nullptr);
+		if (result == SOCKET_ERROR)
+		{
+			THEBE_LOG("Select failed on socket.  Error: %d", WSAGetLastError());
+			break;
+		}
+
+		if (FD_ISSET(this->socket, &errorSet))
+		{
+			THEBE_LOG("Select says our socket is in an error state.");
+			break;
+		}
+
+		if (!FD_ISSET(this->socket, &readSet))
+		{
+			THEBE_LOG("Select says there's nothing to read.  Waiting again...");
+			this->OnWakeup();
+			continue;
+		}
+#endif
+
 		// Block here until we receive some data.
 		WSABUF buffer;
 		buffer.buf = recvBuffer.get();
 		buffer.len = this->recvBufferSize;
 		DWORD numBytesReceived = 0;
 		DWORD flags = MSG_PUSH_IMMEDIATE;
-		int result = WSARecv(this->socket, (LPWSABUF)&buffer, 1, &numBytesReceived, &flags, nullptr, nullptr);
+		result = WSARecv(this->socket, (LPWSABUF)&buffer, 1, &numBytesReceived, &flags, nullptr, nullptr);
 		if (result == SOCKET_ERROR)
 		{
-			THEBE_LOG("Failed to receive data on socket.  Error: %d", WSAGetLastError());
+			int error = WSAGetLastError();
+			if (error == WSAECONNABORTED || error == WSAECONNRESET)
+			{
+				THEBE_LOG("Socket thread signaled to close.");
+				break;
+			}
+
+			THEBE_LOG("Failed to receive data on socket.  Error: %d", error);
 			break;
 		}
 
-		// Append whatever we got from the socket.
 		if (!ringBuffer.WriteBytes((uint8_t*)recvBuffer.get(), numBytesReceived))
 			break;
 
-		// Grab all the bytes we've read thus far into a buffer.
 		uint32_t numBytesStored = ringBuffer.GetNumStoredBytes();
 		byteArray.resize(numBytesStored);
 		if (!ringBuffer.PeakBytes((uint8_t*)byteArray.data(), numBytesStored))
@@ -65,7 +113,6 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 		if (!this->ReceiveData((uint8_t*)byteArray.data(), numBytesStored, numBytesProcessed))
 			break;
 
-		// Bite off as much of the stream as we can.
 		THEBE_ASSERT(numBytesProcessed <= numBytesStored);
 		if (!ringBuffer.DeleteBytes(THEBE_MIN(numBytesProcessed, numBytesStored)))
 			break;

@@ -42,7 +42,10 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 	this->frame = new ChineseCheckersFrame(wxPoint(10, 10), wxSize(1200, 800));
 
-#if !defined THEBE_NO_LOGGING
+#if defined THEBE_LOGGING
+	this->log.Set(new Log());
+	Log::Set(this->log);
+
 	wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
 	loggerPath.SetName("ThebeLogViewer");
 	loggerPath.SetExt("exe");
@@ -53,17 +56,17 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 		long loggerPID = wxExecute(command, wxEXEC_ASYNC);
 		if (loggerPID != 0)
 		{
-			this->log.Set(new Thebe::Log());
-			Thebe::Reference<Thebe::NetLogSink> logSink(new Thebe::NetLogSink());
-			Thebe::NetworkAddress address;
+			Reference<Thebe::NetLogSink> logSink(new NetLogSink());
+			NetworkAddress address;
 			address.SetIPAddress("127.0.0.1");
 			address.SetPort(12345);
 			logSink->SetConnectAddress(address);
 			this->log->AddSink(logSink);
-			Thebe::Log::Set(this->log);
 		}
 	}
-#endif //THEBE_NO_LOGGING
+
+	this->log->AddSink(new LogConsoleSink());
+#endif //THEBE_LOGGING
 
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))
@@ -81,7 +84,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	if (!this->lineRenderer->Setup())
 		return false;
 
-	Thebe::Reference<FramerateText> framerateText;
+	Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
 	framerateText->SetGraphicsEngine(this->graphicsEngine);
 	framerateText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);

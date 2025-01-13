@@ -12,7 +12,7 @@ ChineseCheckersClient::ChineseCheckersClient()
 
 /*virtual*/ ChineseCheckersClient::~ChineseCheckersClient()
 {
-	delete this->game;
+	this->game = nullptr;
 }
 
 ChineseCheckersGame* ChineseCheckersClient::GetGame()
@@ -26,7 +26,9 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 
 	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
 		{
-			return new Socket(socket, this);
+			NetworkSocket* networkSocket = new Socket(socket, this);
+			networkSocket->SetPeriodicWakeup(0);
+			return networkSocket;
 		});
 
 	if (!NetworkClient::Setup())
@@ -126,6 +128,10 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		THEBE_ASSERT_FATAL(client != nullptr);
 		client->playerID = playerIDValue->GetValue();
 	}
+	else if (response == "flush")
+	{
+		return true;
+	}
 	else
 	{
 		THEBE_LOG("Response \"%s\" not recognized.", response.c_str());
@@ -175,4 +181,18 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 {
 	this->client->AddResponse(jsonRootValue.release());
 	return true;
+}
+
+/*virtual*/ void ChineseCheckersClient::Socket::OnWakeup()
+{
+#if 0
+	using namespace ParseParty;
+
+	// When we periodically wake up, send a dummy message in an attempt to flush the socket.
+	auto rootValue = new JsonObject();
+	rootValue->SetValue("request", new JsonString("flush"));
+
+	std::unique_ptr<JsonValue> jsonDummyResponse(rootValue);
+	this->SendJson(jsonDummyResponse.get());
+#endif
 }

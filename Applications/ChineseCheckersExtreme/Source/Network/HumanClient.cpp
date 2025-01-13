@@ -27,6 +27,7 @@ HumanClient::HumanClient()
 	if (response == "get_game_state")
 	{
 		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+		graphicsEngine->WaitForGPUIdle();
 
 		std::filesystem::path platformMeshPath;
 		std::string gameType = this->game->GetGameType();
