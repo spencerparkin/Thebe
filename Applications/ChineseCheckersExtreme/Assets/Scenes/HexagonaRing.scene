@@ -1,0 +1,184 @@
+{
+	"root":
+	{
+		"child_to_parent_transform":
+		{
+			"matrix":
+			{
+				"elements":
+				[
+					1.000000,
+					0.000000,
+					0.000000,
+					0.000000,
+					1.000000,
+					0.000000,
+					0.000000,
+					0.000000,
+					1.000000
+				]
+			},
+			"translation":
+			{
+				"x": 0.000000,
+				"y": 0.000000,
+				"z": 0.000000
+			}
+		},
+		"children":
+		[
+			{
+				"child_to_parent_transform":
+				{
+					"matrix":
+					{
+						"elements":
+						[
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000,
+							0.000000,
+							0.000000,
+							0.000000,
+							1.000000
+						]
+					},
+					"translation":
+					{
+						"x": 0.000000,
+						"y": 1.250000,
+						"z": -0.000000
+					}
+				},
+				"children":
+				[
+					{
+						"child_to_parent_transform":
+						{
+							"matrix":
+							{
+								"elements":
+								[
+									1.000000,
+									0.000000,
+									0.000000,
+									0.000000,
+									-0.000000,
+									1.000000,
+									0.000000,
+									-1.000000,
+									-0.000000
+								]
+							},
+							"translation":
+							{
+								"x": 0.000000,
+								"y": 0.000000,
+								"z": 0.000000
+							}
+						},
+						"children":
+						[
+							{
+								"child_to_parent_transform":
+								{
+									"matrix":
+									{
+										"elements":
+										[
+											0.865756,
+											0.500466,
+											0.000000,
+											-0.500466,
+											0.865756,
+											0.000000,
+											0.000000,
+											0.000000,
+											1.000000
+										]
+									},
+									"translation":
+									{
+										"x": 0.000000,
+										"y": 0.000000,
+										"z": 0.000000
+									}
+								},
+								"children":
+								[
+									{
+										"child_to_parent_transform":
+										{
+											"matrix":
+											{
+												"elements":
+												[
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000,
+													0.000000,
+													0.000000,
+													0.000000,
+													1.000000
+												]
+											},
+											"translation":
+											{
+												"x": 0.000000,
+												"y": 0.000000,
+												"z": 0.000000
+											}
+										},
+										"children":
+										[
+											{
+												"child_to_parent_transform":
+												{
+													"matrix":
+													{
+														"elements":
+														[
+															1.000000,
+															0.000000,
+															0.000000,
+															0.000000,
+															1.000000,
+															0.000000,
+															0.000000,
+															0.000000,
+															1.000000
+														]
+													},
+													"translation":
+													{
+														"x": 0.000000,
+														"y": 0.000000,
+														"z": 0.000000
+													}
+												},
+												"children":
+												[
+
+												],
+												"mesh_instance": "Meshes\\HexagonalRing.mesh"
+											}
+										],
+										"name": "HexagonalRing"
+									}
+								],
+								"name": "HexagonalRing_$AssimpFbx$_Rotation"
+							}
+						],
+						"name": "HexagonalRing_$AssimpFbx$_PreRotation"
+					}
+				],
+				"name": "HexagonalRing_$AssimpFbx$_Translation"
+			}
+		],
+		"name": "RootNode"
+	}
+}

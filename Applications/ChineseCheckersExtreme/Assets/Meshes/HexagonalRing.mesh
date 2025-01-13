@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\HexagonalRing.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "HexagonalRing",
+	"vertex_buffer": "Buffers\\HexagonalRing.vertex_buffer"
+}
