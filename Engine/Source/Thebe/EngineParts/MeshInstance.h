@@ -2,6 +2,7 @@
 
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
+#include "Thebe/Math/Vector4.h"
 #include <wrl.h>
 
 namespace Thebe
@@ -33,6 +34,8 @@ namespace Thebe
 		void SetOverrideMaterialPath(const std::filesystem::path& overrideMaterialPath);
 		void SetMesh(Mesh* mesh);
 		Mesh* GetMesh();
+		void SetColor(const Vector4& color);
+		const Vector4& GetColor() const;
 
 	private:
 		Reference<Mesh> mesh;
@@ -45,5 +48,6 @@ namespace Thebe
 		Reference<Material> shadowMaterial;
 		std::filesystem::path overrideMaterialPath;
 		std::filesystem::path meshPath;
+		Vector4 color;
 	};
 }

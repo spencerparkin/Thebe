@@ -41,6 +41,7 @@ public:
 		virtual ~Occupant();
 
 		int playerID;
+		int targetZoneID;
 		double health;
 		double attackPower;
 	};
@@ -69,7 +70,7 @@ public:
 	 */
 	virtual void GenerateGraph() = 0;
 
-	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) = 0;
+	virtual bool GetZoneColor(int zoneID, Thebe::Vector3& color) = 0;
 
 	void Clear();
 

@@ -136,6 +136,20 @@ bool ConstantsBuffer::SetParameter(const std::string& name, const Vector3& vecto
 	return true;
 }
 
+bool ConstantsBuffer::SetParameter(const std::string& name, const Vector4& vector)
+{
+	const Shader::Parameter* parameter = this->shader->FindParameter(name);
+	if (!parameter)
+		return false;
+
+	if (parameter->type != Shader::Parameter::FLOAT4)
+		return false;
+
+	float floatArray[] = { float(vector.x), float(vector.y), float(vector.z), float(vector.w) };
+	::memcpy(&this->GetBufferPtr()[parameter->offset], floatArray, sizeof(floatArray));
+	return true;
+}
+
 bool ConstantsBuffer::SetParameter(const std::string& name, const Matrix2x2& matrix)
 {
 	const Shader::Parameter* parameter = this->shader->FindParameter(name);

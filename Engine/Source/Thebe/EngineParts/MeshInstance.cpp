@@ -18,6 +18,7 @@ using namespace Thebe;
 
 MeshInstance::MeshInstance()
 {
+	this->color.SetComponents(1.0, 1.0, 1.0, 1.0);
 }
 
 /*virtual*/ MeshInstance::~MeshInstance()
@@ -32,6 +33,16 @@ void MeshInstance::SetMeshPath(const std::filesystem::path& meshPath)
 void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& overrideMaterialPath)
 {
 	this->overrideMaterialPath = overrideMaterialPath;
+}
+
+void MeshInstance::SetColor(const Vector4& color)
+{
+	this->color = color;
+}
+
+const Vector4& MeshInstance::GetColor() const
+{
+	return this->color;
 }
 
 /*virtual*/ bool MeshInstance::Setup()
@@ -202,6 +213,8 @@ void MeshInstance::SetOverrideMaterialPath(const std::filesystem::path& override
 		THEBE_LOG("Render target context (%s) not recognized.", context->renderTarget->GetName().c_str());
 		return false;
 	}
+
+	targetConstantsBuffer->SetParameter("color", this->color);
 
 	Matrix4x4 objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix;
 	this->CalcGraphicsMatrices(context->camera, objectToProjMatrix, objectToCameraMatrix, objectToWorldMatrix);

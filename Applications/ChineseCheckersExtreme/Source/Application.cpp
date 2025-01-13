@@ -46,7 +46,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	this->log.Set(new Log());
 	Log::Set(this->log);
 
-	wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
+	/*wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
 	loggerPath.SetName("ThebeLogViewer");
 	loggerPath.SetExt("exe");
 	wxString fullPath = loggerPath.GetFullPath();
@@ -63,7 +63,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 			logSink->SetConnectAddress(address);
 			this->log->AddSink(logSink);
 		}
-	}
+	}*/
 
 	this->log->AddSink(new LogConsoleSink());
 #endif //THEBE_LOGGING

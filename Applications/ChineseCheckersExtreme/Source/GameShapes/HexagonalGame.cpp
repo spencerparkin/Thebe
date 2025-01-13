@@ -61,6 +61,7 @@ HexagonalGame::HexagonalGame()
 			{
 				auto occupant = new Occupant();
 				occupant->playerID = zoneID;
+				occupant->targetZoneID = (zoneID + 3) % 6;
 				node->occupant = occupant;
 				this->occupantArray.push_back(occupant);
 			}
@@ -115,9 +116,43 @@ HexagonalGame::HexagonalGame()
 		node->RemoveNullAdjacencies();
 }
 
-/*virtual*/ bool HexagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
+/*virtual*/ bool HexagonalGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
 {
-	return true;
+	switch (zoneID)
+	{
+		case 1:
+		{
+			color.SetComponents(0.0, 0.0, 0.0);
+			return true;
+		}
+		case 2:
+		{
+			color.SetComponents(1.0, 1.0, 0.0);
+			return true;
+		}
+		case 3:
+		{
+			color.SetComponents(1.0, 0.0, 1.0);
+			return true;
+		}
+		case 4:
+		{
+			color.SetComponents(0.0, 1.0, 0.0);
+			return true;
+		}
+		case 5:
+		{
+			color.SetComponents(1.0, 0.0, 0.0);
+			return true;
+		}
+		case 6:
+		{
+			color.SetComponents(0.0, 0.0, 1.0);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /*virtual*/ int HexagonalGame::GetMaxPossiblePlayers() const

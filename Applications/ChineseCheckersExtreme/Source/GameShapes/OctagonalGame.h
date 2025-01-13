@@ -14,7 +14,7 @@ public:
 protected:
 
 	virtual void GenerateGraph() override;
-	virtual bool GetTargetZoneForPlayer(int playerID, int& targetZoneID) override;
+	virtual bool GetZoneColor(int zoneID, Thebe::Vector3& color) override;
 	virtual int GetMaxPossiblePlayers() const override;
 	virtual const char* GetGameType() const override;
 };

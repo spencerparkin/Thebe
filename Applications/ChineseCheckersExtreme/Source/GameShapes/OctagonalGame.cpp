@@ -12,9 +12,9 @@ OctagonalGame::OctagonalGame()
 {
 }
 
-/*virtual*/ bool OctagonalGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
+/*virtual*/ bool OctagonalGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
 {
-	return true;
+	return false;
 }
 
 /*virtual*/ int OctagonalGame::GetMaxPossiblePlayers() const

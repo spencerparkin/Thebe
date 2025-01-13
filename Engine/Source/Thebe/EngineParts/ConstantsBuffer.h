@@ -25,6 +25,7 @@ namespace Thebe
 		bool SetParameter(const std::string& name, double scalar);
 		bool SetParameter(const std::string& name, const Vector2& vector);
 		bool SetParameter(const std::string& name, const Vector3& vector);
+		bool SetParameter(const std::string& name, const Vector4& vector);
 		bool SetParameter(const std::string& name, const Matrix2x2& matrix);
 		bool SetParameter(const std::string& name, const Matrix3x3& matrix);
 		bool SetParameter(const std::string& name, const Matrix4x4& matrix);

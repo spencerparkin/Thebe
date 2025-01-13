@@ -29,14 +29,23 @@ HumanClient::HumanClient()
 		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 		graphicsEngine->WaitForGPUIdle();
 
-		std::filesystem::path platformMeshPath;
+		std::filesystem::path platformMeshPath, ringMeshPath;
 		std::string gameType = this->game->GetGameType();
 		if (gameType == "cubic")
+		{
 			platformMeshPath = "Meshes/CubicPlatform.mesh";
+			ringMeshPath = "Meshes/CubicRing.mesh";
+		}
 		else if (gameType == "hexagonal")
+		{
 			platformMeshPath = "Meshes/HexagonalPlatform.mesh";
+			ringMeshPath = "Meshes/HexagonalRing.mesh";
+		}
 		else if (gameType == "octagonal")
+		{
 			platformMeshPath = "Meshes/OctagonalPlatform.mesh";
+			ringMeshPath = "Meshes/OctagonalRing.mesh";
+		}
 		else
 		{
 			THEBE_LOG("Game type \"%s\" not recognized.", gameType);
@@ -46,7 +55,14 @@ HumanClient::HumanClient()
 		Reference<Mesh> platformMesh;
 		if (!graphicsEngine->LoadEnginePartFromFile(platformMeshPath, platformMesh))
 		{
-			THEBE_LOG("Failed to load mesh: %s", platformMeshPath.string().c_str());
+			THEBE_LOG("Failed to load platform mesh: %s", platformMeshPath.string().c_str());
+			return false;
+		}
+
+		Reference<Mesh> ringMesh;
+		if (!graphicsEngine->LoadEnginePartFromFile(ringMeshPath, ringMesh))
+		{
+			THEBE_LOG("Failed to load ring mesh: %s", ringMeshPath.string().c_str());
 			return false;
 		}
 
@@ -73,20 +89,43 @@ HumanClient::HumanClient()
 		const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& nodeArray = this->game->GetNodeArray();
 		for (const auto& node : nodeArray)
 		{
-			Reference<MeshInstance> meshInstance(new MeshInstance());
-			meshInstance->SetGraphicsEngine(graphicsEngine);
-			meshInstance->SetMesh(platformMesh);
-			if (!meshInstance->Setup())
+			Reference<MeshInstance> platformMeshInstance(new MeshInstance());
+			platformMeshInstance->SetGraphicsEngine(graphicsEngine);
+			platformMeshInstance->SetMesh(platformMesh);
+			if (!platformMeshInstance->Setup())
 			{
-				THEBE_LOG("Failed to setup mesh instance.");
+				THEBE_LOG("Failed to setup platform mesh instance.");
 				return false;
 			}
 
 			Transform childToParent;
-			childToParent.matrix.SetFromAxisAngle(Vector3::XAxis(), M_PI / 2.0);
+			childToParent.matrix.SetFromAxisAngle(Vector3::XAxis(), -M_PI / 2.0);
 			childToParent.translation = node->location;
-			meshInstance->SetChildToParentTransform(childToParent);
-			boardSpace->AddSubSpace(meshInstance);
+			platformMeshInstance->SetChildToParentTransform(childToParent);
+			boardSpace->AddSubSpace(platformMeshInstance);
+
+			Vector3 zoneColor;
+			if (game->GetZoneColor(node->zoneID, zoneColor))
+			{
+				Vector4 zoneColorWithAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 0.5);
+
+				Reference<MeshInstance> ringMeshInstance(new MeshInstance());
+				ringMeshInstance->SetGraphicsEngine(graphicsEngine);
+				ringMeshInstance->SetMesh(ringMesh);
+				ringMeshInstance->SetColor(zoneColorWithAlpha);
+				if (!ringMeshInstance->Setup())
+				{
+					THEBE_LOG("Failed to setup ring mesh instance.");
+					return false;
+				}
+
+				Transform adjustment;
+				adjustment.matrix.SetIdentity();
+				adjustment.translation.SetComponents(0.0, 0.0, 1.0);
+
+				ringMeshInstance->SetChildToParentTransform(childToParent * adjustment);
+				boardSpace->AddSubSpace(ringMeshInstance);
+			}
 		}
 	}
 

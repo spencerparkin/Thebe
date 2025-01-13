@@ -12,9 +12,9 @@ CubicGame::CubicGame()
 {
 }
 
-/*virtual*/ bool CubicGame::GetTargetZoneForPlayer(int playerID, int& targetZoneID)
+/*virtual*/ bool CubicGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
 {
-	return true;
+	return false;
 }
 
 /*virtual*/ int CubicGame::GetMaxPossiblePlayers() const
