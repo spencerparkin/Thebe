@@ -8,6 +8,7 @@
 
 #define THEBE_RENDER_ORDER_OPAQUE					0
 #define THEBE_RENDER_ORDER_ALPHA_BLEND				1
+#define THEBE_RENDER_ORDER_TEXT						2
 
 namespace Thebe
 {

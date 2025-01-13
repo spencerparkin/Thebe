@@ -304,7 +304,7 @@ Text::Text()
 
 /*virtual*/ uint32_t Text::GetRenderOrder() const
 {
-	return THEBE_RENDER_ORDER_ALPHA_BLEND;
+	return THEBE_RENDER_ORDER_TEXT;
 }
 
 void Text::SetText(const std::string& text)
