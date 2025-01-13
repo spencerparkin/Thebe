@@ -47,37 +47,39 @@ void NetworkSocket::SetPeriodicWakeup(long periodicWakeupTimeSeconds)
 	while (true)
 	{
 		int result = 0;
-#if 0
-		timeval tval{};
-		tval.tv_sec = this->periodicWakeupTimeSeconds;
-		tval.tv_usec = 0;
 
-		fd_set readSet, errorSet;
-		FD_ZERO(&readSet);
-		FD_ZERO(&errorSet);
-		FD_SET(this->socket, &readSet);
-		FD_SET(this->socket, &errorSet);
-
-		result = ::select(0, &readSet, nullptr, &errorSet, (this->periodicWakeupTimeSeconds > 0) ? &tval : nullptr);
-		if (result == SOCKET_ERROR)
+		if (this->periodicWakeupTimeSeconds > 0)
 		{
-			THEBE_LOG("Select failed on socket.  Error: %d", WSAGetLastError());
-			break;
-		}
+			timeval tval{};
+			tval.tv_sec = this->periodicWakeupTimeSeconds;
+			tval.tv_usec = 0;
 
-		if (FD_ISSET(this->socket, &errorSet))
-		{
-			THEBE_LOG("Select says our socket is in an error state.");
-			break;
-		}
+			fd_set readSet, errorSet;
+			FD_ZERO(&readSet);
+			FD_ZERO(&errorSet);
+			FD_SET(this->socket, &readSet);
+			FD_SET(this->socket, &errorSet);
 
-		if (!FD_ISSET(this->socket, &readSet))
-		{
-			THEBE_LOG("Select says there's nothing to read.  Waiting again...");
-			this->OnWakeup();
-			continue;
+			result = ::select(0, &readSet, nullptr, &errorSet, &tval);
+			if (result == SOCKET_ERROR)
+			{
+				THEBE_LOG("Select failed on socket.  Error: %d", WSAGetLastError());
+				break;
+			}
+
+			if (FD_ISSET(this->socket, &errorSet))
+			{
+				THEBE_LOG("Select says our socket is in an error state.");
+				break;
+			}
+
+			if (!FD_ISSET(this->socket, &readSet))
+			{
+				THEBE_LOG("Select says there's nothing to read.  Waiting again...");
+				this->OnWakeup();
+				continue;
+			}
 		}
-#endif
 
 		// Block here until we receive some data.
 		WSABUF buffer;

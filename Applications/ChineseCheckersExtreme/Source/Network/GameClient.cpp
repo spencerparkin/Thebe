@@ -185,14 +185,11 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 
 /*virtual*/ void ChineseCheckersClient::Socket::OnWakeup()
 {
-#if 0
 	using namespace ParseParty;
 
-	// When we periodically wake up, send a dummy message in an attempt to flush the socket.
 	auto rootValue = new JsonObject();
 	rootValue->SetValue("request", new JsonString("flush"));
 
 	std::unique_ptr<JsonValue> jsonDummyResponse(rootValue);
 	this->SendJson(jsonDummyResponse.get());
-#endif
 }
