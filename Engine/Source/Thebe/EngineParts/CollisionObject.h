@@ -43,8 +43,8 @@ namespace Thebe
 
 		void SetDebugColor(const Vector3& color);
 
-		void SetTargetSpace(Space* targetSpace);
-		Space* GetTargetSpace();
+		void SetTargetSpace(Space* targetSpace, const Transform& targetSpaceRelativeTransform);
+		Space* GetTargetSpace(Transform* targetSpaceRelativeTransform = nullptr);
 
 		const std::set<Graph::UnorderedEdge, Graph::UnorderedEdge>& GetEdgeSet() const;
 		const std::vector<Plane>& GetObjectSpacePlaneArray() const;
@@ -67,6 +67,7 @@ namespace Thebe
 		Vector3 color;
 		uintptr_t userData;
 		Reference<Space> targetSpace;
+		Transform targetSpaceRelativeTransform;
 	};
 
 	/**

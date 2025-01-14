@@ -38,6 +38,7 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
+	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 	this->canvas = new ChineseCheckersCanvas(this);
@@ -65,7 +66,7 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	const HostGameDialog::Data& data = hostGameDialog.GetData();
 
 	ChineseCheckersGame* game = ChineseCheckersGame::Factory((const char*)data.gameType.c_str());
-	game->GenerateGraph();
+	game->GenerateGraph(data.numPlayers);
 
 	std::unique_ptr<ChineseCheckersServer> server(new ChineseCheckersServer());
 	server->SetAddress(data.hostAddress);
@@ -118,8 +119,17 @@ void ChineseCheckersFrame::OnLeaveGame(wxCommandEvent& event)
 	wxGetApp().ShutdownClientsAndServer();
 }
 
+void ChineseCheckersFrame::OnCloseWindow(wxCloseEvent& event)
+{
+	this->timer.Stop();
+
+	wxFrame::OnCloseWindow(event);
+}
+
 void ChineseCheckersFrame::OnExit(wxCommandEvent& event)
 {
+	this->timer.Stop();
+
 	this->Close(true);
 }
 

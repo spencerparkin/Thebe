@@ -32,6 +32,8 @@ HumanClient::HumanClient()
 
 		std::filesystem::path platformMeshPath, ringMeshPath;
 		std::filesystem::path platformBodyPath;
+		std::filesystem::path cubieMeshPath = "Meshes/cubie.mesh";
+		std::filesystem::path cubieBodyPath = "PhysicsObjects/cubie.rigid_body";
 
 		std::string gameType = this->game->GetGameType();
 		if (gameType == "cubic")
@@ -69,6 +71,13 @@ HumanClient::HumanClient()
 		if (!graphicsEngine->LoadEnginePartFromFile(ringMeshPath, ringMesh))
 		{
 			THEBE_LOG("Failed to load ring mesh: %s", ringMeshPath.string().c_str());
+			return false;
+		}
+
+		Reference<Mesh> cubieMesh;
+		if (!graphicsEngine->LoadEnginePartFromFile(cubieMeshPath, cubieMesh))
+		{
+			THEBE_LOG("Failed to load cubie mesh: %s", cubieMeshPath.string().c_str());
 			return false;
 		}
 
@@ -116,7 +125,7 @@ HumanClient::HumanClient()
 			if (game->GetZoneColor(node->zoneID, zoneColor))
 			{
 				Vector4 zoneColorWithAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 0.5);
-
+				
 				Reference<MeshInstance> ringMeshInstance(new MeshInstance());
 				ringMeshInstance->SetGraphicsEngine(graphicsEngine);
 				ringMeshInstance->SetMesh(ringMesh);
@@ -143,6 +152,38 @@ HumanClient::HumanClient()
 			adjustmentTransform.matrix.SetIdentity();
 			adjustmentTransform.translation.SetComponents(0.0, 0.0, 0.5);
 			platformBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
+
+			if (node->occupant && game->GetZoneColor(node->occupant->playerID, zoneColor))
+			{
+				Vector4 zoneColorNoAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 1.0);
+
+				Reference<MeshInstance> cubieMeshInstance(new MeshInstance());
+				cubieMeshInstance->SetGraphicsEngine(graphicsEngine);
+				cubieMeshInstance->SetMesh(cubieMesh);
+				cubieMeshInstance->SetColor(zoneColorNoAlpha);
+				if (!cubieMeshInstance->Setup())
+				{
+					THEBE_LOG("Failed to setup cubie mesh instance.");
+					return false;
+				}
+
+				adjustmentTransform.matrix.SetIdentity();
+				adjustmentTransform.translation.SetComponents(0.0, 0.0, 2.5);
+				cubieMeshInstance->SetChildToParentTransform(objectToWorld * adjustmentTransform);
+				boardSpace->AddSubSpace(cubieMeshInstance);
+
+				Reference<RigidBody> cubieBody;
+				if (!graphicsEngine->LoadEnginePartFromFile(cubieBodyPath, cubieBody, THEBE_LOAD_FLAG_DONT_CACHE_PART | THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
+				{
+					THEBE_LOG("Failed to load cubie body.");
+					return false;
+				}
+
+				cubieBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
+
+				adjustmentTransform.translation.SetComponents(0.0, 0.0, -1.5);
+				cubieBody->GetCollisionObject()->SetTargetSpace(cubieMeshInstance, adjustmentTransform);
+			}
 		}
 	}
 

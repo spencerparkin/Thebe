@@ -1,0 +1,21 @@
+{
+	"collision_object": "CollisionObjects\\Cubie.collision_object",
+	"name": "Cubie_RigidBody",
+	"object_space_inertia_tensor":
+	{
+		"elements":
+		[
+			20.244375,
+			-0.000000,
+			-0.000000,
+			-0.000000,
+			20.244375,
+			0.000000,
+			-0.000000,
+			0.000000,
+			20.244375
+		]
+	},
+	"stationary": false,
+	"total_mass": 27.000000
+}

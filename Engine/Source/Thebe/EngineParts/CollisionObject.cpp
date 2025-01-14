@@ -84,7 +84,7 @@ void CollisionObject::SetObjectToWorld(const Transform& objectToWorld)
 		if (this->targetSpace.Get())
 		{
 			// For now, we're assuming the parent transform is identity.
-			this->targetSpace->SetChildToParentTransform(objectToWorld);
+			this->targetSpace->SetChildToParentTransform(objectToWorld * this->targetSpaceRelativeTransform);
 		}
 	}
 }
@@ -344,13 +344,17 @@ void CollisionObject::SetDebugColor(const Vector3& color)
 	return this->shape->GetWorldBoundingBox();
 }
 
-void CollisionObject::SetTargetSpace(Space* targetSpace)
+void CollisionObject::SetTargetSpace(Space* targetSpace, const Transform& targetSpaceRelativeTransform)
 {
 	this->targetSpace = targetSpace;
+	this->targetSpaceRelativeTransform = targetSpaceRelativeTransform;
 }
 
-Space* CollisionObject::GetTargetSpace()
+Space* CollisionObject::GetTargetSpace(Transform* targetSpaceRelativeTransform /*= nullptr*/)
 {
+	if (targetSpaceRelativeTransform)
+		*targetSpaceRelativeTransform = this->targetSpaceRelativeTransform;
+
 	return this->targetSpace;
 }
 

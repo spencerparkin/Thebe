@@ -115,8 +115,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	this->graphicsEngine->SetLight(light);
 
 	Transform cameraToWorld;
-	cameraToWorld.matrix.SetIdentity();
-	cameraToWorld.translation.SetComponents(0.0, 0.0, 50.0);
+	cameraToWorld.LookAt(Vector3(0.0, 50.0, 100.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);

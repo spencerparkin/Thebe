@@ -8,8 +8,9 @@ OctagonalGame::OctagonalGame()
 {
 }
 
-/*virtual*/ void OctagonalGame::GenerateGraph()
+/*virtual*/ bool OctagonalGame::GenerateGraph(int numPlayers)
 {
+	return false;
 }
 
 /*virtual*/ bool OctagonalGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
@@ -25,4 +26,8 @@ OctagonalGame::OctagonalGame()
 /*virtual*/ const char* OctagonalGame::GetGameType() const
 {
 	return "octagonal";
+}
+
+/*virtual*/ void OctagonalGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
+{
 }

@@ -31,6 +31,7 @@ private:
 	void OnAbout(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
+	void OnCloseWindow(wxCloseEvent& event);
 
 	ChineseCheckersCanvas* canvas;
 	wxTimer timer;

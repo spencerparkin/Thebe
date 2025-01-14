@@ -160,6 +160,19 @@ bool ChineseCheckersGame::FromJson(const ParseParty::JsonValue* jsonRootValue)
 			THEBE_LOG("Failed to get node location.");
 			return false;
 		}
+
+		auto occupantValue = dynamic_cast<const JsonInt*>(nodeValue->GetValue("occupant"));
+		if (occupantValue)
+		{
+			int j = (int)occupantValue->GetValue();
+			if (j < 0 || j >= (int)this->occupantArray.size())
+			{
+				THEBE_LOG("Node %d has occupant %d which is out of range 0 to %d.", i, j, this->occupantArray.size() - 1);
+				return false;
+			}
+
+			node->occupant = this->occupantArray[j].Get();
+		}
 	}
 
 	// Wire up the graph on the second pass now that all the nodes have been created.

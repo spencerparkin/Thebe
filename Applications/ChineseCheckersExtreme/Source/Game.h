@@ -67,10 +67,13 @@ public:
 
 	/**
 	 * Generate the graph data-structure on which the game is played.
+	 * Also generate occupants for the number of players given.
 	 */
-	virtual void GenerateGraph() = 0;
+	virtual bool GenerateGraph(int numPlayers) = 0;
 
 	virtual bool GetZoneColor(int zoneID, Thebe::Vector3& color) = 0;
+
+	virtual void GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack) = 0;
 
 	void Clear();
 

@@ -8,8 +8,9 @@ CubicGame::CubicGame()
 {
 }
 
-/*virtual*/ void CubicGame::GenerateGraph()
+/*virtual*/ bool CubicGame::GenerateGraph(int numPlayers)
 {
+	return false;
 }
 
 /*virtual*/ bool CubicGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
@@ -25,4 +26,8 @@ CubicGame::CubicGame()
 /*virtual*/ const char* CubicGame::GetGameType() const
 {
 	return "cubic";
+}
+
+/*virtual*/ void CubicGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
+{
 }

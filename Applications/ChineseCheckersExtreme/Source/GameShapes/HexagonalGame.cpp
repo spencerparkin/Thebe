@@ -10,8 +10,19 @@ HexagonalGame::HexagonalGame()
 {
 }
 
-/*virtual*/ void HexagonalGame::GenerateGraph()
+/*virtual*/ void HexagonalGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
 {
+	int playerSequence[6] = { 6, 3, 5, 2, 4, 1 };
+	freePlayerIDStack.clear();
+	for (int i = 0; i < 6; i++)
+		freePlayerIDStack.push_back(playerSequence[i]);
+}
+
+/*virtual*/ bool HexagonalGame::GenerateGraph(int numPlayers)
+{
+	if (numPlayers < 2 || numPlayers > 6)
+		return false;
+
 	this->Clear();
 
 	constexpr int numRows = 17;
@@ -36,6 +47,11 @@ HexagonalGame::HexagonalGame()
 		{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	};
 
+	int playerSequence[6] = { 1, 4, 2, 5, 3, 6 };
+	std::set<int> playerIDSet;
+	for (int i = 0; i < numPlayers; i++)
+		playerIDSet.insert(playerSequence[i]);
+
 	// Create the nodes and occupants.
 	Node* centerNode = nullptr;
 	Node* matrix[numRows][numCols];
@@ -57,7 +73,7 @@ HexagonalGame::HexagonalGame()
 			if (zoneID == 8)
 				centerNode = node;
 
-			if (zoneID != 7 && zoneID != 8)
+			if (playerIDSet.find(zoneID) != playerIDSet.end())
 			{
 				auto occupant = new Occupant();
 				occupant->playerID = zoneID;
@@ -114,6 +130,8 @@ HexagonalGame::HexagonalGame()
 	// Remove null adjacencies that were just convenient for us during the graph generation process.
 	for (auto node : this->nodeArray)
 		node->RemoveNullAdjacencies();
+
+	return true;
 }
 
 /*virtual*/ bool HexagonalGame::GetZoneColor(int zoneID, Thebe::Vector3& color)
