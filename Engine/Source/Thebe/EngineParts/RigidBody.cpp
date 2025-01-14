@@ -10,7 +10,6 @@ RigidBody::RigidBody()
 	this->totalMass = 0.0;
 	this->linearMomentum.SetComponents(0.0, 0.0, 0.0);
 	this->angularMomentum.SetComponents(0.0, 0.0, 0.0);
-	this->stationary = false;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -82,9 +81,6 @@ RigidBody::RigidBody()
 		}
 	}
 
-	auto stationaryValue = dynamic_cast<const JsonBool*>(rootValue->GetValue("stationary"));
-	this->stationary = stationaryValue ? stationaryValue->GetValue() : false;
-
 	return true;
 }
 
@@ -101,7 +97,6 @@ RigidBody::RigidBody()
 
 	rootValue->SetValue("total_mass", new JsonFloat(this->totalMass));
 	rootValue->SetValue("object_space_inertia_tensor", JsonHelper::MatrixToJsonValue(this->objectSpaceInertiaTensor));
-	rootValue->SetValue("stationary", new JsonBool(this->stationary));
 
 	return true;
 }
@@ -206,16 +201,6 @@ const Vector3& RigidBody::GetAngularMomentum() const
 void RigidBody::SetAngularMomentum(const Vector3& angularMomentum)
 {
 	this->angularMomentum = angularMomentum;
-}
-
-void RigidBody::SetStationary(bool stationary)
-{
-	this->stationary = stationary;
-}
-
-bool RigidBody::IsStationary() const
-{
-	return this->stationary;
 }
 
 /*virtual*/ void RigidBody::ZeroMomentum()

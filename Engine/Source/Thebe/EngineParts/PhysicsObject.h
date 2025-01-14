@@ -59,6 +59,9 @@ namespace Thebe
 		virtual void SetObjectToWorld(const Transform& objectToWorld);
 		virtual Transform GetObjectToWorld() const;
 
+		void SetStationary(bool stationary);
+		bool IsStationary() const;
+
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 		const CollisionObject* GetCollisionObject() const;
@@ -91,5 +94,7 @@ namespace Thebe
 
 		Reference<CollisionObject> collisionObject;
 		std::filesystem::path collisionObjectPath;
+
+		bool stationary;
 	};
 }

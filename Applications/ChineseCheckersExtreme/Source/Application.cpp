@@ -78,6 +78,11 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	if (!this->graphicsEngine->AddAssetFolder("Applications/ChineseCheckersExtreme/Assets"))
 		return false;
 
+	AxisAlignedBoundingBox worldBox;
+	worldBox.minCorner.SetComponents(-1000.0, -1000.0, -1000.0);
+	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
+	this->graphicsEngine->GetCollisionSystem()->SetWorldBox(worldBox);
+
 	this->lineRenderer.Set(new DynamicLineRenderer());
 	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
 	this->lineRenderer->SetLineMaxCount(1024);

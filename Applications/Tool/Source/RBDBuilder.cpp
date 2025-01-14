@@ -84,7 +84,7 @@ bool RBDBuilder::BuildRigidBody(const std::filesystem::path& inputSceneFile, con
 	rigidBody->SetName(name + "_RigidBody");
 	collisionObject->SetName(name + "_Collision");
 
-	std::filesystem::path collisionObjectPath = outputAssetsFolder / std::format("CollisionObjects/{}.collision", name.c_str());
+	std::filesystem::path collisionObjectPath = outputAssetsFolder / std::format("CollisionObjects/{}.collision_object", name.c_str());
 	if (!wxGetApp().GetGraphicsEngine()->DumpEnginePartToFile(collisionObjectPath, collisionObject, THEBE_DUMP_FLAG_CAN_OVERWRITE))
 	{
 		THEBE_LOG("Failed to dump collision object.");

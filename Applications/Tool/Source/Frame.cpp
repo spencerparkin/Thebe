@@ -180,7 +180,7 @@ void GraphicsToolFrame::OnBuildRigidBody(wxCommandEvent& event)
 	RBDBuilder rbdBuilder;
 	rbdBuilder.SetDesiredMeshName(aiString((const char*)meshNameDialog.GetValue().c_str()));
 
-	if (wxMessageBox("Will the physics object move?", "Stationary?", wxYES_NO | wxICON_QUESTION, this) == wxID_YES)
+	if (wxMessageBox("Will the physics object remain stationary?", "Stationary?", wxYES_NO | wxICON_QUESTION, this) == wxID_YES)
 		rbdBuilder.SetStationary(true);
 	else
 		rbdBuilder.SetStationary(false);

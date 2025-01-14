@@ -137,6 +137,9 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
+			if (physicsObject->IsStationary())
+				continue;
+
 			collisionArray.clear();
 			collisionSystem->FindAllCollisions(physicsObject->GetCollisionObject(), collisionArray);
 			for (auto& collision : collisionArray)

@@ -7,6 +7,7 @@ using namespace Thebe;
 
 PhysicsObject::PhysicsObject()
 {
+	this->stationary = false;
 }
 
 /*virtual*/ PhysicsObject::~PhysicsObject()
@@ -23,7 +24,7 @@ PhysicsObject::PhysicsObject()
 		return false;
 
 	// Don't check the cache, because we always want an instance of the collision object loaded.
-	if (!graphicsEngine->LoadEnginePartFromFile(this->collisionObjectPath, this->collisionObject, THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
+	if (!graphicsEngine->LoadEnginePartFromFile(this->collisionObjectPath, this->collisionObject, THEBE_LOAD_FLAG_DONT_CHECK_CACHE | THEBE_LOAD_FLAG_DONT_CACHE_PART))
 	{
 		THEBE_LOG("Failed to load collision object for rigid body.");
 		return false;
@@ -75,6 +76,9 @@ PhysicsObject::PhysicsObject()
 
 	this->collisionObjectPath = collisionObjectValue->GetValue();
 
+	auto stationaryValue = dynamic_cast<const JsonBool*>(rootValue->GetValue("stationary"));
+	this->stationary = stationaryValue ? stationaryValue->GetValue() : false;
+
 	return true;
 }
 
@@ -90,6 +94,7 @@ PhysicsObject::PhysicsObject()
 		return false;
 
 	rootValue->SetValue("collision_object", new JsonString(this->collisionObjectPath.string()));
+	rootValue->SetValue("stationary", new JsonBool(this->stationary));
 
 	return true;
 }
@@ -133,6 +138,16 @@ PhysicsObject::PhysicsObject()
 
 /*virtual*/ void PhysicsObject::DebugDraw(DynamicLineRenderer* lineRenderer) const
 {
+}
+
+void PhysicsObject::SetStationary(bool stationary)
+{
+	this->stationary = stationary;
+}
+
+bool PhysicsObject::IsStationary() const
+{
+	return this->stationary;
 }
 
 void PhysicsObject::SetCollisionObject(CollisionObject* collisionObject)

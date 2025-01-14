@@ -4,6 +4,7 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Space.h"
+#include "Thebe/EngineParts/RigidBody.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 
 using namespace Thebe;
@@ -30,20 +31,25 @@ HumanClient::HumanClient()
 		graphicsEngine->WaitForGPUIdle();
 
 		std::filesystem::path platformMeshPath, ringMeshPath;
+		std::filesystem::path platformBodyPath;
+
 		std::string gameType = this->game->GetGameType();
 		if (gameType == "cubic")
 		{
 			platformMeshPath = "Meshes/CubicPlatform.mesh";
+			platformBodyPath = "PhysicsObjects/CubicPlatform.rigid_body";
 			ringMeshPath = "Meshes/CubicRing.mesh";
 		}
 		else if (gameType == "hexagonal")
 		{
 			platformMeshPath = "Meshes/HexagonalPlatform.mesh";
+			platformBodyPath = "PhysicsObjects/HexagonalPlatform.rigid_body";
 			ringMeshPath = "Meshes/HexagonalRing.mesh";
 		}
 		else if (gameType == "octagonal")
 		{
 			platformMeshPath = "Meshes/OctagonalPlatform.mesh";
+			platformBodyPath = "PhysicsObjects/OctagonalPlatform.rigid_body";
 			ringMeshPath = "Meshes/OctagonalRing.mesh";
 		}
 		else
@@ -98,10 +104,10 @@ HumanClient::HumanClient()
 				return false;
 			}
 
-			Transform childToParent;
-			childToParent.matrix.SetFromAxisAngle(Vector3::XAxis(), -M_PI / 2.0);
-			childToParent.translation = node->location;
-			platformMeshInstance->SetChildToParentTransform(childToParent);
+			Transform objectToWorld;
+			objectToWorld.matrix.SetFromAxisAngle(Vector3::XAxis(), -M_PI / 2.0);
+			objectToWorld.translation = node->location;
+			platformMeshInstance->SetChildToParentTransform(objectToWorld);
 			boardSpace->AddSubSpace(platformMeshInstance);
 
 			Vector3 zoneColor;
@@ -123,8 +129,15 @@ HumanClient::HumanClient()
 				adjustment.matrix.SetIdentity();
 				adjustment.translation.SetComponents(0.0, 0.0, 1.0);
 
-				ringMeshInstance->SetChildToParentTransform(childToParent * adjustment);
+				ringMeshInstance->SetChildToParentTransform(objectToWorld* adjustment);
 				boardSpace->AddSubSpace(ringMeshInstance);
+			}
+
+			Reference<RigidBody> platformBody;
+			if (!graphicsEngine->LoadEnginePartFromFile(platformBodyPath, platformBody, THEBE_LOAD_FLAG_DONT_CACHE_PART | THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
+			{
+				THEBE_LOG("Failed to load platform body: %s", platformBodyPath.string().c_str());
+				return false;
 			}
 		}
 	}

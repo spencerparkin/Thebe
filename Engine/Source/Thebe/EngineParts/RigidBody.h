@@ -36,9 +36,6 @@ namespace Thebe
 		const Vector3& GetAngularMomentum() const;
 		void SetAngularMomentum(const Vector3& angularMomentum);
 
-		void SetStationary(bool stationary);
-		bool IsStationary() const;
-
 		bool CalculateRigidBodyCharacteristics(std::function<double(const Vector3&)> densityFunction = [](const Vector3) -> double { return 1.0; });
 
 	private:
@@ -49,6 +46,5 @@ namespace Thebe
 		double totalMass;
 		Matrix3x3 objectSpaceInertiaTensor;
 		Matrix3x3 objectSpaceInertiaTensorInverse;
-		bool stationary;
 	};
 }
