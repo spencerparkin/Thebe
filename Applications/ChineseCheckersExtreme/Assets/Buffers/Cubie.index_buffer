@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\Cubie.index_buffer_data",
+	"format": 42,
+	"name": "Cubie_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 144,
+	"type": 1
+}
