@@ -1,5 +1,8 @@
 #include "Canvas.h"
 #include "Application.h"
+#include "Thebe/GraphicsEngine.h"
+#include "Thebe/CollisionSystem.h"
+#include "Thebe/PhysicsSystem.h"
 
 using namespace Thebe;
 
@@ -16,21 +19,22 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
+	PhysicsSystem* physicsSystem = graphicsEngine->GetPhysicsSystem();
+	EventSystem* eventSystem = graphicsEngine->GetEventSystem();
 
 	DynamicLineRenderer* lineRenderer = wxGetApp().GetLineRenderer();
 	if (lineRenderer)
 	{
 		lineRenderer->ResetLines();
-
-		Vector3 origin = Vector3::Zero();
-		Vector3 xAxis = Vector3::XAxis();
-		Vector3 yAxis = Vector3::YAxis();
-		Vector3 zAxis = Vector3::ZAxis();
-
-		lineRenderer->AddLine(origin, xAxis, &xAxis, &xAxis);
-		lineRenderer->AddLine(origin, yAxis, &yAxis, &yAxis);
-		lineRenderer->AddLine(origin, zAxis, &zAxis, &zAxis);
+		collisionSystem->DebugDraw(lineRenderer);
+		physicsSystem->DebugDraw(lineRenderer);
 	}
+
+	double deltaTimeSeconds = graphicsEngine->GetDeltaTime();
+	physicsSystem->StepSimulation(deltaTimeSeconds, collisionSystem);
+
+	eventSystem->DispatchAllEvents();
 
 	graphicsEngine->Render();
 }

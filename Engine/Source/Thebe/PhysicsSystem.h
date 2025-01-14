@@ -7,7 +7,7 @@
 #include "Thebe/CollisionSystem.h"
 #include <map>
 
-#define THEBE_MAX_PHYSICS_TIME_STEP		1e-3
+#define THEBE_MAX_PHYSICS_TIME_STEP		0.05
 
 namespace Thebe
 {

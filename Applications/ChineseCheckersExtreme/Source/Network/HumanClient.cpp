@@ -92,6 +92,8 @@ HumanClient::HumanClient()
 
 		boardSpace->ClearAllSubSpaces();
 
+		Transform adjustmentTransform;
+
 		const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& nodeArray = this->game->GetNodeArray();
 		for (const auto& node : nodeArray)
 		{
@@ -125,11 +127,9 @@ HumanClient::HumanClient()
 					return false;
 				}
 
-				Transform adjustment;
-				adjustment.matrix.SetIdentity();
-				adjustment.translation.SetComponents(0.0, 0.0, 1.0);
-
-				ringMeshInstance->SetChildToParentTransform(objectToWorld* adjustment);
+				adjustmentTransform.matrix.SetIdentity();
+				adjustmentTransform.translation.SetComponents(0.0, 0.0, 1.0);
+				ringMeshInstance->SetChildToParentTransform(objectToWorld * adjustmentTransform);
 				boardSpace->AddSubSpace(ringMeshInstance);
 			}
 
@@ -139,6 +139,10 @@ HumanClient::HumanClient()
 				THEBE_LOG("Failed to load platform body: %s", platformBodyPath.string().c_str());
 				return false;
 			}
+
+			adjustmentTransform.matrix.SetIdentity();
+			adjustmentTransform.translation.SetComponents(0.0, 0.0, 0.5);
+			platformBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
 		}
 	}
 

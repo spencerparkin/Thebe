@@ -83,11 +83,13 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
 	this->graphicsEngine->GetCollisionSystem()->SetWorldBox(worldBox);
 
+#if defined _DEBUG
 	this->lineRenderer.Set(new DynamicLineRenderer());
 	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
-	this->lineRenderer->SetLineMaxCount(1024);
+	this->lineRenderer->SetLineMaxCount(32 * 1024);
 	if (!this->lineRenderer->Setup())
 		return false;
+#endif //_DEBUG
 
 	Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
@@ -102,7 +104,8 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 	this->graphicsEngine->SetRenderObject(scene);
 	scene->GetRootSpace()->AddSubSpace(framerateText);
-	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+	if (this->lineRenderer.Get())
+		scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
 
 	Reference<DirectionalLight> light(new DirectionalLight());
 	light->Setup();
@@ -130,8 +133,11 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 	this->graphicsEngine->WaitForGPUIdle();
 
-	this->lineRenderer->Shutdown();
-	this->lineRenderer = nullptr;
+	if (this->lineRenderer.Get())
+	{
+		this->lineRenderer->Shutdown();
+		this->lineRenderer = nullptr;
+	}
 
 	this->graphicsEngine->Shutdown();
 	this->graphicsEngine = nullptr;
