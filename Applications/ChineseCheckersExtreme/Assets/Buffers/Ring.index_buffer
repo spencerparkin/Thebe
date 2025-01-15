@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\Ring.index_buffer_data",
+	"format": 42,
+	"name": "Ring_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 6912,
+	"type": 1
+}
