@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Interval.h"
 
 namespace Thebe
 {
@@ -79,31 +80,15 @@ namespace Thebe
 		bool CastAgainst(const Plane& plane, double& alpha) const;
 
 		/**
-		 * Calculate and return the alpha value for the ray point of
-		 * this ray intersecting the given AABB.
-		 * 
-		 * @param[in] box This is the box against which to cast the ray.
-		 * @param[out] alpha The said alpha value is returned in this.
-		 * @return True is returned if the ray hits the AABB; false, otherwise.
-		 */
-		bool CastAgainst(const AxisAlignedBoundingBox& box, double& alpha) const;
-
-		/**
-		 * Calculate and return the alpha values for the ray points of this
-		 * ray that intersect the given AABB, sorted smallest to largest.
+		 * Calculate and return the range of alpha values for this ray that
+		 * intersect the given box.
 		 * 
 		 * @param[in] box This is the box against which the ray is cast.
-		 * @param[out] alphaArray The said alpha values are returned in this.
+		 * @param[out] interval The minimum value here is the entrance point; the maximum, the exit point.
+		 * @param[in] borderThickness You can use this to make the box a bit fatter than it really is.
 		 * @return True is returned if the ray hits the AABB; false, otherwise.
 		 */
-		bool CastAgainst(const AxisAlignedBoundingBox& box, std::vector<double>& alphaArray) const;
-
-		/**
-		 * Tell the caller if this ray hits or originates inside the given AABB.
-		 * 
-		 * @return True is returned if any part of this ray intersects the given box; false, otherwise.
-		 */
-		bool HitsOrOriginatesIn(const AxisAlignedBoundingBox& box) const;
+		bool CastAgainst(const AxisAlignedBoundingBox& box, Interval& interval, double borderThickness = 0.0) const;
 
 		/**
 		 * Return a line segment joining the origin of this ray to a

@@ -76,6 +76,18 @@ void CollisionSystem::UntrackAllObjects()
 	this->collisionObjectMap.clear();
 }
 
+bool CollisionSystem::RayCast(const Ray& ray, CollisionObject*& collisionObject, Vector3& unitSurfaceNormal)
+{
+	collisionObject = nullptr;
+
+	if (!this->boxTree.Get())
+		return false;
+
+	collisionObject = dynamic_cast<CollisionObject*>(this->boxTree->FindNearestObjectHitByRay(ray, unitSurfaceNormal));
+
+	return collisionObject != nullptr;
+}
+
 void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::vector<Reference<Collision>>& collisionArray)
 {
 	collisionArray.clear();

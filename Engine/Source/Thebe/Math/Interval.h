@@ -52,6 +52,11 @@ namespace Thebe
 		bool IsValid() const;
 
 		/**
+		 * Just check that A <= B where [A,B] denotes this interval.
+		 */
+		bool MakesSense() const;
+
+		/**
 		 * Return true if the given value V is contained within this interval [A,B]; false, otherwise.
 		 * That is, return A - E <= V <= B + E, where E is the given epsilon.
 		 */

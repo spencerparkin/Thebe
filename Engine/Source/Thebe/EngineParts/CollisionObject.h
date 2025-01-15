@@ -26,6 +26,7 @@ namespace Thebe
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 		virtual bool DumpConfigurationToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::filesystem::path& assetPath) const override;
 		virtual AxisAlignedBoundingBox GetWorldBoundingBox() const override;
+		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const override;
 
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;

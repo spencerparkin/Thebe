@@ -43,6 +43,11 @@ bool Interval::IsValid() const
 	if (::isnan(this->B) || ::isinf(this->B))
 		return false;
 
+	return this->MakesSense();
+}
+
+bool Interval::MakesSense() const
+{
 	return this->A <= this->B;
 }
 

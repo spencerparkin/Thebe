@@ -74,22 +74,15 @@ bool Ray::CastAgainst(const Plane& plane, double& alpha) const
 	return alpha >= 0.0;
 }
 
-bool Ray::CastAgainst(const AxisAlignedBoundingBox& box, double& alpha) const
-{
-	std::vector<double> alphaArray;
-	if (!this->CastAgainst(box, alphaArray))
-		return false;
-
-	alpha = alphaArray[0];
-	return true;
-}
-
-bool Ray::CastAgainst(const AxisAlignedBoundingBox& box, std::vector<double>& alphaArray) const
+bool Ray::CastAgainst(const AxisAlignedBoundingBox& box, Interval& interval, double borderThickness /*= 0.0*/) const
 {
 	std::vector<Plane> sidePlaneArray;
 	box.GetSidePlanes(sidePlaneArray);
 	if (sidePlaneArray.size() == 0)
 		return false;
+
+	interval.A = std::numeric_limits<double>::max();
+	interval.B = -std::numeric_limits<double>::max();
 
 	for (const Plane& sidePlane : sidePlaneArray)
 	{
@@ -97,22 +90,17 @@ bool Ray::CastAgainst(const AxisAlignedBoundingBox& box, std::vector<double>& al
 		if (this->CastAgainst(sidePlane, alpha))
 		{
 			Vector3 hitPoint = this->CalculatePoint(alpha);
-			if (box.ContainsPoint(hitPoint, 1e-5))
-				alphaArray.push_back(alpha);
+			if (box.ContainsPoint(hitPoint, borderThickness))
+			{
+				interval.Expand(alpha);
+			}
 		}
 	}
 
-	std::sort(alphaArray.begin(), alphaArray.end());
-	return alphaArray.size() > 0;
-}
-
-bool Ray::HitsOrOriginatesIn(const AxisAlignedBoundingBox& box) const
-{
 	if (box.ContainsPoint(this->origin))
-		return true;
+		interval.Expand(0.0);
 
-	double alpha = 0.0;
-	return this->CastAgainst(box, alpha);
+	return interval.MakesSense();
 }
 
 void Ray::ToLineSegment(LineSegment& lineSegment, double alpha) const

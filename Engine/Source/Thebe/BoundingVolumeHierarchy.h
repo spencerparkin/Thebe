@@ -2,6 +2,7 @@
 
 #include "Thebe/Math/AxisAlignedBoundingBox.h"
 #include "Thebe/Math/Transform.h"
+#include "Thebe/Math/Ray.h"
 #include "Thebe/Reference.h"
 
 namespace Thebe
@@ -28,6 +29,7 @@ namespace Thebe
 		bool RemoveObject(BVHObject* object);
 		void RemoveAllObjects();
 		void FindObjects(const AxisAlignedBoundingBox& worldBox, std::list<BVHObject*>& objectList);
+		BVHObject* FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal);
 
 	private:
 		Reference<BVHNode> rootNode;
@@ -52,6 +54,10 @@ namespace Thebe
 		void RemoveObject(BVHObject* object);
 		void AddObject(BVHObject* object);
 
+		BVHObject* FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal);
+
+		Interval rayHitInterval;
+
 	private:
 		std::list<Reference<BVHObject>> objectList;
 		BVHNode* parentNode;
@@ -66,6 +72,7 @@ namespace Thebe
 	class THEBE_API BVHObject : virtual public ReferenceCounted
 	{
 		friend class BVHTree;
+		friend class BVHNode;
 
 	public:
 		BVHObject();
@@ -104,10 +111,24 @@ namespace Thebe
 		 */
 		bool IsInBVH() const;
 
+		/**
+		 * Tell us if the given ray hits this object.  This should
+		 * never be asked unless it has also already been determined
+		 * that the given ray hits this object's bounding box.
+		 * 
+		 * @param[in] ray This is the ray to cast against this object.
+		 * @param[out] alpha This should be set to the distance along the ray to the hit location, if any; otherwise left untouched.
+		 * @return Return true if and only if the given ray hits this object.
+		 */
+		virtual bool RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const = 0;
+
 	private:
+
 		bool GetNode(Reference<BVHNode>& node);
 		void SetNode(BVHNode* Node);
 
 		RefHandle nodeHandle;
+		double rayObjectHitDistance;
+		Interval rayBoundsHitInterval;
 	};
 }

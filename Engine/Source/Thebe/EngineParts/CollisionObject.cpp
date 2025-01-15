@@ -319,6 +319,14 @@ void CollisionObject::GenerateVertices(const Vector3& vertexBase, uint32_t axisF
 	return true;
 }
 
+/*virtual*/ bool CollisionObject::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const
+{
+	if (!this->shape)
+		return false;
+
+	return this->shape->RayCast(ray, alpha, unitSurfaceNormal);
+}
+
 void CollisionObject::DebugDraw(DynamicLineRenderer* lineRenderer) const
 {
 	auto convexHull = dynamic_cast<const GJKConvexHull*>(this->shape);

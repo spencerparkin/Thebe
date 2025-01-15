@@ -2,6 +2,7 @@
 
 #include "Thebe/Common.h"
 #include "Thebe/BoundingVolumeHierarchy.h"
+#include "Thebe/Math/Ray.h"
 #include <map>
 
 namespace Thebe
@@ -32,6 +33,16 @@ namespace Thebe
 		void UntrackAllObjects();
 		void SetWorldBox(const AxisAlignedBoundingBox& worldBox);
 		const AxisAlignedBoundingBox& GetWorldBox() const;
+
+		/**
+		 * Cast a ray against all collision objects in the system.
+		 * 
+		 * @param[in] ray This is the ray to cast.
+		 * @param[out] collisionObject This will be the nearest objects hit by the ray; null, if no object hit.
+		 * @param[out] unitSurfaceNormal This will be a unit-length normal to the surface of the hit object, if any; left alone, if no object hit.
+		 * @return True is returned if and only if an object was hit.
+		 */
+		bool RayCast(const Ray& ray, CollisionObject*& collisionObject, Vector3& unitSurfaceNormal);
 
 		/**
 		 * The main feature of the collision system is to produce instances

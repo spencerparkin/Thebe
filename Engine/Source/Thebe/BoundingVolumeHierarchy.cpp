@@ -1,5 +1,6 @@
 #include "Thebe/BoundingVolumeHierarchy.h"
 #include "Thebe/Log.h"
+#include <algorithm>
 
 using namespace Thebe;
 
@@ -75,6 +76,17 @@ void BVHTree::RemoveAllObjects()
 	this->rootNode = nullptr;
 }
 
+BVHObject* BVHTree::FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal)
+{
+	if (!this->rootNode.Get())
+		return nullptr;
+
+	if (!ray.CastAgainst(this->rootNode->GetWorldBox(), this->rootNode->rayHitInterval))
+		return nullptr;
+
+	return this->rootNode->FindNearestObjectHitByRay(ray, unitSurfaceNormal);
+}
+
 void BVHTree::FindObjects(const AxisAlignedBoundingBox& worldBox, std::list<BVHObject*>& objectList)
 {
 	objectList.clear();
@@ -141,11 +153,73 @@ void BVHNode::AddObject(BVHObject* object)
 	this->objectList.push_back(object);
 }
 
+BVHObject* BVHNode::FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal)
+{
+	// Here we operate on the principles that 1) we already know that the given ray hits or originates
+	// in this node's box/space, and 2) that this node's children form a pair-wise disjoint set of boxes.
+
+	// First, gather the child nodes hit by or containing the origin of the given ray.
+	std::vector<BVHNode*> hitChildNodeArray;
+	for (BVHNode* node : this->childNodeArray)
+		if (ray.CastAgainst(node->GetWorldBox(), node->rayHitInterval))
+			hitChildNodeArray.push_back(node);
+
+	// Next, sort the sub-spaces by nearest to farthest hit.
+	std::sort(hitChildNodeArray.begin(), hitChildNodeArray.end(), [](const BVHNode* nodeA, const BVHNode* nodeB) -> bool
+		{
+			return nodeA->rayHitInterval.A < nodeB->rayHitInterval.B;
+		});
+
+	// Now process the nodes in the sorted order.  By virtue of the order, if we get a hit,
+	// this allows us to early-out of the loop, there-by culling branches of the tree.
+	BVHObject* nearestHitObject = nullptr;
+	for (BVHNode* node : hitChildNodeArray)
+	{
+		nearestHitObject = node->FindNearestObjectHitByRay(ray, unitSurfaceNormal);
+		if (nearestHitObject)
+			break;
+	}
+
+	// In an attempt to minimize the number of calls we'll have to make
+	// to cast a ray against an actual object, gather the objects in this
+	// node's space who's bounds are hit and sort them nearest to farthest.
+	std::vector<BVHObject*> hitObjectBoundsArray;
+	for (BVHObject* object : this->objectList)
+		if (!ray.CastAgainst(object->GetWorldBoundingBox(), object->rayBoundsHitInterval))
+			hitObjectBoundsArray.push_back(object);
+	std::sort(hitObjectBoundsArray.begin(), hitObjectBoundsArray.end(), [](const BVHObject* objectA, const BVHObject* objectB) -> bool
+		{
+			return objectA->rayBoundsHitInterval.A < objectB->rayBoundsHitInterval.A;
+		});
+
+	// Lastly, compare our nearest hit object, if any, with all those
+	// in the sorted list of objects at this node, keeping the nearest
+	// hit as we go along.
+	for (BVHObject* object : hitObjectBoundsArray)
+	{
+		if (nearestHitObject && nearestHitObject->rayObjectHitDistance < object->rayBoundsHitInterval.A)
+			continue;	// This is more likely to happen because of the sorted order of the list.
+
+		Vector3 tentativeSurfaceNormal;
+		if (!object->RayCast(ray, object->rayObjectHitDistance, tentativeSurfaceNormal))
+			continue;
+			
+		if (!nearestHitObject || nearestHitObject->rayObjectHitDistance > object->rayObjectHitDistance)
+		{
+			nearestHitObject = object;
+			unitSurfaceNormal = tentativeSurfaceNormal;
+		}
+	}
+
+	return nearestHitObject;
+}
+
 //---------------------------------------- BVHObject ----------------------------------------
 
 BVHObject::BVHObject()
 {
 	this->nodeHandle = THEBE_INVALID_REF_HANDLE;
+	this->rayObjectHitDistance = 0.0;
 }
 
 /*virtual*/ BVHObject::~BVHObject()
