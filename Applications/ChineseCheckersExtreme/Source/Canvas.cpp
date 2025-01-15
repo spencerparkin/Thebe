@@ -27,8 +27,10 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 	if (lineRenderer)
 	{
 		lineRenderer->ResetLines();
+#if defined DEBUG_DRAW
 		collisionSystem->DebugDraw(lineRenderer);
 		physicsSystem->DebugDraw(lineRenderer);
+#endif //DEBUG_DRAW
 	}
 
 	double deltaTimeSeconds = graphicsEngine->GetDeltaTime();
