@@ -473,7 +473,11 @@ GJKConvexHull::GJKConvexHull()
 
 /*virtual*/ bool GJKConvexHull::RayCast(const Ray& ray, double& alpha, Vector3& unitSurfaceNormal) const
 {
-	return this->hull.RayCast(ray, alpha, unitSurfaceNormal);
+	PolygonMesh worldHull(this->hull);
+	for (Vector3& vertex : worldHull.GetVertexArray())
+		vertex = this->objectToWorld.TransformPoint(vertex);
+
+	return worldHull.RayCast(ray, alpha, unitSurfaceNormal);
 }
 
 /*virtual*/ void GJKConvexHull::Shift(const Vector3& translation)

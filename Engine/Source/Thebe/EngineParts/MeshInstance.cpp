@@ -176,9 +176,12 @@ const Vector4& MeshInstance::GetColor() const
 	if (this->GetGraphicsEngine(graphicsEngine))
 	{
 		DescriptorHeap* csuDescriptorHeap = graphicsEngine->GetCSUDescriptorHeap();
-		csuDescriptorHeap->FreeDescriptorSet(this->csuConstantsBufferDescriptorSet);
-		csuDescriptorHeap->FreeDescriptorSet(this->csuShadowConstantsBufferDescriptorSet);
-		csuDescriptorHeap->FreeDescriptorSet(this->csuMaterialTexturesDescriptorSet);
+		if (this->csuConstantsBufferDescriptorSet.IsAllocated())
+			csuDescriptorHeap->FreeDescriptorSet(this->csuConstantsBufferDescriptorSet);
+		if (this->csuShadowConstantsBufferDescriptorSet.IsAllocated())
+			csuDescriptorHeap->FreeDescriptorSet(this->csuShadowConstantsBufferDescriptorSet);
+		if (this->csuMaterialTexturesDescriptorSet.IsAllocated())
+			csuDescriptorHeap->FreeDescriptorSet(this->csuMaterialTexturesDescriptorSet);
 	}
 
 	this->material = nullptr;
@@ -186,6 +189,9 @@ const Vector4& MeshInstance::GetColor() const
 
 /*virtual*/ bool MeshInstance::RendersToTarget(RenderTarget* renderTarget) const
 {
+	if (!this->material.Get())
+		return false;
+
 	if (renderTarget->GetName() == "ShadowBuffer")
 		return this->material->GetCastsShadows();
 

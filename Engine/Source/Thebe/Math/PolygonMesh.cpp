@@ -26,6 +26,9 @@ void PolygonMesh::operator=(const PolygonMesh& polygonMesh)
 
 	for (const Polygon& polygon : polygonMesh.polygonArray)
 		this->polygonArray.push_back(polygon);
+
+	for (const Vector3& vertex : polygonMesh.vertexArray)
+		this->vertexArray.push_back(vertex);
 }
 
 bool PolygonMesh::IsValid() const

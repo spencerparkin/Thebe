@@ -26,6 +26,7 @@ namespace Thebe
 		void SetChildToParentTransform(const Transform& childToParent);
 		const Transform& GetChildToParentTransform() const;
 		void AddSubSpace(Space* space);
+		bool RemoveSubSpace(Space* space);
 		void ClearAllSubSpaces();
 		void CalcGraphicsMatrices(const Camera* camera, Matrix4x4& objectToProjMatrix, Matrix4x4& objectToCameraMatrix, Matrix4x4& objectToWorldMatrix) const;
 
@@ -33,7 +34,7 @@ namespace Thebe
 
 		static Space* Factory(const ParseParty::JsonObject* jsonObject);
 
-		Space* FindSpaceByName(const std::string& searchName);
+		Space* FindSpaceByName(const std::string& searchName, Space** parentSpace = nullptr);
 
 	protected:
 		Transform childToParent;

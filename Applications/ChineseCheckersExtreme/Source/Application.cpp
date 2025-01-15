@@ -5,6 +5,8 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/DirectionalLight.h"
 #include "Thebe/EngineParts/Text.h"
+#include "Thebe/EngineParts/Mesh.h"
+#include "Thebe/EngineParts/MeshInstance.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -120,6 +122,29 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);
 	this->freeCam.SetCamera(this->camera);
+
+	Reference<Mesh> ringMesh;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
+		return false;
+
+	Reference<MeshInstance> sourceRingMeshInstance(new MeshInstance());
+	sourceRingMeshInstance->SetGraphicsEngine(this->graphicsEngine);
+	sourceRingMeshInstance->SetMesh(ringMesh);
+	sourceRingMeshInstance->SetName("sourceRing");
+	sourceRingMeshInstance->SetFlags(sourceRingMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	if (!sourceRingMeshInstance->Setup())
+		return false;
+
+	Reference<MeshInstance> targetRingMeshInstance(new MeshInstance());
+	targetRingMeshInstance->SetGraphicsEngine(this->graphicsEngine);
+	targetRingMeshInstance->SetMesh(ringMesh);
+	targetRingMeshInstance->SetName("targetRing");
+	targetRingMeshInstance->SetFlags(targetRingMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	if (!targetRingMeshInstance->Setup())
+		return false;
+
+	scene->GetRootSpace()->AddSubSpace(sourceRingMeshInstance);
+	scene->GetRootSpace()->AddSubSpace(targetRingMeshInstance);
 
 	this->frame->Show();
 

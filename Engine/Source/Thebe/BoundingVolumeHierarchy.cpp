@@ -167,7 +167,7 @@ BVHObject* BVHNode::FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfa
 	// Next, sort the sub-spaces by nearest to farthest hit.
 	std::sort(hitChildNodeArray.begin(), hitChildNodeArray.end(), [](const BVHNode* nodeA, const BVHNode* nodeB) -> bool
 		{
-			return nodeA->rayHitInterval.A < nodeB->rayHitInterval.B;
+			return nodeA->rayHitInterval.A < nodeB->rayHitInterval.A;
 		});
 
 	// Now process the nodes in the sorted order.  By virtue of the order, if we get a hit,
@@ -185,7 +185,7 @@ BVHObject* BVHNode::FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfa
 	// node's space who's bounds are hit and sort them nearest to farthest.
 	std::vector<BVHObject*> hitObjectBoundsArray;
 	for (BVHObject* object : this->objectList)
-		if (!ray.CastAgainst(object->GetWorldBoundingBox(), object->rayBoundsHitInterval))
+		if (ray.CastAgainst(object->GetWorldBoundingBox(), object->rayBoundsHitInterval))
 			hitObjectBoundsArray.push_back(object);
 	std::sort(hitObjectBoundsArray.begin(), hitObjectBoundsArray.end(), [](const BVHObject* objectA, const BVHObject* objectB) -> bool
 		{
@@ -198,7 +198,7 @@ BVHObject* BVHNode::FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfa
 	for (BVHObject* object : hitObjectBoundsArray)
 	{
 		if (nearestHitObject && nearestHitObject->rayObjectHitDistance < object->rayBoundsHitInterval.A)
-			continue;	// This is more likely to happen because of the sorted order of the list.
+			break;
 
 		Vector3 tentativeSurfaceNormal;
 		if (!object->RayCast(ray, object->rayObjectHitDistance, tentativeSurfaceNormal))

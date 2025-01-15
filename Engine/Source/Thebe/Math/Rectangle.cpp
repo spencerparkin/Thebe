@@ -93,6 +93,6 @@ Vector2 Rectangle::PointFromUVs(const Vector2& uv) const
 {
 	Vector2 point;
 	point.x = this->minCorner.x + uv.x * this->GetWidth();
-	point.y = this->minCorner.y + uv.y + this->GetHeight();
+	point.y = this->minCorner.y + uv.y * this->GetHeight();
 	return point;
 }

@@ -175,19 +175,39 @@ void Space::AddSubSpace(Space* space)
 	this->subSpaceArray.push_back(space);
 }
 
+bool Space::RemoveSubSpace(Space* space)
+{
+	for (int i = 0; i < (int)this->subSpaceArray.size(); i++)
+	{
+		if (this->subSpaceArray[i].Get() == space)
+		{
+			if (i != (int)this->subSpaceArray.size() - 1)
+				this->subSpaceArray[i] = this->subSpaceArray[this->subSpaceArray.size() - 1];
+
+			this->subSpaceArray.pop_back();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void Space::ClearAllSubSpaces()
 {
 	this->subSpaceArray.clear();
 }
 
-Space* Space::FindSpaceByName(const std::string& searchName)
+Space* Space::FindSpaceByName(const std::string& searchName, Space** parentSpace /*= nullptr*/)
 {
 	if (this->name == searchName)
 		return this;
 
+	if (parentSpace)
+		*parentSpace = this;
+
 	for (Space* subSpace : this->subSpaceArray)
 	{
-		Space* foundSpace = subSpace->FindSpaceByName(searchName);
+		Space* foundSpace = subSpace->FindSpaceByName(searchName, parentSpace);
 		if (foundSpace)
 			return foundSpace;
 	}

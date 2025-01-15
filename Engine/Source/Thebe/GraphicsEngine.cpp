@@ -863,12 +863,11 @@ bool GraphicsEngine::CalcPickingRay(const Vector2& screenCoords, Ray& ray)
 	Vector2 uv = screenSpace.PointToUVs(screenCoords);
 	uv.y = 1.0 - uv.y;		// Screen-space has origin in upper-left (not lower-right) corner.
 	Vector3 projPoint = projSpace.PointFromUVs(uv);
+	projPoint.z = 1.0;
 	Vector3 worldPoint = projToWorld.TransformPoint(projPoint);
-	Vector3 cameraDirection(0.0, 0.0, -1.0);
-	Vector3 worldDirection = cameraToWorld.TransformPoint(cameraDirection);
 
-	ray.origin = worldPoint;
-	ray.unitDirection = worldDirection;
+	ray.origin = camera->GetCameraToWorldTransform().translation;
+	ray.unitDirection = (worldPoint - ray.origin).Normalized();
 
 	return true;
 }
