@@ -19,6 +19,7 @@
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/FloppyBody.h"
 #include "Thebe/EngineParts/RigidBody.h"
+#include "Thebe/Math/Rectangle.h"
 #include "Thebe/Log.h"
 #include "JsonValue.h"
 #include <locale>
@@ -817,6 +818,57 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 
 	fileStream << jsonString;
 	fileStream.close();
+
+	return true;
+}
+
+bool GraphicsEngine::CalcPickingRay(const Vector2& screenCoords, Ray& ray)
+{
+	if (!this->camera.Get())
+	{
+		THEBE_LOG("Can't do picking without a camera.");
+		return false;
+	}
+
+	Matrix4x4 cameraToProj = this->camera->GetCameraToProjectionMatrix();
+	Matrix4x4 projToCamera;
+	if (!projToCamera.Invert(cameraToProj))
+	{
+		THEBE_LOG("Projection matrix is singular.");
+		return false;
+	}
+
+	Matrix4x4 cameraToWorld;
+	this->camera->GetCameraToWorldTransform().GetToMatrix(cameraToWorld);
+
+	Matrix4x4 projToWorld = cameraToWorld * projToCamera;
+
+	SwapChain* swapChain = this->GetSwapChain();
+	if (!swapChain)
+	{
+		THEBE_LOG("Can't do picking without a swap-chain.");
+		return false;
+	}
+
+	const CD3DX12_VIEWPORT& viewport = swapChain->GetViewport();
+
+	Rectangle screenSpace;
+	screenSpace.minCorner.SetComponents(0.0, 0.0);
+	screenSpace.maxCorner.SetComponents(double(viewport.Width), double(viewport.Height));
+
+	Rectangle projSpace;
+	projSpace.minCorner.SetComponents(-1.0, -1.0);
+	projSpace.maxCorner.SetComponents(1.0, 1.0);
+
+	Vector2 uv = screenSpace.PointToUVs(screenCoords);
+	uv.y = 1.0 - uv.y;		// Screen-space has origin in upper-left (not lower-right) corner.
+	Vector3 projPoint = projSpace.PointFromUVs(uv);
+	Vector3 worldPoint = projToWorld.TransformPoint(projPoint);
+	Vector3 cameraDirection(0.0, 0.0, -1.0);
+	Vector3 worldDirection = cameraToWorld.TransformPoint(cameraDirection);
+
+	ray.origin = worldPoint;
+	ray.unitDirection = worldDirection;
 
 	return true;
 }

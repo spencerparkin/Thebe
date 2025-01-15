@@ -150,6 +150,16 @@ namespace Thebe
 		PhysicsSystem* GetPhysicsSystem();
 		EventSystem* GetEventSystem();
 
+		/**
+		 * Convert a location in screen-space to a ray in world space
+		 * that can be used for picking purposes.
+		 * 
+		 * @param[in] screenCoords This is the location in screen-space where, for example, the mouse cursor may reside.
+		 * @param[out] ray This is calculated as a ray starting from the near plane and pointing in the direction of the camera.
+		 * @return True is returned on success; false, otherwise.
+		 */
+		bool CalcPickingRay(const Vector2& screenCoords, Ray& ray);
+
 	private:
 		struct PSO
 		{

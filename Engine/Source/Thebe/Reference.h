@@ -138,6 +138,11 @@ namespace Thebe
 			return this->Get();
 		}
 
+		operator bool() const
+		{
+			return this->refCounted != nullptr;
+		}
+
 		T* Get()
 		{
 			return dynamic_cast<T*>(this->refCounted);

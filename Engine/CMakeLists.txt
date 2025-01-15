@@ -169,6 +169,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Math/Random.h
     Source/Thebe/Math/GJKAlgorithm.cpp
     Source/Thebe/Math/GJKAlgorithm.h
+    Source/Thebe/Math/Rectangle.cpp
+    Source/Thebe/Math/Rectangle.h
 )
 
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})

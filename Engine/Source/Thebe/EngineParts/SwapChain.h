@@ -33,6 +33,8 @@ namespace Thebe
 		void SetMsaaEnabled(bool msaaEnabled);
 		bool GetMsaaEnabled() const;
 
+		const CD3DX12_VIEWPORT& GetViewport() const;
+
 	protected:
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;
