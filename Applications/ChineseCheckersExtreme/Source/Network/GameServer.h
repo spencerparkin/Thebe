@@ -27,7 +27,7 @@ public:
 		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) override;
 
 		ChineseCheckersServer* server;
-		int playerID;
+		int sourceZoneID;
 	};
 
 	bool ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client);
@@ -38,5 +38,5 @@ protected:
 
 	Thebe::Reference<ChineseCheckersGame> game;
 	std::mutex serverMutex;
-	std::vector<int> freePlayerIDStack;
+	std::vector<int> freeZoneIDStack;
 };

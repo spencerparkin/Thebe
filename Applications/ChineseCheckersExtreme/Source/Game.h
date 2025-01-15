@@ -40,7 +40,7 @@ public:
 		Occupant();
 		virtual ~Occupant();
 
-		int playerID;
+		int sourceZoneID;
 		int targetZoneID;
 		double health;
 		double attackPower;
@@ -73,7 +73,7 @@ public:
 
 	virtual bool GetZoneColor(int zoneID, Thebe::Vector3& color) = 0;
 
-	virtual void GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack) = 0;
+	virtual void GenerateFreeZoneIDStack(std::vector<int>& freeZoneIDStack) = 0;
 
 	void Clear();
 

@@ -28,6 +28,6 @@ OctagonalGame::OctagonalGame()
 	return "octagonal";
 }
 
-/*virtual*/ void OctagonalGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
+/*virtual*/ void OctagonalGame::GenerateFreeZoneIDStack(std::vector<int>& freeZoneIDStack)
 {
 }

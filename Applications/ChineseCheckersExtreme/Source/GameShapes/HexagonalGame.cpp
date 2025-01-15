@@ -10,12 +10,12 @@ HexagonalGame::HexagonalGame()
 {
 }
 
-/*virtual*/ void HexagonalGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
+/*virtual*/ void HexagonalGame::GenerateFreeZoneIDStack(std::vector<int>& freeZoneIDStack)
 {
-	int playerSequence[6] = { 6, 3, 5, 2, 4, 1 };
-	freePlayerIDStack.clear();
+	int zoneSequence[6] = { 6, 3, 5, 2, 4, 1 };
+	freeZoneIDStack.clear();
 	for (int i = 0; i < 6; i++)
-		freePlayerIDStack.push_back(playerSequence[i]);
+		freeZoneIDStack.push_back(zoneSequence[i]);
 }
 
 /*virtual*/ bool HexagonalGame::GenerateGraph(int numPlayers)
@@ -76,7 +76,7 @@ HexagonalGame::HexagonalGame()
 			if (playerIDSet.find(zoneID) != playerIDSet.end())
 			{
 				auto occupant = new Occupant();
-				occupant->playerID = zoneID;
+				occupant->sourceZoneID = zoneID;
 				occupant->targetZoneID = (zoneID + 3) % 6;
 				node->occupant = occupant;
 				this->occupantArray.push_back(occupant);

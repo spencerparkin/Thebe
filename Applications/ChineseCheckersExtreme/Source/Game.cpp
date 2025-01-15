@@ -70,7 +70,7 @@ bool ChineseCheckersGame::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonRoo
 	{
 		auto occupantValue = new JsonObject();
 		occupantArrayValue->PushValue(occupantValue);
-		occupantValue->SetValue("player_id", new JsonInt(occupant->playerID));
+		occupantValue->SetValue("source_zone_id", new JsonInt(occupant->sourceZoneID));
 		occupantValue->SetValue("target_zone_id", new JsonInt(occupant->targetZoneID));
 		occupantValue->SetValue("health", new JsonFloat(occupant->health));
 		occupantValue->SetValue("attack_power", new JsonFloat(occupant->attackPower));
@@ -115,19 +115,19 @@ bool ChineseCheckersGame::FromJson(const ParseParty::JsonValue* jsonRootValue)
 			return false;
 		}
 
-		auto playerIDValue = dynamic_cast<const JsonInt*>(occupantValue->GetValue("player_id"));
+		auto sourceZoneIDValue = dynamic_cast<const JsonInt*>(occupantValue->GetValue("source_zone_id"));
 		auto targetZoneIDValue = dynamic_cast<const JsonInt*>(occupantValue->GetValue("target_zone_id"));
 		auto healthValue = dynamic_cast<const JsonFloat*>(occupantValue->GetValue("health"));
 		auto attackPowerValue = dynamic_cast<const JsonFloat*>(occupantValue->GetValue("attack_power"));
 
-		if (!playerIDValue || !targetZoneIDValue || !healthValue || !attackPowerValue)
+		if (!sourceZoneIDValue || !targetZoneIDValue || !healthValue || !attackPowerValue)
 		{
 			THEBE_LOG("Not all values could be found for occupant entry %d.", i);
 			return false;
 		}
 
 		auto occupant = new Occupant();
-		occupant->playerID = (int)playerIDValue->GetValue();
+		occupant->sourceZoneID = (int)sourceZoneIDValue->GetValue();
 		occupant->targetZoneID = (int)targetZoneIDValue->GetValue();
 		occupant->health = healthValue->GetValue();
 		occupant->attackPower = attackPowerValue->GetValue();
@@ -234,7 +234,7 @@ const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& ChineseCheckersG
 
 ChineseCheckersGame::Occupant::Occupant()
 {
-	this->playerID = 0;
+	this->sourceZoneID = 0;
 	this->targetZoneID = 0;
 	this->health = 1.0;
 	this->attackPower = 0.0;

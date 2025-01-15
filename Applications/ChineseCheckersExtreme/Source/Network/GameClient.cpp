@@ -40,12 +40,10 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	std::unique_ptr<JsonObject> jsonRequestValue(new JsonObject());
 	jsonRequestValue->SetValue("request", new JsonString("get_game_state"));
 	client->SendJson(jsonRequestValue.get());
-	THEBE_LOG("Client sent game state request.");
 
 	jsonRequestValue.reset(new JsonObject());
-	jsonRequestValue->SetValue("request", new JsonString("get_player_id"));
+	jsonRequestValue->SetValue("request", new JsonString("get_source_zone_id"));
 	client->SendJson(jsonRequestValue.get());
-	THEBE_LOG("Client sent player ID request.");
 
 	return true;
 }
@@ -115,18 +113,18 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 			return false;
 		}
 	}
-	else if (response == "get_player_id")
+	else if (response == "get_source_zone_id")
 	{
-		auto playerIDValue = dynamic_cast<const JsonInt*>(responseRootValue->GetValue("player_id"));
-		if (!playerIDValue)
+		auto sourceZoneIDValue = dynamic_cast<const JsonInt*>(responseRootValue->GetValue("source_zone_id"));
+		if (!sourceZoneIDValue)
 		{
-			THEBE_LOG("No player ID value found in response.");
+			THEBE_LOG("No source zone ID value found in response.");
 			return false;
 		}
 
 		auto client = dynamic_cast<Socket*>(this->GetSocket());
 		THEBE_ASSERT_FATAL(client != nullptr);
-		client->playerID = playerIDValue->GetValue();
+		client->sourceZoneID = sourceZoneIDValue->GetValue();
 	}
 	else
 	{
@@ -165,7 +163,7 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 {
 	this->ringBufferSize = 64 * 1024;
 	this->recvBufferSize = 4 * 1024;
-	this->playerID = 0;
+	this->sourceZoneID = 0;
 	this->client = client;
 }
 

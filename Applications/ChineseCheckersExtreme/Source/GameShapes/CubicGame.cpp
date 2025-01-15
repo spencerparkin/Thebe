@@ -28,6 +28,6 @@ CubicGame::CubicGame()
 	return "cubic";
 }
 
-/*virtual*/ void CubicGame::GenerateFreePlayerIDStack(std::vector<int>& freePlayerIDStack)
+/*virtual*/ void CubicGame::GenerateFreeZoneIDStack(std::vector<int>& freeZoneIDStack)
 {
 }

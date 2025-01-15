@@ -22,7 +22,7 @@ ChineseCheckersServer::ChineseCheckersServer()
 		return false;
 	}
 
-	this->game->GenerateFreePlayerIDStack(this->freePlayerIDStack);
+	this->game->GenerateFreeZoneIDStack(this->freeZoneIDStack);
 
 	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
 		{
@@ -86,12 +86,12 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		jsonResponseValue->SetValue("game_type", new JsonString(this->game->GetGameType()));
 		jsonResponseValue->SetValue("game_state", jsonGameValue.release());
 	}
-	else if (request == "get_player_id")
+	else if (request == "get_source_zone_id")
 	{
 		auto jsonResponseValue = new JsonObject();
 		jsonResponse.reset(jsonResponseValue);
-		jsonResponseValue->SetValue("response", new JsonString("get_player_id"));
-		jsonResponseValue->SetValue("player_id", new JsonInt(client->playerID));
+		jsonResponseValue->SetValue("response", new JsonString("get_source_zone_id"));
+		jsonResponseValue->SetValue("source_zone_id", new JsonInt(client->sourceZoneID));
 	}
 	else if (request == "take_turn")
 	{
@@ -119,10 +119,10 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 
 	std::lock_guard<std::mutex> lock(this->serverMutex);
 
-	if (this->freePlayerIDStack.size() > 0)
+	if (this->freeZoneIDStack.size() > 0)
 	{
-		client->playerID = this->freePlayerIDStack[this->freePlayerIDStack.size() - 1];
-		this->freePlayerIDStack.pop_back();
+		client->sourceZoneID = this->freeZoneIDStack.back();
+		this->freeZoneIDStack.pop_back();
 	}
 }
 
@@ -133,7 +133,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 
 	std::lock_guard<std::mutex> lock(this->serverMutex);
 
-	this->freePlayerIDStack.push_back(client->playerID);
+	this->freeZoneIDStack.push_back(client->sourceZoneID);
 }
 
 //---------------------------------- ChineseCheckersServer::Socket ----------------------------------
@@ -142,7 +142,7 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 {
 	this->ringBufferSize = 64 * 1024;
 	this->recvBufferSize = 4 * 1024;
-	this->playerID = 0;
+	this->sourceZoneID = 0;
 	this->server = server;
 }
 

@@ -29,7 +29,7 @@ public:
 		virtual bool ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue) override;
 
 		ChineseCheckersClient* client;
-		int playerID;
+		int sourceZoneID;
 	};
 
 	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse);

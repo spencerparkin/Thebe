@@ -153,7 +153,7 @@ HumanClient::HumanClient()
 			adjustmentTransform.translation.SetComponents(0.0, 0.0, 0.5);
 			platformBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
 
-			if (node->occupant && game->GetZoneColor(node->occupant->playerID, zoneColor))
+			if (node->occupant && game->GetZoneColor(node->occupant->sourceZoneID, zoneColor))
 			{
 				Vector4 zoneColorNoAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 1.0);
 
