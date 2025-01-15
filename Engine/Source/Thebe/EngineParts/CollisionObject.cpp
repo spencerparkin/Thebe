@@ -15,6 +15,7 @@ CollisionObject::CollisionObject()
 	this->frameWhenLastMoved = -1;
 	this->color.SetComponents(1.0, 1.0, 1.0);
 	this->userData = 0;
+	this->physicsData = 0;
 }
 
 /*virtual*/ CollisionObject::~CollisionObject()
@@ -102,6 +103,16 @@ void CollisionObject::SetUserData(uintptr_t userData)
 uintptr_t CollisionObject::GetUserData() const
 {
 	return this->userData;
+}
+
+void CollisionObject::SetPhysicsData(uintptr_t physicsData)
+{
+	this->physicsData = physicsData;
+}
+
+uintptr_t CollisionObject::GetPhysicsData() const
+{
+	return this->physicsData;
 }
 
 UINT64 CollisionObject::GetFrameWhenLastMoved() const

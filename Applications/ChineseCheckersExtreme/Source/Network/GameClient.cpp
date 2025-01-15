@@ -157,6 +157,13 @@ bool ChineseCheckersClient::RemoveResponse(std::unique_ptr<const ParseParty::Jso
 	return false;
 }
 
+int ChineseCheckersClient::GetSourceZoneID()
+{
+	auto socket = dynamic_cast<Socket*>(this->clientSocket);
+	THEBE_ASSERT_FATAL(socket != nullptr);
+	return socket->sourceZoneID;
+}
+
 //------------------------------------- ChineseCheckersClient::Socket -------------------------------------
 
 ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket)

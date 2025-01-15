@@ -36,6 +36,8 @@ public:
 
 	void AddResponse(const ParseParty::JsonValue* jsonResponse);
 
+	int GetSourceZoneID();
+
 protected:
 	Thebe::Reference<ChineseCheckersGame> game;
 

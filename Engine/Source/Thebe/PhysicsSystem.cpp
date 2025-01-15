@@ -48,7 +48,7 @@ void PhysicsSystem::HandleCollisionObjectEvent(const Event* event)
 	auto collisionObjectEvent = dynamic_cast<const CollisionObjectEvent*>(event);
 	if (collisionObjectEvent && collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
 	{
-		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetUserData();
+		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetPhysicsData();
 		Reference<PhysicsObject> physicsObject;
 		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
 		{
@@ -179,8 +179,8 @@ bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision
 {
 	Reference<PhysicsObject> objectA, objectB;
 
-	RefHandle handleA = (RefHandle)collision->objectA->GetUserData();
-	RefHandle handleB = (RefHandle)collision->objectB->GetUserData();
+	RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
+	RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
 
 	if (!HandleManager::Get()->GetObjectFromHandle(handleA, objectA) || !HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
 		return false;

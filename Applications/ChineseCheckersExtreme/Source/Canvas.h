@@ -2,6 +2,8 @@
 
 #include <wx/window.h>
 #include "Thebe/Math/LineSegment.h"
+#include "Thebe/EngineParts/CollisionObject.h"
+#include "Game.h"
 
 class ChineseCheckersCanvas : public wxWindow
 {
@@ -13,13 +15,11 @@ public:
 	void OnSize(wxSizeEvent& event);
 	void OnMouseMotion(wxMouseEvent& event);
 	void OnMouseLeftClick(wxMouseEvent& event);
+	void OnMouseRightClick(wxMouseEvent& event);
 
 private:
-	enum PickingMode
-	{
-		CHOOSING_SOURCE,
-		CHOOSING_TARGET
-	};
+	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
+	std::vector<Thebe::Reference<ChineseCheckersGame::Node>> nodeSequenceArray;
 
-	PickingMode pickingMode;
+	void UpdateRings();
 };

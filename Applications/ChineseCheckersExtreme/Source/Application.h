@@ -12,6 +12,7 @@
 class ChineseCheckersFrame;
 class ChineseCheckersClient;
 class ChineseCheckersServer;
+class HumanClient;
 
 class ChineseCheckersApp : public wxApp
 {
@@ -30,6 +31,8 @@ public:
 	void SetGameServer(ChineseCheckersServer* gameServer);
 
 	std::vector<ChineseCheckersClient*>& GetGameClientArray();
+
+	HumanClient* GetHumanClient();
 
 	void ShutdownClientsAndServer();
 

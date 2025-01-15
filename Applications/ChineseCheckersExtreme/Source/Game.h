@@ -54,6 +54,11 @@ public:
 
 		void RemoveNullAdjacencies();
 
+		Node* GetAdjacencyAndDirection(int i, Thebe::Vector3& unitDirection);
+		Node* GetAdjacencyInDirection(const Thebe::Vector3& unitDirection);
+
+		bool FindWithHops(const Node* targetNode, std::vector<Node*>& nodePathArray);
+
 		std::vector<Node*> adjacentNodeArray;
 		Thebe::Vector3 location;
 		Occupant* occupant;
@@ -78,6 +83,16 @@ public:
 	void Clear();
 
 	const std::vector<Thebe::Reference<Node>>& GetNodeArray() const;
+
+	bool FindLegalPath(Node* sourceNode, Node* targetNode, std::vector<Node*>& nodePathArray);
+	bool IsPathLegal(const std::vector<Node*>& nodePathArray);
+	bool ExecutePath(const std::vector<Node*>& nodePathArray);
+
+	int NodeToOffset(Node* node);
+	Node* NodeFromOffset(int offset);
+
+	bool NodeArrayToOffsetArray(const std::vector<Node*>& nodePathArray, std::vector<int>& nodeOffsetArray);
+	bool NodeArrayFromOffsetArray(std::vector<Node*>& nodePathArray, const std::vector<int>& nodeOffsetArray);
 
 protected:
 

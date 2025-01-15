@@ -22,6 +22,9 @@
 #define THEBE_ALIGNED(x, y)			(((x) + ((y) - 1)) & ~((y) - 1))
 #define THEBE_PI					M_PI
 #define THEBE_PHI					1.618033988749
+#define THEBE_SMALL_EPS				1e-9
+#define THEBE_MEDIUM_EPS			1e-5
+#define THEBE_FAT_EPS				1e-2
 
 #if defined _DEBUG
 #	define THEBE_ASSERT(x)			do { Thebe::Assert(x, #x, __FILE__, __LINE__, false); } while(false)

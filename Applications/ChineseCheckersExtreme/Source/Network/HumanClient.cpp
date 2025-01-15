@@ -152,6 +152,7 @@ HumanClient::HumanClient()
 			adjustmentTransform.matrix.SetIdentity();
 			adjustmentTransform.translation.SetComponents(0.0, 0.0, 0.5);
 			platformBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
+			platformBody->GetCollisionObject()->SetUserData(node->GetHandle());
 
 			if (node->occupant && game->GetZoneColor(node->occupant->sourceZoneID, zoneColor))
 			{

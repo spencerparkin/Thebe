@@ -31,6 +31,9 @@ namespace Thebe
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;
 
+		void SetPhysicsData(uintptr_t physicsData);
+		uintptr_t GetPhysicsData() const;
+
 		void SetUserData(uintptr_t userData);
 		uintptr_t GetUserData() const;
 
@@ -67,6 +70,7 @@ namespace Thebe
 		Vector3 objectSpaceGeometricCenter;
 		Vector3 color;
 		uintptr_t userData;
+		uintptr_t physicsData;
 		Reference<Space> targetSpace;
 		Transform targetSpaceRelativeTransform;
 	};

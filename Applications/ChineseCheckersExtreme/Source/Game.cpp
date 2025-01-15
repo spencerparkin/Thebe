@@ -5,6 +5,8 @@
 #include "Thebe/Utilities/JsonHelper.h"
 #include "Thebe/Log.h"
 
+using namespace Thebe;
+
 //---------------------------------- ChineseCheckersGame ----------------------------------
 
 ChineseCheckersGame::ChineseCheckersGame()
@@ -230,6 +232,87 @@ const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& ChineseCheckersG
 	return this->nodeArray;
 }
 
+bool ChineseCheckersGame::FindLegalPath(Node* sourceNode, Node* targetNode, std::vector<Node*>& nodePathArray)
+{
+	nodePathArray.clear();
+
+	for (Node* adjacentNode : sourceNode->adjacentNodeArray)
+	{
+		if (adjacentNode == targetNode)
+		{
+			nodePathArray.push_back(sourceNode);
+			nodePathArray.push_back(targetNode);
+			return true;
+		}
+	}
+
+	return sourceNode->FindWithHops(targetNode, nodePathArray);
+}
+
+bool ChineseCheckersGame::IsPathLegal(const std::vector<Node*>& nodePathArray)
+{
+	// TODO: Write this.
+	return false;
+}
+
+bool ChineseCheckersGame::ExecutePath(const std::vector<Node*>& nodePathArray)
+{
+	if (!this->IsPathLegal(nodePathArray))
+		return false;
+
+	// TODO: Write this.
+	return false;
+}
+
+int ChineseCheckersGame::NodeToOffset(Node* node)
+{
+	for (int i = 0; i < (int)this->nodeArray.size(); i++)
+		if (this->nodeArray[i] == node)
+			return i;
+
+	return -1;
+}
+
+ChineseCheckersGame::Node* ChineseCheckersGame::NodeFromOffset(int offset)
+{
+	if (offset < 0 || offset >= (int)this->nodeArray.size())
+		return nullptr;
+
+	return this->nodeArray[offset];
+}
+
+bool ChineseCheckersGame::NodeArrayToOffsetArray(const std::vector<Node*>& nodePathArray, std::vector<int>& nodeOffsetArray)
+{
+	nodeOffsetArray.clear();
+
+	for (Node* node : this->nodeArray)
+	{
+		int i = this->NodeToOffset(node);
+		if (i < 0)
+			return false;
+
+		nodeOffsetArray.push_back(i);
+	}
+
+	return true;
+}
+
+bool ChineseCheckersGame::NodeArrayFromOffsetArray(std::vector<Node*>& nodePathArray, const std::vector<int>& nodeOffsetArray)
+{
+	nodePathArray.clear();
+
+	for (int i : nodeOffsetArray)
+	{
+		Node* node = this->NodeFromOffset(i);
+		if (!node)
+			return false;
+
+		nodePathArray.push_back(node);
+	}
+
+	return true;
+}
+
 //---------------------------------- ChineseCheckersGame::Occupant ----------------------------------
 
 ChineseCheckersGame::Occupant::Occupant()
@@ -265,4 +348,64 @@ void ChineseCheckersGame::Node::RemoveNullAdjacencies()
 			nodeArray.push_back(node);
 
 	this->adjacentNodeArray = nodeArray;
+}
+
+ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyAndDirection(int i, Vector3& unitDirection)
+{
+	if (i < 0 || i >= (int)this->adjacentNodeArray.size())
+		return nullptr;
+
+	Node* node = this->adjacentNodeArray[i];
+	unitDirection = (node->location - this->location).Normalized();
+	return node;
+}
+
+ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyInDirection(const Vector3& unitDirection)
+{
+	for (Node* node : this->adjacentNodeArray)
+	{
+		Vector3 nodeUnitDirection = (node->location - this->location.Normalized());
+		double angle = unitDirection.AngleBetween(nodeUnitDirection);
+		if (angle < THEBE_MEDIUM_EPS)
+		{
+			return node;
+		}
+	}
+
+	return nullptr;
+}
+
+bool ChineseCheckersGame::Node::FindWithHops(const Node* targetNode, std::vector<Node*>& nodePathArray)
+{
+	nodePathArray.push_back(this);
+
+	if (this == targetNode)
+		return true;
+
+	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
+	{
+		Vector3 unitDirection;
+		Node* adjacentNode = this->GetAdjacencyAndDirection(i, unitDirection);
+		if (!adjacentNode->occupant)
+			continue;
+		
+		Node* hopNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
+		if (!hopNode)
+			continue;
+
+		bool alreadyTraveled = false;
+		for (int j = 0; j < (int)nodePathArray.size() && !alreadyTraveled; j++)
+			if (nodePathArray[j] == hopNode)
+				alreadyTraveled = true;
+
+		if (alreadyTraveled)
+			continue;
+
+		if (hopNode->FindWithHops(targetNode, nodePathArray))
+			return true;
+	}
+
+	nodePathArray.pop_back();
+
+	return false;
 }

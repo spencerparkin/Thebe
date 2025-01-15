@@ -119,7 +119,7 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	auto collisionObjectEvent = (CollisionObjectEvent*)event;
 	if (collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
 	{
-		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetUserData();
+		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetPhysicsData();
 		Reference<PhysicsObject> physicsObject;
 		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
 		{

@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/CollisionObject.h"
+#include "Network/HumanClient.h"
 
 using namespace Thebe;
 
@@ -15,8 +16,6 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_SIZE, &ChineseCheckersCanvas::OnSize, this);
 	this->Bind(wxEVT_MOTION, &ChineseCheckersCanvas::OnMouseMotion, this);
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
-
-	this->pickingMode = CHOOSING_SOURCE;
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
@@ -55,6 +54,24 @@ void ChineseCheckersCanvas::OnSize(wxSizeEvent& event)
 	graphicsEngine->Resize(windowSize.x, windowSize.y);
 }
 
+CollisionObject* ChineseCheckersCanvas::PickCollisionObject(const wxPoint& mousePoint)
+{
+	CollisionObject* collisionObject = nullptr;
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
+
+	Vector2 screenCoords(double(mousePoint.x), double(mousePoint.y));
+	Ray ray;
+	if (graphicsEngine->CalcPickingRay(screenCoords, ray))
+	{
+		Vector3 unitSurfaceNormal;
+		collisionSystem->RayCast(ray, collisionObject, unitSurfaceNormal);
+	}
+
+	return collisionObject;
+}
+
 void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
@@ -64,33 +81,15 @@ void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 	if (!scene)
 		return;
 
-	wxPoint mousePos = event.GetPosition();
-	Vector2 screenCoords(double(mousePos.x), double(mousePos.y));
-	Ray ray;
-	if (!graphicsEngine->CalcPickingRay(screenCoords, ray))
-		return;
-
-	CollisionObject* collisionObject = nullptr;
-	Vector3 unitSurfaceNormal;
-	collisionSystem->RayCast(ray, collisionObject, unitSurfaceNormal);
-
-	MeshInstance* ringInstance = nullptr;
-	switch (this->pickingMode)
-	{
-	case CHOOSING_SOURCE:
-		ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName("sourceRing"));
-		break;
-	case CHOOSING_TARGET:
-		ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName("targetRing"));
-		break;
-	}
-
+	int i = (int)this->nodeSequenceArray.size();
+	MeshInstance* ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName(std::format("ring{}", i)));
 	if (!ringInstance)
 		return;
 
 	ringInstance->SetFlags(ringInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
 
-	if (collisionObject)
+	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
+	if (collisionObject && collisionObject->GetUserData() != 0)
 	{
 		ringInstance->SetFlags(ringInstance->GetFlags() | THEBE_RENDER_OBJECT_FLAG_VISIBLE);
 		const Transform& objectToWorld = collisionObject->GetObjectToWorld();
@@ -100,5 +99,90 @@ void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 {
+	HumanClient* human = wxGetApp().GetHumanClient();
+	if (!human)
+		return;
 	
+	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
+	if (!collisionObject || !collisionObject->GetUserData())
+		return;
+
+	RefHandle handle = (RefHandle)collisionObject->GetUserData();
+	Reference<ChineseCheckersGame::Node> nextNode;
+	if (!HandleManager::Get()->GetObjectFromHandle(handle, nextNode))
+		return;
+
+	if(this->nodeSequenceArray.size() == 0)
+	{
+		if (nextNode->zoneID == human->GetSourceZoneID())
+			this->nodeSequenceArray.push_back(nextNode);
+		else
+		{
+			// TODO: Maybe play a wave sound saying that you need to click on a platform with your own cube on it.
+		}
+	}
+	else
+	{
+		if (this->nodeSequenceArray.size() == 2)
+		{
+			// Special case: If the size is 2 and the two nodes are adjacent, then don't let the user tack on any more nodes.
+		}
+
+		ChineseCheckersGame::Node* prevNode = this->nodeSequenceArray[this->nodeSequenceArray.size() - 1].Get();
+		std::vector<ChineseCheckersGame::Node*> nodePathArray;
+		if (human->GetGame()->FindLegalPath(prevNode, nextNode, nodePathArray))
+		{
+			for (int i = 1; i < (int)nodePathArray.size(); i++)
+				this->nodeSequenceArray.push_back(const_cast<ChineseCheckersGame::Node*>(nodePathArray[i]));
+		}
+		else
+		{
+			// TODO: Maybe play a wave sound saying that the move is invalid.
+		}
+	}
+
+	this->UpdateRings();
+}
+
+void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
+{
+	this->nodeSequenceArray.clear();
+
+	this->UpdateRings();
+}
+
+void ChineseCheckersCanvas::UpdateRings()
+{
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
+
+	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
+	if (!scene)
+		return;
+
+	int i = 0;
+	while (true)
+	{
+		MeshInstance* ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName(std::format("ring{}", i)));
+		if (!ringInstance)
+			break;
+
+		ringInstance->SetFlags(ringInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+		i++;
+	}
+
+	for (i = 0; i < (int)this->nodeSequenceArray.size(); i++)
+	{
+		MeshInstance* ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName(std::format("ring{}", i)));
+		THEBE_ASSERT_FATAL(ringInstance != nullptr);
+
+		ringInstance->SetFlags(ringInstance->GetFlags() | THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+
+		ChineseCheckersGame::Node* node = this->nodeSequenceArray[i];
+
+		Transform objectToWorld;
+		objectToWorld.SetIdentity();
+		objectToWorld.translation = node->location;
+		ringInstance->SetChildToParentTransform(objectToWorld);
+	}
 }

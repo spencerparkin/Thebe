@@ -7,6 +7,7 @@
 #include "Thebe/EngineParts/Text.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
+#include "Network/HumanClient.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -127,24 +128,18 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
 		return false;
 
-	Reference<MeshInstance> sourceRingMeshInstance(new MeshInstance());
-	sourceRingMeshInstance->SetGraphicsEngine(this->graphicsEngine);
-	sourceRingMeshInstance->SetMesh(ringMesh);
-	sourceRingMeshInstance->SetName("sourceRing");
-	sourceRingMeshInstance->SetFlags(sourceRingMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
-	if (!sourceRingMeshInstance->Setup())
-		return false;
+	for (int i = 0; i < 20; i++)
+	{
+		Reference<MeshInstance> ringMeshInstance(new MeshInstance());
+		ringMeshInstance->SetGraphicsEngine(this->graphicsEngine);
+		ringMeshInstance->SetMesh(ringMesh);
+		ringMeshInstance->SetName(std::format("ring{}", i));
+		ringMeshInstance->SetFlags(ringMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+		if (!ringMeshInstance->Setup())
+			return false;
 
-	Reference<MeshInstance> targetRingMeshInstance(new MeshInstance());
-	targetRingMeshInstance->SetGraphicsEngine(this->graphicsEngine);
-	targetRingMeshInstance->SetMesh(ringMesh);
-	targetRingMeshInstance->SetName("targetRing");
-	targetRingMeshInstance->SetFlags(targetRingMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
-	if (!targetRingMeshInstance->Setup())
-		return false;
-
-	scene->GetRootSpace()->AddSubSpace(sourceRingMeshInstance);
-	scene->GetRootSpace()->AddSubSpace(targetRingMeshInstance);
+		scene->GetRootSpace()->AddSubSpace(ringMeshInstance);
+	}
 
 	this->frame->Show();
 
@@ -207,4 +202,16 @@ void ChineseCheckersApp::SetGameServer(ChineseCheckersServer* gameServer)
 std::vector<ChineseCheckersClient*>& ChineseCheckersApp::GetGameClientArray()
 {
 	return this->gameClientArray;
+}
+
+HumanClient* ChineseCheckersApp::GetHumanClient()
+{
+	for (ChineseCheckersClient* client : this->gameClientArray)
+	{
+		auto human = dynamic_cast<HumanClient*>(client);
+		if (human)
+			return human;
+	}
+
+	return nullptr;
 }
