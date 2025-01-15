@@ -177,5 +177,5 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 
 	for (ChineseCheckersClient* client : wxGetApp().GetGameClientArray())
-		client->Update();
+		client->Update(deltaTimeSeconds);
 }

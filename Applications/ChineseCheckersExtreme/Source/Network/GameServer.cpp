@@ -71,7 +71,14 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	std::string request = requestValue->GetValue();
 	THEBE_LOG("Server got request \"%s\" from client.", request.c_str());
 
-	if (request == "get_game_state")
+	if (request == "ping")
+	{
+		THEBE_LOG("PING!");
+		auto jsonResponseValue = new JsonObject();
+		jsonResponse.reset(jsonResponseValue);
+		jsonResponseValue->SetValue("response", new JsonString("pong"));
+	}
+	else if (request == "get_game_state")
 	{
 		std::unique_ptr<JsonValue> jsonGameValue;
 		if (!this->game->ToJson(jsonGameValue))

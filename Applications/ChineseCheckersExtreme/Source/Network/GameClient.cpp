@@ -8,6 +8,8 @@ using namespace Thebe;
 ChineseCheckersClient::ChineseCheckersClient()
 {
 	this->game = nullptr;
+	this->pingFrequencySecondsPerPing = 2.0;
+	this->timeToNextPingSeconds = 0.0;
 }
 
 /*virtual*/ ChineseCheckersClient::~ChineseCheckersClient()
@@ -55,11 +57,26 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	NetworkClient::Shutdown();
 }
 
-/*virtual*/ void ChineseCheckersClient::Update()
+/*virtual*/ void ChineseCheckersClient::Update(double deltaTimeSeconds)
 {
 	std::unique_ptr<const ParseParty::JsonValue> jsonResponse;
 	while (this->RemoveResponse(jsonResponse))
 		this->HandleResponse(jsonResponse.get());
+
+	using namespace ParseParty;
+
+	if (this->pingFrequencySecondsPerPing > 0.0)
+	{
+		this->timeToNextPingSeconds -= deltaTimeSeconds;
+		if (this->timeToNextPingSeconds <= 0.0)
+		{
+			this->timeToNextPingSeconds += this->pingFrequencySecondsPerPing;
+			auto socket = dynamic_cast<Socket*>(this->GetSocket());
+			std::unique_ptr<JsonObject> pingValue(new JsonObject());
+			pingValue->SetValue("request", new JsonString("ping"));
+			socket->SendJson(pingValue.get());
+		}
+	}
 }
 
 /*virtual*/ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
@@ -83,7 +100,11 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	std::string response = responseValue->GetValue();
 	THEBE_LOG("Client got response \"%s\" from server.", response.c_str());
 
-	if (response == "get_game_state")
+	if (response == "pong")
+	{
+		THEBE_LOG("PONG!");
+	}
+	else if (response == "get_game_state")
 	{
 		auto gameTypeValue = dynamic_cast<const JsonString*>(responseRootValue->GetValue("game_type"));
 		if (!gameTypeValue)

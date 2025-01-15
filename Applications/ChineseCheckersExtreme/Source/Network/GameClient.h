@@ -16,7 +16,7 @@ public:
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
 
-	virtual void Update();
+	virtual void Update(double deltaTimeSeconds);
 
 	ChineseCheckersGame* GetGame();
 
@@ -46,4 +46,6 @@ private:
 	
 	std::list<const ParseParty::JsonValue*> responseList;
 	std::mutex responseListMutex;
+	double timeToNextPingSeconds;
+	double pingFrequencySecondsPerPing;
 };
