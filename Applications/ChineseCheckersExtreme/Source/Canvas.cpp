@@ -115,17 +115,26 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 
 	if(this->nodeSequenceArray.size() == 0)
 	{
-		if (nextNode->zoneID == human->GetSourceZoneID())
-			this->nodeSequenceArray.push_back(nextNode);
-		else
+		if (!nextNode->occupant)
+		{
+			// TODO: Maybe play wave saying you must select an occupied node first.
+		}
+		else if (nextNode->occupant->sourceZoneID != human->GetSourceZoneID())
 		{
 			// TODO: Maybe play a wave sound saying that you need to click on a platform with your own cube on it.
+		}
+		else
+		{
+			this->nodeSequenceArray.push_back(nextNode);
 		}
 	}
 	else
 	{
 		if (this->nodeSequenceArray.size() == 2 && this->nodeSequenceArray[0]->IsAdjacentTo(this->nodeSequenceArray[1]))
+		{
+			// TODO: Maybe play wave saying a jump that doesn't hop over another piece can't jump again.
 			return;
+		}
 
 		ChineseCheckersGame::Node* prevNode = this->nodeSequenceArray[this->nodeSequenceArray.size() - 1];
 		std::vector<ChineseCheckersGame::Node*> nodePathArray;

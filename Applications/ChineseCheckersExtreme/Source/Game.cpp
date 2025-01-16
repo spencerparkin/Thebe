@@ -273,36 +273,31 @@ bool ChineseCheckersGame::IsPathLegal(const std::vector<Node*>& nodePathArray, s
 		nodeSet.insert(node);
 	}
 
-	if (nodePathArray.size() == 2)
+	if (nodePathArray.size() == 2 && nodePathArray[0]->IsAdjacentTo(nodePathArray[1]))
+		return true;
+	
+	for (int i = 0; i < (int)nodePathArray.size() - 1; i++)
 	{
-		if (!nodePathArray[0]->IsAdjacentTo(nodePathArray[1]))
+		Node* nodeA = nodePathArray[i];
+		Node* nodeB = nodePathArray[i + 1];
+
+		Vector3 unitDirection = (nodeB->location - nodeA->location).Normalized();
+		Node* adjacentNode = nodeA->GetAdjacencyInDirection(unitDirection);
+		if (!adjacentNode)
 			return false;
-	}
-	else
-	{
-		for (int i = 0; i < (int)nodePathArray.size() - 1; i++)
-		{
-			Node* nodeA = nodePathArray[i];
-			Node* nodeB = nodePathArray[i + 1];
 
-			Vector3 unitDirection = (nodeB->location - nodeA->location).Normalized();
-			Node* adjacentNode = nodeA->GetAdjacencyInDirection(unitDirection);
-			if (!adjacentNode)
-				return false;
+		if (!adjacentNode->occupant)
+			return false;
 
-			if (!adjacentNode->occupant)
-				return false;
+		if (hoppedNodesArray)
+			hoppedNodesArray->push_back(adjacentNode);
 
-			if (hoppedNodesArray)
-				hoppedNodesArray->push_back(adjacentNode);
+		adjacentNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
+		if (!adjacentNode)
+			return false;
 
-			adjacentNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
-			if (!adjacentNode)
-				return false;
-
-			if (adjacentNode != nodeB)
-				return false;
-		}
+		if (adjacentNode != nodeB)
+			return false;
 	}
 
 	return true;
@@ -320,18 +315,19 @@ bool ChineseCheckersGame::ExecutePath(const std::vector<Node*>& nodePathArray)
 	targetNode->occupant = sourceNode->occupant;
 	sourceNode->occupant = nullptr;
 
-	// This is where the traditional game of Chinese Checkers would end,
-	// but this is the extreme version.  What remains is to mutate the
-	// attack power of the moved occupant and deal damage to opposing occupants.
+	// This is where the traditional game of Chinese Checkers would end a turn,
+	// but this is the extreme version.  What remains is to mutate the attack
+	// power of the moved occupant and deal damage to opposing occupants.
 
 	for (Node* hoppedNode : hoppedNodesArray)
 	{
-		if (hoppedNode->zoneID == targetNode->occupant->sourceZoneID)
+		if (hoppedNode->occupant->sourceZoneID == targetNode->occupant->sourceZoneID)
 			targetNode->occupant->attackPower += 0.25;
 		else
 		{
-			hoppedNode->occupant->health -= targetNode->occupant->attackPower;
-			targetNode->occupant->attackPower = 0.0;
+			double attackPower = THEBE_MIN(hoppedNode->occupant->health, targetNode->occupant->attackPower);
+			hoppedNode->occupant->health -= attackPower;
+			targetNode->occupant->attackPower -= attackPower;
 
 			// TODO: If a hopped node dies here, where do we move it?
 		}
@@ -441,7 +437,7 @@ ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyInDirection(co
 {
 	for (Node* node : this->adjacentNodeArray)
 	{
-		Vector3 nodeUnitDirection = (node->location - this->location.Normalized());
+		Vector3 nodeUnitDirection = (node->location - this->location).Normalized();
 		double angle = unitDirection.AngleBetween(nodeUnitDirection);
 		if (angle < THEBE_MEDIUM_EPS)
 		{
