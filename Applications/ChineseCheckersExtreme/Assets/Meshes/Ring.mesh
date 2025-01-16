@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Ring.index_buffer",
-	"material": "Materials\\AlienCompartments.material",
+	"material": "Materials\\DefaultMaterial.material",
 	"name": "Ring",
 	"vertex_buffer": "Buffers\\Ring.vertex_buffer"
 }

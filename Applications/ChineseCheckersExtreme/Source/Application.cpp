@@ -7,6 +7,7 @@
 #include "Thebe/EngineParts/Text.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
+#include "Thebe/EngineParts/Material.h"
 #include "Network/HumanClient.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -81,6 +82,11 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	if (!this->graphicsEngine->AddAssetFolder("Applications/ChineseCheckersExtreme/Assets"))
 		return false;
 
+	Reference<CubeMapBuffer> envMap;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Textures/OceanCubeMap/OceanCubeMap.cube_map)", envMap))
+		return false;
+	this->graphicsEngine->SetEnvMap(envMap);
+
 	AxisAlignedBoundingBox worldBox;
 	worldBox.minCorner.SetComponents(-1000.0, -1000.0, -1000.0);
 	worldBox.maxCorner.SetComponents(1000.0, 1000.0, 1000.0);
@@ -127,6 +133,12 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	Reference<Mesh> ringMesh;
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
 		return false;
+
+	Reference<Material> mirrorMaterial;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Materials\PerfectMirror.material)", mirrorMaterial))
+		return false;
+
+	ringMesh->SetMaterial(mirrorMaterial);
 
 	for (int i = 0; i < 20; i++)
 	{

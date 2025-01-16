@@ -110,6 +110,7 @@
 								[
 
 								],
+								"material_override": "Materials/PerfectMirror.material",
 								"mesh_instance": "Meshes\\Ring.mesh"
 							}
 						],
