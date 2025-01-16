@@ -70,6 +70,7 @@ public:
 		Thebe::Vector3 location;
 		Occupant* occupant;
 		int zoneID;
+		Node* parentNode;
 	};
 
 	virtual int GetMaxPossiblePlayers() const = 0;

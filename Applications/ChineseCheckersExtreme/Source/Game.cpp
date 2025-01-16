@@ -246,7 +246,62 @@ bool ChineseCheckersGame::FindLegalPath(Node* sourceNode, Node* targetNode, std:
 		}
 	}
 
-	return sourceNode->FindWithHops(targetNode, nodePathArray);
+	// Note that we must use a BFS here (instead of a DFS), because
+	// we need to return the shortest possible path.  This is so that
+	// the user can reasonably string a sequence of shortests paths
+	// together to get the desired sequence.
+
+	sourceNode->parentNode = nullptr;
+	std::set<Node*> nodeSet;
+	nodeSet.insert(sourceNode);
+	std::list<Node*> nodeQueue;
+	nodeQueue.push_back(sourceNode);
+	bool pathFound = false;
+	while (nodeQueue.size() > 0)
+	{
+		Node* node = *nodeQueue.begin();
+		nodeQueue.pop_front();
+		
+		if (node == targetNode)
+		{
+			pathFound = true;
+			break;
+		}
+
+		for (int i = 0; i < (int)node->adjacentNodeArray.size(); i++)
+		{
+			Vector3 unitDirection;
+			Node* adjacentNode = node->GetAdjacencyAndDirection(i, unitDirection);
+			if (!adjacentNode->occupant)
+				continue;
+
+			Node* hopNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
+			if (!hopNode || hopNode->occupant)
+				continue;
+
+			if (nodeSet.find(hopNode) != nodeSet.end())
+				continue;
+
+			hopNode->parentNode = node;
+			nodeQueue.push_back(hopNode);
+			nodeSet.insert(hopNode);
+		}
+	}
+
+	if (!pathFound)
+		return false;
+
+	std::list<Node*> nodePathList;
+	for (Node* node = targetNode; node != nullptr; node = node->parentNode)
+		nodePathList.push_front(node);
+
+	for (Node* node : nodePathList)
+		nodePathArray.push_back(node);
+
+	for (Node* node : this->nodeArray)
+		node->parentNode = nullptr;
+
+	return true;
 }
 
 bool ChineseCheckersGame::IsPathLegal(const std::vector<Node*>& nodePathArray, std::vector<Node*>* hoppedNodesArray /*= nullptr*/)
@@ -407,6 +462,7 @@ ChineseCheckersGame::Node::Node()
 	this->occupant = nullptr;
 	this->zoneID = 0;
 	this->occupant = nullptr;
+	this->parentNode = nullptr;
 }
 
 /*virtual*/ ChineseCheckersGame::Node::~Node()
