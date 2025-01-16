@@ -11,6 +11,7 @@ using namespace Thebe;
 
 HumanClient::HumanClient()
 {
+	this->animate = false;
 }
 
 /*virtual*/ HumanClient::~HumanClient()
@@ -167,10 +168,7 @@ HumanClient::HumanClient()
 					THEBE_LOG("Failed to setup cubie mesh instance.");
 					return false;
 				}
-
-				adjustmentTransform.matrix.SetIdentity();
-				adjustmentTransform.translation.SetComponents(0.0, 0.0, 2.5);
-				cubieMeshInstance->SetChildToParentTransform(objectToWorld * adjustmentTransform);
+				
 				boardSpace->AddSubSpace(cubieMeshInstance);
 
 				Reference<RigidBody> cubieBody;
@@ -180,13 +178,80 @@ HumanClient::HumanClient()
 					return false;
 				}
 
-				cubieBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
-
 				adjustmentTransform.translation.SetComponents(0.0, 0.0, -1.5);
 				cubieBody->GetCollisionObject()->SetTargetSpace(cubieMeshInstance, adjustmentTransform);
+
+				node->occupant->collisionObjectHandle = cubieBody->GetCollisionObject()->GetHandle();
 			}
+		}
+
+		this->SnapCubiesIntoPosition();
+	}
+	else if (response == "apply_turn")
+	{
+		if(!this->animate)
+			this->SnapCubiesIntoPosition();
+		else
+		{
+			// TODO: Write this.
 		}
 	}
 
 	return true;
+}
+
+void HumanClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray)
+{
+	if (!this->game.Get())
+		return;
+
+	std::vector<int> nodeOffsetArray;
+	this->game->NodeArrayToOffsetArray(nodeArray, nodeOffsetArray);
+
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonObject> requestValue(new JsonObject());
+	requestValue->SetValue("request", new JsonString("take_turn"));
+	
+	auto nodeOffsetArrayValue = new JsonArray();
+	requestValue->SetValue("node_offset_array", nodeOffsetArrayValue);
+	for (int i : nodeOffsetArray)
+		nodeOffsetArrayValue->PushValue(new JsonInt(i));
+
+	auto socket = dynamic_cast<Socket*>(this->clientSocket);
+	if (!socket)
+		return;
+
+	socket->SendJson(requestValue.get());
+}
+
+void HumanClient::SnapCubiesIntoPosition()
+{
+	// This function can be used to update the visual representation of the board
+	// to match the game state.  Ultimately, however, the goal is to animate the
+	// game state changes, but this will get us by until then.
+
+	if (!this->game.Get())
+		return;
+
+	const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& nodeArray = this->game->GetNodeArray();
+	for (const auto& node : nodeArray)
+	{
+		if (!node->occupant)
+			continue;
+
+		Reference<CollisionObject> collisionObject;
+		if (!HandleManager::Get()->GetObjectFromHandle(node->occupant->collisionObjectHandle, collisionObject))
+			continue;
+
+		Transform adjustmentTransform;
+		adjustmentTransform.matrix.SetIdentity();
+		adjustmentTransform.translation.SetComponents(0.0, 2.5, 0.0);
+
+		Transform objectToWorld;
+		objectToWorld.SetIdentity();
+		objectToWorld.translation = node->location;
+
+		collisionObject->SetObjectToWorld(objectToWorld * adjustmentTransform);
+	}
 }

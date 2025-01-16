@@ -8,6 +8,7 @@ using namespace Thebe;
 ChineseCheckersServer::ChineseCheckersServer()
 {
 	this->game = nullptr;
+	this->whoseTurnZoneID = 0;
 }
 
 /*virtual*/ ChineseCheckersServer::~ChineseCheckersServer()
@@ -102,12 +103,68 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	}
 	else if (request == "take_turn")
 	{
-		// TODO: Try to do the given move on our game state.
-
-		// TODO: If the move is acceptable, go tell all the clients to make that move.  This includes the client that made the request.
-		for (auto client : connectedClientList)
+		auto nodeOffsetArrayValue = dynamic_cast<const JsonArray*>(requestRootValue->GetValue("node_offset_array"));
+		if (!nodeOffsetArrayValue)
 		{
-			//...
+			THEBE_LOG("Can't take turn if there is no offset array.");
+			return false;
+		}
+
+		std::vector<int> nodeOffsetArray;
+		for (int i = 0; i < (int)nodeOffsetArrayValue->GetSize(); i++)
+		{
+			auto offsetValue = dynamic_cast<const JsonInt*>(nodeOffsetArrayValue->GetValue(i));
+			if (!offsetValue)
+			{
+				THEBE_LOG("Offset value was not an integer.");
+				return false;
+			}
+
+			nodeOffsetArray.push_back((int)offsetValue->GetValue());
+		}
+
+		std::vector<ChineseCheckersGame::Node*> nodeArray;
+		if (!this->game->NodeArrayFromOffsetArray(nodeArray, nodeOffsetArray))
+		{
+			THEBE_LOG("Failed to convert node offset array to node array.");
+			return false;
+		}
+
+		if (nodeArray.size() == 0)
+		{
+			THEBE_LOG("Can't take turn if node size is zero.");
+			return false;
+		}
+
+		if (!nodeArray[0]->occupant)
+		{
+			THEBE_LOG("Can't take turn if node sequence doesn't start at an occupied node.");
+			return false;
+		}
+
+		if (nodeArray[0]->occupant->sourceZoneID != this->whoseTurnZoneID)
+		{
+			THEBE_LOG("Can't take turn when it is not your turn.");
+			return false;
+		}
+
+		if (!this->game->ExecutePath(nodeArray))
+		{
+			THEBE_LOG("Failed to execute node path.  It was not legal.");
+			return false;
+		}
+
+		std::unique_ptr<JsonObject> responseValue(new JsonObject());
+		responseValue->SetValue("response", new JsonString("apply_turn"));
+		auto offsetArrayValue = new JsonArray();
+		responseValue->SetValue("node_offset_array", offsetArrayValue);
+		for (int i : nodeOffsetArray)
+			offsetArrayValue->PushValue(new JsonInt(i));
+
+		for (auto networkSocket : connectedClientList)
+		{
+			auto client = dynamic_cast<Socket*>(networkSocket);
+			client->SendJson(responseValue.get());
 		}
 	}
 	else
@@ -131,6 +188,9 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		client->sourceZoneID = this->freeZoneIDStack.back();
 		this->freeZoneIDStack.pop_back();
 	}
+
+	if (this->whoseTurnZoneID == 0)
+		this->whoseTurnZoneID = client->sourceZoneID;
 }
 
 /*virtual*/ void ChineseCheckersServer::OnClientRemoved(Thebe::NetworkSocket* networkSocket)

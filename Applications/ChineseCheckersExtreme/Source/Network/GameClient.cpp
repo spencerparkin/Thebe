@@ -147,6 +147,41 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		THEBE_ASSERT_FATAL(client != nullptr);
 		client->sourceZoneID = sourceZoneIDValue->GetValue();
 	}
+	else if (response == "apply_turn")
+	{
+		auto nodeOffsetArrayValue = dynamic_cast<const JsonArray*>(responseRootValue->GetValue("node_offset_array"));
+		if (!nodeOffsetArrayValue)
+		{
+			THEBE_LOG("Can't apply turn if there is no offset array.");
+			return false;
+		}
+
+		std::vector<int> nodeOffsetArray;
+		for (int i = 0; i < (int)nodeOffsetArrayValue->GetSize(); i++)
+		{
+			auto offsetValue = dynamic_cast<const JsonInt*>(nodeOffsetArrayValue->GetValue(i));
+			if (!offsetValue)
+			{
+				THEBE_LOG("Offset value was not an integer.");
+				return false;
+			}
+
+			nodeOffsetArray.push_back((int)offsetValue->GetValue());
+		}
+
+		std::vector<ChineseCheckersGame::Node*> nodeArray;
+		if (!this->game->NodeArrayFromOffsetArray(nodeArray, nodeOffsetArray))
+		{
+			THEBE_LOG("Failed to convert node offset array to node array.");
+			return false;
+		}
+
+		if (!this->game->ExecutePath(nodeArray))
+		{
+			THEBE_LOG("Failed to apply node path.");
+			return false;
+		}
+	}
 	else
 	{
 		THEBE_LOG("Response \"%s\" not recognized.", response.c_str());

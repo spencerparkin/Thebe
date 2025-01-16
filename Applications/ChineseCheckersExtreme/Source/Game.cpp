@@ -249,19 +249,95 @@ bool ChineseCheckersGame::FindLegalPath(Node* sourceNode, Node* targetNode, std:
 	return sourceNode->FindWithHops(targetNode, nodePathArray);
 }
 
-bool ChineseCheckersGame::IsPathLegal(const std::vector<Node*>& nodePathArray)
+bool ChineseCheckersGame::IsPathLegal(const std::vector<Node*>& nodePathArray, std::vector<Node*>* hoppedNodesArray /*= nullptr*/)
 {
-	// TODO: Write this.
-	return false;
+	if (hoppedNodesArray)
+		hoppedNodesArray->clear();
+
+	if (nodePathArray.size() < 2)
+		return false;
+
+	if (!nodePathArray[0]->occupant)
+		return false;
+
+	for (int i = 1; i < (int)nodePathArray.size(); i++)
+		if (nodePathArray[i]->occupant)
+			return false;
+
+	std::set<Node*> nodeSet;
+	for (Node* node : nodePathArray)
+	{
+		if (nodeSet.find(node) != nodeSet.end())
+			return false;
+
+		nodeSet.insert(node);
+	}
+
+	if (nodePathArray.size() == 2)
+	{
+		if (!nodePathArray[0]->IsAdjacentTo(nodePathArray[1]))
+			return false;
+	}
+	else
+	{
+		for (int i = 0; i < (int)nodePathArray.size() - 1; i++)
+		{
+			Node* nodeA = nodePathArray[i];
+			Node* nodeB = nodePathArray[i + 1];
+
+			Vector3 unitDirection = (nodeB->location - nodeA->location).Normalized();
+			Node* adjacentNode = nodeA->GetAdjacencyInDirection(unitDirection);
+			if (!adjacentNode)
+				return false;
+
+			if (!adjacentNode->occupant)
+				return false;
+
+			if (hoppedNodesArray)
+				hoppedNodesArray->push_back(adjacentNode);
+
+			adjacentNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
+			if (!adjacentNode)
+				return false;
+
+			if (adjacentNode != nodeB)
+				return false;
+		}
+	}
+
+	return true;
 }
 
 bool ChineseCheckersGame::ExecutePath(const std::vector<Node*>& nodePathArray)
 {
-	if (!this->IsPathLegal(nodePathArray))
+	std::vector<Node*> hoppedNodesArray;
+	if (!this->IsPathLegal(nodePathArray, &hoppedNodesArray))
 		return false;
 
-	// TODO: Write this.
-	return false;
+	Node* sourceNode = nodePathArray[0];
+	Node* targetNode = nodePathArray[nodePathArray.size() - 1];
+
+	targetNode->occupant = sourceNode->occupant;
+	sourceNode->occupant = nullptr;
+
+	// This is where the traditional game of Chinese Checkers would end,
+	// but this is the extreme version.  What remains is to mutate the
+	// attack power of the moved occupant and deal damage to opposing occupants.
+
+	for (Node* hoppedNode : hoppedNodesArray)
+	{
+		if (hoppedNode->zoneID == targetNode->occupant->sourceZoneID)
+			targetNode->occupant->attackPower += 0.25;
+		else
+		{
+			hoppedNode->occupant->health -= targetNode->occupant->attackPower;
+			targetNode->occupant->attackPower = 0.0;
+
+			// TODO: If a hopped node dies here, where do we move it?
+		}
+	}
+
+	return true;
 }
 
 int ChineseCheckersGame::NodeToOffset(Node* node)
@@ -285,7 +361,7 @@ bool ChineseCheckersGame::NodeArrayToOffsetArray(const std::vector<Node*>& nodeP
 {
 	nodeOffsetArray.clear();
 
-	for (Node* node : this->nodeArray)
+	for (Node* node : nodePathArray)
 	{
 		int i = this->NodeToOffset(node);
 		if (i < 0)
@@ -321,6 +397,7 @@ ChineseCheckersGame::Occupant::Occupant()
 	this->targetZoneID = 0;
 	this->health = 1.0;
 	this->attackPower = 0.0;
+	this->collisionObjectHandle = THEBE_INVALID_REF_HANDLE;
 }
 
 /*virtual*/ ChineseCheckersGame::Occupant::~Occupant()
@@ -375,7 +452,7 @@ ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyInDirection(co
 	return nullptr;
 }
 
-bool ChineseCheckersGame::Node::FindWithHops(const Node* targetNode, std::vector<Node*>& nodePathArray)
+bool ChineseCheckersGame::Node::FindWithHops(Node* targetNode, std::vector<Node*>& nodePathArray)
 {
 	nodePathArray.push_back(this);
 
@@ -406,6 +483,15 @@ bool ChineseCheckersGame::Node::FindWithHops(const Node* targetNode, std::vector
 	}
 
 	nodePathArray.pop_back();
+
+	return false;
+}
+
+bool ChineseCheckersGame::Node::IsAdjacentTo(Node* node)
+{
+	for (Node* adjacentNode : this->adjacentNodeArray)
+		if (adjacentNode == node)
+			return true;
 
 	return false;
 }

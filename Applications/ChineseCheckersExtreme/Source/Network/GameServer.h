@@ -39,4 +39,5 @@ protected:
 	Thebe::Reference<ChineseCheckersGame> game;
 	std::mutex serverMutex;
 	std::vector<int> freeZoneIDStack;
+	int whoseTurnZoneID;
 };

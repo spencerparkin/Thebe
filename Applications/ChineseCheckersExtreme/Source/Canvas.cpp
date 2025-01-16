@@ -16,6 +16,7 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_SIZE, &ChineseCheckersCanvas::OnSize, this);
 	this->Bind(wxEVT_MOTION, &ChineseCheckersCanvas::OnMouseMotion, this);
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
+	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
@@ -123,12 +124,10 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 	}
 	else
 	{
-		if (this->nodeSequenceArray.size() == 2)
-		{
-			// Special case: If the size is 2 and the two nodes are adjacent, then don't let the user tack on any more nodes.
-		}
+		if (this->nodeSequenceArray.size() == 2 && this->nodeSequenceArray[0]->IsAdjacentTo(this->nodeSequenceArray[1]))
+			return;
 
-		ChineseCheckersGame::Node* prevNode = this->nodeSequenceArray[this->nodeSequenceArray.size() - 1].Get();
+		ChineseCheckersGame::Node* prevNode = this->nodeSequenceArray[this->nodeSequenceArray.size() - 1];
 		std::vector<ChineseCheckersGame::Node*> nodePathArray;
 		if (human->GetGame()->FindLegalPath(prevNode, nextNode, nodePathArray))
 		{
@@ -146,8 +145,25 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 {
-	this->nodeSequenceArray.clear();
+	HumanClient* human = wxGetApp().GetHumanClient();
+	if (!human)
+		return;
 
+	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
+	if (collisionObject && collisionObject->GetUserData())
+	{
+		Reference<ChineseCheckersGame::Node> node;
+		RefHandle handle = (RefHandle)collisionObject->GetUserData();
+		if (HandleManager::Get()->GetObjectFromHandle(handle, node))
+		{
+			if (this->nodeSequenceArray.size() > 0 && node.Get() == this->nodeSequenceArray[this->nodeSequenceArray.size() - 1])
+			{
+				human->TakeTurn(this->nodeSequenceArray);
+			}
+		}
+	}
+	
+	this->nodeSequenceArray.clear();
 	this->UpdateRings();
 }
 

@@ -19,7 +19,7 @@ public:
 
 private:
 	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
-	std::vector<Thebe::Reference<ChineseCheckersGame::Node>> nodeSequenceArray;
+	std::vector<ChineseCheckersGame::Node*> nodeSequenceArray;
 
 	void UpdateRings();
 };

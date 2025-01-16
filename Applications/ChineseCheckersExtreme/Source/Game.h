@@ -24,6 +24,10 @@
  * piece, they will crash into those pieces (dealing damage).  Forces will
  * be exerted on all pieces to keep them approximately where they're supposed
  * to lie on the board.  This will given the entire board a more organic feel.
+ * 
+ * Note that in this class we enforce all the rules of the game except for
+ * the concept of who's turn it is.  Making sure turns are taken in sequence
+ * is up to the user of the class.
  */
 class ChineseCheckersGame : public Thebe::ReferenceCounted
 {
@@ -40,6 +44,7 @@ public:
 		Occupant();
 		virtual ~Occupant();
 
+		Thebe::RefHandle collisionObjectHandle;
 		int sourceZoneID;
 		int targetZoneID;
 		double health;
@@ -57,7 +62,9 @@ public:
 		Node* GetAdjacencyAndDirection(int i, Thebe::Vector3& unitDirection);
 		Node* GetAdjacencyInDirection(const Thebe::Vector3& unitDirection);
 
-		bool FindWithHops(const Node* targetNode, std::vector<Node*>& nodePathArray);
+		bool IsAdjacentTo(Node* node);
+
+		bool FindWithHops(Node* targetNode, std::vector<Node*>& nodePathArray);
 
 		std::vector<Node*> adjacentNodeArray;
 		Thebe::Vector3 location;
@@ -85,7 +92,7 @@ public:
 	const std::vector<Thebe::Reference<Node>>& GetNodeArray() const;
 
 	bool FindLegalPath(Node* sourceNode, Node* targetNode, std::vector<Node*>& nodePathArray);
-	bool IsPathLegal(const std::vector<Node*>& nodePathArray);
+	bool IsPathLegal(const std::vector<Node*>& nodePathArray, std::vector<Node*>* hoppedNodesArray = nullptr);
 	bool ExecutePath(const std::vector<Node*>& nodePathArray);
 
 	int NodeToOffset(Node* node);
