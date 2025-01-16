@@ -8,7 +8,7 @@ using namespace Thebe;
 ChineseCheckersClient::ChineseCheckersClient()
 {
 	this->game = nullptr;
-	this->pingFrequencySecondsPerPing = 2.0;
+	this->pingFrequencySecondsPerPing = 0.0;
 	this->timeToNextPingSeconds = 0.0;
 }
 

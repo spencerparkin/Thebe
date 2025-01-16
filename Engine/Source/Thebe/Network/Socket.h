@@ -32,6 +32,7 @@ namespace Thebe
 		virtual void OnWakeup();
 
 		long periodicWakeupTimeSeconds;
+		bool flushWrites;
 		int ringBufferSize;
 		int recvBufferSize;
 		SOCKET socket;

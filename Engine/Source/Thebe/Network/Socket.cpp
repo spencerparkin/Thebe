@@ -12,6 +12,7 @@ NetworkSocket::NetworkSocket(SOCKET socket)
 	this->ringBufferSize = 2048;
 	this->recvBufferSize = 128;
 	this->periodicWakeupTimeSeconds = 0;
+	this->flushWrites = true;
 }
 
 /*virtual*/ NetworkSocket::~NetworkSocket()
@@ -147,6 +148,20 @@ bool NetworkSocket::SendData(const uint8_t* buffer, uint32_t bufferSize)
 		}
 
 		totalBytesSent += numBytesSent;
+
+		if (this->flushWrites)
+		{
+			DWORD numBytesReturned = 0;
+			int result = WSAIoctl(this->socket, SIO_FLUSH, nullptr, 0, nullptr, 0, &numBytesReturned, nullptr, nullptr);
+			if (result == SOCKET_ERROR)
+			{
+				int error = WSAGetLastError();
+				if (error == WSAEOPNOTSUPP)
+					this->flushWrites = false;
+				else
+					THEBE_LOG("Socket flush failed.  Error: %d", error);
+			}
+		}
 	}
 
 	return true;
