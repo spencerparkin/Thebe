@@ -20,8 +20,7 @@ NetLogSink::NetLogSink()
 
 /*virtual*/ bool NetLogSink::Setup()
 {
-	this->client->SetSocketFactory([](SOCKET socket) -> NetworkSocket* { return new NetworkSocket(socket); });
-	this->client->SetNeedsSocketRead(false);
+	this->client->SetSocketFactory([](SOCKET socket) -> NetworkSocket* { return new NetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING); });
 	if (!this->client->Setup())
 		return false;
 
@@ -89,7 +88,7 @@ bool NetLogCollector::GetLogMessage(std::string& msg)
 
 //------------------------------------ NetLogCollector::Socket ------------------------------------
 		
-NetLogCollector::Socket::Socket(SOCKET socket, NetLogCollector* collector) : NetworkSocket(socket)
+NetLogCollector::Socket::Socket(SOCKET socket, NetLogCollector* collector) : NetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING)
 {
 	this->collector = collector;
 }

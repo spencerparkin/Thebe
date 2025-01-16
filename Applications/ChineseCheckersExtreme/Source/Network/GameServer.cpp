@@ -25,12 +25,7 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 	this->game->GenerateFreeZoneIDStack(this->freeZoneIDStack);
 
-	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
-		{
-			NetworkSocket* networkSocket = new Socket(socket, this);
-			networkSocket->SetPeriodicWakeup(0);
-			return networkSocket;
-		});
+	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket* { return new Socket(socket, this); });
 
 	return NetworkServer::Setup();
 }
@@ -163,7 +158,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 
 		for (auto networkSocket : connectedClientList)
 		{
-			auto client = dynamic_cast<Socket*>(networkSocket);
+			auto client = dynamic_cast<Socket*>(networkSocket.Get());
 			client->SendJson(responseValue.get());
 		}
 	}
@@ -205,10 +200,8 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 
 //---------------------------------- ChineseCheckersServer::Socket ----------------------------------
 
-ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket)
+ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING | THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING)
 {
-	this->ringBufferSize = 64 * 1024;
-	this->recvBufferSize = 4 * 1024;
 	this->sourceZoneID = 0;
 	this->server = server;
 }

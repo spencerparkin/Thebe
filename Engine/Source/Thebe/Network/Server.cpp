@@ -78,25 +78,25 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 		if (connectedSocket == INVALID_SOCKET)
 			break;
 
-		auto client = this->socketFactory(connectedSocket);
+		Reference<NetworkSocket> client = this->socketFactory(connectedSocket);
 		THEBE_ASSERT_FATAL(client != nullptr);
-		if (!client->Split())
-			delete client;
-		else
+		if (client->Setup())
+		{
 			this->connectedClientList.push_back(client);
 
-		// Before we go back to accepting new connections, take this opportunity
-		// to clean up any clients that have exited while we were blocked.
-		this->RemoveStaleClients();
+			// Before we go back to accepting new connections, take this opportunity
+			// to clean up any clients that have exited while we were blocked.
+			this->RemoveUnconnectedClients();
 
-		this->OnClientAdded(client);
+			this->OnClientAdded(client);
+		}
 	}
 
 	for (NetworkSocket* client : this->connectedClientList)
-		client->Join();
+		client->Shutdown();
 
 	while (this->connectedClientList.size() > 0)
-		this->RemoveStaleClients();
+		this->RemoveUnconnectedClients();
 }
 
 /*virtual*/ void NetworkServer::OnClientAdded(NetworkSocket* networkSocket)
@@ -107,22 +107,21 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 {
 }
 
-void NetworkServer::RemoveStaleClients()
+void NetworkServer::RemoveUnconnectedClients()
 {
-	std::vector<std::list<NetworkSocket*>::iterator> staleClientArray;
+	std::vector<std::list<Reference<NetworkSocket>>::iterator> unconnectedClientArray;
 
-	for (std::list<NetworkSocket*>::iterator iter = this->connectedClientList.begin(); iter != this->connectedClientList.end(); iter++)
+	for (std::list<Reference<NetworkSocket>>::iterator iter = this->connectedClientList.begin(); iter != this->connectedClientList.end(); iter++)
 	{
 		auto client = *iter;
-		if (!client->IsRunning())
+		if (!client->IsReaderRunning())
 		{
-			client->Join();
+			client->Shutdown();
 			this->OnClientRemoved(client);
-			delete client;
-			staleClientArray.push_back(iter);
+			unconnectedClientArray.push_back(iter);
 		}
 	}
 
-	for (auto iter : staleClientArray)
+	for (auto iter : unconnectedClientArray)
 		this->connectedClientList.erase(iter);
 }

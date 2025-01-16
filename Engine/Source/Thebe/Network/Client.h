@@ -28,9 +28,8 @@ namespace Thebe
 
 	protected:
 
-		NetworkSocket* clientSocket;
+		Reference<NetworkSocket> clientSocket;
 		int maxConnectionAttempts;
 		int retryWaitTimeMilliseconds;
-		bool needsSocketRead;
 	};
 }

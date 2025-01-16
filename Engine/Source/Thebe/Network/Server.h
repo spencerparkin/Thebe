@@ -37,9 +37,9 @@ namespace Thebe
 		 */
 		virtual void OnClientRemoved(NetworkSocket* networkSocket);
 
-		void RemoveStaleClients();
+		void RemoveUnconnectedClients();
 
-		std::list<NetworkSocket*> connectedClientList;
+		std::list<Reference<NetworkSocket>> connectedClientList;
 		SOCKET socket;
 		int maxConnections;
 	};

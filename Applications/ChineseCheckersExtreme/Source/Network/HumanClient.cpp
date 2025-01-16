@@ -218,7 +218,7 @@ void HumanClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeAr
 	for (int i : nodeOffsetArray)
 		nodeOffsetArrayValue->PushValue(new JsonInt(i));
 
-	auto socket = dynamic_cast<Socket*>(this->clientSocket);
+	auto socket = dynamic_cast<Socket*>(this->clientSocket.Get());
 	if (!socket)
 		return;
 

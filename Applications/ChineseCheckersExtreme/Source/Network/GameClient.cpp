@@ -26,12 +26,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 {
 	using namespace ParseParty;
 
-	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket*
-		{
-			NetworkSocket* networkSocket = new Socket(socket, this);
-			networkSocket->SetPeriodicWakeup(0);
-			return networkSocket;
-		});
+	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket* { return new Socket(socket, this); });
 
 	if (!NetworkClient::Setup())
 		return false;
@@ -215,17 +210,15 @@ bool ChineseCheckersClient::RemoveResponse(std::unique_ptr<const ParseParty::Jso
 
 int ChineseCheckersClient::GetSourceZoneID()
 {
-	auto socket = dynamic_cast<Socket*>(this->clientSocket);
+	auto socket = dynamic_cast<Socket*>(this->clientSocket.Get());
 	THEBE_ASSERT_FATAL(socket != nullptr);
 	return socket->sourceZoneID;
 }
 
 //------------------------------------- ChineseCheckersClient::Socket -------------------------------------
 
-ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket)
+ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING | THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING)
 {
-	this->ringBufferSize = 64 * 1024;
-	this->recvBufferSize = 4 * 1024;
 	this->sourceZoneID = 0;
 	this->client = client;
 }
