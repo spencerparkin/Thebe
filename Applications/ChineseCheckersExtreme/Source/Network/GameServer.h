@@ -36,6 +36,8 @@ protected:
 	virtual void OnClientAdded(Thebe::NetworkSocket* networkSocket) override;
 	virtual void OnClientRemoved(Thebe::NetworkSocket* networkSocket) override;
 
+	void NotifyAllClientsOfWhoseTurnItIs();
+
 	Thebe::Reference<ChineseCheckersGame> game;
 	std::mutex serverMutex;
 	std::vector<int> freeZoneIDStack;

@@ -440,6 +440,41 @@ bool ChineseCheckersGame::NodeArrayFromOffsetArray(std::vector<Node*>& nodePathA
 	return true;
 }
 
+int ChineseCheckersGame::GetNextZone(int zoneID)
+{
+	int maxPlayers = this->GetMaxPossiblePlayers();
+
+	for (int i = 0; i < maxPlayers; i++)
+	{
+		if (++zoneID >= maxPlayers)
+			zoneID = 1;
+
+		if (this->IsZoneBeingUsed(zoneID))
+			return zoneID;
+	}
+
+	return 0;
+}
+
+bool ChineseCheckersGame::IsZoneBeingUsed(int zoneID)
+{
+	for (Occupant* occupant : this->occupantArray)
+		if (occupant->sourceZoneID == zoneID)
+			return true;
+
+	return false;
+}
+
+int ChineseCheckersGame::GetNumActivePlayers()
+{
+	std::set<int> zoneSet;
+	for (Occupant* occupant : this->occupantArray)
+		if (zoneSet.find(occupant->sourceZoneID) == zoneSet.end())
+			zoneSet.insert(occupant->sourceZoneID);
+
+	return (int)zoneSet.size();
+}
+
 //---------------------------------- ChineseCheckersGame::Occupant ----------------------------------
 
 ChineseCheckersGame::Occupant::Occupant()

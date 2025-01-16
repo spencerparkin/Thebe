@@ -64,6 +64,8 @@ NetworkSocketWriter::NetworkSocketWriter(NetworkSocket* networkSocket) : writeLi
 
 /*virtual*/ NetworkSocketWriter::~NetworkSocketWriter()
 {
+	for (Write& write : this->writeList)
+		delete[] write.buffer;
 }
 
 bool NetworkSocketWriter::WriteData(const uint8_t* buffer, uint32_t bufferSize)

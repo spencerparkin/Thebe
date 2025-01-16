@@ -84,9 +84,19 @@ public:
 	 */
 	virtual bool GenerateGraph(int numPlayers) = 0;
 
+	/**
+	 * Return what color is used to represent the given zone.
+	 */
 	virtual bool GetZoneColor(int zoneID, Thebe::Vector3& color) = 0;
 
+	/**
+	 * Determine how players should be allocated to zone/occupants as they join.
+	 */
 	virtual void GenerateFreeZoneIDStack(std::vector<int>& freeZoneIDStack) = 0;
+
+	int GetNextZone(int zoneID);
+	bool IsZoneBeingUsed(int zoneID);
+	int GetNumActivePlayers();
 
 	void Clear();
 

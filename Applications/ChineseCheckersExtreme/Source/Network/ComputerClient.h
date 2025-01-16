@@ -12,4 +12,5 @@ public:
 	virtual ~ComputerClient();
 
 	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse) override;
+	virtual void Update(double deltaTimeSeconds) override;
 };

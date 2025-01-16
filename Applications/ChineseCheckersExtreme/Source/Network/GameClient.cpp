@@ -10,6 +10,7 @@ ChineseCheckersClient::ChineseCheckersClient()
 	this->game = nullptr;
 	this->pingFrequencySecondsPerPing = 0.0;
 	this->timeToNextPingSeconds = 0.0;
+	this->whoseTurnZoneID = 0;
 }
 
 /*virtual*/ ChineseCheckersClient::~ChineseCheckersClient()
@@ -50,6 +51,11 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	THEBE_LOG("Game client shutdown");
 
 	NetworkClient::Shutdown();
+
+	for (auto response : this->responseList)
+		delete response;
+
+	this->responseList.clear();
 }
 
 /*virtual*/ void ChineseCheckersClient::Update(double deltaTimeSeconds)
@@ -98,6 +104,17 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	if (response == "pong")
 	{
 		THEBE_LOG("PONG!");
+	}
+	else if (response == "turn_notify")
+	{
+		auto whoseTurnZoneIDValue = dynamic_cast<const JsonInt*>(responseRootValue->GetValue("whose_turn_zone_id"));
+		if (!whoseTurnZoneIDValue)
+		{
+			THEBE_LOG("No zone ID found in turn notify response.");
+			return false;
+		}
+
+		this->whoseTurnZoneID = (int)whoseTurnZoneIDValue->GetValue();
 	}
 	else if (response == "get_game_state")
 	{

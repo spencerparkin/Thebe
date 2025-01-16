@@ -156,11 +156,15 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		for (int i : nodeOffsetArray)
 			offsetArrayValue->PushValue(new JsonInt(i));
 
-		for (auto networkSocket : connectedClientList)
+		for (auto networkSocket : this->connectedClientList)
 		{
 			auto client = dynamic_cast<Socket*>(networkSocket.Get());
 			client->SendJson(responseValue.get());
 		}
+
+		this->whoseTurnZoneID = this->game->GetNextZone(this->whoseTurnZoneID);
+
+		this->NotifyAllClientsOfWhoseTurnItIs();
 	}
 	else
 	{
@@ -171,21 +175,41 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	return true;
 }
 
+void ChineseCheckersServer::NotifyAllClientsOfWhoseTurnItIs()
+{
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonObject> responseValue(new JsonObject());
+	responseValue->SetValue("response", new JsonString("turn_notify"));
+	responseValue->SetValue("whose_turn_zone_id", new JsonInt(this->whoseTurnZoneID));
+
+	for (auto networkSocket : this->connectedClientList)
+	{
+		auto client = dynamic_cast<Socket*>(networkSocket.Get());
+		client->SendJson(responseValue.get());
+	}
+}
+
 /*virtual*/ void ChineseCheckersServer::OnClientAdded(Thebe::NetworkSocket* networkSocket)
 {
 	auto client = dynamic_cast<Socket*>(networkSocket);
 	THEBE_ASSERT_FATAL(client);
 
-	std::lock_guard<std::mutex> lock(this->serverMutex);
-
-	if (this->freeZoneIDStack.size() > 0)
+	// Give the client a zone.
 	{
-		client->sourceZoneID = this->freeZoneIDStack.back();
-		this->freeZoneIDStack.pop_back();
+		std::lock_guard<std::mutex> lock(this->serverMutex);
+		if (this->freeZoneIDStack.size() > 0)
+		{
+			client->sourceZoneID = this->freeZoneIDStack.back();
+			this->freeZoneIDStack.pop_back();
+		}
 	}
 
 	if (this->whoseTurnZoneID == 0)
 		this->whoseTurnZoneID = client->sourceZoneID;
+
+	if (this->connectedClientList.size() == this->game->GetNumActivePlayers())
+		this->NotifyAllClientsOfWhoseTurnItIs();
 }
 
 /*virtual*/ void ChineseCheckersServer::OnClientRemoved(Thebe::NetworkSocket* networkSocket)

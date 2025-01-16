@@ -40,6 +40,7 @@ public:
 
 protected:
 	Thebe::Reference<ChineseCheckersGame> game;
+	int whoseTurnZoneID;
 
 private:
 	bool RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse);

@@ -13,7 +13,15 @@ ComputerClient::ComputerClient()
 	if (!ChineseCheckersClient::HandleResponse(jsonResponse))
 		return false;
 
-	// TODO: Take our turn when necessary.
-
 	return true;
+}
+
+/*virtual*/ void ComputerClient::Update(double deltaTimeSeconds)
+{
+	ChineseCheckersClient::Update(deltaTimeSeconds);
+
+	if (this->whoseTurnZoneID == this->GetSourceZoneID())
+	{
+		// TODO: Tell our thread to start formulating a move sequence.
+	}
 }
