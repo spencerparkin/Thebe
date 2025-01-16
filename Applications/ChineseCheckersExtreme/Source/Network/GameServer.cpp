@@ -44,6 +44,23 @@ void ChineseCheckersServer::SetGame(ChineseCheckersGame* game)
 	this->game = game;
 }
 
+/*virtual*/ bool ChineseCheckersServer::Serve()
+{
+	std::unique_ptr<const ParseParty::JsonValue> jsonRequest;
+	Socket* client = nullptr;
+	while (this->RemoveRequest(jsonRequest, client))
+	{
+		std::unique_ptr<ParseParty::JsonValue> jsonResponse;
+		if (this->ServeRequest(jsonRequest.get(), jsonResponse, client))
+		{
+			if (jsonResponse.get())
+				client->SendJson(jsonResponse.get());
+		}
+	}
+
+	return true;
+}
+
 bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client)
 {
 	using namespace ParseParty;
@@ -222,6 +239,25 @@ void ChineseCheckersServer::NotifyAllClientsOfWhoseTurnItIs()
 	this->freeZoneIDStack.push_back(client->sourceZoneID);
 }
 
+bool ChineseCheckersServer::RemoveRequest(std::unique_ptr<const ParseParty::JsonValue>& jsonRequest, Socket*& client)
+{
+	Request request;
+	if (!this->requestQueue.Remove(request))
+		return false;
+
+	jsonRequest.reset(request.jsonRequest);
+	client = request.client;
+	return true;
+}
+
+void ChineseCheckersServer::AddRequest(std::unique_ptr<ParseParty::JsonValue>& jsonRequest, Socket* client)
+{
+	Request request;
+	request.jsonRequest = jsonRequest.release();
+	request.client = client;
+	this->requestQueue.Add(request);
+}
+
 //---------------------------------- ChineseCheckersServer::Socket ----------------------------------
 
 ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING | THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING)
@@ -236,16 +272,6 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 
 /*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
-	using namespace ParseParty;
-
-	std::unique_ptr<JsonValue> jsonResponse;
-
-	if (this->server->ServeRequest(jsonRootValue.get(), jsonResponse, this))
-	{
-		// Not all requests require a response.
-		if (jsonResponse.get())
-			this->SendJson(jsonResponse.get());
-	}
-
+	this->server->AddRequest(jsonRootValue, this);
 	return true;
 }

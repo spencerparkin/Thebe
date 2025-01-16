@@ -52,10 +52,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 
 	NetworkClient::Shutdown();
 
-	for (auto response : this->responseList)
-		delete response;
-
-	this->responseList.clear();
+	this->responseQueue.ClearAndDelete();
 }
 
 /*virtual*/ void ChineseCheckersClient::Update(double deltaTimeSeconds)
@@ -203,23 +200,18 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	return true;
 }
 
-void ChineseCheckersClient::AddResponse(const ParseParty::JsonValue* jsonResponse)
+void ChineseCheckersClient::AddResponse(std::unique_ptr<ParseParty::JsonValue>& jsonResponse)
 {
-	std::lock_guard<std::mutex> lock(this->responseListMutex);
-	this->responseList.push_back(jsonResponse);
+	this->responseQueue.Add(jsonResponse.release());
 }
 
 bool ChineseCheckersClient::RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse)
 {
-	if (this->responseList.size() > 0)
+	const ParseParty::JsonValue* jsonValue = nullptr;
+	if (this->responseQueue.Remove(jsonValue))
 	{
-		std::lock_guard<std::mutex> lock(this->responseListMutex);
-		if (this->responseList.size() > 0)
-		{
-			jsonResponse.reset(*this->responseList.begin());
-			this->responseList.pop_front();
-			return true;
-		}
+		jsonResponse.reset(jsonValue);
+		return true;
 	}
 
 	return false;
@@ -246,6 +238,6 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 
 /*virtual*/ bool ChineseCheckersClient::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
 {
-	this->client->AddResponse(jsonRootValue.release());
+	this->client->AddResponse(jsonRootValue);
 	return true;
 }

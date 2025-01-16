@@ -69,26 +69,38 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 	NetworkAgent::Shutdown();
 }
 
+/*virtual*/ bool NetworkServer::Serve()
+{
+	return true;
+}
+
 /*virtual*/ void NetworkServer::Run()
 {
-	while (true)
+	while (this->Serve())
 	{
-		// This will block until we get a connection or we're signaled to exit this thread by a closure of the socket.
-		SOCKET connectedSocket = ::accept(this->socket, nullptr, nullptr);
-		if (connectedSocket == INVALID_SOCKET)
-			break;
+		this->RemoveUnconnectedClients();
 
-		Reference<NetworkSocket> client = this->socketFactory(connectedSocket);
-		THEBE_ASSERT_FATAL(client != nullptr);
-		if (client->Setup())
+		timeval timeout{};
+		timeout.tv_sec = 1.0;
+
+		fd_set readSet;
+		FD_ZERO(&readSet);
+		FD_SET(this->socket, &readSet);
+		int result = ::select(0, &readSet, nullptr, nullptr, &timeout);
+
+		if (FD_ISSET(this->socket, &readSet))
 		{
-			this->connectedClientList.push_back(client);
+			SOCKET connectedSocket = ::accept(this->socket, nullptr, nullptr);
+			if (connectedSocket == INVALID_SOCKET)
+				break;
 
-			// Before we go back to accepting new connections, take this opportunity
-			// to clean up any clients that have exited while we were blocked.
-			this->RemoveUnconnectedClients();
-
-			this->OnClientAdded(client);
+			Reference<NetworkSocket> client = this->socketFactory(connectedSocket);
+			THEBE_ASSERT_FATAL(client != nullptr);
+			if (client->Setup())
+			{
+				this->connectedClientList.push_back(client);
+				this->OnClientAdded(client);
+			}
 		}
 	}
 

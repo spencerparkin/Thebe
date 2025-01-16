@@ -34,7 +34,7 @@ public:
 
 	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse);
 
-	void AddResponse(const ParseParty::JsonValue* jsonResponse);
+	void AddResponse(std::unique_ptr<ParseParty::JsonValue>& jsonResponse);
 
 	int GetSourceZoneID();
 
@@ -45,8 +45,7 @@ protected:
 private:
 	bool RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse);
 	
-	std::list<const ParseParty::JsonValue*> responseList;
-	std::mutex responseListMutex;
+	Thebe::ThreadSafeQueue<const ParseParty::JsonValue*> responseQueue;
 	double timeToNextPingSeconds;
 	double pingFrequencySecondsPerPing;
 };

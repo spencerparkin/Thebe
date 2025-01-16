@@ -15,6 +15,7 @@ public:
 
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
+	virtual bool Serve() override;
 
 	void SetGame(ChineseCheckersGame* game);
 
@@ -32,13 +33,24 @@ public:
 
 	bool ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client);
 
+	void AddRequest(std::unique_ptr<ParseParty::JsonValue>& jsonRequest, Socket* client);
+
 protected:
 	virtual void OnClientAdded(Thebe::NetworkSocket* networkSocket) override;
 	virtual void OnClientRemoved(Thebe::NetworkSocket* networkSocket) override;
 
 	void NotifyAllClientsOfWhoseTurnItIs();
 
+	struct Request
+	{
+		const ParseParty::JsonValue* jsonRequest;
+		Socket* client;
+	};
+
+	bool RemoveRequest(std::unique_ptr<const ParseParty::JsonValue>& jsonRequest, Socket*& client);
+
 	Thebe::Reference<ChineseCheckersGame> game;
+	Thebe::ThreadSafeQueue<Request> requestQueue;
 	std::mutex serverMutex;
 	std::vector<int> freeZoneIDStack;
 	int whoseTurnZoneID;

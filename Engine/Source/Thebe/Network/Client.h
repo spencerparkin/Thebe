@@ -24,7 +24,6 @@ namespace Thebe
 
 		void SetMaxConnectionAttempts(int maxConnectionAttempts);
 		void SetRetryWaitTime(int retryWaitTimeMilliseconds);
-		void SetNeedsSocketRead(bool needsSocketRead);
 
 	protected:
 

@@ -27,6 +27,13 @@ namespace Thebe
 		virtual void Run() override;
 
 		/**
+		 * This is called whenever we're not connecting a client or removing disconnected clients.
+		 * 
+		 * @return Return false is terminate the server thread.
+		 */
+		virtual bool Serve();
+
+		/**
 		 * This happens when a client connects to the server.
 		 */
 		virtual void OnClientAdded(NetworkSocket* networkSocket);
