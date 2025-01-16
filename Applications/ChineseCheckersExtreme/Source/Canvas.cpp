@@ -137,6 +137,16 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 		}
 
 		ChineseCheckersGame::Node* prevNode = this->nodeSequenceArray[this->nodeSequenceArray.size() - 1];
+
+		if (this->nodeSequenceArray.size() >= 2 && !this->nodeSequenceArray[0]->IsAdjacentTo(this->nodeSequenceArray[1]))
+		{
+			if (prevNode->IsAdjacentTo(nextNode))
+			{
+				// TODO: Maybe play wave?
+				return;
+			}
+		}
+		
 		std::vector<ChineseCheckersGame::Node*> nodePathArray;
 		if (human->GetGame()->FindLegalPath(prevNode, nextNode, nodePathArray))
 		{
