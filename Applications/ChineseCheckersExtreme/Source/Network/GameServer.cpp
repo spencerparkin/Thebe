@@ -1,4 +1,6 @@
 #include "GameServer.h"
+
+#if 0
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -275,3 +277,4 @@ ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* serv
 	this->server->AddRequest(jsonRootValue, this);
 	return true;
 }
+#endif

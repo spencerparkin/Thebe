@@ -1,4 +1,6 @@
 #include "GameClient.h"
+
+#if 0
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -241,3 +243,4 @@ ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* clie
 	this->client->AddResponse(jsonRootValue);
 	return true;
 }
+#endif

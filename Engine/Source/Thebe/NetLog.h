@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "Thebe/Log.h"
 #include "Thebe/Network/Client.h"
 #include "Thebe/Network/Server.h"
@@ -58,3 +59,4 @@ namespace Thebe
 		std::mutex logMessageListMutex;
 	};
 }
+#endif

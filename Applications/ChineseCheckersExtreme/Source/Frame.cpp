@@ -68,6 +68,7 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	ChineseCheckersGame* game = ChineseCheckersGame::Factory((const char*)data.gameType.c_str());
 	game->GenerateGraph(data.numPlayers);
 
+#if 0
 	std::unique_ptr<ChineseCheckersServer> server(new ChineseCheckersServer());
 	server->SetAddress(data.hostAddress);
 	server->SetGame(game);
@@ -108,6 +109,7 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 
 		wxGetApp().GetGameClientArray().push_back(client.release());
 	}
+#endif
 }
 
 void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
@@ -158,12 +160,12 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_HostGame:
 		case ID_JoinGame:
 		{
-			event.Enable(wxGetApp().GetGameClientArray().size() == 0 && wxGetApp().GetGameServer() == nullptr);
+			//event.Enable(wxGetApp().GetGameClientArray().size() == 0 && wxGetApp().GetGameServer() == nullptr);
 			break;
 		}
 		case ID_LeaveGame:
 		{
-			event.Enable(wxGetApp().GetGameClientArray().size() > 0 || wxGetApp().GetGameServer() != nullptr);
+			//event.Enable(wxGetApp().GetGameClientArray().size() > 0 || wxGetApp().GetGameServer() != nullptr);
 			break;
 		}
 	}
@@ -176,6 +178,6 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
 	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 
-	for (ChineseCheckersClient* client : wxGetApp().GetGameClientArray())
-		client->Update(deltaTimeSeconds);
+	//for (ChineseCheckersClient* client : wxGetApp().GetGameClientArray())
+	//	client->Update(deltaTimeSeconds);
 }

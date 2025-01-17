@@ -18,15 +18,15 @@ using namespace Thebe;
 
 ChineseCheckersApp::ChineseCheckersApp()
 {
-	this->gameServer = nullptr;
+	//this->gameServer = nullptr;
 	this->frame = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
 }
 
 /*virtual*/ ChineseCheckersApp::~ChineseCheckersApp()
 {
-	THEBE_ASSERT(this->gameServer == nullptr);
-	THEBE_ASSERT(this->gameClientArray.size() == 0);
+	//THEBE_ASSERT(this->gameServer == nullptr);
+	//THEBE_ASSERT(this->gameClientArray.size() == 0);
 }
 
 Thebe::FreeCam* ChineseCheckersApp::GetFreeCam()
@@ -180,6 +180,7 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 
 void ChineseCheckersApp::ShutdownClientsAndServer()
 {
+#if 0
 	for (ChineseCheckersClient* gameClient : this->gameClientArray)
 	{
 		gameClient->Shutdown();
@@ -194,6 +195,7 @@ void ChineseCheckersApp::ShutdownClientsAndServer()
 		delete this->gameServer;
 		this->gameServer = nullptr;
 	}
+#endif
 }
 
 GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
@@ -201,6 +203,7 @@ GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
 	return this->graphicsEngine.Get();
 }
 
+/*
 ChineseCheckersServer* ChineseCheckersApp::GetGameServer()
 {
 	return this->gameServer;
@@ -227,3 +230,4 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 
 	return nullptr;
 }
+*/

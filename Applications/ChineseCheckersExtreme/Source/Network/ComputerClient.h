@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "GameClient.h"
 
 /**
@@ -14,3 +15,4 @@ public:
 	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse) override;
 	virtual void Update(double deltaTimeSeconds) override;
 };
+#endif

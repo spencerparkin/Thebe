@@ -16,11 +16,11 @@ public:
 	virtual void OnInitCmdLine(wxCmdLineParser& parser) override;
 	virtual bool OnCmdLineParsed(wxCmdLineParser& parser) override;
 
-	Thebe::NetLogCollector* GetLogCollector();
+	//Thebe::NetLogCollector* GetLogCollector();
 
 private:
 	LogViewerFrame* frame;
-	Thebe::NetLogCollector logCollector;
+	//Thebe::NetLogCollector logCollector;
 };
 
 wxDECLARE_APP(LogViewerApp);

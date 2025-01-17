@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "Thebe/Network/Server.h"
 #include "Game.h"
 
@@ -55,3 +56,4 @@ protected:
 	std::vector<int> freeZoneIDStack;
 	int whoseTurnZoneID;
 };
+#endif

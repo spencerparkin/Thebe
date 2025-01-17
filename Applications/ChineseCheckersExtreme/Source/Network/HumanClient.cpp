@@ -1,4 +1,6 @@
 #include "HumanClient.h"
+
+#if 0
 #include "Application.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Mesh.h"
@@ -255,3 +257,5 @@ void HumanClient::SnapCubiesIntoPosition()
 		collisionObject->SetObjectToWorld(objectToWorld * adjustmentTransform);
 	}
 }
+
+#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "Application.h"
 #include "Thebe/Network/Client.h"
 #include "Game.h"
@@ -49,3 +50,4 @@ private:
 	double timeToNextPingSeconds;
 	double pingFrequencySecondsPerPing;
 };
+#endif

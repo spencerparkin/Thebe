@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "GameClient.h"
 
 /**
@@ -20,3 +21,4 @@ public:
 private:
 	bool animate;
 };
+#endif

@@ -1,5 +1,6 @@
 #include "ComputerClient.h"
 
+#if 0
 ComputerClient::ComputerClient()
 {
 }
@@ -25,3 +26,4 @@ ComputerClient::ComputerClient()
 		// TODO: Tell our thread to start formulating a move sequence.
 	}
 }
+#endif

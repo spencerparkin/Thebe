@@ -1,5 +1,6 @@
 #include "Thebe/NetLog.h"
 
+#if 0
 using namespace Thebe;
 
 //------------------------------------ NetLogSink ------------------------------------
@@ -115,3 +116,4 @@ NetLogCollector::Socket::Socket(SOCKET socket, NetLogCollector* collector) : Net
 
 	return true;
 }
+#endif
