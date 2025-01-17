@@ -9,19 +9,13 @@ JsonSocketSender::JsonSocketSender(SOCKET socket) : jsonQueueSemaphore(0)
 
 /*virtual*/ JsonSocketSender::~JsonSocketSender()
 {
-	this->jsonQueue.ClearAndDelete();
 }
 
 void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 {
-	// TODO: Add a Clone() method to the JsonValue class instead of doing this.
 	std::string jsonText;
 	jsonValue->PrintJson(jsonText);
-	std::string parseError;
-	ParseParty::JsonValue* jsonValueClone = ParseParty::JsonValue::ParseJson(jsonText, parseError);
-	THEBE_ASSERT_FATAL(jsonValueClone != nullptr);
-
-	this->jsonQueue.Add(jsonValueClone);
+	this->jsonQueue.Add(jsonText);
 	this->jsonQueueSemaphore.release();
 }
 
@@ -33,12 +27,8 @@ void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 	{
 		this->jsonQueueSemaphore.acquire();
 
-		const JsonValue* jsonValue = nullptr;
-		if (!this->jsonQueue.Remove(jsonValue))
-			break;
-
 		std::string jsonText;
-		if (!jsonValue->PrintJson(jsonText))
+		if (!this->jsonQueue.Remove(jsonText))
 			break;
 
 		uint32_t numBytesToSend = jsonText.length() + 1;
@@ -52,7 +42,5 @@ void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 
 			totalBytesSent += numBytesSent;
 		}
-
-		delete jsonValue;
 	}
 }
