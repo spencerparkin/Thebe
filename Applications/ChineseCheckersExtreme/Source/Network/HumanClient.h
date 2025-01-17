@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameClient.h"
+#include <wx/progdlg.h>
 
 /**
  *
@@ -12,6 +13,7 @@ public:
 	virtual ~HumanClient();
 
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
+	virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort) override;
 
 	void TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray);
 
@@ -19,4 +21,5 @@ public:
 
 private:
 	bool animate;
+	wxProgressDialog* connectionProgressDialog;
 };

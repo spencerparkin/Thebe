@@ -7,8 +7,8 @@ JsonClient::JsonClient()
 	this->connectedSocket = INVALID_SOCKET;
 	this->receiver = nullptr;
 	this->sender = nullptr;
-	this->maxConnectionAttempts = 10;
-	this->retryWaitTimeMilliseconds = 200;
+	this->maxConnectionAttempts = 20;
+	this->retryWaitTimeMilliseconds = 100;
 	this->needsSending = true;
 	this->needsReceiving = true;
 }
@@ -21,6 +21,10 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 {
 	this->needsSending = needsSending;
 	this->needsReceiving = needsReceiving;
+}
+
+/*virtual*/ void JsonClient::HandleConnectionStatus(ConnectionStatus status, int i, bool* abort)
+{
 }
 
 /*virtual*/ bool JsonClient::Setup()
@@ -53,18 +57,35 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 	if (this->connectedSocket == INVALID_SOCKET)
 		return false;
 
+	this->HandleConnectionStatus(ConnectionStatus::STARTING_TO_CONNECT, 0, nullptr);
+
 	bool connected = false;
-	for (int i = 0; i < this->maxConnectionAttempts; i++)
+	int i = 0;
+	while (true)
 	{
+		bool abort = false;
+		this->HandleConnectionStatus(ConnectionStatus::MAKING_CONNECTION_ATTEMPT, i, &abort);
+		if (abort)
+			break;
+
 		int result = ::connect(this->connectedSocket, addressInfo->ai_addr, (int)addressInfo->ai_addrlen);
 		if (result != SOCKET_ERROR)
 		{
+			this->HandleConnectionStatus(ConnectionStatus::SUCCESSFULLY_CONNECTED, 0, nullptr);
 			connected = true;
 			break;
 		}
 
 		::Sleep(this->retryWaitTimeMilliseconds);
+
+		if (++i >= this->maxConnectionAttempts)
+		{
+			this->HandleConnectionStatus(ConnectionStatus::GIVING_UP, 0, nullptr);
+			break;
+		}
 	}
+
+	this->HandleConnectionStatus(ConnectionStatus::DONE_TRYING_TO_CONNECT, 0, nullptr);
 
 	freeaddrinfo(addressInfo);
 

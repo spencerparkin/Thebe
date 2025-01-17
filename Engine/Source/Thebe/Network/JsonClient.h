@@ -27,6 +27,17 @@ namespace Thebe
 
 	protected:
 		virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue);
+		
+		enum ConnectionStatus
+		{
+			STARTING_TO_CONNECT,
+			MAKING_CONNECTION_ATTEMPT,
+			SUCCESSFULLY_CONNECTED,
+			GIVING_UP,
+			DONE_TRYING_TO_CONNECT
+		};
+
+		virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort);
 
 		SOCKET connectedSocket;
 		NetworkAddress address;

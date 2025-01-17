@@ -39,6 +39,11 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 	return this->lineRenderer.Get();
 }
 
+ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
+{
+	return this->frame;
+}
+
 /*virtual*/ bool ChineseCheckersApp::OnInit(void)
 {
 	if (!wxApp::OnInit())

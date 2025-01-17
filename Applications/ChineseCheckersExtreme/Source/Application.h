@@ -33,6 +33,7 @@ public:
 	std::vector<ChineseCheckersClient*>& GetGameClientArray();
 
 	HumanClient* GetHumanClient();
+	ChineseCheckersFrame* GetFrame();
 
 	void ShutdownClientsAndServer();
 
