@@ -19,6 +19,7 @@ namespace Thebe
 
 		void SendJson(const ParseParty::JsonValue* jsonValue);
 
+		virtual bool Join() override;
 		virtual void Run() override;
 
 	protected:

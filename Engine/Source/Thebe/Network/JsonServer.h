@@ -25,6 +25,8 @@ namespace Thebe
 		SOCKET GetSocket();
 
 		void SetAddress(const NetworkAddress& address);
+		void SetMaxConnections(int maxConnections);
+		int GetMaxConnections();
 
 	protected:
 		class ConnectedClient;
@@ -57,7 +59,7 @@ namespace Thebe
 		private:
 			JsonServer* server;
 			std::list<Reference<ConnectedClient>> connectedClientList;
-			std::mutex connectedClientListMutex;
+			std::recursive_mutex connectedClientListMutex;
 		};
 
 		class THEBE_API ConnectedClient : public ReferenceCounted
@@ -89,5 +91,6 @@ namespace Thebe
 		ClientManagerThread* clientManager;
 		SOCKET socket;
 		NetworkAddress address;
+		int maxConnections;
 	};
 }

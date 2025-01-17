@@ -8,6 +8,7 @@ JsonServer::JsonServer()
 {
 	this->socket = INVALID_SOCKET;
 	this->clientManager = nullptr;
+	this->maxConnections = 0;
 }
 
 /*virtual*/ JsonServer::~JsonServer()
@@ -18,6 +19,16 @@ JsonServer::JsonServer()
 void JsonServer::SetAddress(const NetworkAddress& address)
 {
 	this->address = address;
+}
+
+void JsonServer::SetMaxConnections(int maxConnections)
+{
+	this->maxConnections = maxConnections;
+}
+
+int JsonServer::GetMaxConnections()
+{
+	return this->maxConnections;
 }
 
 /*virtual*/ bool JsonServer::Setup()
@@ -48,6 +59,16 @@ void JsonServer::SetAddress(const NetworkAddress& address)
 
 	this->socket = ::socket(addressInfo->ai_family, addressInfo->ai_socktype, addressInfo->ai_protocol);
 	if (socket == INVALID_SOCKET)
+		return false;
+
+	result = ::bind(this->socket, addressInfo->ai_addr, (int)addressInfo->ai_addrlen);
+	if (result == SOCKET_ERROR)
+		return false;
+
+	freeaddrinfo(addressInfo);
+
+	result = ::listen(this->socket, this->maxConnections);
+	if (result == SOCKET_ERROR)
 		return false;
 
 	this->clientManager = new ClientManagerThread(this);
@@ -154,19 +175,23 @@ JsonServer::ClientManagerThread::ClientManagerThread(JsonServer* server)
 		{
 			std::lock_guard lock(this->connectedClientListMutex);
 
-			std::vector<std::list<Reference<ConnectedClient>>::iterator> staleClientArray;
+			std::vector<std::list<Reference<ConnectedClient>>::iterator> disconnectedClientArray;
 			for (std::list<Reference<ConnectedClient>>::iterator iter = this->connectedClientList.begin(); iter != this->connectedClientList.end(); iter++)
 			{
 				auto& client = *iter;
 				if (!client->StillConnected())
 				{
-					staleClientArray.push_back(iter);
+					disconnectedClientArray.push_back(iter);
 					this->server->OnClientDisconnected(client);
 				}
 			}
 
-			for (auto& iter : staleClientArray)
+			for (auto& iter : disconnectedClientArray)
+			{
+				auto client = *iter;
+				client->Shutdown();
 				this->connectedClientList.erase(iter);
+			}
 		}
 	}
 
@@ -207,7 +232,7 @@ JsonServer::ConnectedClient::ConnectedClient(SOCKET connectedSocket, JsonServer*
 /*virtual*/ JsonServer::ConnectedClient::~ConnectedClient()
 {
 	THEBE_ASSERT(this->sender == nullptr);
-	THEBE_ASSERT(this->receiver = nullptr);
+	THEBE_ASSERT(this->receiver == nullptr);
 }
 
 bool JsonServer::ConnectedClient::Setup()

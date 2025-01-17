@@ -100,7 +100,6 @@ void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 {
-#if 0
 	HumanClient* human = wxGetApp().GetHumanClient();
 	if (!human)
 		return;
@@ -159,14 +158,12 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 			// TODO: Maybe play a wave sound saying that the move is invalid.
 		}
 	}
-#endif
 
 	this->UpdateRings();
 }
 
 void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 {
-#if 0
 	HumanClient* human = wxGetApp().GetHumanClient();
 	if (!human)
 		return;
@@ -184,7 +181,6 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 			}
 		}
 	}
-#endif
 	
 	this->nodeSequenceArray.clear();
 	this->UpdateRings();

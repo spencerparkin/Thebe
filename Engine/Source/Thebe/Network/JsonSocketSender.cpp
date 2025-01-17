@@ -14,10 +14,23 @@ JsonSocketSender::JsonSocketSender(SOCKET socket) : jsonQueueSemaphore(0)
 
 void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 {
-	auto jsonText = new std::string();
-	jsonValue->PrintJson(*jsonText);
-	this->jsonQueue.Add(jsonText);
+	if (!jsonValue)
+		this->jsonQueue.Add(nullptr);
+	else
+	{
+		auto jsonText = new std::string();
+		jsonValue->PrintJson(*jsonText);
+		this->jsonQueue.Add(jsonText);
+	}
+	
 	this->jsonQueueSemaphore.release();
+}
+
+/*virtual*/ bool JsonSocketSender::Join()
+{
+	this->SendJson(nullptr);
+
+	return Thread::Join();
 }
 
 /*virtual*/ void JsonSocketSender::Run()
@@ -30,6 +43,9 @@ void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 
 		std::string* jsonText = nullptr;
 		if (!this->jsonQueue.Remove(jsonText))
+			break;
+
+		if (!jsonText)
 			break;
 
 		uint32_t numBytesToSend = jsonText->length() + 1;

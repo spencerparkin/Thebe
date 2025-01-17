@@ -6,8 +6,8 @@
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/FreeCam.h"
 #include "Thebe/Log.h"
-//#include "Network/GameClient.h"
-//#include "Network/GameServer.h"
+#include "Network/GameClient.h"
+#include "Network/GameServer.h"
 
 class ChineseCheckersFrame;
 class ChineseCheckersClient;
@@ -27,12 +27,12 @@ public:
 	Thebe::FreeCam* GetFreeCam();
 	Thebe::DynamicLineRenderer* GetLineRenderer();
 
-	//ChineseCheckersServer* GetGameServer();
-	//void SetGameServer(ChineseCheckersServer* gameServer);
+	ChineseCheckersServer* GetGameServer();
+	void SetGameServer(ChineseCheckersServer* gameServer);
 
-	//std::vector<ChineseCheckersClient*>& GetGameClientArray();
+	std::vector<ChineseCheckersClient*>& GetGameClientArray();
 
-	//HumanClient* GetHumanClient();
+	HumanClient* GetHumanClient();
 
 	void ShutdownClientsAndServer();
 
@@ -43,8 +43,8 @@ private:
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
 	Thebe::FreeCam freeCam;
-	//std::vector<ChineseCheckersClient*> gameClientArray;
-	//ChineseCheckersServer* gameServer;
+	std::vector<ChineseCheckersClient*> gameClientArray;
+	ChineseCheckersServer* gameServer;
 };
 
 wxDECLARE_APP(ChineseCheckersApp);
