@@ -6,6 +6,7 @@
 
 SceneBuilder::SceneBuilder()
 {
+	this->flags = 0;
 }
 
 /*virtual*/ SceneBuilder::~SceneBuilder()
@@ -15,6 +16,11 @@ SceneBuilder::SceneBuilder()
 void SceneBuilder::SetAssetsFolder(const std::filesystem::path& outputAssetsFolder)
 {
 	this->outputAssetsFolder = outputAssetsFolder;
+}
+
+void SceneBuilder::SetFlags(uint32_t flags)
+{
+	this->flags = flags;
 }
 
 bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
@@ -42,6 +48,7 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 	}
 
 	THEBE_LOG("Generating scene tree...");
+	this->meshMap.clear();
 	Thebe::Reference<Thebe::Space> outputRootNode = this->GenerateSceneTree(inputScene->mRootNode);
 	if (!outputRootNode.Get())
 	{
@@ -49,19 +56,15 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		return false;
 	}
 
+	if ((this->flags & SCENE_BUILDER_FLAG_COLLAPSE_TREE) != 0)
+	{
+		Thebe::Space::StaticCollapse(outputRootNode);
+	}
+
 	Thebe::Reference<Thebe::Scene> outputScene(new Thebe::Scene());
 	outputScene->SetGraphicsEngine(graphicsEngine);
 	outputScene->SetName(inputScene->mName.C_Str());
 	outputScene->SetRootSpace(outputRootNode);
-
-	THEBE_LOG("Dumping scene tree...");
-	std::filesystem::path outputSceneFile = this->outputAssetsFolder / "Scenes" / inputSceneFile.filename();
-	outputSceneFile.replace_extension(".scene");
-	if (!graphicsEngine->DumpEnginePartToFile(outputSceneFile, outputScene, THEBE_DUMP_FLAG_CAN_OVERWRITE))
-	{
-		THEBE_LOG("Failed to write scene file!");
-		return false;
-	}
 
 	THEBE_LOG("Processing %d meshes...", inputScene->mNumMeshes);
 	for (int i = 0; i < (int)inputScene->mNumMeshes; i++)
@@ -69,7 +72,11 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 		const aiMesh* inputMesh = inputScene->mMeshes[i];
 		THEBE_LOG("Processing mesh: %s", inputMesh->mName.C_Str());
 
-		Thebe::Reference<Thebe::Mesh> outputMesh = this->GenerateMesh(inputMesh);
+		auto pair = this->meshMap.find(inputMesh);
+		THEBE_ASSERT(pair != this->meshMap.end());
+		Thebe::MeshInstance* meshInstance = pair->second;
+
+		Thebe::Reference<Thebe::Mesh> outputMesh = this->GenerateMesh(inputMesh, meshInstance);
 		if (!outputMesh.Get())
 		{
 			THEBE_LOG("Failed to generate mesh %d.", i);
@@ -82,6 +89,15 @@ bool SceneBuilder::BuildScene(const std::filesystem::path& inputSceneFile)
 			THEBE_LOG("Failed to dump mesh %d.", i);
 			return false;
 		}
+	}
+
+	THEBE_LOG("Dumping scene tree...");
+	std::filesystem::path outputSceneFile = this->outputAssetsFolder / "Scenes" / inputSceneFile.filename();
+	outputSceneFile.replace_extension(".scene");
+	if (!graphicsEngine->DumpEnginePartToFile(outputSceneFile, outputScene, THEBE_DUMP_FLAG_CAN_OVERWRITE))
+	{
+		THEBE_LOG("Failed to write scene file!");
+		return false;
 	}
 
 	THEBE_LOG("Processing %d materials...", inputScene->mNumMaterials);
@@ -209,7 +225,7 @@ Thebe::Reference<Thebe::Material> SceneBuilder::GenerateMaterial(const aiMateria
 	return outputMaterial;
 }
 
-Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh)
+Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh, Thebe::MeshInstance* meshInstance)
 {
 	Thebe::Reference<Thebe::Mesh> outputMesh(new Thebe::Mesh());
 	outputMesh->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
@@ -228,7 +244,16 @@ Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh
 	std::filesystem::path outputIndexBufferPath = this->GenerateIndexBufferPath(inputMesh);
 	outputMesh->SetIndexBufferPath(outputIndexBufferPath);
 
-	Thebe::Reference<Thebe::VertexBuffer> outputVertexBuffer = this->GenerateVertexBuffer(inputMesh);
+	Thebe::Transform vertexTransform;
+	vertexTransform.SetIdentity();
+	if ((this->flags & SCENE_BUILDER_FLAG_APPLY_MESH_TRANSFORM) != 0)
+	{
+		// Of course, there may not be a one-to-one mapping between mesh instances and meshes.
+		vertexTransform = meshInstance->GetChildToParentTransform();
+		meshInstance->SetChildToParentTransform(Thebe::Transform::Identity());
+	}
+
+	Thebe::Reference<Thebe::VertexBuffer> outputVertexBuffer = this->GenerateVertexBuffer(inputMesh, vertexTransform);
 	if (!outputVertexBuffer.Get())
 	{
 		THEBE_LOG("Failed to generate vertex buffer for mesh %s.", inputMesh->mName.C_Str());
@@ -257,7 +282,7 @@ Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh
 	return outputMesh;
 }
 
-Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const aiMesh* inputMesh)
+Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const aiMesh* inputMesh, const Thebe::Transform& vertexTransform)
 {
 	Thebe::Reference<Thebe::VertexBuffer> outputVertexBuffer(new Thebe::VertexBuffer());
 	outputVertexBuffer->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
@@ -341,16 +366,20 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 		auto outputComponent = reinterpret_cast<float*>(outputVertex);
 
 		const aiVector3D& inputVertexPosition = inputMesh->mVertices[i];
-		*outputComponent++ = (float)inputVertexPosition.x;
-		*outputComponent++ = (float)inputVertexPosition.y;
-		*outputComponent++ = (float)inputVertexPosition.z;
+		Thebe::Vector3 outputVertexPosition = vertexTransform.TransformPoint(this->MakeVector(inputVertexPosition));
+
+		*outputComponent++ = (float)outputVertexPosition.x;
+		*outputComponent++ = (float)outputVertexPosition.y;
+		*outputComponent++ = (float)outputVertexPosition.z;
 
 		if (inputMesh->HasNormals())
 		{
 			const aiVector3D& inputNormal = inputMesh->mNormals[i];
-			*outputComponent++ = (float)inputNormal.x;
-			*outputComponent++ = (float)inputNormal.y;
-			*outputComponent++ = (float)inputNormal.z;
+			Thebe::Vector3 outputNormal = vertexTransform.TransformVector(this->MakeVector(inputNormal));
+
+			*outputComponent++ = (float)outputNormal.x;
+			*outputComponent++ = (float)outputNormal.y;
+			*outputComponent++ = (float)outputNormal.z;
 		}
 
 		if (inputMesh->HasTextureCoords(0))
@@ -437,6 +466,8 @@ Thebe::Reference<Thebe::Space> SceneBuilder::GenerateSceneTree(const aiNode* inp
 	{
 		const aiMesh* inputMesh = this->importer.GetScene()->mMeshes[inputParentNode->mMeshes[i]];
 		Thebe::Reference<Thebe::MeshInstance> meshInstance = this->GenerateMeshInstance(inputMesh, inputParentNode);
+		if (this->meshMap.find(inputMesh) == this->meshMap.end())
+			this->meshMap.insert(std::pair(inputMesh, meshInstance.Get()));
 		outputParentNode->AddSubSpace(meshInstance);
 	}
 

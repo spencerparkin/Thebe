@@ -214,3 +214,52 @@ Space* Space::FindSpaceByName(const std::string& searchName, Space** parentSpace
 
 	return nullptr;
 }
+
+/*virtual*/ bool Space::CanBeCollapsed() const
+{
+	return true;
+}
+
+void Space::Collapse()
+{
+	std::vector<Reference<Space>> newSubSpaceArray;
+
+	bool finished = false;
+	while (!finished)
+	{
+		finished = true;
+
+		for (Space* subSpaceA : this->subSpaceArray)
+		{
+			if (!subSpaceA->CanBeCollapsed() || subSpaceA->subSpaceArray.size() == 0)
+				newSubSpaceArray.push_back(subSpaceA);
+			else
+			{
+				finished = false;
+
+				for (Space* subSpaceB : subSpaceA->subSpaceArray)
+				{
+					subSpaceB->childToParent = subSpaceA->childToParent * subSpaceB->childToParent;
+					newSubSpaceArray.push_back(subSpaceB);
+				}
+
+				subSpaceA->subSpaceArray.clear();
+			}
+		}
+
+		this->subSpaceArray = newSubSpaceArray;
+		newSubSpaceArray.clear();
+	}
+}
+
+/*static*/ void Space::StaticCollapse(Reference<Space>& rootNode)
+{
+	Reference<Space> dummyRoot(new Space());
+	dummyRoot->SetChildToParentTransform(Transform::Identity());
+	dummyRoot->AddSubSpace(rootNode);
+	dummyRoot->Collapse();
+	if (dummyRoot->subSpaceArray.size() == 1)
+		rootNode = dummyRoot->subSpaceArray[0];
+	else
+		rootNode = dummyRoot;
+}

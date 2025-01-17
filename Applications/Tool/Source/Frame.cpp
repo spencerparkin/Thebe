@@ -14,6 +14,7 @@
 #include <wx/dirdlg.h>
 #include <wx/busyinfo.h>
 #include <wx/textdlg.h>
+#include <wx/choicdlg.h>
 #include <filesystem>
 
 GraphicsToolFrame::GraphicsToolFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Thebe Graphics Tool", pos, size), timer(this, ID_Timer)
@@ -65,10 +66,50 @@ GraphicsToolCanvas* GraphicsToolFrame::GetCanvas()
 	return this->canvas;
 }
 
+bool GraphicsToolFrame::FlagsDialog(const std::unordered_map<std::string, uint32_t>& flagMap, uint32_t& flags, const wxString& prompt)
+{
+	wxArrayInt selectionsArray;
+
+	wxArrayString choiceArray;
+	int i = 0;
+	for (const auto& pair : flagMap)
+	{
+		wxString choiceLabel(pair.first.c_str());
+		choiceArray.Add(choiceLabel);
+		if ((flags & pair.second) != 0)
+			selectionsArray.Add(i);
+		i++;
+	}
+
+	wxMultiChoiceDialog choiceDialog(this, "Choose build options.", "Options", choiceArray);
+	choiceDialog.SetSelections(selectionsArray);
+	if (choiceDialog.ShowModal() != wxID_OK)
+		return false;
+
+	flags = 0;
+	selectionsArray = choiceDialog.GetSelections();
+	for (int i = 0; i < (int)selectionsArray.size(); i++)
+	{
+		std::string choiceKey((const char*)choiceArray[selectionsArray[i]].c_str());
+		auto pair = flagMap.find(choiceKey);
+		THEBE_ASSERT(pair != flagMap.end());
+		flags |= pair->second;
+	}
+
+	return true;
+}
+
 void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 {
 	wxFileDialog inputFileDialog(this, "Choose input file.", wxEmptyString, wxEmptyString, wxFileSelectorDefaultWildcardStr, wxFD_FILE_MUST_EXIST);
 	if (inputFileDialog.ShowModal() != wxID_OK)
+		return;
+
+	std::unordered_map<std::string, uint32_t> flagsMap;
+	flagsMap.insert(std::pair("Collapse", SCENE_BUILDER_FLAG_COLLAPSE_TREE));
+	flagsMap.insert(std::pair("Apply Mesh Transform", SCENE_BUILDER_FLAG_APPLY_MESH_TRANSFORM));
+	uint32_t flags = 0;		// TODO: Maybe remember this value from the registry or something?
+	if (!this->FlagsDialog(flagsMap, flags, "Choose scene builder options."))
 		return;
 
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
@@ -82,6 +123,7 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 
 	SceneBuilder sceneBuilder;
 	sceneBuilder.SetAssetsFolder(outputAssetsFolder);
+	sceneBuilder.SetFlags(flags);
 	bool sceneBuilt = false;
 	{
 		wxBusyCursor busyCursor;

@@ -26,6 +26,11 @@ Text::Text()
 {
 }
 
+/*virtual*/ bool Text::CanBeCollapsed() const
+{
+	return false;
+}
+
 /*virtual*/ bool Text::Setup()
 {
 	if (!this->font.Get())

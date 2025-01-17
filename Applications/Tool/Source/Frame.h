@@ -37,6 +37,8 @@ private:
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
 
+	bool FlagsDialog(const std::unordered_map<std::string, uint32_t>& flagMap, uint32_t& flags, const wxString& prompt);
+
 	GraphicsToolCanvas* canvas;
 	wxTimer timer;
 };

@@ -21,6 +21,7 @@ namespace Thebe
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context) override;
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList) override;
 		virtual void PrepareForRender() override;
+		virtual bool CanBeCollapsed() const;
 
 		void UpdateObjectToWorldTransform(const Transform& parentToWorld);
 		void SetChildToParentTransform(const Transform& childToParent);
@@ -35,6 +36,9 @@ namespace Thebe
 		static Space* Factory(const ParseParty::JsonObject* jsonObject);
 
 		Space* FindSpaceByName(const std::string& searchName, Space** parentSpace = nullptr);
+
+		void Collapse();
+		static void StaticCollapse(Reference<Space>& rootNode);
 
 	protected:
 		Transform childToParent;

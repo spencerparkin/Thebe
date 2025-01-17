@@ -25,6 +25,11 @@ MeshInstance::MeshInstance()
 {
 }
 
+/*virtual*/ bool MeshInstance::CanBeCollapsed() const
+{
+	return false;
+}
+
 void MeshInstance::SetMeshPath(const std::filesystem::path& meshPath)
 {
 	this->meshPath = meshPath;

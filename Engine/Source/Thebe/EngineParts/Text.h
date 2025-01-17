@@ -26,6 +26,7 @@ namespace Thebe
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context) override;
 		virtual bool RendersToTarget(RenderTarget* renderTarget) const override;
 		virtual void PrepareForRender() override;
+		virtual bool CanBeCollapsed() const override;
 
 		void SetText(const std::string& text);
 		const std::string& GetText() const;
