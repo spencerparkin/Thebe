@@ -23,7 +23,7 @@ namespace Thebe
 
 	protected:
 		SOCKET socket;
-		ThreadSafeQueue<std::string> jsonQueue;
+		ThreadSafeQueue<std::string*> jsonQueue;
 		std::counting_semaphore<1024> jsonQueueSemaphore;
 	};
 }

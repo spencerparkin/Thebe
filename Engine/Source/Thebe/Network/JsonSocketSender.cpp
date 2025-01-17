@@ -9,12 +9,13 @@ JsonSocketSender::JsonSocketSender(SOCKET socket) : jsonQueueSemaphore(0)
 
 /*virtual*/ JsonSocketSender::~JsonSocketSender()
 {
+	this->jsonQueue.ClearAndDelete();
 }
 
 void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 {
-	std::string jsonText;
-	jsonValue->PrintJson(jsonText);
+	auto jsonText = new std::string();
+	jsonValue->PrintJson(*jsonText);
 	this->jsonQueue.Add(jsonText);
 	this->jsonQueueSemaphore.release();
 }
@@ -27,20 +28,22 @@ void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 	{
 		this->jsonQueueSemaphore.acquire();
 
-		std::string jsonText;
+		std::string* jsonText = nullptr;
 		if (!this->jsonQueue.Remove(jsonText))
 			break;
 
-		uint32_t numBytesToSend = jsonText.length() + 1;
+		uint32_t numBytesToSend = jsonText->length() + 1;
 		uint32_t totalBytesSent = 0;
 		while (totalBytesSent < numBytesToSend)
 		{
 			uint32_t numBytesRemaining = numBytesToSend - totalBytesSent;
-			uint32_t numBytesSent = ::send(this->socket, &jsonText.c_str()[totalBytesSent], numBytesRemaining, 0);
+			uint32_t numBytesSent = ::send(this->socket, &jsonText->c_str()[totalBytesSent], numBytesRemaining, 0);
 			if (numBytesSent == SOCKET_ERROR)
 				break;
 
 			totalBytesSent += numBytesSent;
 		}
+
+		delete jsonText;
 	}
 }
