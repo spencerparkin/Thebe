@@ -285,6 +285,12 @@ bool JsonServer::ConnectedClient::Setup()
 
 void JsonServer::ConnectedClient::Shutdown()
 {
+	if (this->connectedSocket != INVALID_SOCKET)
+	{
+		::closesocket(this->connectedSocket);
+		this->connectedSocket = INVALID_SOCKET;
+	}
+
 	if (this->sender)
 	{
 		this->sender->Join();
