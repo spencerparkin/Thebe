@@ -12,8 +12,15 @@ JsonSocketReceiver::JsonSocketReceiver(SOCKET socket)
 {
 }
 
+void JsonSocketReceiver::SetRecvFunc(JsonSocketRecvFunc recvFunc)
+{
+	this->recvFunc = recvFunc;
+}
+
 /*virtual*/ void JsonSocketReceiver::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue)
 {
+	if (this->recvFunc)
+		this->recvFunc(jsonValue);
 }
 
 /*virtual*/ void JsonSocketReceiver::Run()

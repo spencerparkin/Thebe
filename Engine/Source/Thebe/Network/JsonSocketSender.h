@@ -17,13 +17,13 @@ namespace Thebe
 		JsonSocketSender(SOCKET socket);
 		virtual ~JsonSocketSender();
 
-		void SendJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue);
+		void SendJson(const ParseParty::JsonValue* jsonValue);
 
 		virtual void Run() override;
 
 	protected:
 		SOCKET socket;
-		ThreadSafeQueue<ParseParty::JsonValue*> jsonQueue;
+		ThreadSafeQueue<const ParseParty::JsonValue*> jsonQueue;
 		std::counting_semaphore<1024> jsonQueueSemaphore;
 	};
 }

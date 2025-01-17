@@ -4,9 +4,12 @@
 #include "JsonValue.h"
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <functional>
 
 namespace Thebe
 {
+	typedef std::function<void(std::unique_ptr<ParseParty::JsonValue>&)> JsonSocketRecvFunc;
+
 	/**
 	 * 
 	 */
@@ -16,11 +19,14 @@ namespace Thebe
 		JsonSocketReceiver(SOCKET socket);
 		virtual ~JsonSocketReceiver();
 
+		void SetRecvFunc(JsonSocketRecvFunc recvFunc);
+
 		virtual void ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue);
 
 		virtual void Run() override;
 
 	protected:
 		SOCKET socket;
+		JsonSocketRecvFunc recvFunc;
 	};
 }

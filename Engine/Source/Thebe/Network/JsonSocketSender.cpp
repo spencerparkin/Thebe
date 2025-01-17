@@ -11,9 +11,9 @@ JsonSocketSender::JsonSocketSender(SOCKET socket) : jsonQueueSemaphore(0)
 {
 }
 
-void JsonSocketSender::SendJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue)
+void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 {
-	this->jsonQueue.Add(jsonValue.release());
+	this->jsonQueue.Add(jsonValue);
 	this->jsonQueueSemaphore.release();
 }
 
@@ -25,7 +25,7 @@ void JsonSocketSender::SendJson(std::unique_ptr<ParseParty::JsonValue>& jsonValu
 	{
 		this->jsonQueueSemaphore.acquire();
 
-		JsonValue* jsonValue = nullptr;
+		const JsonValue* jsonValue = nullptr;
 		if (!this->jsonQueue.Remove(jsonValue))
 			break;
 

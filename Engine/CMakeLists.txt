@@ -47,6 +47,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Containers/LinkedList.h
     Source/Thebe/Network/Address.cpp
     Source/Thebe/Network/Address.h
+    Source/Thebe/Network/JsonServer.cpp
+    Source/Thebe/Network/JsonServer.h
     Source/Thebe/Network/JsonSocketSender.cpp
     Source/Thebe/Network/JsonSocketSender.h
     Source/Thebe/Network/JsonSocketReceiver.cpp
