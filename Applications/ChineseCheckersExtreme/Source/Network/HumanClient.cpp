@@ -230,8 +230,7 @@ HumanClient::HumanClient()
 					return;
 				}
 
-				adjustmentTransform.translation.SetComponents(0.0, 0.0, -1.5);
-				cubieBody->GetCollisionObject()->SetTargetSpace(cubieMeshInstance, adjustmentTransform);
+				cubieBody->GetCollisionObject()->SetTargetSpace(cubieMeshInstance, Transform::Identity());
 
 				node->occupant->collisionObjectHandle = cubieBody->GetCollisionObject()->GetHandle();
 			}
