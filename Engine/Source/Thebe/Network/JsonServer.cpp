@@ -46,7 +46,7 @@ void JsonServer::SetAddress(const NetworkAddress& address)
 	if (addressInfo->ai_protocol != IPPROTO_TCP)
 		return false;
 
-	socket = ::socket(addressInfo->ai_family, addressInfo->ai_socktype, addressInfo->ai_protocol);
+	this->socket = ::socket(addressInfo->ai_family, addressInfo->ai_socktype, addressInfo->ai_protocol);
 	if (socket == INVALID_SOCKET)
 		return false;
 
