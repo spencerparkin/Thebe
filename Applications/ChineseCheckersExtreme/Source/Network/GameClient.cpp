@@ -1,6 +1,4 @@
 #include "GameClient.h"
-
-#if 0
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -9,9 +7,7 @@ using namespace Thebe;
 
 ChineseCheckersClient::ChineseCheckersClient()
 {
-	this->game = nullptr;
-	this->pingFrequencySecondsPerPing = 0.0;
-	this->timeToNextPingSeconds = 0.0;
+	this->sourceZoneID = 0;
 	this->whoseTurnZoneID = 0;
 }
 
@@ -29,57 +25,33 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 {
 	using namespace ParseParty;
 
-	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket* { return new Socket(socket, this); });
-
-	if (!NetworkClient::Setup())
+	if (!JsonClient::Setup())
 		return false;
-
-	auto client = dynamic_cast<Socket*>(this->GetSocket());
-	THEBE_ASSERT_FATAL(client != nullptr);
 
 	std::unique_ptr<JsonObject> jsonRequestValue(new JsonObject());
 	jsonRequestValue->SetValue("request", new JsonString("get_game_state"));
-	client->SendJson(jsonRequestValue.get());
+	this->SendJson(jsonRequestValue.get());
 
 	jsonRequestValue.reset(new JsonObject());
 	jsonRequestValue->SetValue("request", new JsonString("get_source_zone_id"));
-	client->SendJson(jsonRequestValue.get());
+	this->SendJson(jsonRequestValue.get());
 
 	return true;
 }
 
 /*virtual*/ void ChineseCheckersClient::Shutdown()
 {
-	THEBE_LOG("Game client shutdown");
-
-	NetworkClient::Shutdown();
-
-	this->responseQueue.ClearAndDelete();
+	JsonClient::Shutdown();
 }
 
-/*virtual*/ void ChineseCheckersClient::Update(double deltaTimeSeconds)
+/*virtual*/ void ChineseCheckersClient::Update()
 {
-	std::unique_ptr<const ParseParty::JsonValue> jsonResponse;
-	while (this->RemoveResponse(jsonResponse))
-		this->HandleResponse(jsonResponse.get());
+	JsonClient::Update();
 
-	using namespace ParseParty;
-
-	if (this->pingFrequencySecondsPerPing > 0.0)
-	{
-		this->timeToNextPingSeconds -= deltaTimeSeconds;
-		if (this->timeToNextPingSeconds <= 0.0)
-		{
-			this->timeToNextPingSeconds += this->pingFrequencySecondsPerPing;
-			auto socket = dynamic_cast<Socket*>(this->GetSocket());
-			std::unique_ptr<JsonObject> pingValue(new JsonObject());
-			pingValue->SetValue("request", new JsonString("ping"));
-			socket->SendJson(pingValue.get());
-		}
-	}
+	// This is where we might continuously ping the server if WinSock keeps failing to flush the sockets.
 }
 
-/*virtual*/ bool ChineseCheckersClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
+/*virtual*/ void ChineseCheckersClient::ProcessServerMessage(const ParseParty::JsonValue* jsonResponse)
 {
 	using namespace ParseParty;
 
@@ -87,14 +59,14 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	if (!responseRootValue)
 	{
 		THEBE_LOG("Json response was not an object.");
-		return false;
+		return;
 	}
 
 	auto responseValue = dynamic_cast<const JsonString*>(responseRootValue->GetValue("response"));
 	if (!responseValue)
 	{
 		THEBE_LOG("No response value in JSON response object.");
-		return false;
+		return;
 	}
 
 	std::string response = responseValue->GetValue();
@@ -110,7 +82,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!whoseTurnZoneIDValue)
 		{
 			THEBE_LOG("No zone ID found in turn notify response.");
-			return false;
+			return;
 		}
 
 		this->whoseTurnZoneID = (int)whoseTurnZoneIDValue->GetValue();
@@ -121,7 +93,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!gameTypeValue)
 		{
 			THEBE_LOG("Game type not found in response.");
-			return false;
+			return;
 		}
 
 		std::string gameType = gameTypeValue->GetValue();
@@ -129,20 +101,20 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!this->game.Get())
 		{
 			THEBE_LOG("Game type %s not recognized.", gameType.c_str());
-			return false;
+			return;
 		}
 
 		auto gameStateValue = dynamic_cast<const JsonObject*>(responseRootValue->GetValue("game_state"));
 		if (!gameStateValue)
 		{
 			THEBE_LOG("Game state not found in response.");
-			return false;
+			return;
 		}
 
 		if (!this->game->FromJson(gameStateValue))
 		{
 			THEBE_LOG("Failed to create game state from JSON.");
-			return false;
+			return;
 		}
 	}
 	else if (response == "get_source_zone_id")
@@ -151,12 +123,10 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!sourceZoneIDValue)
 		{
 			THEBE_LOG("No source zone ID value found in response.");
-			return false;
+			return;
 		}
 
-		auto client = dynamic_cast<Socket*>(this->GetSocket());
-		THEBE_ASSERT_FATAL(client != nullptr);
-		client->sourceZoneID = sourceZoneIDValue->GetValue();
+		this->sourceZoneID = sourceZoneIDValue->GetValue();
 	}
 	else if (response == "apply_turn")
 	{
@@ -164,7 +134,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!nodeOffsetArrayValue)
 		{
 			THEBE_LOG("Can't apply turn if there is no offset array.");
-			return false;
+			return;
 		}
 
 		std::vector<int> nodeOffsetArray;
@@ -174,7 +144,7 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 			if (!offsetValue)
 			{
 				THEBE_LOG("Offset value was not an integer.");
-				return false;
+				return;
 			}
 
 			nodeOffsetArray.push_back((int)offsetValue->GetValue());
@@ -184,63 +154,23 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 		if (!this->game->NodeArrayFromOffsetArray(nodeArray, nodeOffsetArray))
 		{
 			THEBE_LOG("Failed to convert node offset array to node array.");
-			return false;
+			return;
 		}
 
 		if (!this->game->ExecutePath(nodeArray))
 		{
 			THEBE_LOG("Failed to apply node path.");
-			return false;
+			return;
 		}
 	}
 	else
 	{
 		THEBE_LOG("Response \"%s\" not recognized.", response.c_str());
-		return false;
+		return;
 	}
-
-	return true;
-}
-
-void ChineseCheckersClient::AddResponse(std::unique_ptr<ParseParty::JsonValue>& jsonResponse)
-{
-	this->responseQueue.Add(jsonResponse.release());
-}
-
-bool ChineseCheckersClient::RemoveResponse(std::unique_ptr<const ParseParty::JsonValue>& jsonResponse)
-{
-	const ParseParty::JsonValue* jsonValue = nullptr;
-	if (this->responseQueue.Remove(jsonValue))
-	{
-		jsonResponse.reset(jsonValue);
-		return true;
-	}
-
-	return false;
 }
 
 int ChineseCheckersClient::GetSourceZoneID()
 {
-	auto socket = dynamic_cast<Socket*>(this->clientSocket.Get());
-	THEBE_ASSERT_FATAL(socket != nullptr);
-	return socket->sourceZoneID;
+	return this->sourceZoneID;
 }
-
-//------------------------------------- ChineseCheckersClient::Socket -------------------------------------
-
-ChineseCheckersClient::Socket::Socket(SOCKET socket, ChineseCheckersClient* client) : JsonNetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING | THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING)
-{
-	this->sourceZoneID = 0;
-	this->client = client;
-}
-
-/*virtual*/ ChineseCheckersClient::Socket::~Socket()
-{
-}
-
-/*virtual*/ bool ChineseCheckersClient::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
-{
-	this->client->AddResponse(jsonRootValue);
-	return true;
-}
-#endif

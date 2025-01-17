@@ -38,7 +38,7 @@ namespace Thebe
 			Reference<ConnectedClient> client;
 		};
 
-		virtual void ProcessClientMessage(ClientMessage* message);
+		virtual void ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply);
 
 		ThreadSafeQueue<ClientMessage> clientMessageQueue;
 
@@ -51,6 +51,8 @@ namespace Thebe
 			virtual void Run() override;
 
 			void SendJsonToAllClients(const ParseParty::JsonValue* jsonValue);
+
+			uint32_t GetNumConnectedClients();
 
 		private:
 			JsonServer* server;

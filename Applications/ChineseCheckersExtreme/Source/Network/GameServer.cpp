@@ -1,6 +1,4 @@
 #include "GameServer.h"
-
-#if 0
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -27,18 +25,14 @@ ChineseCheckersServer::ChineseCheckersServer()
 
 	this->game->GenerateFreeZoneIDStack(this->freeZoneIDStack);
 
-	this->SetSocketFactory([=](SOCKET socket) -> NetworkSocket* { return new Socket(socket, this); });
-
-	return NetworkServer::Setup();
+	return JsonServer::Setup();
 }
 
 /*virtual*/ void ChineseCheckersServer::Shutdown()
 {
-	THEBE_LOG("Game server shutdown");
-
 	this->SetGame(nullptr);
 
-	NetworkServer::Shutdown();
+	JsonServer::Shutdown();
 }
 
 void ChineseCheckersServer::SetGame(ChineseCheckersGame* game)
@@ -46,41 +40,27 @@ void ChineseCheckersServer::SetGame(ChineseCheckersGame* game)
 	this->game = game;
 }
 
-/*virtual*/ bool ChineseCheckersServer::Serve()
+/*virtual*/ void ChineseCheckersServer::Serve()
 {
-	std::unique_ptr<const ParseParty::JsonValue> jsonRequest;
-	Socket* client = nullptr;
-	while (this->RemoveRequest(jsonRequest, client))
-	{
-		std::unique_ptr<ParseParty::JsonValue> jsonResponse;
-		if (this->ServeRequest(jsonRequest.get(), jsonResponse, client))
-		{
-			if (jsonResponse.get())
-				client->SendJson(jsonResponse.get());
-		}
-	}
-
-	return true;
+	JsonServer::Serve();
 }
 
-bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonRequest, std::unique_ptr<ParseParty::JsonValue>& jsonResponse, Socket* client)
+void ChineseCheckersServer::ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply)
 {
 	using namespace ParseParty;
 
-	std::lock_guard<std::mutex> lock(this->serverMutex);
-
-	auto requestRootValue = dynamic_cast<const JsonObject*>(jsonRequest);
+	auto requestRootValue = dynamic_cast<const JsonObject*>(message->jsonValue);
 	if (!requestRootValue)
 	{
 		THEBE_LOG("Request JSON root was not an object.");
-		return false;
+		return;
 	}
 
 	auto requestValue = dynamic_cast<const JsonString*>(requestRootValue->GetValue("request"));
 	if (!requestValue)
 	{
 		THEBE_LOG("No request value found.");
-		return false;
+		return;
 	}
 
 	std::string request = requestValue->GetValue();
@@ -90,7 +70,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	{
 		THEBE_LOG("PING!");
 		auto jsonResponseValue = new JsonObject();
-		jsonResponse.reset(jsonResponseValue);
+		jsonReply.reset(jsonResponseValue);
 		jsonResponseValue->SetValue("response", new JsonString("pong"));
 	}
 	else if (request == "get_game_state")
@@ -99,11 +79,11 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		if (!this->game->ToJson(jsonGameValue))
 		{
 			THEBE_LOG("Failed to package game-state into JSON.");
-			return false;
+			return;
 		}
 
 		auto jsonResponseValue = new JsonObject();
-		jsonResponse.reset(jsonResponseValue);
+		jsonReply.reset(jsonResponseValue);
 		jsonResponseValue->SetValue("response", new JsonString("get_game_state"));
 		jsonResponseValue->SetValue("game_type", new JsonString(this->game->GetGameType()));
 		jsonResponseValue->SetValue("game_state", jsonGameValue.release());
@@ -111,9 +91,9 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	else if (request == "get_source_zone_id")
 	{
 		auto jsonResponseValue = new JsonObject();
-		jsonResponse.reset(jsonResponseValue);
+		jsonReply.reset(jsonResponseValue);
 		jsonResponseValue->SetValue("response", new JsonString("get_source_zone_id"));
-		jsonResponseValue->SetValue("source_zone_id", new JsonInt(client->sourceZoneID));
+		jsonResponseValue->SetValue("source_zone_id", new JsonInt(message->client->GetUserData()));
 	}
 	else if (request == "take_turn")
 	{
@@ -121,7 +101,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		if (!nodeOffsetArrayValue)
 		{
 			THEBE_LOG("Can't take turn if there is no offset array.");
-			return false;
+			return;
 		}
 
 		std::vector<int> nodeOffsetArray;
@@ -131,7 +111,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 			if (!offsetValue)
 			{
 				THEBE_LOG("Offset value was not an integer.");
-				return false;
+				return;
 			}
 
 			nodeOffsetArray.push_back((int)offsetValue->GetValue());
@@ -141,31 +121,31 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		if (!this->game->NodeArrayFromOffsetArray(nodeArray, nodeOffsetArray))
 		{
 			THEBE_LOG("Failed to convert node offset array to node array.");
-			return false;
+			return;
 		}
 
 		if (nodeArray.size() == 0)
 		{
 			THEBE_LOG("Can't take turn if node size is zero.");
-			return false;
+			return;
 		}
 
 		if (!nodeArray[0]->occupant)
 		{
 			THEBE_LOG("Can't take turn if node sequence doesn't start at an occupied node.");
-			return false;
+			return;
 		}
 
 		if (nodeArray[0]->occupant->sourceZoneID != this->whoseTurnZoneID)
 		{
 			THEBE_LOG("Can't take turn when it is not your turn.");
-			return false;
+			return;
 		}
 
 		if (!this->game->ExecutePath(nodeArray))
 		{
 			THEBE_LOG("Failed to execute node path.  It was not legal.");
-			return false;
+			return;
 		}
 
 		std::unique_ptr<JsonObject> responseValue(new JsonObject());
@@ -175,11 +155,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 		for (int i : nodeOffsetArray)
 			offsetArrayValue->PushValue(new JsonInt(i));
 
-		for (auto networkSocket : this->connectedClientList)
-		{
-			auto client = dynamic_cast<Socket*>(networkSocket.Get());
-			client->SendJson(responseValue.get());
-		}
+		this->clientManager->SendJsonToAllClients(responseValue.get());
 
 		this->whoseTurnZoneID = this->game->GetNextZone(this->whoseTurnZoneID);
 
@@ -188,10 +164,7 @@ bool ChineseCheckersServer::ServeRequest(const ParseParty::JsonValue* jsonReques
 	else
 	{
 		THEBE_LOG("Request \"%s\" not recognized.", request.c_str());
-		return false;
 	}
-
-	return true;
 }
 
 void ChineseCheckersServer::NotifyAllClientsOfWhoseTurnItIs()
@@ -202,79 +175,27 @@ void ChineseCheckersServer::NotifyAllClientsOfWhoseTurnItIs()
 	responseValue->SetValue("response", new JsonString("turn_notify"));
 	responseValue->SetValue("whose_turn_zone_id", new JsonInt(this->whoseTurnZoneID));
 
-	for (auto networkSocket : this->connectedClientList)
-	{
-		auto client = dynamic_cast<Socket*>(networkSocket.Get());
-		client->SendJson(responseValue.get());
-	}
+	this->clientManager->SendJsonToAllClients(responseValue.get());
 }
 
-/*virtual*/ void ChineseCheckersServer::OnClientAdded(Thebe::NetworkSocket* networkSocket)
+/*virtual*/ void ChineseCheckersServer::OnClientConnected(ConnectedClient* client)
 {
-	auto client = dynamic_cast<Socket*>(networkSocket);
-	THEBE_ASSERT_FATAL(client);
-
-	// Give the client a zone.
+	if (this->freeZoneIDStack.size() > 0)
 	{
-		std::lock_guard<std::mutex> lock(this->serverMutex);
-		if (this->freeZoneIDStack.size() > 0)
-		{
-			client->sourceZoneID = this->freeZoneIDStack.back();
-			this->freeZoneIDStack.pop_back();
-		}
+		int sourceZoneID = this->freeZoneIDStack.back();
+		this->freeZoneIDStack.pop_back();
+		client->SetUserData(sourceZoneID);
 	}
 
 	if (this->whoseTurnZoneID == 0)
-		this->whoseTurnZoneID = client->sourceZoneID;
+		this->whoseTurnZoneID = (int)client->GetUserData();
 
-	if (this->connectedClientList.size() == this->game->GetNumActivePlayers())
+	if (this->clientManager->GetNumConnectedClients() == this->game->GetNumActivePlayers())
 		this->NotifyAllClientsOfWhoseTurnItIs();
 }
 
-/*virtual*/ void ChineseCheckersServer::OnClientRemoved(Thebe::NetworkSocket* networkSocket)
+/*virtual*/ void ChineseCheckersServer::OnClientDisconnected(ConnectedClient* client)
 {
-	auto client = dynamic_cast<Socket*>(networkSocket);
-	THEBE_ASSERT_FATAL(client);
-
-	std::lock_guard<std::mutex> lock(this->serverMutex);
-
-	this->freeZoneIDStack.push_back(client->sourceZoneID);
+	int sourceZoneID = (int)client->GetUserData();
+	this->freeZoneIDStack.push_back(sourceZoneID);
 }
-
-bool ChineseCheckersServer::RemoveRequest(std::unique_ptr<const ParseParty::JsonValue>& jsonRequest, Socket*& client)
-{
-	Request request;
-	if (!this->requestQueue.Remove(request))
-		return false;
-
-	jsonRequest.reset(request.jsonRequest);
-	client = request.client;
-	return true;
-}
-
-void ChineseCheckersServer::AddRequest(std::unique_ptr<ParseParty::JsonValue>& jsonRequest, Socket* client)
-{
-	Request request;
-	request.jsonRequest = jsonRequest.release();
-	request.client = client;
-	this->requestQueue.Add(request);
-}
-
-//---------------------------------- ChineseCheckersServer::Socket ----------------------------------
-
-ChineseCheckersServer::Socket::Socket(SOCKET socket, ChineseCheckersServer* server) : JsonNetworkSocket(socket, THEBE_NETWORK_SOCKET_FLAG_NEEDS_READING | THEBE_NETWORK_SOCKET_FLAG_NEEDS_WRITING)
-{
-	this->sourceZoneID = 0;
-	this->server = server;
-}
-
-/*virtual*/ ChineseCheckersServer::Socket::~Socket()
-{
-}
-
-/*virtual*/ bool ChineseCheckersServer::Socket::ReceiveJson(std::unique_ptr<ParseParty::JsonValue>& jsonRootValue)
-{
-	this->server->AddRequest(jsonRootValue, this);
-	return true;
-}
-#endif

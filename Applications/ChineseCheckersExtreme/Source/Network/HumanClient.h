@@ -1,6 +1,5 @@
 #pragma once
 
-#if 0
 #include "GameClient.h"
 
 /**
@@ -12,7 +11,7 @@ public:
 	HumanClient();
 	virtual ~HumanClient();
 
-	virtual bool HandleResponse(const ParseParty::JsonValue* jsonResponse) override;
+	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
 
 	void TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray);
 
@@ -21,4 +20,3 @@ public:
 private:
 	bool animate;
 };
-#endif

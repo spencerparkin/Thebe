@@ -1,6 +1,5 @@
 #include "ComputerClient.h"
 
-#if 0
 ComputerClient::ComputerClient()
 {
 }
@@ -9,21 +8,12 @@ ComputerClient::ComputerClient()
 {
 }
 
-/*virtual*/ bool ComputerClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
+/*virtual*/ void ComputerClient::Update()
 {
-	if (!ChineseCheckersClient::HandleResponse(jsonResponse))
-		return false;
-
-	return true;
-}
-
-/*virtual*/ void ComputerClient::Update(double deltaTimeSeconds)
-{
-	ChineseCheckersClient::Update(deltaTimeSeconds);
+	ChineseCheckersClient::Update();
 
 	if (this->whoseTurnZoneID == this->GetSourceZoneID())
 	{
-		// TODO: Tell our thread to start formulating a move sequence.
+		// TODO: Formulate and send a move sequence here to the server.
 	}
 }
-#endif

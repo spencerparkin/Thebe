@@ -1,6 +1,4 @@
 #include "HumanClient.h"
-
-#if 0
 #include "Application.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Mesh.h"
@@ -20,14 +18,21 @@ HumanClient::HumanClient()
 {
 }
 
-/*virtual*/ bool HumanClient::HandleResponse(const ParseParty::JsonValue* jsonResponse)
+/*virtual*/ void HumanClient::ProcessServerMessage(const ParseParty::JsonValue* jsonValue)
 {
 	using namespace ParseParty;
 
-	if (!ChineseCheckersClient::HandleResponse(jsonResponse))
-		return false;
+	ChineseCheckersClient::ProcessServerMessage(jsonValue);
 
-	std::string response = ((const JsonString*)((const JsonObject*)jsonResponse)->GetValue("response"))->GetValue();
+	auto messageValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!messageValue)
+		return;
+
+	auto responseValue = dynamic_cast<const JsonString*>(messageValue->GetValue("response"));
+	if (!responseValue)
+		return;
+
+	std::string response = responseValue->GetValue();
 	if (response == "get_game_state")
 	{
 		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
@@ -60,40 +65,40 @@ HumanClient::HumanClient()
 		else
 		{
 			THEBE_LOG("Game type \"%s\" not recognized.", gameType);
-			return false;
+			return;
 		}
 
 		Reference<Mesh> platformMesh;
 		if (!graphicsEngine->LoadEnginePartFromFile(platformMeshPath, platformMesh))
 		{
 			THEBE_LOG("Failed to load platform mesh: %s", platformMeshPath.string().c_str());
-			return false;
+			return;
 		}
 
 		Reference<Mesh> ringMesh;
 		if (!graphicsEngine->LoadEnginePartFromFile(ringMeshPath, ringMesh))
 		{
 			THEBE_LOG("Failed to load ring mesh: %s", ringMeshPath.string().c_str());
-			return false;
+			return;
 		}
 
 		Reference<Mesh> cubieMesh;
 		if (!graphicsEngine->LoadEnginePartFromFile(cubieMeshPath, cubieMesh))
 		{
 			THEBE_LOG("Failed to load cubie mesh: %s", cubieMeshPath.string().c_str());
-			return false;
+			return;
 		}
 
 		auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
 		if (!scene)
 		{
 			THEBE_LOG("Expected render object to be a scene object.");
-			return false;
+			return;
 		}
 
 		Space* rootSpace = scene->GetRootSpace();
 		if (!rootSpace)
-			return false;
+			return;
 
 		Reference<Space> boardSpace(rootSpace->FindSpaceByName("board"));
 		if (!boardSpace.Get())
@@ -115,7 +120,7 @@ HumanClient::HumanClient()
 			if (!platformMeshInstance->Setup())
 			{
 				THEBE_LOG("Failed to setup platform mesh instance.");
-				return false;
+				return;
 			}
 
 			Transform objectToWorld;
@@ -136,7 +141,7 @@ HumanClient::HumanClient()
 				if (!ringMeshInstance->Setup())
 				{
 					THEBE_LOG("Failed to setup ring mesh instance.");
-					return false;
+					return;
 				}
 
 				adjustmentTransform.matrix.SetIdentity();
@@ -149,7 +154,7 @@ HumanClient::HumanClient()
 			if (!graphicsEngine->LoadEnginePartFromFile(platformBodyPath, platformBody, THEBE_LOAD_FLAG_DONT_CACHE_PART | THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 			{
 				THEBE_LOG("Failed to load platform body: %s", platformBodyPath.string().c_str());
-				return false;
+				return;
 			}
 
 			adjustmentTransform.matrix.SetIdentity();
@@ -168,7 +173,7 @@ HumanClient::HumanClient()
 				if (!cubieMeshInstance->Setup())
 				{
 					THEBE_LOG("Failed to setup cubie mesh instance.");
-					return false;
+					return;
 				}
 				
 				boardSpace->AddSubSpace(cubieMeshInstance);
@@ -177,7 +182,7 @@ HumanClient::HumanClient()
 				if (!graphicsEngine->LoadEnginePartFromFile(cubieBodyPath, cubieBody, THEBE_LOAD_FLAG_DONT_CACHE_PART | THEBE_LOAD_FLAG_DONT_CHECK_CACHE))
 				{
 					THEBE_LOG("Failed to load cubie body.");
-					return false;
+					return;
 				}
 
 				adjustmentTransform.translation.SetComponents(0.0, 0.0, -1.5);
@@ -199,7 +204,7 @@ HumanClient::HumanClient()
 		}
 	}
 
-	return true;
+	return;
 }
 
 void HumanClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray)
@@ -220,11 +225,7 @@ void HumanClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeAr
 	for (int i : nodeOffsetArray)
 		nodeOffsetArrayValue->PushValue(new JsonInt(i));
 
-	auto socket = dynamic_cast<Socket*>(this->clientSocket.Get());
-	if (!socket)
-		return;
-
-	socket->SendJson(requestValue.get());
+	this->SendJson(requestValue.get());
 }
 
 void HumanClient::SnapCubiesIntoPosition()
@@ -257,5 +258,3 @@ void HumanClient::SnapCubiesIntoPosition()
 		collisionObject->SetObjectToWorld(objectToWorld * adjustmentTransform);
 	}
 }
-
-#endif

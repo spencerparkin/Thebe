@@ -80,8 +80,13 @@ void JsonServer::SetAddress(const NetworkAddress& address)
 	ClientMessage message;
 	if (this->clientMessageQueue.Remove(message))
 	{
-		this->ProcessClientMessage(&message);
+		std::unique_ptr<ParseParty::JsonValue> jsonReply;
+		this->ProcessClientMessage(&message, jsonReply);
+
 		delete message.jsonValue;
+
+		if (jsonReply.get())
+			message.client->SendJson(jsonReply.get());
 	}
 }
 
@@ -90,7 +95,7 @@ SOCKET JsonServer::GetSocket()
 	return this->socket;
 }
 
-/*virtual*/ void JsonServer::ProcessClientMessage(ClientMessage* message)
+/*virtual*/ void JsonServer::ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply)
 {
 }
 
@@ -181,6 +186,11 @@ void JsonServer::ClientManagerThread::SendJsonToAllClients(const ParseParty::Jso
 	std::lock_guard lock(this->connectedClientListMutex);
 	for (auto& client : this->connectedClientList)
 		client->SendJson(jsonValue);
+}
+
+uint32_t JsonServer::ClientManagerThread::GetNumConnectedClients()
+{
+	return (uint32_t)this->connectedClientList.size();
 }
 
 //---------------------------------- JsonServer::ConnectedClient ----------------------------------
