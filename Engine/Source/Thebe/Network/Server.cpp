@@ -81,12 +81,14 @@ void NetworkServer::SetMaxConnections(int maxConnections)
 		this->RemoveUnconnectedClients();
 
 		timeval timeout{};
-		timeout.tv_sec = 1.0;
+		timeout.tv_usec = 100;
 
 		fd_set readSet;
 		FD_ZERO(&readSet);
 		FD_SET(this->socket, &readSet);
 		int result = ::select(0, &readSet, nullptr, nullptr, &timeout);
+		if (result == SOCKET_ERROR)
+			break;
 
 		if (FD_ISSET(this->socket, &readSet))
 		{
