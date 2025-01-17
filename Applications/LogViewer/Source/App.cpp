@@ -18,11 +18,11 @@ LogViewerApp::LogViewerApp()
 	if (!wxApp::OnInit())
 		return false;
 
-	/*if (!this->logCollector.Setup())
+	if (!this->logCollector.Setup())
 	{
 		wxMessageBox("Failed to setup log collector!", "Error!", wxICON_ERROR | wxOK, nullptr);
 		return false;
-	}*/
+	}
 
 	this->frame = new LogViewerFrame(wxPoint(100, 100), wxSize(800, 500));
 	this->frame->Show();
@@ -32,16 +32,15 @@ LogViewerApp::LogViewerApp()
 
 /*virtual*/ int LogViewerApp::OnExit(void)
 {
-	//this->logCollector.Shutdown();
+	this->logCollector.Shutdown();
 	
 	return 0;
 }
 
-/*
 Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 {
 	return &this->logCollector;
-}*/
+}
 
 /*virtual*/ void LogViewerApp::OnInitCmdLine(wxCmdLineParser& parser)
 {
@@ -57,7 +56,6 @@ Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 
 /*virtual*/ bool LogViewerApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
-	/*
 	Thebe::NetworkAddress address;
 
 	long port = 0;
@@ -69,6 +67,6 @@ Thebe::NetLogCollector* LogViewerApp::GetLogCollector()
 		address.SetIPAddress((const char*)addr.c_str());
 
 	this->logCollector.SetAddress(address);
-	*/
+
 	return true;
 }

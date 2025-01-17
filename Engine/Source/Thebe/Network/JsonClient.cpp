@@ -9,10 +9,18 @@ JsonClient::JsonClient()
 	this->sender = nullptr;
 	this->maxConnectionAttempts = 10;
 	this->retryWaitTimeMilliseconds = 200;
+	this->needsSending = true;
+	this->needsReceiving = true;
 }
 
 /*virtual*/ JsonClient::~JsonClient()
 {
+}
+
+void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
+{
+	this->needsSending = needsSending;
+	this->needsReceiving = needsReceiving;
 }
 
 /*virtual*/ bool JsonClient::Setup()
@@ -63,14 +71,20 @@ JsonClient::JsonClient()
 	if (!connected)
 		return false;
 
-	this->receiver = new JsonSocketReceiver(this->connectedSocket);
-	this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->jsonMessageQueue.Add(jsonValue.release()); });
-	if (!this->receiver->Split())
-		return false;
+	if (this->needsReceiving)
+	{
+		this->receiver = new JsonSocketReceiver(this->connectedSocket);
+		this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->jsonMessageQueue.Add(jsonValue.release()); });
+		if (!this->receiver->Split())
+			return false;
+	}
 
-	this->sender = new JsonSocketSender(this->connectedSocket);
-	if (!this->sender->Split())
-		return false;
+	if (this->needsSending)
+	{
+		this->sender = new JsonSocketSender(this->connectedSocket);
+		if (!this->sender->Split())
+			return false;
+	}
 
 	return true;
 }

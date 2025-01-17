@@ -25,6 +25,11 @@ namespace Thebe
 		SOCKET GetSocket();
 
 		void SetAddress(const NetworkAddress& address);
+		const NetworkAddress& GetAddress() const;
+
+		void SetNeeds(bool needsSending, bool needsReceiving);
+		void GetNeeds(bool& needsSending, bool& needsReceiving) const;
+
 		void SetMaxConnections(int maxConnections);
 		int GetMaxConnections();
 
@@ -92,5 +97,7 @@ namespace Thebe
 		SOCKET socket;
 		NetworkAddress address;
 		int maxConnections;
+		bool needsSending;
+		bool needsReceiving;
 	};
 }

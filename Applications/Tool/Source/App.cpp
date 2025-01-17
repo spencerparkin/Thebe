@@ -41,7 +41,6 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 
 	this->frame = new GraphicsToolFrame(wxPoint(10, 10), wxSize(1200, 800));
 
-#if 0
 	wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
 	loggerPath.SetName("ThebeLogViewer");
 	loggerPath.SetExt("exe");
@@ -62,7 +61,6 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 			Thebe::Log::Set(this->log);
 		}
 	}
-#endif
 
 	HWND windowHandle = this->frame->GetCanvas()->GetHWND();
 	if (!this->graphicsEngine->Setup(windowHandle))

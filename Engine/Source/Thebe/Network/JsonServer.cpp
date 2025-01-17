@@ -9,6 +9,8 @@ JsonServer::JsonServer()
 	this->socket = INVALID_SOCKET;
 	this->clientManager = nullptr;
 	this->maxConnections = 0;
+	this->needsSending = true;
+	this->needsReceiving = true;
 }
 
 /*virtual*/ JsonServer::~JsonServer()
@@ -19,6 +21,23 @@ JsonServer::JsonServer()
 void JsonServer::SetAddress(const NetworkAddress& address)
 {
 	this->address = address;
+}
+
+const NetworkAddress& JsonServer::GetAddress() const
+{
+	return this->address;
+}
+
+void JsonServer::SetNeeds(bool needsSending, bool needsReceiving)
+{
+	this->needsSending = needsSending;
+	this->needsReceiving = needsReceiving;
+}
+
+void JsonServer::GetNeeds(bool& needsSending, bool& needsReceiving) const
+{
+	needsSending = this->needsSending;
+	needsReceiving = this->needsReceiving;
 }
 
 void JsonServer::SetMaxConnections(int maxConnections)
@@ -240,14 +259,26 @@ bool JsonServer::ConnectedClient::Setup()
 	if (this->sender || this->receiver)
 		return false;
 
-	this->sender = new JsonSocketSender(this->connectedSocket);
-	if (!this->sender->Split())
+	if (!this->server)
 		return false;
 
-	this->receiver = new JsonSocketReceiver(this->connectedSocket);
-	this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->ReceiveJson(jsonValue.release()); });
-	if (!this->receiver->Split())
-		return false;
+	bool needsSending = true, needsReceiving = true;
+	this->server->GetNeeds(needsSending, needsReceiving);
+
+	if (needsSending)
+	{
+		this->sender = new JsonSocketSender(this->connectedSocket);
+		if (!this->sender->Split())
+			return false;
+	}
+
+	if (needsReceiving)
+	{
+		this->receiver = new JsonSocketReceiver(this->connectedSocket);
+		this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->ReceiveJson(jsonValue.release()); });
+		if (!this->receiver->Split())
+			return false;
+	}
 
 	return true;
 }

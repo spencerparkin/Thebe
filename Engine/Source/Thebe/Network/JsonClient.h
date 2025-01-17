@@ -21,6 +21,7 @@ namespace Thebe
 		virtual void Update();
 
 		void SetAddress(const NetworkAddress& address);
+		void SetNeeds(bool needsSending, bool needsReceiving);
 
 		void SendJson(const ParseParty::JsonValue* jsonValue);
 
@@ -34,5 +35,7 @@ namespace Thebe
 		ThreadSafeQueue<const ParseParty::JsonValue*> jsonMessageQueue;
 		int maxConnectionAttempts;
 		int retryWaitTimeMilliseconds;
+		bool needsSending;
+		bool needsReceiving;
 	};
 }

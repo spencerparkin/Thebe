@@ -68,7 +68,8 @@ void LogViewerFrame::OnExit(wxCommandEvent& event)
 
 void LogViewerFrame::OnTimer(wxTimerEvent& event)
 {
-	/*
+	wxGetApp().GetLogCollector()->Serve();
+
 	std::string logMessage;
 	if (wxGetApp().GetLogCollector()->GetLogMessage(logMessage))
 	{
@@ -76,7 +77,7 @@ void LogViewerFrame::OnTimer(wxTimerEvent& event)
 		this->textCtrl->AppendText(logMessageStr);
 		if (logMessageStr.Find("CloseLogViewer") >= 0)
 			this->Close(true);
-	}*/
+	}
 }
 
 void LogViewerFrame::OnAbout(wxCommandEvent& event)
