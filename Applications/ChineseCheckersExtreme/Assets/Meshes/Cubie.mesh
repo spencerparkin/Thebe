@@ -1,6 +1,6 @@
 {
 	"index_buffer": "Buffers\\Cubie.index_buffer",
-	"material": "Materials\\SpeckledRust.material",
+	"material": "Materials\\BasicLitMaterial.material",
 	"name": "Cubie",
 	"vertex_buffer": "Buffers\\Cubie.vertex_buffer"
 }

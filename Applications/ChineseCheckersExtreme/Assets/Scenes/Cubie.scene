@@ -137,6 +137,7 @@
 										[
 
 										],
+										"material_override": "Materials/BasicLitMaterial.material",
 										"mesh_instance": "Meshes\\Cubie.mesh"
 									}
 								],

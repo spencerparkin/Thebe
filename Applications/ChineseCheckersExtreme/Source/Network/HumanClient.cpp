@@ -209,12 +209,12 @@ HumanClient::HumanClient()
 
 			if (node->occupant && game->GetZoneColor(node->occupant->sourceZoneID, zoneColor))
 			{
-				Vector4 zoneColorNoAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 1.0);
+				Vector4 zoneColorWithAlpha(zoneColor.x, zoneColor.y, zoneColor.z, 0.5);
 
 				Reference<MeshInstance> cubieMeshInstance(new MeshInstance());
 				cubieMeshInstance->SetGraphicsEngine(graphicsEngine);
 				cubieMeshInstance->SetMesh(cubieMesh);
-				cubieMeshInstance->SetColor(zoneColorNoAlpha);
+				cubieMeshInstance->SetColor(zoneColorWithAlpha);
 				if (!cubieMeshInstance->Setup())
 				{
 					THEBE_LOG("Failed to setup cubie mesh instance.");
