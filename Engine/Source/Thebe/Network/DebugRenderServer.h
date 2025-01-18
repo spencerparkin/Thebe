@@ -9,7 +9,7 @@ namespace Thebe
 	/**
 	 *
 	 */
-	class THEBE_API DebugRenderServer : public Thebe::JsonServer
+	class THEBE_API DebugRenderServer : public JsonServer
 	{
 	public:
 		DebugRenderServer();

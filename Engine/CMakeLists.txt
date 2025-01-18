@@ -57,6 +57,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Network/JsonSocketReceiver.h
     Source/Thebe/Network/DebugRenderServer.cpp
     Source/Thebe/Network/DebugRenderServer.h
+    Source/Thebe/Network/DebugRenderClient.cpp
+    Source/Thebe/Network/DebugRenderClient.h
     Source/Thebe/EnginePart.cpp
     Source/Thebe/EnginePart.h
     Source/Thebe/EngineParts/Camera.cpp

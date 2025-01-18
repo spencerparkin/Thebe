@@ -24,6 +24,7 @@ void DebugRenderServer::Draw(Thebe::DynamicLineRenderer* lineRenderer) const
 
 /*virtual*/ bool DebugRenderServer::Setup()
 {
+	this->SetNeeds(false, true);
 	this->SetMaxConnections(1);
 
 	NetworkAddress address;
