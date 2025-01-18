@@ -21,6 +21,12 @@ Plane::Plane(const Plane& plane)
 	this->unitNormal = plane.unitNormal;
 }
 
+Plane::Plane(const Vector3& pointA, const Vector3& pointB, const Vector3& pointC)
+{
+	this->unitNormal = (pointB - pointA).Cross(pointC - pointA).Normalized();
+	this->center = pointA.ProjectedOnto(unitNormal);
+}
+
 /*virtual*/ Plane::~Plane()
 {
 }

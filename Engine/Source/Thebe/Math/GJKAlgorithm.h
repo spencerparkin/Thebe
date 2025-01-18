@@ -9,6 +9,7 @@
 #include "Thebe/Math/Ray.h"
 #include "Thebe/Math/Matrix3x3.h"
 #include "Thebe/Math/Graph.h"
+#include "Thebe/Math/LineSegment.h"
 #include <functional>
 
 namespace Thebe
@@ -159,6 +160,88 @@ namespace Thebe
 	class THEBE_API GJKSimplex
 	{
 	public:
+		GJKSimplex();
+		virtual ~GJKSimplex();
 
+		/**
+		 * Tell us if the origin is contained within this simplex.
+		 * If it does, then the algorithm can terminate, and we can
+		 * conclude that there is an intersection.
+		 */
+		virtual bool ContainsOrigin(double epsilon) const = 0;
+
+		/**
+		 * Generate the next simplex we need in the course of the GJK algorithm.
+		 * If null is returned here, the algorithm can terminate, and we can
+		 * conclude that there is no intersection.
+		 */
+		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const = 0;
+
+		static Vector3 CalcSupportPoint(const GJKShape* shapeA, const GJKShape* shapeB, const Vector3& unitDirection);
+	};
+
+	/**
+	 * This is the 0-dimensional simplex.
+	 */
+	class THEBE_API GJKPointSimplex : public GJKSimplex
+	{
+	public:
+		GJKPointSimplex();
+		virtual ~GJKPointSimplex();
+
+		virtual bool ContainsOrigin(double epsilon) const override;
+		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+		Vector3 point;
+	};
+
+	/**
+	 * This is the 1-dimensional simplex.
+	 */
+	class THEBE_API GJKLineSimplex : public GJKSimplex
+	{
+	public:
+		GJKLineSimplex();
+		virtual ~GJKLineSimplex();
+
+		virtual bool ContainsOrigin(double epsilon) const override;
+		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+		LineSegment lineSegment;
+	};
+
+	/**
+	 * This is the 2-dimensional simplex.
+	 */
+	class THEBE_API GJKTriangleSimplex : public GJKSimplex
+	{
+	public:
+		GJKTriangleSimplex();
+		virtual ~GJKTriangleSimplex();
+
+		virtual bool ContainsOrigin(double epsilon) const override;
+		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+		Vector3 vertex[3];
+		mutable bool originOnPlane;
+		mutable Plane edgePlane[3];
+		mutable Plane trianglePlane;
+		mutable double originDistanceToTrianglePlane;
+	};
+
+	/**
+	 * This is the 3-dimensional simplex.
+	 */
+	class THEBE_API GJKTetrahedronSimplex : public GJKSimplex
+	{
+	public:
+		GJKTetrahedronSimplex();
+		virtual ~GJKTetrahedronSimplex();
+
+		virtual bool ContainsOrigin(double epsilon) const override;
+		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+		Vector3 vertex[4];
+		mutable Plane facePlane[4];
 	};
 }

@@ -48,7 +48,7 @@ double LineSegment::SquareLength() const
 	return delta.Dot(delta);
 }
 
-Vector3 LineSegment::ClosestPointTo(const Vector3& point) const
+Vector3 LineSegment::ClosestPointTo(const Vector3& point, bool infiniteLine /*= false*/) const
 {
 	Vector3 lineVector = this->GetDelta();
 	double lineLength = lineVector.Length();
@@ -56,10 +56,13 @@ Vector3 LineSegment::ClosestPointTo(const Vector3& point) const
 	Vector3 pointVector = point - this->point[0];
 	double projectedLength = pointVector.Dot(unitLineVector);
 
-	if (projectedLength <= 0.0)
-		return this->point[0];
-	else if (projectedLength >= lineLength)
-		return this->point[1];
+	if (!infiniteLine)
+	{
+		if (projectedLength <= 0.0)
+			return this->point[0];
+		else if (projectedLength >= lineLength)
+			return this->point[1];
+	}
 
 	return this->point[0] + unitLineVector * projectedLength;
 }

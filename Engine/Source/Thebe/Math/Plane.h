@@ -31,6 +31,12 @@ namespace Thebe
 		Plane(const Vector3& point, const Vector3& unitNormal);
 
 		/**
+		 * Make a plane that contains the 3 given points.  The front of the plane
+		 * will be such that the given points are wound CCW when viewing the front.
+		 */
+		Plane(const Vector3& pointA, const Vector3& pointB, const Vector3& pointC);
+
+		/**
 		 * Make this plane a copy of the given plane.
 		 */
 		Plane(const Plane& plane);

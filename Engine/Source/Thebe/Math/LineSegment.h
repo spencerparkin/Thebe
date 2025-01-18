@@ -38,8 +38,10 @@ namespace Thebe
 		/**
 		 * Calculate and return the point on this line segment that is closest
 		 * to the given point.
+		 * 
+		 * @param[in] infiniteLine If true, the point returned is the closest on on the infinite line containing this (finite) line.
 		 */
-		Vector3 ClosestPointTo(const Vector3& point) const;
+		Vector3 ClosestPointTo(const Vector3& point, bool infiniteLine = false) const;
 
 		/**
 		 * Calculate and return the shortest distance from the given point
