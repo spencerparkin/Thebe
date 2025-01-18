@@ -51,6 +51,27 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	// This is where we might continuously ping the server if WinSock keeps failing to flush the sockets.
 }
 
+void ChineseCheckersClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray)
+{
+	if (!this->game.Get())
+		return;
+
+	std::vector<int> nodeOffsetArray;
+	this->game->NodeArrayToOffsetArray(nodeArray, nodeOffsetArray);
+
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonObject> requestValue(new JsonObject());
+	requestValue->SetValue("request", new JsonString("take_turn"));
+
+	auto nodeOffsetArrayValue = new JsonArray();
+	requestValue->SetValue("node_offset_array", nodeOffsetArrayValue);
+	for (int i : nodeOffsetArray)
+		nodeOffsetArrayValue->PushValue(new JsonInt(i));
+
+	this->SendJson(requestValue.get());
+}
+
 /*virtual*/ void ChineseCheckersClient::ProcessServerMessage(const ParseParty::JsonValue* jsonResponse)
 {
 	using namespace ParseParty;

@@ -244,27 +244,6 @@ HumanClient::HumanClient()
 	return;
 }
 
-void HumanClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray)
-{
-	if (!this->game.Get())
-		return;
-
-	std::vector<int> nodeOffsetArray;
-	this->game->NodeArrayToOffsetArray(nodeArray, nodeOffsetArray);
-
-	using namespace ParseParty;
-
-	std::unique_ptr<JsonObject> requestValue(new JsonObject());
-	requestValue->SetValue("request", new JsonString("take_turn"));
-	
-	auto nodeOffsetArrayValue = new JsonArray();
-	requestValue->SetValue("node_offset_array", nodeOffsetArrayValue);
-	for (int i : nodeOffsetArray)
-		nodeOffsetArrayValue->PushValue(new JsonInt(i));
-
-	this->SendJson(requestValue.get());
-}
-
 void HumanClient::SnapCubiesIntoPosition()
 {
 	// This function can be used to update the visual representation of the board

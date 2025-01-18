@@ -21,6 +21,8 @@ public:
 
 	int GetSourceZoneID();
 
+	void TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray);
+
 protected:
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
 

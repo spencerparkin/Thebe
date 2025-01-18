@@ -232,6 +232,11 @@ const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& ChineseCheckersG
 	return this->nodeArray;
 }
 
+const std::vector<Thebe::Reference<ChineseCheckersGame::Occupant>>& ChineseCheckersGame::GetOccupantArray() const
+{
+	return this->occupantArray;
+}
+
 bool ChineseCheckersGame::FindLegalPath(Node* sourceNode, Node* targetNode, std::vector<Node*>& nodePathArray)
 {
 	nodePathArray.clear();

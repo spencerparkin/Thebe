@@ -101,6 +101,7 @@ public:
 	void Clear();
 
 	const std::vector<Thebe::Reference<Node>>& GetNodeArray() const;
+	const std::vector<Thebe::Reference<Occupant>>& GetOccupantArray() const;
 
 	bool FindLegalPath(Node* sourceNode, Node* targetNode, std::vector<Node*>& nodePathArray);
 	bool IsPathLegal(const std::vector<Node*>& nodePathArray, std::vector<Node*>* hoppedNodesArray = nullptr);
