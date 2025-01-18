@@ -30,8 +30,8 @@ GJKShape::GJKShape()
 	if (sphereA && sphereB)
 		return (sphereA->center - sphereB->center).Length() <= sphereA->radius + sphereB->radius;
 
-	Vector3 centerA = shapeA->CalcGeometricCenter();
-	Vector3 centerB = shapeB->CalcGeometricCenter();
+	Vector3 centerA = shapeA->GetObjectToWorld().TransformPoint(shapeA->CalcGeometricCenter());
+	Vector3 centerB = shapeB->GetObjectToWorld().TransformPoint(shapeB->CalcGeometricCenter());
 
 	Vector3 unitDirection = (centerB - centerA).Normalized();
 
@@ -450,6 +450,9 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 		unitDirection = -unitDirection;
 
 	Vector3 supportPoint = this->CalcSupportPoint(shapeA, shapeB, unitDirection);
+	if (this->trianglePlane.GetSide(supportPoint) != Plane::FRONT)
+		return nullptr;
+
 	Vector3 projectedPoint = this->trianglePlane.ClosestPointTo(supportPoint);
 	double distance = (supportPoint - projectedPoint).Length();
 	if (distance < this->originDistanceToTrianglePlane)
