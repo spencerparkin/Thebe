@@ -15,8 +15,10 @@ DebugRendererApplication::DebugRendererApplication()
 
 /*virtual*/ bool DebugRendererApplication::PrepareForWindowShow()
 {
-	this->graphicsEngine.Set(new GraphicsEngine());
+	if (!this->server.Setup())
+		return false;
 
+	this->graphicsEngine.Set(new GraphicsEngine());
 	if (!this->graphicsEngine->AddAssetFolder("Engine/Assets"))
 		return false;
 
@@ -47,6 +49,8 @@ DebugRendererApplication::DebugRendererApplication()
 
 /*virtual*/ void DebugRendererApplication::Shutdown(HINSTANCE instance)
 {
+	this->server.Shutdown();
+
 	if (this->graphicsEngine.Get())
 	{
 		this->graphicsEngine->Shutdown();
@@ -58,6 +62,8 @@ DebugRendererApplication::DebugRendererApplication()
 
 /*virtual*/ LRESULT DebugRendererApplication::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->server.Serve();
+
 	this->lineRenderer->ResetLines();
 
 	Vector3 xAxis = Vector3::XAxis();
@@ -67,6 +73,8 @@ DebugRendererApplication::DebugRendererApplication()
 	this->lineRenderer->AddLine(Vector3::Zero(), xAxis, &xAxis, &xAxis);
 	this->lineRenderer->AddLine(Vector3::Zero(), yAxis, &yAxis, &yAxis);
 	this->lineRenderer->AddLine(Vector3::Zero(), zAxis, &zAxis, &zAxis);
+
+	this->server.Draw(this->lineRenderer);
 
 	this->graphicsEngine->Render();
 

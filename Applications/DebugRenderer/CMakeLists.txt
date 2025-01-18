@@ -15,6 +15,7 @@ add_executable(DebugRenderer WIN32 ${DEBUG_RENDERER_SOURCES})
 
 target_link_libraries(DebugRenderer PRIVATE
     ThebeGraphicsEngine
+    ParseParty
 )
 
 target_compile_definitions(DebugRenderer PRIVATE
