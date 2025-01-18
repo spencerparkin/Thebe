@@ -5,7 +5,7 @@
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/FreeCam.h"
-#include "Server.h"
+#include "Thebe/Network/DebugRenderServer.h"
 
 class DebugRendererApplication : public Thebe::Application
 {
@@ -23,5 +23,5 @@ private:
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::FreeCam freeCam;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
-	DebugRenderServer server;
+	Thebe::DebugRenderServer server;
 };

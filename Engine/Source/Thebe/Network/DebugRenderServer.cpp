@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "Thebe/Network/DebugRenderServer.h"
 #include "Thebe/Utilities/JsonHelper.h"
 
 using namespace Thebe;
