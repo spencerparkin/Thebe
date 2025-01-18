@@ -9,6 +9,8 @@
 #include <wx/aboutdlg.h>
 #include <wx/msgdlg.h>
 
+using namespace Thebe;
+
 ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& size) : wxFrame(nullptr, wxID_ANY, "Chinese Checkers Extreme", pos, size), timer(this, ID_Timer)
 {
 	wxMenu* gameMenu = new wxMenu();
@@ -175,6 +177,10 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 
 	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
 	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
+
+	XBoxController* controller = wxGetApp().GetFreeCam()->GetController();
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_BACK))
+		this->canvas->SetDebugDraw(!this->canvas->GetDebugDraw());
 
 	ChineseCheckersServer* server = wxGetApp().GetGameServer();
 	if (server)

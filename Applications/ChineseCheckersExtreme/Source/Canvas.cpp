@@ -17,6 +17,8 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_MOTION, &ChineseCheckersCanvas::OnMouseMotion, this);
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
 	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
+
+	this->debugDraw = false;
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
@@ -34,10 +36,12 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 	if (lineRenderer)
 	{
 		lineRenderer->ResetLines();
-#if defined DEBUG_DRAW
-		collisionSystem->DebugDraw(lineRenderer);
-		physicsSystem->DebugDraw(lineRenderer);
-#endif //DEBUG_DRAW
+
+		if (this->debugDraw)
+		{
+			collisionSystem->DebugDraw(lineRenderer);
+			physicsSystem->DebugDraw(lineRenderer);
+		}
 	}
 
 	double deltaTimeSeconds = graphicsEngine->GetDeltaTime();
@@ -220,4 +224,14 @@ void ChineseCheckersCanvas::UpdateRings()
 		objectToWorld.translation = node->location;
 		ringInstance->SetChildToParentTransform(objectToWorld);
 	}
+}
+
+void ChineseCheckersCanvas::SetDebugDraw(bool debugDraw)
+{
+	this->debugDraw = debugDraw;
+}
+
+bool ChineseCheckersCanvas::GetDebugDraw() const
+{
+	return this->debugDraw;
 }

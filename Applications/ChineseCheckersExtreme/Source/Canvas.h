@@ -17,9 +17,14 @@ public:
 	void OnMouseLeftClick(wxMouseEvent& event);
 	void OnMouseRightClick(wxMouseEvent& event);
 
+	void SetDebugDraw(bool debugDraw);
+	bool GetDebugDraw() const;
+
 private:
 	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
 	std::vector<ChineseCheckersGame::Node*> nodeSequenceArray;
 
 	void UpdateRings();
+
+	bool debugDraw;
 };
