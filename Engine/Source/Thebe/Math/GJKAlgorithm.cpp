@@ -30,6 +30,20 @@ GJKShape::GJKShape()
 	if (sphereA && sphereB)
 		return (sphereA->center - sphereB->center).Length() <= sphereA->radius + sphereB->radius;
 
+	// Note that this debug render stuff is NOT designed to run at full speed.
+	// Rather, the idea is to be able to visualize what's going on as you STEP through the code.
+	// This should, of course, be disabled for any real-time use of the intersection algorithm.
+#if defined GJK_RENDER_DEBUG
+	static bool debugDraw = false;
+	std::unique_ptr<DebugRenderClient> client;
+	if (debugDraw)
+	{
+		client.reset(new DebugRenderClient());
+		bool clientSetup = client->Setup();
+		THEBE_ASSERT(clientSetup);
+	}
+#endif //GJK_RENDER_DEBUG
+
 	Vector3 centerA = shapeA->GetObjectToWorld().TransformPoint(shapeA->CalcGeometricCenter());
 	Vector3 centerB = shapeB->GetObjectToWorld().TransformPoint(shapeB->CalcGeometricCenter());
 
@@ -42,6 +56,11 @@ GJKShape::GJKShape()
 	std::unique_ptr<GJKSimplex> simplex(pointSimplex);
 	while (simplex.get())
 	{
+#if defined GJK_RENDER_DEBUG
+		if (client.get())
+			simplex->DebugDraw(client.get());
+#endif //GJK_RENDER_DEBUG
+
 		if (simplex->ContainsOrigin(epsilon))
 			return true;
 
@@ -51,6 +70,11 @@ GJKShape::GJKShape()
 
 		simplex.reset(nextSimplex);
 	}
+
+#if defined GJK_RENDER_DEBUG
+	if (client.get())
+		client->Shutdown();
+#endif //GKK_RENDER_DEBUG
 
 	return false;
 }
@@ -340,6 +364,15 @@ GJKPointSimplex::GJKPointSimplex()
 	return lineSimplex.release();
 }
 
+#if defined GJK_RENDER_DEBUG
+/*virtual*/ void GJKPointSimplex::DebugDraw(DebugRenderClient* client)
+{
+	client->AddLine("gjk", this->point - Vector3::XAxis() * 0.1, this->point + Vector3::XAxis() * 0.1, Vector3(1.0, 0.0, 0.0));
+	client->AddLine("gjk", this->point - Vector3::YAxis() * 0.1, this->point + Vector3::YAxis() * 0.1, Vector3(0.0, 1.0, 0.0));
+	client->AddLine("gjk", this->point - Vector3::ZAxis() * 0.1, this->point + Vector3::ZAxis() * 0.1, Vector3(0.0, 0.0, 1.0));
+}
+#endif //GJK_RENDER_DEBUG
+
 //------------------------------------- GJKLineSimplex -------------------------------------
 
 GJKLineSimplex::GJKLineSimplex()
@@ -376,6 +409,13 @@ GJKLineSimplex::GJKLineSimplex()
 	triangle->vertex[2] = supportPoint;
 	return triangle;
 }
+
+#if defined GJK_RENDER_DEBUG
+/*virtual*/ void GJKLineSimplex::DebugDraw(DebugRenderClient* client)
+{
+	client->AddLine("gjk", this->lineSegment.point[0], this->lineSegment.point[1], Vector3(1.0, 0.0, 0.0));
+}
+#endif //GJK_RENDER_DEBUG
 
 //------------------------------------- GJKTriangleSimplex -------------------------------------
 
@@ -465,6 +505,17 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 	tetrahedron->vertex[3] = supportPoint;
 	return tetrahedron;
 }
+
+#if defined GJK_RENDER_DEBUG
+/*virtual*/ void GJKTriangleSimplex::DebugDraw(DebugRenderClient* client)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		int j = (i + 1) % 3;
+		client->AddLine("gjk", this->vertex[i], this->vertex[j], Vector3(0.0, 1.0, 0.0));
+	}
+}
+#endif //GJK_RENDER_DEBUG
 
 //------------------------------------- GJKTetrahedronSimplex -------------------------------------
 
@@ -577,3 +628,12 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 	THEBE_ASSERT(false);
 	return nullptr;
 }
+
+#if defined GJK_RENDER_DEBUG
+/*virtual*/ void GJKTetrahedronSimplex::DebugDraw(DebugRenderClient* client)
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = i + 1; j < 4; j++)
+			client->AddLine("gjk", this->vertex[i], this->vertex[j], Vector3(0.0, 0.0, 1.0));
+}
+#endif //GJK_RENDER_DEBUG

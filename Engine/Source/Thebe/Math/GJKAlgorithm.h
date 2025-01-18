@@ -12,6 +12,12 @@
 #include "Thebe/Math/LineSegment.h"
 #include <functional>
 
+#define GJK_RENDER_DEBUG
+
+#if defined GJK_RENDER_DEBUG
+#include "Thebe/Network/DebugRenderClient.h"
+#endif
+
 namespace Thebe
 {
 	/**
@@ -177,6 +183,10 @@ namespace Thebe
 		 */
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const = 0;
 
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client) = 0;
+#endif //GJK_RENDER_DEBUG
+
 		static Vector3 CalcSupportPoint(const GJKShape* shapeA, const GJKShape* shapeB, const Vector3& unitDirection);
 	};
 
@@ -191,6 +201,10 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client) override;
+#endif //GJK_RENDER_DEBUG
 
 		Vector3 point;
 	};
@@ -207,6 +221,10 @@ namespace Thebe
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
 
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client) override;
+#endif //GJK_RENDER_DEBUG
+
 		LineSegment lineSegment;
 	};
 
@@ -221,6 +239,10 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client) override;
+#endif //GJK_RENDER_DEBUG
 
 		Vector3 vertex[3];
 		mutable bool originOnPlane;
@@ -240,6 +262,10 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client) override;
+#endif //GJK_RENDER_DEBUG
 
 		Vector3 vertex[4];
 		mutable Plane facePlane[4];
