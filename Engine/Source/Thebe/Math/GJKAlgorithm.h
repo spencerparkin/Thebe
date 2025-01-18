@@ -103,76 +103,6 @@ namespace Thebe
 	};
 
 	/**
-	 * The GJK algorithm generalizes to N-dimensional euclidean space, and
-	 * that's why the term simplex is used.  However, for our purposes, here
-	 * a simplex is always going to mean a tetrahedron.
-	 */
-	class THEBE_API GJKSimplex
-	{
-	public:
-		GJKSimplex();
-		GJKSimplex(const GJKSimplex& simplex);
-		virtual ~GJKSimplex();
-
-		struct Face;
-
-		void operator=(const GJKSimplex& simplex);
-
-		/**
-		 * A valid tetrahedron will return a non-negative volume here.
-		 */
-		double CalcVolume() const;
-
-		/**
-		 * The given plane array is expected to have four elements.
-		 */
-		void CalcFacePlanes(Plane* planeArray) const;
-
-		/**
-		 * The given center array is expected to have four elements.
-		 */
-		void CalcFaceCenters(Vector3* centerArray) const;
-
-		/**
-		 * Having populated the vertex array, populate the face array automatically,
-		 * making sure that the volume of the tetrahedron is non-negative.
-		 * 
-		 * @param[out] inverted If given, set to true if and only if the tetrahedron had to be inverted.
-		 */
-		void MakeFaces(bool* inverted = nullptr);
-
-		/**
-		 * Tell us if this simplex contains the origin.
-		 */
-		bool ContainsOrigin() const;
-
-		/**
-		 * Each face of a tetrahedron is a triangle.
-		 */
-		struct Face
-		{
-			/**
-			 * These index into the vertex array, and the order does matter.
-			 * Front faces are seen with the vertices winding CCW in a plane.
-			 */
-			int vertexArray[3];
-
-			int OtherVertex() const;
-			bool HasVertex(int i) const;
-		};
-
-		/**
-		 * These are the vertices of the tetrahedron.  The order not matter.
-		 */
-		Vector3 vertexArray[4];
-
-		/** 
-		 * These are the faces (or facets) of the tetrahedron.  Again the order does not matter.
-		 */
-		Face faceArray[4];
-	};
-
-	/**
 	 * 
 	 */
 	class THEBE_API GJKSphere : public GJKShape
@@ -221,5 +151,14 @@ namespace Thebe
 		Vector3 GetWorldVertex(int i) const;
 
 		PolygonMesh hull;
+	};
+
+	/**
+	 *
+	 */
+	class THEBE_API GJKSimplex
+	{
+	public:
+
 	};
 }
