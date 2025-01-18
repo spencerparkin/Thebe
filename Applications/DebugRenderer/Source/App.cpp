@@ -1,0 +1,86 @@
+#include "App.h"
+#include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/EngineParts/Scene.h"
+#include "Thebe/EngineParts/DynamicLineRenderer.h"
+
+using namespace Thebe;
+
+DebugRendererApplication::DebugRendererApplication()
+{
+}
+
+/*virtual*/ DebugRendererApplication::~DebugRendererApplication()
+{
+}
+
+/*virtual*/ bool DebugRendererApplication::PrepareForWindowShow()
+{
+	this->graphicsEngine.Set(new GraphicsEngine());
+
+	if (!this->graphicsEngine->AddAssetFolder("Engine/Assets"))
+		return false;
+
+	if (!this->graphicsEngine->Setup(this->windowHandle))
+		return false;
+
+	Reference<Scene> scene(new Scene());
+	this->graphicsEngine->SetRenderObject(scene);
+
+	this->lineRenderer.Set(new DynamicLineRenderer());
+	this->lineRenderer->SetGraphicsEngine(this->graphicsEngine);
+	this->lineRenderer->SetLineMaxCount(128);
+	if (!this->lineRenderer->Setup())
+		return false;
+
+	scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+
+	Transform cameraToWorld;
+	cameraToWorld.LookAt(Vector3(10.0, 10.0, 10.0), Vector3::Zero(), Vector3(0.0, 1.0, 0.0));
+	this->camera.Set(new PerspectiveCamera());
+	this->camera->SetCameraToWorldTransform(cameraToWorld);
+	this->graphicsEngine->SetCamera(this->camera);
+
+	this->freeCam.SetCamera(this->camera);
+
+	return true;
+}
+
+/*virtual*/ void DebugRendererApplication::Shutdown(HINSTANCE instance)
+{
+	if (this->graphicsEngine.Get())
+	{
+		this->graphicsEngine->Shutdown();
+		this->graphicsEngine = nullptr;
+	}
+
+	Application::Shutdown(instance);
+}
+
+/*virtual*/ LRESULT DebugRendererApplication::OnPaint(WPARAM wParam, LPARAM lParam)
+{
+	this->lineRenderer->ResetLines();
+
+	Vector3 xAxis = Vector3::XAxis();
+	Vector3 yAxis = Vector3::YAxis();
+	Vector3 zAxis = Vector3::ZAxis();
+
+	this->lineRenderer->AddLine(Vector3::Zero(), xAxis, &xAxis, &xAxis);
+	this->lineRenderer->AddLine(Vector3::Zero(), yAxis, &yAxis, &yAxis);
+	this->lineRenderer->AddLine(Vector3::Zero(), zAxis, &zAxis, &zAxis);
+
+	this->graphicsEngine->Render();
+
+	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
+
+	return 0;
+}
+
+/*virtual*/ LRESULT DebugRendererApplication::OnSize(WPARAM wParam, LPARAM lParam)
+{
+	int width = LOWORD(lParam);
+	int height = HIWORD(lParam);
+
+	this->graphicsEngine->Resize(width, height);
+
+	return 0;
+}
