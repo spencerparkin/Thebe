@@ -154,8 +154,6 @@ HumanClient::HumanClient()
 
 		boardSpace->ClearAllSubSpaces();
 
-		Transform adjustmentTransform;
-
 		const std::vector<Thebe::Reference<ChineseCheckersGame::Node>>& nodeArray = this->game->GetNodeArray();
 		for (const auto& node : nodeArray)
 		{
@@ -169,7 +167,6 @@ HumanClient::HumanClient()
 			}
 
 			Transform objectToWorld;
-			objectToWorld.matrix.SetFromAxisAngle(Vector3::XAxis(), -M_PI / 2.0);
 			objectToWorld.translation = node->location;
 			platformMeshInstance->SetChildToParentTransform(objectToWorld);
 			boardSpace->AddSubSpace(platformMeshInstance);
@@ -189,9 +186,7 @@ HumanClient::HumanClient()
 					return;
 				}
 
-				adjustmentTransform.matrix.SetIdentity();
-				adjustmentTransform.translation.SetComponents(0.0, 0.0, 1.0);
-				ringMeshInstance->SetChildToParentTransform(objectToWorld * adjustmentTransform);
+				ringMeshInstance->SetChildToParentTransform(objectToWorld);
 				boardSpace->AddSubSpace(ringMeshInstance);
 			}
 
@@ -202,9 +197,7 @@ HumanClient::HumanClient()
 				return;
 			}
 
-			adjustmentTransform.matrix.SetIdentity();
-			adjustmentTransform.translation.SetComponents(0.0, 0.0, 0.5);
-			platformBody->SetObjectToWorld(objectToWorld * adjustmentTransform);
+			platformBody->SetObjectToWorld(objectToWorld);
 			platformBody->GetCollisionObject()->SetUserData(node->GetHandle());
 
 			if (node->occupant && game->GetZoneColor(node->occupant->sourceZoneID, zoneColor))
@@ -291,14 +284,10 @@ void HumanClient::SnapCubiesIntoPosition()
 		if (!HandleManager::Get()->GetObjectFromHandle(node->occupant->collisionObjectHandle, collisionObject))
 			continue;
 
-		Transform adjustmentTransform;
-		adjustmentTransform.matrix.SetIdentity();
-		adjustmentTransform.translation.SetComponents(0.0, 2.5, 0.0);
-
 		Transform objectToWorld;
 		objectToWorld.SetIdentity();
-		objectToWorld.translation = node->location;
+		objectToWorld.translation = node->location + Vector3(0.0, 2.5, 0.0);
 
-		collisionObject->SetObjectToWorld(objectToWorld * adjustmentTransform);
+		collisionObject->SetObjectToWorld(objectToWorld);
 	}
 }

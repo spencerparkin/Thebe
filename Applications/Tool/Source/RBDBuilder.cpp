@@ -40,8 +40,7 @@ bool RBDBuilder::BuildRigidBody(const std::filesystem::path& inputSceneFile, con
 	Thebe::Transform meshToWorld;
 
 	THEBE_LOG("Looking for desired mesh: %s", this->desiredMeshName.C_Str());
-	Thebe::Transform objectToWorld;
-	if (!this->FindMeshForRigidBody(inputScene->mRootNode, objectToWorld, desiredInputMesh, meshToWorld))
+	if (!this->FindMeshForRigidBody(inputScene->mRootNode, Thebe::Transform::Identity(), desiredInputMesh, meshToWorld))
 	{
 		THEBE_LOG("Failed to find mesh \"%s\".", this->desiredMeshName.C_Str());
 		return false;
@@ -52,7 +51,7 @@ bool RBDBuilder::BuildRigidBody(const std::filesystem::path& inputSceneFile, con
 	for (unsigned int i = 0; i < desiredInputMesh->mNumVertices; i++)
 	{
 		Thebe::Vector3 vertex = this->MakeVector(desiredInputMesh->mVertices[i]);
-		vertex = objectToWorld.TransformPoint(vertex);
+		vertex = meshToWorld.TransformPoint(vertex);
 		vertexArray.push_back(vertex);
 	}
 
