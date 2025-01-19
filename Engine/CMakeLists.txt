@@ -173,6 +173,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Math/Random.h
     Source/Thebe/Math/GJKAlgorithm.cpp
     Source/Thebe/Math/GJKAlgorithm.h
+    Source/Thebe/Math/ExpandingPolytopeAlgorithm.cpp
+    Source/Thebe/Math/ExpandingPolytopeAlgorithm.h
     Source/Thebe/Math/Rectangle.cpp
     Source/Thebe/Math/Rectangle.h
 )

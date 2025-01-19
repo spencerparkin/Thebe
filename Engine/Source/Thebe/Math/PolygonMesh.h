@@ -229,32 +229,6 @@ namespace Thebe
 		Vector3 CalcVertexAverage() const;
 
 	protected:
-
-		/**
-		 * This class is occationally used internally by certain algorithms.
-		 */
-		class Triangle
-		{
-		public:
-			Triangle();
-			Triangle(int i, int j, int k);
-			Triangle(const Triangle& triangle);
-			virtual ~Triangle();
-
-			void operator=(const Triangle& triangle);
-
-			Plane MakePlane(const PolygonMesh* mesh) const;
-			bool Cancels(const Triangle& triangle) const;
-			bool SameAs(const Triangle& triangle) const;
-			void Reverse();
-			Triangle Reversed() const;
-			void ToPolygon(Polygon& polygon) const;
-
-		public:
-			int vertex[3];
-		};
-
-	protected:
 		std::vector<Vector3> vertexArray;
 		std::vector<Polygon> polygonArray;
 	};

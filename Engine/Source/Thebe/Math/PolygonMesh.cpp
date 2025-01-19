@@ -1,6 +1,7 @@
 #include "Thebe/Math/PolygonMesh.h"
 #include "Thebe/Math/Polygon.h"
 #include "Thebe/Math/Graph.h"
+#include "Thebe/Math/ExpandingPolytopeAlgorithm.h"
 #include "Thebe/Utilities/JsonHelper.h"
 
 using namespace Thebe;
@@ -82,9 +83,9 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 {
 	this->Clear();
 
-	std::list<Triangle> triangleList;
+	ExpandingPolytopeAlgorithm epa;
 
-	auto findInitialTetrahedron = [&pointArray, &triangleList, this]() -> bool
+	auto findInitialTetrahedron = [&pointArray, &epa, this]() -> bool
 	{
 		// Is there a better approach to this problem?  This looks really
 		// slow, but we only loop until we find a non-negative determinant.
@@ -121,27 +122,27 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 
 						if (det != 0.0)
 						{
-							this->vertexArray.push_back(vertexA);
-							this->vertexArray.push_back(vertexB);
-							this->vertexArray.push_back(vertexC);
-							this->vertexArray.push_back(vertexD);
+							epa.vertexArray.push_back(vertexA);
+							epa.vertexArray.push_back(vertexB);
+							epa.vertexArray.push_back(vertexC);
+							epa.vertexArray.push_back(vertexD);
 						}
 
 						if (det < 0.0)
 						{
-							triangleList.push_back(Triangle(0, 1, 2));
-							triangleList.push_back(Triangle(0, 2, 3));
-							triangleList.push_back(Triangle(0, 3, 1));
-							triangleList.push_back(Triangle(1, 3, 2));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 1, 2));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 2, 3));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 3, 1));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(1, 3, 2));
 
 							return true;
 						}
 						else if (det > 0.0)
 						{
-							triangleList.push_back(Triangle(0, 2, 1));
-							triangleList.push_back(Triangle(0, 3, 2));
-							triangleList.push_back(Triangle(0, 1, 3));
-							triangleList.push_back(Triangle(1, 2, 3));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 2, 1));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 3, 2));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 1, 3));
+							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(1, 2, 3));
 
 							return true;
 						}
@@ -156,70 +157,20 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 	if (!findInitialTetrahedron())
 		return false;
 
-	std::list<Vector3> pointList;
+	ExpandingPolytopeAlgorithm::PointListSupplier pointSupplier;
 	for (const Vector3& point : pointArray)
-		pointList.push_back(point);
+		pointSupplier.pointList.push_back(point);
 
-	const double planeThickness = 1e-6;
+	epa.Expand(&pointSupplier);
 
-	// TODO: Factor this code out and generalize a bit.  This is EPA (and I had no idea.)
-	//       I want to be able to utilize EPA in the at the end of GJK in the intersection
-	//       case in order to find minimum penetration depth and direction of penetration.
+	this->vertexArray = epa.vertexArray;
 
-	while (pointList.size() > 0)
-	{
-		std::list<Vector3>::iterator iter = pointList.begin();
-		Vector3 point = *iter;
-		pointList.erase(iter);
-
-		std::list<Triangle> newTriangleList;
-		for (const Triangle& triangle : triangleList)
-		{
-			Plane plane = triangle.MakePlane(this);
-			if (plane.GetSide(point, planeThickness) == Plane::Side::FRONT)
-			{
-				int i = (signed)this->vertexArray.size();
-
-				Triangle triangleA = triangle.Reversed();
-				Triangle triangleB(i, triangle.vertex[0], triangle.vertex[1]);
-				Triangle triangleC(i, triangle.vertex[1], triangle.vertex[2]);
-				Triangle triangleD(i, triangle.vertex[2], triangle.vertex[0]);
-
-				newTriangleList.push_back(triangleA);
-				newTriangleList.push_back(triangleB);
-				newTriangleList.push_back(triangleC);
-				newTriangleList.push_back(triangleD);
-			}
-		}
-
-		if (newTriangleList.size() == 0)
-			continue;
-		
-		this->vertexArray.push_back(point);
-
-		for (const Triangle& newTriangle : newTriangleList)
-		{
-			bool addTriangle = true;
-			for (std::list<Triangle>::iterator iter = triangleList.begin(); iter != triangleList.end(); iter++)
-			{
-				const Triangle& triangle = *iter;
-				if (newTriangle.Cancels(triangle))
-				{
-					triangleList.erase(iter);
-					addTriangle = false;
-					break;
-				}
-			}
-
-			if (addTriangle)
-				triangleList.push_back(newTriangle);
-		}
-	}
-
-	for (const Triangle& triangle : triangleList)
+	for (const ExpandingPolytopeAlgorithm::Triangle& triangle : epa.triangleList)
 	{
 		Polygon polygon;
-		triangle.ToPolygon(polygon);
+		for (int i = 0; i < 3; i++)
+			polygon.vertexArray.push_back(triangle.vertex[i]);
+
 		this->polygonArray.push_back(polygon);
 	}
 
@@ -591,89 +542,4 @@ void PolygonMesh::Polygon::Restore(std::istream& stream)
 		stream.read((char*)&j, sizeof(j));
 		this->vertexArray.push_back(j);
 	}
-}
-
-//--------------------------- PolygonMesh::Triangle ---------------------------
-
-PolygonMesh::Triangle::Triangle()
-{
-	for (int i = 0; i < 3; i++)
-		this->vertex[i] = 0;
-}
-
-PolygonMesh::Triangle::Triangle(int i, int j, int k)
-{
-	this->vertex[0] = i;
-	this->vertex[1] = j;
-	this->vertex[2] = k;
-}
-
-PolygonMesh::Triangle::Triangle(const Triangle& triangle)
-{
-	*this = triangle;
-}
-
-/*virtual*/ PolygonMesh::Triangle::~Triangle()
-{
-}
-
-void PolygonMesh::Triangle::operator=(const Triangle& triangle)
-{
-	for (int i = 0; i < 3; i++)
-		this->vertex[i] = triangle.vertex[i];
-}
-
-Plane PolygonMesh::Triangle::MakePlane(const PolygonMesh* mesh) const
-{
-	const Vector3& vertexA = mesh->vertexArray[this->vertex[0]];
-	const Vector3& vertexB = mesh->vertexArray[this->vertex[1]];
-	const Vector3& vertexC = mesh->vertexArray[this->vertex[2]];
-
-	Vector3 normal = (vertexB - vertexA).Cross(vertexC - vertexA).Normalized();
-	return Plane(vertexA, normal);
-}
-
-bool PolygonMesh::Triangle::Cancels(const Triangle& triangle) const
-{
-	Triangle reverse = triangle;
-	reverse.Reverse();
-	return reverse.SameAs(*this);
-}
-
-bool PolygonMesh::Triangle::SameAs(const Triangle& triangle) const
-{
-	for (int i = 0; i < 3; i++)
-	{
-		if (this->vertex[i] == triangle.vertex[0])
-		{
-			for (int j = 0; j < 3; j++)
-				if (this->vertex[(i + j) % 3] != triangle.vertex[j])
-					return false;
-
-			return true;
-		}
-	}
-
-	return false;
-}
-
-void PolygonMesh::Triangle::Reverse()
-{
-	int i = this->vertex[0];
-	this->vertex[0] = this->vertex[2];
-	this->vertex[2] = i;
-}
-
-PolygonMesh::Triangle PolygonMesh::Triangle::Reversed() const
-{
-	Triangle triangle(*this);
-	triangle.Reverse();
-	return triangle;
-}
-
-void PolygonMesh::Triangle::ToPolygon(Polygon& polygon) const
-{
-	polygon.Clear();
-	for (int i = 0; i < 3; i++)
-		polygon.vertexArray.push_back(this->vertex[i]);
 }
