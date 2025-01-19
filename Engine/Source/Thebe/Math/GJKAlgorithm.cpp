@@ -59,21 +59,13 @@ GJKShape::GJKShape()
 	{
 #if defined GJK_RENDER_DEBUG
 		if (client.get())
-		{
 			simplex->DebugDraw(client.get(), simplexCount++);
-			static int sleepMillis = 1000;
-			::Sleep(sleepMillis);
-		}
 #endif //GJK_RENDER_DEBUG
 
 		if (simplex->ContainsOrigin(epsilon))
 			return true;
 
-		GJKSimplex* nextSimplex = simplex->GenerateSimplex(shapeA, shapeB);
-		if (!nextSimplex)
-			break;
-
-		simplex.reset(nextSimplex);
+		simplex.reset(simplex->GenerateSimplex(shapeA, shapeB));
 	}
 
 #if defined GJK_RENDER_DEBUG
@@ -499,7 +491,7 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 
 	Vector3 projectedPoint = this->trianglePlane.ClosestPointTo(supportPoint);
 	double distance = (supportPoint - projectedPoint).Length();
-	static double eps = 0.1;
+	static double eps = 0.01;
 	if (distance < this->originDistanceToTrianglePlane + eps)
 		return nullptr;
 
@@ -523,6 +515,8 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 #endif //GJK_RENDER_DEBUG
 
 //------------------------------------- GJKTetrahedronSimplex -------------------------------------
+
+Random GJKTetrahedronSimplex::random;
 
 GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 {
@@ -561,76 +555,30 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 {
 	std::vector<const Plane*> visiblePlaneArray;
 	visiblePlaneArray.reserve(4);
-
 	for (int i = 0; i < 4; i++)
 	{
 		if (this->facePlane[i].GetSide(Vector3::Zero()) == Plane::FRONT)
 			visiblePlaneArray.push_back(&this->facePlane[i]);
 	}
 
-	switch (visiblePlaneArray.size())
-	{
-		case 1:
-		{
-			std::vector<Vector3> vertexArray;
-			for (int i = 0; i < 4; i++)
-			{
-				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
-				{
-					vertexArray.push_back(this->vertex[i]);
-				}
-			}
+	THEBE_ASSERT(1 <= visiblePlaneArray.size() && visiblePlaneArray.size() <= 3);
 
-			THEBE_ASSERT(vertexArray.size() == 3);
-
-			auto triangle = new GJKTriangleSimplex();
-			triangle->vertex[0] = vertexArray[0];
-			triangle->vertex[1] = vertexArray[1];
-			triangle->vertex[2] = vertexArray[2];
-			return triangle;
-		}
-		case 2:
-		{
-			std::vector<Vector3> vertexArray;
-			for (int i = 0; i < 4; i++)
-			{
-				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
-					visiblePlaneArray[1]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
-				{
-					vertexArray.push_back(this->vertex[i]);
-				}
-			}
-
-			THEBE_ASSERT(vertexArray.size() == 2);
-
-			auto line = new GJKLineSimplex();
-			line->lineSegment.point[0] = vertexArray[0];
-			line->lineSegment.point[1] = vertexArray[1];
-			return line;
-		}
-		case 3:
-		{
-			std::vector<Vector3> vertexArray;
-			for (int i = 0; i < 4; i++)
-			{
-				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
-					visiblePlaneArray[1]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
-					visiblePlaneArray[2]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
-				{
-					vertexArray.push_back(this->vertex[i]);
-				}
-			}
-
-			THEBE_ASSERT(vertexArray.size() == 1);
-
-			auto point = new GJKPointSimplex();
-			point->point = vertexArray[0];
-			return point;
-		}
-	}
-
-	THEBE_ASSERT(false);
-	return nullptr;
+	// Making a random choice here is severely unsatisfying.  However, until I understand
+	// the GJK algorithm better, this is the only way I know how to proceed.
+	int j = this->random.InRange(0, visiblePlaneArray.size() - 1);
+	const Plane* chosenPlane = visiblePlaneArray[j];
+	std::vector<Vector3> triangleVertexArray;
+	triangleVertexArray.reserve(3);
+	for (int i = 0; i < 4; i++)
+		if (chosenPlane->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::Side::NEITHER)
+			triangleVertexArray.push_back(this->vertex[i]);
+	
+	THEBE_ASSERT(triangleVertexArray.size() == 3);
+	auto triangle = new GJKTriangleSimplex();
+	triangle->vertex[0] = triangleVertexArray[0];
+	triangle->vertex[1] = triangleVertexArray[1];
+	triangle->vertex[2] = triangleVertexArray[2];
+	return triangle;
 }
 
 #if defined GJK_RENDER_DEBUG

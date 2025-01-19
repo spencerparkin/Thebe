@@ -162,6 +162,10 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 
 	const double planeThickness = 1e-6;
 
+	// TODO: Factor this code out and generalize a bit.  This is EPA (and I had no idea.)
+	//       I want to be able to utilize EPA in the at the end of GJK in the intersection
+	//       case in order to find minimum penetration depth and direction of penetration.
+
 	while (pointList.size() > 0)
 	{
 		std::list<Vector3>::iterator iter = pointList.begin();

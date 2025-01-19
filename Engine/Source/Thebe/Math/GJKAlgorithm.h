@@ -10,6 +10,7 @@
 #include "Thebe/Math/Matrix3x3.h"
 #include "Thebe/Math/Graph.h"
 #include "Thebe/Math/LineSegment.h"
+#include "Thebe/Math/Random.h"
 #include <functional>
 
 #define GJK_RENDER_DEBUG
@@ -269,5 +270,6 @@ namespace Thebe
 
 		Vector3 vertex[4];
 		mutable Plane facePlane[4];
+		static Random random;
 	};
 }
