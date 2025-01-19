@@ -17,6 +17,7 @@ namespace Thebe
 
 		void Draw(Thebe::DynamicLineRenderer* lineRenderer) const;
 		void ClearAll();
+		void SetNameFilter(const std::string& nameFilter);
 
 		virtual bool Setup() override;
 
@@ -43,6 +44,7 @@ namespace Thebe
 			std::vector<Line> lineArray;
 		};
 
+		std::string nameFilter;
 		std::map<std::string, Reference<LineSet>> lineSetMap;
 	};
 }

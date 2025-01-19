@@ -18,6 +18,9 @@ void DebugRenderServer::Draw(Thebe::DynamicLineRenderer* lineRenderer) const
 	for (const auto& pair : this->lineSetMap)
 	{
 		const LineSet* lineSet = pair.second;
+		if (this->nameFilter.length() > 0 && pair.first != this->nameFilter)
+			continue;
+
 		lineSet->Draw(lineRenderer);
 	}
 }
@@ -38,6 +41,11 @@ void DebugRenderServer::Draw(Thebe::DynamicLineRenderer* lineRenderer) const
 void DebugRenderServer::ClearAll()
 {
 	this->lineSetMap.clear();
+}
+
+void DebugRenderServer::SetNameFilter(const std::string& nameFilter)
+{
+	this->nameFilter = nameFilter;
 }
 
 /*virtual*/ void DebugRenderServer::ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply)

@@ -90,6 +90,13 @@ DebugRendererApplication::DebugRendererApplication()
 		this->lineRenderer->AddLine(pointsB[0], pointsB[1], &colorB, &colorB);
 	}
 
+	static bool hackC = false;
+	if (hackC)
+	{
+		static int simplexNumber = 0;
+		this->server.SetNameFilter(std::format("simplex{}", simplexNumber));
+	}
+
 	this->server.Draw(this->lineRenderer);
 
 	this->graphicsEngine->Render();
