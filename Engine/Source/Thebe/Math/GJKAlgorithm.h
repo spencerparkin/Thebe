@@ -184,7 +184,7 @@ namespace Thebe
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const = 0;
 
 #if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client) = 0;
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) = 0;
 #endif //GJK_RENDER_DEBUG
 
 		static Vector3 CalcSupportPoint(const GJKShape* shapeA, const GJKShape* shapeB, const Vector3& unitDirection);
@@ -203,7 +203,7 @@ namespace Thebe
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
 
 #if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client) override;
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
 #endif //GJK_RENDER_DEBUG
 
 		Vector3 point;
@@ -222,7 +222,7 @@ namespace Thebe
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
 
 #if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client) override;
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
 #endif //GJK_RENDER_DEBUG
 
 		LineSegment lineSegment;
@@ -241,7 +241,7 @@ namespace Thebe
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
 
 #if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client) override;
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
 #endif //GJK_RENDER_DEBUG
 
 		Vector3 vertex[3];
@@ -264,7 +264,7 @@ namespace Thebe
 		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
 
 #if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client) override;
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
 #endif //GJK_RENDER_DEBUG
 
 		Vector3 vertex[4];

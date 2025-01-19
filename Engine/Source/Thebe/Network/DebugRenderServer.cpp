@@ -35,6 +35,11 @@ void DebugRenderServer::Draw(Thebe::DynamicLineRenderer* lineRenderer) const
 	return JsonServer::Setup();
 }
 
+void DebugRenderServer::ClearAll()
+{
+	this->lineSetMap.clear();
+}
+
 /*virtual*/ void DebugRenderServer::ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply)
 {
 	using namespace ParseParty;
@@ -50,10 +55,13 @@ void DebugRenderServer::Draw(Thebe::DynamicLineRenderer* lineRenderer) const
 	std::string lineSetName = lineSetValue->GetValue();
 	Reference<LineSet> lineSet;
 	auto pair = this->lineSetMap.find(lineSetName);
-	if (pair == this->lineSetMap.end())
-		lineSet.Set(new LineSet());
-	else
+	if (pair != this->lineSetMap.end())
 		lineSet = pair->second;
+	else
+	{
+		lineSet.Set(new LineSet());
+		this->lineSetMap.insert(std::pair(lineSetName, lineSet));
+	}
 
 	auto actionValue = dynamic_cast<const JsonString*>(rootValue->GetValue("action"));
 	if (!actionValue)

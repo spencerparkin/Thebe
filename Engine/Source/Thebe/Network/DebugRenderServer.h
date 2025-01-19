@@ -16,6 +16,7 @@ namespace Thebe
 		virtual ~DebugRenderServer();
 
 		void Draw(Thebe::DynamicLineRenderer* lineRenderer) const;
+		void ClearAll();
 
 		virtual bool Setup() override;
 

@@ -74,11 +74,39 @@ DebugRendererApplication::DebugRendererApplication()
 	this->lineRenderer->AddLine(Vector3::Zero(), yAxis, &yAxis, &yAxis);
 	this->lineRenderer->AddLine(Vector3::Zero(), zAxis, &zAxis, &zAxis);
 
+	static bool hackA = false;
+	if (hackA)
+	{
+		static Vector3 pointsA[2];
+		static Vector3 colorA(1.0, 1.0, 1.0);
+		this->lineRenderer->AddLine(pointsA[0], pointsA[1], &colorA, &colorA);
+	}
+
+	static bool hackB = false;
+	if (hackB)
+	{
+		static Vector3 pointsB[2];
+		static Vector3 colorB(1.0, 1.0, 1.0);
+		this->lineRenderer->AddLine(pointsB[0], pointsB[1], &colorB, &colorB);
+	}
+
 	this->server.Draw(this->lineRenderer);
 
 	this->graphicsEngine->Render();
 
 	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
+
+	XBoxController* controller = this->freeCam.GetController();
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_B))
+	{
+		Transform cameraToWorld;
+		cameraToWorld.LookAt(Vector3(10.0, 10.0, 10.0), Vector3::Zero(), Vector3(0.0, 1.0, 0.0));
+		this->camera->SetCameraToWorldTransform(cameraToWorld);
+	}
+	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_Y))
+	{
+		this->server.ClearAll();
+	}
 
 	return 0;
 }

@@ -42,6 +42,7 @@ GJKShape::GJKShape()
 		bool clientSetup = client->Setup();
 		THEBE_ASSERT(clientSetup);
 	}
+	int simplexCount = 0;
 #endif //GJK_RENDER_DEBUG
 
 	Vector3 centerA = shapeA->GetObjectToWorld().TransformPoint(shapeA->CalcGeometricCenter());
@@ -58,7 +59,11 @@ GJKShape::GJKShape()
 	{
 #if defined GJK_RENDER_DEBUG
 		if (client.get())
-			simplex->DebugDraw(client.get());
+		{
+			simplex->DebugDraw(client.get(), simplexCount++);
+			static int sleepMillis = 1000;
+			::Sleep(sleepMillis);
+		}
 #endif //GJK_RENDER_DEBUG
 
 		if (simplex->ContainsOrigin(epsilon))
@@ -365,11 +370,11 @@ GJKPointSimplex::GJKPointSimplex()
 }
 
 #if defined GJK_RENDER_DEBUG
-/*virtual*/ void GJKPointSimplex::DebugDraw(DebugRenderClient* client)
+/*virtual*/ void GJKPointSimplex::DebugDraw(DebugRenderClient* client, int simplexNumber)
 {
-	client->AddLine("gjk", this->point - Vector3::XAxis() * 0.1, this->point + Vector3::XAxis() * 0.1, Vector3(1.0, 0.0, 0.0));
-	client->AddLine("gjk", this->point - Vector3::YAxis() * 0.1, this->point + Vector3::YAxis() * 0.1, Vector3(0.0, 1.0, 0.0));
-	client->AddLine("gjk", this->point - Vector3::ZAxis() * 0.1, this->point + Vector3::ZAxis() * 0.1, Vector3(0.0, 0.0, 1.0));
+	client->AddLine(std::format("simplex{}", simplexNumber), this->point - Vector3::XAxis() * 0.1, this->point + Vector3::XAxis() * 0.1, Vector3(1.0, 0.0, 0.0));
+	client->AddLine(std::format("simplex{}", simplexNumber), this->point - Vector3::YAxis() * 0.1, this->point + Vector3::YAxis() * 0.1, Vector3(0.0, 1.0, 0.0));
+	client->AddLine(std::format("simplex{}", simplexNumber), this->point - Vector3::ZAxis() * 0.1, this->point + Vector3::ZAxis() * 0.1, Vector3(0.0, 0.0, 1.0));
 }
 #endif //GJK_RENDER_DEBUG
 
@@ -399,7 +404,7 @@ GJKLineSimplex::GJKLineSimplex()
 	double distanceA = linePoint.Length();
 	Vector3 unitDirection = -linePoint / distanceA;
 	Vector3 supportPoint = this->CalcSupportPoint(shapeA, shapeB, unitDirection);
-	double distanceB = (supportPoint - linePoint).Length();
+	double distanceB = (supportPoint - linePoint).Dot(unitDirection);
 	if (distanceB < distanceA)
 		return nullptr;
 
@@ -411,9 +416,9 @@ GJKLineSimplex::GJKLineSimplex()
 }
 
 #if defined GJK_RENDER_DEBUG
-/*virtual*/ void GJKLineSimplex::DebugDraw(DebugRenderClient* client)
+/*virtual*/ void GJKLineSimplex::DebugDraw(DebugRenderClient* client, int simplexNumber)
 {
-	client->AddLine("gjk", this->lineSegment.point[0], this->lineSegment.point[1], Vector3(1.0, 0.0, 0.0));
+	client->AddLine(std::format("simplex{}", simplexNumber), this->lineSegment.point[0], this->lineSegment.point[1], Vector3(1.0, 0.0, 0.0));
 }
 #endif //GJK_RENDER_DEBUG
 
@@ -485,17 +490,17 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 		THEBE_ASSERT(false);
 	}
 
-	Vector3 unitDirection = this->trianglePlane.unitNormal;
-	if (this->trianglePlane.GetSide(Vector3::Zero()) == Plane::BACK)
-		unitDirection = -unitDirection;
+	if (this->trianglePlane.SignedDistanceTo(Vector3::Zero()) < 0.0)
+		this->trianglePlane.unitNormal = -this->trianglePlane.unitNormal;
 
-	Vector3 supportPoint = this->CalcSupportPoint(shapeA, shapeB, unitDirection);
-	if (this->trianglePlane.GetSide(supportPoint) != Plane::FRONT)
+	Vector3 supportPoint = this->CalcSupportPoint(shapeA, shapeB, this->trianglePlane.unitNormal);
+	if (this->trianglePlane.SignedDistanceTo(supportPoint) <= 0.0)
 		return nullptr;
 
 	Vector3 projectedPoint = this->trianglePlane.ClosestPointTo(supportPoint);
 	double distance = (supportPoint - projectedPoint).Length();
-	if (distance < this->originDistanceToTrianglePlane)
+	static double eps = 0.1;
+	if (distance < this->originDistanceToTrianglePlane + eps)
 		return nullptr;
 
 	auto tetrahedron = new GJKTetrahedronSimplex();
@@ -507,12 +512,12 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 }
 
 #if defined GJK_RENDER_DEBUG
-/*virtual*/ void GJKTriangleSimplex::DebugDraw(DebugRenderClient* client)
+/*virtual*/ void GJKTriangleSimplex::DebugDraw(DebugRenderClient* client, int simplexNumber)
 {
 	for (int i = 0; i < 3; i++)
 	{
 		int j = (i + 1) % 3;
-		client->AddLine("gjk", this->vertex[i], this->vertex[j], Vector3(0.0, 1.0, 0.0));
+		client->AddLine(std::format("simplex{}", simplexNumber), this->vertex[i], this->vertex[j], Vector3(0.0, 1.0, 0.0));
 	}
 }
 #endif //GJK_RENDER_DEBUG
@@ -538,7 +543,7 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 				faceVertex[k++] = this->vertex[j];
 
 		this->facePlane[i] = Plane(faceVertex[0], faceVertex[1], faceVertex[2]);
-		if (this->facePlane->GetSide(this->vertex[i]) == Plane::FRONT)
+		if (this->facePlane[i].SignedDistanceTo(this->vertex[i]) > 0.0)
 			this->facePlane[i].unitNormal = -this->facePlane[i].unitNormal;
 	}
 
@@ -567,61 +572,60 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 	{
 		case 1:
 		{
-			const Plane* plane = visiblePlaneArray[0];
-			auto triangle = new GJKTriangleSimplex();
-			int j = 0;
-
+			std::vector<Vector3> vertexArray;
 			for (int i = 0; i < 4; i++)
 			{
-				if (plane->GetSide(this->vertex[i], THEBE_MEDIUM_EPS) == Plane::NEITHER)
+				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
 				{
-					triangle->vertex[j++] = this->vertex[i];
-					if (j == 3)
-						break;
+					vertexArray.push_back(this->vertex[i]);
 				}
 			}
 
-			THEBE_ASSERT(j == 3);
+			THEBE_ASSERT(vertexArray.size() == 3);
+
+			auto triangle = new GJKTriangleSimplex();
+			triangle->vertex[0] = vertexArray[0];
+			triangle->vertex[1] = vertexArray[1];
+			triangle->vertex[2] = vertexArray[2];
 			return triangle;
 		}
 		case 2:
 		{
-			auto line = new GJKLineSimplex();
-			int j = 0;
-
+			std::vector<Vector3> vertexArray;
 			for (int i = 0; i < 4; i++)
 			{
-				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_MEDIUM_EPS) == Plane::NEITHER &&
-					visiblePlaneArray[1]->GetSide(this->vertex[i], THEBE_MEDIUM_EPS) == Plane::NEITHER)
+				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
+					visiblePlaneArray[1]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
 				{
-					line->lineSegment.point[j++] = this->vertex[i];
-					if (j == 2)
-						break;
+					vertexArray.push_back(this->vertex[i]);
 				}
 			}
 
-			THEBE_ASSERT(j == 2);
+			THEBE_ASSERT(vertexArray.size() == 2);
+
+			auto line = new GJKLineSimplex();
+			line->lineSegment.point[0] = vertexArray[0];
+			line->lineSegment.point[1] = vertexArray[1];
 			return line;
 		}
 		case 3:
 		{
+			std::vector<Vector3> vertexArray;
 			for (int i = 0; i < 4; i++)
 			{
-				int j;
-				for (j = 0; j < 3; j++)
-					if (visiblePlaneArray[j]->GetSide(this->vertex[i], THEBE_MEDIUM_EPS) != Plane::NEITHER)
-						break;
-
-				if (j == 3)
+				if (visiblePlaneArray[0]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
+					visiblePlaneArray[1]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER &&
+					visiblePlaneArray[2]->GetSide(this->vertex[i], THEBE_SMALL_EPS) == Plane::NEITHER)
 				{
-					auto point = new GJKPointSimplex();
-					point->point = this->vertex[i];
-					return point;
+					vertexArray.push_back(this->vertex[i]);
 				}
 			}
 
-			THEBE_ASSERT(false);
-			break;
+			THEBE_ASSERT(vertexArray.size() == 1);
+
+			auto point = new GJKPointSimplex();
+			point->point = vertexArray[0];
+			return point;
 		}
 	}
 
@@ -630,10 +634,10 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 }
 
 #if defined GJK_RENDER_DEBUG
-/*virtual*/ void GJKTetrahedronSimplex::DebugDraw(DebugRenderClient* client)
+/*virtual*/ void GJKTetrahedronSimplex::DebugDraw(DebugRenderClient* client, int simplexNumber)
 {
 	for (int i = 0; i < 4; i++)
 		for (int j = i + 1; j < 4; j++)
-			client->AddLine("gjk", this->vertex[i], this->vertex[j], Vector3(0.0, 0.0, 1.0));
+			client->AddLine(std::format("simplex{}", simplexNumber), this->vertex[i], this->vertex[j], Vector3(0.0, 0.0, 1.0));
 }
 #endif //GJK_RENDER_DEBUG
