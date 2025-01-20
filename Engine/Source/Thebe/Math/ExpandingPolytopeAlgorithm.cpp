@@ -12,7 +12,7 @@ ExpandingPolytopeAlgorithm::ExpandingPolytopeAlgorithm()
 {
 }
 
-void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier)
+void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory)
 {
 	const double planeThickness = 1e-6;
 
@@ -22,18 +22,18 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier)
 		if (!pointSupplier->GetNextPoint(point))
 			break;
 
-		std::list<Triangle> newTriangleList;
-		for (const Triangle& triangle : triangleList)
+		std::list<Triangle*> newTriangleList;
+		for (const Triangle* triangle : this->triangleList)
 		{
-			Plane plane = triangle.MakePlane(this->vertexArray);
+			Plane plane = triangle->MakePlane(this->vertexArray);
 			if (plane.GetSide(point, planeThickness) == Plane::Side::FRONT)
 			{
 				int i = (signed)this->vertexArray.size();
 
-				Triangle triangleA = triangle.Reversed();
-				Triangle triangleB(i, triangle.vertex[0], triangle.vertex[1]);
-				Triangle triangleC(i, triangle.vertex[1], triangle.vertex[2]);
-				Triangle triangleD(i, triangle.vertex[2], triangle.vertex[0]);
+				Triangle* triangleA = triangle->Reversed(triangleFactory);
+				Triangle* triangleB = triangleFactory->AllocTriangle(i, triangle->vertex[0], triangle->vertex[1]);
+				Triangle* triangleC = triangleFactory->AllocTriangle(i, triangle->vertex[1], triangle->vertex[2]);
+				Triangle* triangleD = triangleFactory->AllocTriangle(i, triangle->vertex[2], triangle->vertex[0]);
 
 				newTriangleList.push_back(triangleA);
 				newTriangleList.push_back(triangleB);
@@ -47,14 +47,15 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier)
 
 		this->vertexArray.push_back(point);
 
-		for (const Triangle& newTriangle : newTriangleList)
+		for (Triangle* newTriangle : newTriangleList)
 		{
 			bool addTriangle = true;
-			for (std::list<Triangle>::iterator iter = triangleList.begin(); iter != triangleList.end(); iter++)
+			for (std::list<Triangle*>::iterator iter = triangleList.begin(); iter != triangleList.end(); iter++)
 			{
-				const Triangle& triangle = *iter;
-				if (newTriangle.Cancels(triangle))
+				Triangle* triangle = *iter;
+				if (newTriangle->Cancels(triangle, triangleFactory))
 				{
+					triangleFactory->FreeTriangle(triangle);
 					triangleList.erase(iter);
 					addTriangle = false;
 					break;
@@ -83,30 +84,13 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier)
 
 ExpandingPolytopeAlgorithm::Triangle::Triangle()
 {
-	for (int i = 0; i < 3; i++)
-		this->vertex[i] = 0;
-}
-
-ExpandingPolytopeAlgorithm::Triangle::Triangle(int i, int j, int k)
-{
-	this->vertex[0] = i;
-	this->vertex[1] = j;
-	this->vertex[2] = k;
-}
-
-ExpandingPolytopeAlgorithm::Triangle::Triangle(const Triangle& triangle)
-{
-	*this = triangle;
+	this->vertex[0] = 0;
+	this->vertex[1] = 0;
+	this->vertex[2] = 0;
 }
 
 /*virtual*/ ExpandingPolytopeAlgorithm::Triangle::~Triangle()
 {
-}
-
-void ExpandingPolytopeAlgorithm::Triangle::operator=(const Triangle& triangle)
-{
-	for (int i = 0; i < 3; i++)
-		this->vertex[i] = triangle.vertex[i];
 }
 
 Plane ExpandingPolytopeAlgorithm::Triangle::MakePlane(const std::vector<Vector3>& vertexArray) const
@@ -115,25 +99,25 @@ Plane ExpandingPolytopeAlgorithm::Triangle::MakePlane(const std::vector<Vector3>
 	const Vector3& vertexB = vertexArray[this->vertex[1]];
 	const Vector3& vertexC = vertexArray[this->vertex[2]];
 
-	Vector3 normal = (vertexB - vertexA).Cross(vertexC - vertexA).Normalized();
-	return Plane(vertexA, normal);
+	return Plane(vertexA, vertexB, vertexC);
 }
 
-bool ExpandingPolytopeAlgorithm::Triangle::Cancels(const Triangle& triangle) const
+bool ExpandingPolytopeAlgorithm::Triangle::Cancels(const Triangle* triangle, TriangleFactory* triangleFactory) const
 {
-	Triangle reverse = triangle;
-	reverse.Reverse();
-	return reverse.SameAs(*this);
+	Triangle* reverse = triangle->Reversed(triangleFactory);
+	bool cancels = reverse->SameAs(this);
+	triangleFactory->FreeTriangle(reverse);
+	return cancels;
 }
 
-bool ExpandingPolytopeAlgorithm::Triangle::SameAs(const Triangle& triangle) const
+bool ExpandingPolytopeAlgorithm::Triangle::SameAs(const Triangle* triangle) const
 {
 	for (int i = 0; i < 3; i++)
 	{
-		if (this->vertex[i] == triangle.vertex[0])
+		if (this->vertex[i] == triangle->vertex[0])
 		{
 			for (int j = 0; j < 3; j++)
-				if (this->vertex[(i + j) % 3] != triangle.vertex[j])
+				if (this->vertex[(i + j) % 3] != triangle->vertex[j])
 					return false;
 
 			return true;
@@ -143,16 +127,7 @@ bool ExpandingPolytopeAlgorithm::Triangle::SameAs(const Triangle& triangle) cons
 	return false;
 }
 
-void ExpandingPolytopeAlgorithm::Triangle::Reverse()
+ExpandingPolytopeAlgorithm::Triangle* ExpandingPolytopeAlgorithm::Triangle::Reversed(TriangleFactory* triangleFactory) const
 {
-	int i = this->vertex[0];
-	this->vertex[0] = this->vertex[2];
-	this->vertex[2] = i;
-}
-
-ExpandingPolytopeAlgorithm::Triangle ExpandingPolytopeAlgorithm::Triangle::Reversed() const
-{
-	Triangle triangle(*this);
-	triangle.Reverse();
-	return triangle;
+	return triangleFactory->AllocTriangle(this->vertex[2], this->vertex[1], this->vertex[0]);
 }

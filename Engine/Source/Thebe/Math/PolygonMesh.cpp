@@ -84,8 +84,9 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 	this->Clear();
 
 	ExpandingPolytopeAlgorithm epa;
+	ExpandingPolytopeAlgorithm::TypedTriangleFactory<ExpandingPolytopeAlgorithm::Triangle> triangleFactory(1024);
 
-	auto findInitialTetrahedron = [&pointArray, &epa, this]() -> bool
+	auto findInitialTetrahedron = [&pointArray, &epa, &triangleFactory, this]() -> bool
 	{
 		// Is there a better approach to this problem?  This looks really
 		// slow, but we only loop until we find a non-negative determinant.
@@ -130,19 +131,19 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 
 						if (det < 0.0)
 						{
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 1, 2));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 2, 3));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 3, 1));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(1, 3, 2));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 1, 2));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 2, 3));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 3, 1));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(1, 3, 2));
 
 							return true;
 						}
 						else if (det > 0.0)
 						{
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 2, 1));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 3, 2));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(0, 1, 3));
-							epa.triangleList.push_back(ExpandingPolytopeAlgorithm::Triangle(1, 2, 3));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 2, 1));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 3, 2));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(0, 1, 3));
+							epa.triangleList.push_back(triangleFactory.AllocTriangle(1, 2, 3));
 
 							return true;
 						}
@@ -161,15 +162,15 @@ bool PolygonMesh::GenerateConvexHull(const std::vector<Vector3>& pointArray)
 	for (const Vector3& point : pointArray)
 		pointSupplier.pointList.push_back(point);
 
-	epa.Expand(&pointSupplier);
+	epa.Expand(&pointSupplier, &triangleFactory);
 
 	this->vertexArray = epa.vertexArray;
 
-	for (const ExpandingPolytopeAlgorithm::Triangle& triangle : epa.triangleList)
+	for (const ExpandingPolytopeAlgorithm::Triangle* triangle : epa.triangleList)
 	{
 		Polygon polygon;
 		for (int i = 0; i < 3; i++)
-			polygon.vertexArray.push_back(triangle.vertex[i]);
+			polygon.vertexArray.push_back(triangle->vertex[i]);
 
 		this->polygonArray.push_back(polygon);
 	}

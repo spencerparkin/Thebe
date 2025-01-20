@@ -15,7 +15,7 @@ namespace Thebe
 		StackHeap();
 		virtual ~StackHeap();
 
-		bool SetManagedMemory(uint8_t* memoryBuffer, uint64_t memoryBuffersize, uint64_t blockSize);
+		bool SetManagedMemory(uint8_t* memoryBuffer, uint64_t memoryBufferSize, uint64_t blockSize);
 
 		uint8_t* AllocateBlock();
 		bool DeallocateBlock(uint8_t* block);
@@ -45,13 +45,18 @@ namespace Thebe
 		{
 		}
 
+		void Configure(uint8_t* memoryBuffer, uint64_t memoryBufferSize)
+		{
+			this->SetManagedMemory(memoryBuffer, memoryBufferSize, sizeof(T));
+		}
+
 		T* Allocate()
 		{
 			THEBE_ASSERT(this->blockSize >= sizeof(T));
 
 			uint8_t* block = this->AllocateBlock();
 			if (!block)
-				return false;
+				return nullptr;
 
 			T* object = new (block) T();
 			return object;

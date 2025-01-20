@@ -15,7 +15,7 @@ StackHeap::StackHeap()
 {
 }
 
-bool StackHeap::SetManagedMemory(uint8_t* memoryBuffer, uint64_t memoryBuffersize, uint64_t blockSize)
+bool StackHeap::SetManagedMemory(uint8_t* memoryBuffer, uint64_t memoryBufferSize, uint64_t blockSize)
 {
 	this->memoryBuffer = memoryBuffer;
 	this->memoryBufferSize = memoryBufferSize;
