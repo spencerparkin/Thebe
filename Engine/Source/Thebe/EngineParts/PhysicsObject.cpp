@@ -130,6 +130,18 @@ PhysicsObject::PhysicsObject()
 
 	Vector3 gravityForce = physicsSystem->GetGravity() * this->GetTotalMass();
 	this->totalForce += gravityForce;
+
+	while (this->frictionForceList.size() > 0)
+	{
+		TransientFrictionForce transientFrictionForce = *this->frictionForceList.begin();
+		this->frictionForceList.pop_front();
+
+		Vector3 frictionForce = -this->GetLinearMotionDirection() * ::fabs(gravityForce.Dot(transientFrictionForce.unitNormal)) * transientFrictionForce.coeficientOfLinearFriction;
+		this->totalForce += frictionForce;
+
+		Vector3 frictionTorque = -this->GetAngularMotionDirection() * ::fabs(gravityForce.Dot(transientFrictionForce.unitNormal)) * transientFrictionForce.coeficientOfAngularFriction;
+		this->totalTorque += frictionTorque;
+	}
 }
 
 /*virtual*/ void PhysicsObject::ZeroMomentum()
@@ -233,4 +245,9 @@ bool PhysicsObject::GetExternalContactForce(const std::string& name, ContactForc
 
 	contactForce = pair->second;
 	return true;
+}
+
+void PhysicsObject::AddTransientFrictionForce(const TransientFrictionForce& frictionForce)
+{
+	this->frictionForceList.push_back(frictionForce);
 }

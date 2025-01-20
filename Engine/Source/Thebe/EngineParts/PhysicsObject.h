@@ -52,6 +52,16 @@ namespace Thebe
 		virtual double GetTotalMass() const = 0;
 
 		/**
+		 * Return a unit-length vector in the direction this object is moving.
+		 */
+		virtual Vector3 GetLinearMotionDirection() const = 0;
+
+		/**
+		 * Return a unit-length vector in the direction of this object's axis of rotation.
+		 */
+		virtual Vector3 GetAngularMotionDirection() const = 0;
+
+		/**
 		 * Provide any debug drawing support you wish.
 		 */
 		virtual void DebugDraw(DynamicLineRenderer* lineRenderer) const;
@@ -83,11 +93,21 @@ namespace Thebe
 		void SetExternalContactForce(const std::string& name, const ContactForce& contactForce);
 		bool GetExternalContactForce(const std::string& name, ContactForce& contactForce) const;
 
+		struct TransientFrictionForce
+		{
+			Vector3 unitNormal;
+			double coeficientOfLinearFriction;
+			double coeficientOfAngularFriction;
+		};
+
+		void AddTransientFrictionForce(const TransientFrictionForce& frictionForce);
+
 	protected:
 
 		std::map<std::string, Vector3> externalForceMap;
 		std::map<std::string, Vector3> externalTorqueMap;
 		std::map<std::string, ContactForce> externalContactForceMap;
+		std::list<TransientFrictionForce> frictionForceList;
 
 		Vector3 totalForce;
 		Vector3 totalTorque;

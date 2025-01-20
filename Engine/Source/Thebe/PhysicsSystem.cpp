@@ -182,7 +182,10 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			auto& collision = pair.second;
 			const Vector3& separationDelta = collision->separationDelta;
-			
+			double minSeparation = 0.05;
+			if (separationDelta.Length() < minSeparation)
+				continue;
+
 			RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
 			RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
 
@@ -211,6 +214,28 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 					objectToWorld.translation -= separationDelta;
 					objectB->SetObjectToWorld(objectToWorld);
 				}
+			}
+		}
+
+		// Lastly, apply some friction forces.
+		for (auto& contact : contactList)
+		{
+			if (!contact.objectA->IsStationary())
+			{
+				PhysicsObject::TransientFrictionForce transientFrictionForce;
+				transientFrictionForce.unitNormal = contact.unitNormal;
+				transientFrictionForce.coeficientOfLinearFriction = 0.1;
+				transientFrictionForce.coeficientOfAngularFriction = 0.01;
+				contact.objectA->AddTransientFrictionForce(transientFrictionForce);
+			}
+
+			if (!contact.objectB->IsStationary())
+			{
+				PhysicsObject::TransientFrictionForce transientFrictionForce;
+				transientFrictionForce.unitNormal = -contact.unitNormal;
+				transientFrictionForce.coeficientOfLinearFriction = 0.1;
+				transientFrictionForce.coeficientOfAngularFriction = 0.01;
+				contact.objectA->AddTransientFrictionForce(transientFrictionForce);
 			}
 		}
 	}

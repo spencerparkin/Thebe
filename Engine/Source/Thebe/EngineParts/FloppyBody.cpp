@@ -367,6 +367,16 @@ void FloppyBody::SetSpringEquilibriumLengths()
 	}
 }
 
+/*virtual*/ Vector3 FloppyBody::GetLinearMotionDirection() const
+{
+	return Vector3::Zero();
+}
+
+/*virtual*/ Vector3 FloppyBody::GetAngularMotionDirection() const
+{
+	return Vector3::Zero();
+}
+
 bool FloppyBody::RespondToCollisionContact(const Plane& contactPlane)
 {
 	auto convexHull = dynamic_cast<GJKConvexHull*>(this->collisionObject->GetShape());

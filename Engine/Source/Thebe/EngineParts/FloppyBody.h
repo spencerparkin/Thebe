@@ -28,6 +28,8 @@ namespace Thebe
 		virtual void SetObjectToWorld(const Transform& objectToWorld) override;
 		virtual Transform GetObjectToWorld() const override;
 		virtual void ZeroMomentum() override;
+		virtual Vector3 GetLinearMotionDirection() const override;
+		virtual Vector3 GetAngularMotionDirection() const override;
 
 		bool RespondToCollisionContact(const Plane& contactPlane);
 

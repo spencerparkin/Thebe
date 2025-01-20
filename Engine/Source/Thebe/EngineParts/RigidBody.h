@@ -23,6 +23,8 @@ namespace Thebe
 		virtual void ZeroMomentum() override;
 		virtual Vector3 GetCenterOfMass() const override;
 		virtual double GetTotalMass() const override;
+		virtual Vector3 GetLinearMotionDirection() const override;
+		virtual Vector3 GetAngularMotionDirection() const override;
 
 		void GetWorldSpaceInertiaTensor(Matrix3x3& worldSpaceInertiaTensor) const;
 		void GetWorldSpaceInertiaTensorInverse(Matrix3x3& worldSpaceInertiaTensorInverse) const;

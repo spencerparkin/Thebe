@@ -155,6 +155,16 @@ bool RigidBody::CalculateRigidBodyCharacteristics(std::function<double(const Vec
 	return true;
 }
 
+/*virtual*/ Vector3 RigidBody::GetLinearMotionDirection() const
+{
+	return this->linearMomentum.Normalized();
+}
+
+/*virtual*/ Vector3 RigidBody::GetAngularMotionDirection() const
+{
+	return this->angularMomentum.Normalized();
+}
+
 Vector3 RigidBody::GetLinearVelocity() const
 {
 	if (this->stationary)
