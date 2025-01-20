@@ -17,7 +17,7 @@ GJKShape::GJKShape()
 {
 }
 
-/*static*/ bool GJKShape::Intersect(const GJKShape* shapeA, const GJKShape* shapeB)
+/*static*/ bool GJKShape::Intersect(const GJKShape* shapeA, const GJKShape* shapeB, std::unique_ptr<GJKSimplex>* finalSimplex /*= nullptr*/)
 {
 	if (!shapeA || !shapeB)
 		return false;
@@ -63,7 +63,12 @@ GJKShape::GJKShape()
 #endif //GJK_RENDER_DEBUG
 
 		if (simplex->ContainsOrigin(epsilon))
+		{
+			if (finalSimplex)
+				finalSimplex->reset(simplex.release());
+
 			return true;
+		}
 
 		simplex.reset(simplex->GenerateSimplex(shapeA, shapeB));
 	}
@@ -74,6 +79,63 @@ GJKShape::GJKShape()
 #endif //GKK_RENDER_DEBUG
 
 	return false;
+}
+
+/*static*/ bool GJKShape::Penetration(const GJKShape* shapeA, const GJKShape* shapeB, const GJKTetrahedronSimplex* tetrahedron, Vector3& separationDelta)
+{
+	separationDelta.SetComponents(0.0, 0.0, 0.0);
+
+	if (!tetrahedron)
+		return false;
+
+	if (!shapeA || !shapeB)
+		return false;
+
+	ExpandingPolytopeAlgorithm epa;
+	ExpandingPolytopeAlgorithm::TypedTriangleFactory<GJKTriangleForEPA> triangleFactory(1024);
+	GJKPointSupplierForEPA pointSupplier(shapeA, shapeB, &epa);
+
+	epa.vertexArray.push_back(tetrahedron->vertex[0]);
+	epa.vertexArray.push_back(tetrahedron->vertex[1]);
+	epa.vertexArray.push_back(tetrahedron->vertex[2]);
+	epa.vertexArray.push_back(tetrahedron->vertex[3]);
+
+	for (int i = 0; i < 4; i++)
+	{
+		int vertices[3];
+		int k = 0;
+		for (int j = 0; j < 4; j++)
+			if (j != i)
+				vertices[k++] = j;
+
+		auto triangle = (GJKTriangleForEPA*)triangleFactory.AllocTriangle(vertices[0], vertices[1], vertices[2]);
+		Plane trianglePlane = triangle->MakePlane(epa.vertexArray);
+		if (trianglePlane.GetSide(epa.vertexArray[i], THEBE_SMALL_EPS) != Plane::Side::BACK)
+		{
+			auto reverseTriangle = (GJKTriangleForEPA*)triangle->Reversed(&triangleFactory);
+			triangleFactory.FreeTriangle(triangle);
+			triangle = reverseTriangle;
+		}
+
+		epa.triangleList.push_back(triangle);
+	}
+
+	epa.Expand(&pointSupplier, &triangleFactory);
+
+	double shortestDistance = std::numeric_limits<double>::max();
+	for (auto triangle : epa.triangleList)
+	{
+		Plane trianglePlane = triangle->MakePlane(epa.vertexArray);
+		Vector3 planePoint = trianglePlane.ClosestPointTo(Vector3::Zero());
+		double distance = planePoint.Length();
+		if (distance < shortestDistance)
+		{
+			shortestDistance = distance;
+			separationDelta = planePoint;
+		}
+	}
+
+	return true;
 }
 
 void GJKShape::SetObjectToWorld(const Transform& objectToWorld)
@@ -96,6 +158,43 @@ const Transform& GJKShape::GetObjectToWorld() const
 	Transform worldToObject;
 	worldToObject.Invert(this->objectToWorld);
 	return this->ContainsObjectPoint(worldToObject.TransformPoint(point), cache);
+}
+
+//------------------------------------- GJKPointSupplierForEPA -------------------------------------
+
+GJKPointSupplierForEPA::GJKPointSupplierForEPA(const GJKShape* shapeA, const GJKShape* shapeB, ExpandingPolytopeAlgorithm* epa)
+{
+	this->shapeA = shapeA;
+	this->shapeB = shapeB;
+	this->epa = epa;
+}
+
+/*virtual*/ GJKPointSupplierForEPA::~GJKPointSupplierForEPA()
+{
+}
+
+/*virtual*/ bool GJKPointSupplierForEPA::GetNextPoint(Vector3& point)
+{
+	// New triangles are added at the end of the list and those are most likely to be
+	// unchecked, so start our search at the end and work toward the start.
+	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::reverse_iterator iter = epa->triangleList.rbegin(); iter != epa->triangleList.rend(); ++iter)
+	{
+		auto triangle = (GJKTriangleForEPA*)*iter;
+		if (!triangle->onEdgeOfMinkowskiHull)
+		{
+			Plane trianglePlane = triangle->MakePlane(epa->vertexArray);
+			Vector3 supportPoint = GJKSimplex::CalcSupportPoint(this->shapeA, this->shapeB, trianglePlane.unitNormal);
+			if (trianglePlane.GetSide(supportPoint, THEBE_SMALL_EPS) == Plane::Side::FRONT)
+			{
+				point = supportPoint;
+				return true;
+			}
+
+			triangle->onEdgeOfMinkowskiHull = true;
+		}
+	}
+
+	return false;
 }
 
 //------------------------------------- GJKSphere -------------------------------------

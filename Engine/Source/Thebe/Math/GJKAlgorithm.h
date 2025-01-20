@@ -11,9 +11,10 @@
 #include "Thebe/Math/Graph.h"
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/Math/Random.h"
+#include "Thebe/Math/ExpandingPolytopeAlgorithm.h"
 #include <functional>
 
-#define GJK_RENDER_DEBUG
+//#define GJK_RENDER_DEBUG
 
 #if defined GJK_RENDER_DEBUG
 #include "Thebe/Network/DebugRenderClient.h"
@@ -21,6 +22,9 @@
 
 namespace Thebe
 {
+	class GJKSimplex;
+	class GJKTetrahedronSimplex;
+
 	/**
 	 * Such shapes lend themselves to the GJK algorithm, as well as
 	 * algorithms in other areas.
@@ -99,15 +103,58 @@ namespace Thebe
 		/**
 		 * Tell the caller if the two given shapes interesect.
 		 * 
+		 * @param[out] finalSimplex If given, the final simplex of the algorithm is placed here in the case of intersection.
 		 * @return True is returned if and only if the two given shapes share at least one point in common.
 		 */
-		static bool Intersect(const GJKShape* shapeA, const GJKShape* shapeB);
+		static bool Intersect(const GJKShape* shapeA, const GJKShape* shapeB, std::unique_ptr<GJKSimplex>* finalSimplex = nullptr);
+
+		/**
+		 * Use the extended polytop algorithm (EPA) to calculate the penetration depth and direction
+		 * of the two given shapes.  It's assumed here that it has already been determined that these
+		 * shapes intersect using the @ref GJKShape::Intersect function.
+		 * 
+		 * @param[in] tetrahedron This could be any tetrahedron contained within the Minkowski difference of the two shapes, but it is typically output from @ref GJKShape::Intersect.
+		 * @param[out] separationDelta This is the vector that, if added to shapeA (or subtracted from shapeB) cause both shapes to share a set of points only on their boundary.
+		 * @return True is returned on success; false, otherwise.
+		 */
+		static bool Penetration(const GJKShape* shapeA, const GJKShape* shapeB, const GJKTetrahedronSimplex* tetrahedron, Vector3& separationDelta);
 
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;
 
 	protected:
 		Transform objectToWorld;		///< All shapes should represent themselves in object-space and then require this in order to be realized in world space.
+	};
+
+	/**
+	 * 
+	 */
+	class THEBE_API GJKTriangleForEPA : public ExpandingPolytopeAlgorithm::Triangle
+	{
+	public:
+		GJKTriangleForEPA()
+		{
+			this->onEdgeOfMinkowskiHull = false;
+		}
+
+		bool onEdgeOfMinkowskiHull;
+	};
+
+	/**
+	 * 
+	 */
+	class THEBE_API GJKPointSupplierForEPA : public ExpandingPolytopeAlgorithm::PointSupplier
+	{
+	public:
+		GJKPointSupplierForEPA(const GJKShape* shapeA, const GJKShape* shapeB, ExpandingPolytopeAlgorithm* epa);
+		virtual ~GJKPointSupplierForEPA();
+
+		virtual bool GetNextPoint(Vector3& point) override;
+
+	private:
+		const GJKShape* shapeA;
+		const GJKShape* shapeB;
+		ExpandingPolytopeAlgorithm* epa;
 	};
 
 	/**

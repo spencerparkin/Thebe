@@ -103,7 +103,7 @@ namespace Thebe
 
 			virtual void FreeTriangle(Triangle* triangle) override
 			{
-				this->objectHeap.Deallocate(triangle);
+				this->objectHeap.Deallocate((T*)triangle);
 			}
 
 		private:
@@ -111,6 +111,7 @@ namespace Thebe
 			uint8_t* memoryBuffer;
 		};
 
+	public:
 		std::list<Triangle*> triangleList;
 		std::vector<Vector3> vertexArray;
 	};
