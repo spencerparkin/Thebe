@@ -112,8 +112,9 @@ CollisionLabApp::CollisionLabApp()
 		{
 			this->text->SetText("Yes collision!");
 			this->text->SetTextColor(Vector3(0.0, 1.0, 0.0));
-
+			this->separationDelta = collision->separationDelta;
 			this->RenderContacts(collision.Get(), this->lineRenderer.Get());
+			this->RenderSeparationDelta(this->lineRenderer.Get());
 			break;
 		}
 	}
@@ -124,7 +125,31 @@ CollisionLabApp::CollisionLabApp()
 
 	this->moverCam.Update(this->graphicsEngine->GetDeltaTime());
 
+	XBoxController* controller = this->moverCam.GetController();
+	
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	{
+		Transform objectToWorld = this->shapeA->GetObjectToWorld();
+		objectToWorld.translation += this->separationDelta;
+		this->shapeA->SetObjectToWorld(objectToWorld);
+		this->separationDelta = Vector3::Zero();
+	}
+
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_B))
+	{
+		Transform objectToWorld = this->shapeB->GetObjectToWorld();
+		objectToWorld.translation -= this->separationDelta;
+		this->shapeB->SetObjectToWorld(objectToWorld);
+		this->separationDelta = Vector3::Zero();
+	}
+
 	return 0;
+}
+
+void CollisionLabApp::RenderSeparationDelta(Thebe::DynamicLineRenderer* lineRenderer)
+{
+	Vector3 color(1.0, 1.0, 1.0);
+	lineRenderer->AddLine(Vector3::Zero(), this->separationDelta, &color, &color);
 }
 
 void CollisionLabApp::RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer)

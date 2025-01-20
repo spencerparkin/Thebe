@@ -58,7 +58,7 @@ uint8_t* StackHeap::AllocateBlock()
 
 bool StackHeap::DeallocateBlock(uint8_t* block)
 {
-	uint64_t blockOffset = this->memoryBuffer - block;
+	uint64_t blockOffset = block - this->memoryBuffer;
 	if (blockOffset + this->blockSize > this->memoryBufferSize || blockOffset % this->blockSize != 0)
 	{
 		THEBE_LOG("Invalid pointer (0x%016x) given to stack heap.", uintptr_t(block));

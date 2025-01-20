@@ -23,6 +23,7 @@ public:
 
 private:
 	void RenderContacts(Thebe::CollisionSystem::Collision* collision, Thebe::DynamicLineRenderer* lineRenderer);
+	void RenderSeparationDelta(Thebe::DynamicLineRenderer* lineRenderer);
 
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
@@ -31,4 +32,5 @@ private:
 	Thebe::Reference<Thebe::CollisionObject> shapeB;
 	Thebe::Reference<Thebe::Text> text;
 	MoverCam moverCam;
+	Thebe::Vector3 separationDelta;
 };

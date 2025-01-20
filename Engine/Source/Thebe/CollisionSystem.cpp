@@ -121,14 +121,18 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 
 		if (!collision.Get())
 		{
-			if (GJKShape::Intersect(collisionObject->GetShape(), otherCollisionObject->GetShape()))
+			std::unique_ptr<GJKSimplex> simplex;
+
+			if (GJKShape::Intersect(collisionObject->GetShape(), otherCollisionObject->GetShape(), &simplex))
 			{
 				collision.Set(new Collision());
 				collision->validFrameA = collisionObject->GetFrameWhenLastMoved();
 				collision->validFrameB = otherCollisionObject->GetFrameWhenLastMoved();
 				collision->objectA = collisionObject;
 				collision->objectB = otherCollisionObject;
-				// TODO: How do we calculate the separation delta?!  The GJK algorithm might contain this information near the end.
+				
+				auto tetrahedron = dynamic_cast<GJKTetrahedronSimplex*>(simplex.get());
+				GJKShape::Penetration(collisionObject->GetShape(), otherCollisionObject->GetShape(), tetrahedron, collision->separationDelta);
 			}
 		}
 
