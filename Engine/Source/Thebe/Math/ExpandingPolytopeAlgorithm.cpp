@@ -49,6 +49,9 @@ bool ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFa
 
 		this->vertexArray.push_back(point);
 
+		if (triangleFactory->NumFreeTriangles() < 1)
+			return false;
+
 		for (Triangle* newTriangle : newTriangleList)
 		{
 			bool addTriangle = true;
