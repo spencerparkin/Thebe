@@ -110,7 +110,7 @@ GJKShape::GJKShape()
 
 		auto triangle = (GJKTriangleForEPA*)triangleFactory.AllocTriangle(vertices[0], vertices[1], vertices[2]);
 		Plane trianglePlane = triangle->MakePlane(epa.vertexArray);
-		if (trianglePlane.GetSide(epa.vertexArray[i], THEBE_SMALL_EPS) != Plane::Side::BACK)
+		if (trianglePlane.GetSide(epa.vertexArray[i], epa.planeThickness) != Plane::Side::BACK)
 		{
 			auto reverseTriangle = (GJKTriangleForEPA*)triangle->Reversed(&triangleFactory);
 			triangleFactory.FreeTriangle(triangle);
@@ -177,14 +177,14 @@ GJKPointSupplierForEPA::GJKPointSupplierForEPA(const GJKShape* shapeA, const GJK
 {
 	// New triangles are added at the end of the list and those are most likely to be
 	// unchecked, so start our search at the end and work toward the start.
-	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::reverse_iterator iter = epa->triangleList.rbegin(); iter != epa->triangleList.rend(); ++iter)
+	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::reverse_iterator iter = this->epa->triangleList.rbegin(); iter != this->epa->triangleList.rend(); ++iter)
 	{
 		auto triangle = (GJKTriangleForEPA*)*iter;
 		if (!triangle->onEdgeOfMinkowskiHull)
 		{
-			Plane trianglePlane = triangle->MakePlane(epa->vertexArray);
+			Plane trianglePlane = triangle->MakePlane(this->epa->vertexArray);
 			Vector3 supportPoint = GJKSimplex::CalcSupportPoint(this->shapeA, this->shapeB, trianglePlane.unitNormal);
-			if (trianglePlane.GetSide(supportPoint, THEBE_SMALL_EPS) == Plane::Side::FRONT)
+			if (trianglePlane.GetSide(supportPoint, this->epa->planeThickness) == Plane::Side::FRONT)
 			{
 				point = supportPoint;
 				return true;

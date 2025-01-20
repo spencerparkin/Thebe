@@ -114,5 +114,6 @@ namespace Thebe
 	public:
 		std::list<Triangle*> triangleList;
 		std::vector<Vector3> vertexArray;
+		double planeThickness;
 	};
 }

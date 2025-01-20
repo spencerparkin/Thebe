@@ -6,6 +6,7 @@ using namespace Thebe;
 
 ExpandingPolytopeAlgorithm::ExpandingPolytopeAlgorithm()
 {
+	this->planeThickness = THEBE_SMALL_EPS;
 }
 
 /*virtual*/ ExpandingPolytopeAlgorithm::~ExpandingPolytopeAlgorithm()
@@ -14,8 +15,6 @@ ExpandingPolytopeAlgorithm::ExpandingPolytopeAlgorithm()
 
 void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory)
 {
-	const double planeThickness = 1e-6;
-
 	while (true)
 	{
 		Vector3 point;
@@ -26,7 +25,7 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFa
 		for (const Triangle* triangle : this->triangleList)
 		{
 			Plane plane = triangle->MakePlane(this->vertexArray);
-			if (plane.GetSide(point, planeThickness) == Plane::Side::FRONT)
+			if (plane.GetSide(point, this->planeThickness) == Plane::Side::FRONT)
 			{
 				int i = (signed)this->vertexArray.size();
 
