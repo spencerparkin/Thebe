@@ -131,8 +131,7 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 				collision->objectA = collisionObject;
 				collision->objectB = otherCollisionObject;
 				
-				auto tetrahedron = dynamic_cast<GJKTetrahedronSimplex*>(simplex.get());
-				GJKShape::Penetration(collisionObject->GetShape(), otherCollisionObject->GetShape(), tetrahedron, collision->separationDelta);
+				GJKShape::Penetration(collisionObject->GetShape(), otherCollisionObject->GetShape(), simplex, collision->separationDelta);
 			}
 		}
 

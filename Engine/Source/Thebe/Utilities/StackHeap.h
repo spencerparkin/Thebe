@@ -19,13 +19,13 @@ namespace Thebe
 
 		uint8_t* AllocateBlock();
 		bool DeallocateBlock(uint8_t* block);
+		uint64_t NumFreeBlocks() const;
 
 	protected:
 		uint8_t* memoryBuffer;
 		uint64_t memoryBufferSize;
 		uint64_t blockSize;
 		std::vector<uint64_t> blockStack;
-		uint64_t blockStackTop;
 	};
 
 	/**

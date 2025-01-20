@@ -23,7 +23,7 @@ namespace Thebe
 		 * Note that you must initialize the triangle list and vertex array before you call this.
 		 * Typically this is done so that the initial polytope is a tetrahedron.
 		 */
-		void Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory);
+		bool Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory);
 
 		/**
 		 * 
@@ -71,6 +71,7 @@ namespace Thebe
 		public:
 			virtual Triangle* AllocTriangle(int i, int j, int k) = 0;
 			virtual void FreeTriangle(Triangle* triangle) = 0;
+			virtual uint64_t NumFreeTriangles() const = 0;
 		};
 
 		/**
@@ -95,6 +96,7 @@ namespace Thebe
 			virtual Triangle* AllocTriangle(int i, int j, int k) override
 			{
 				Triangle* triangle = this->objectHeap.Allocate();
+				THEBE_ASSERT(triangle != nullptr);
 				triangle->vertex[0] = i;
 				triangle->vertex[1] = j;
 				triangle->vertex[2] = k;
@@ -104,6 +106,11 @@ namespace Thebe
 			virtual void FreeTriangle(Triangle* triangle) override
 			{
 				this->objectHeap.Deallocate((T*)triangle);
+			}
+
+			virtual uint64_t NumFreeTriangles() const override
+			{
+				return this->objectHeap.NumFreeBlocks();
 			}
 
 		private:

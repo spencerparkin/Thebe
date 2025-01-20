@@ -111,6 +111,10 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 	if (deltaTimeSeconds >= 1.0)
 		return;
 
+	std::map<RefHandle, Reference<CollisionSystem::Collision>> collisionMap;
+	std::vector<Reference<CollisionSystem::Collision>> collisionArray;
+	std::list<Contact> contactList;
+
 	// Step the simulation forward until the given delta-time has been consumed.
 	while (deltaTimeSeconds > 0.0)
 	{
@@ -132,8 +136,8 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		}
 
 		// Detect and gather all collision pairs.
-		std::map<RefHandle, Reference<CollisionSystem::Collision>> collisionMap;
-		std::vector<Reference<CollisionSystem::Collision>> collisionArray;
+		collisionMap.clear();
+		collisionArray.clear();
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
@@ -148,7 +152,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		}
 
 		// Generate all collision contacts.
-		std::list<Contact> contactList;
+		contactList.clear();
 		for (auto& pair : collisionMap)
 		{
 			const auto& collision = pair.second;
@@ -172,6 +176,43 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 					resolutionCount++;
 			
 		} while (resolutionCount > 0);
+
+		// Go Separate all the bodies the best we can.
+		for (auto& pair : collisionMap)
+		{
+			auto& collision = pair.second;
+			const Vector3& separationDelta = collision->separationDelta;
+			
+			RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
+			RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
+
+			Reference<PhysicsObject> objectA, objectB;
+
+			if (HandleManager::Get()->GetObjectFromHandle(handleA, objectA) && HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
+			{
+				if (!objectA->IsStationary() && !objectB->IsStationary())
+				{
+					Transform objectToWorld = objectA->GetObjectToWorld();
+					objectToWorld.translation += separationDelta / 2.0;
+					objectA->SetObjectToWorld(objectToWorld);
+					objectToWorld = objectB->GetObjectToWorld();
+					objectToWorld.translation -= separationDelta / 2.0;
+					objectB->SetObjectToWorld(objectToWorld);
+				}
+				else if (!objectA->IsStationary())
+				{
+					Transform objectToWorld = objectA->GetObjectToWorld();
+					objectToWorld.translation += separationDelta;
+					objectA->SetObjectToWorld(objectToWorld);
+				}
+				else if (!objectB->IsStationary())
+				{
+					Transform objectToWorld = objectB->GetObjectToWorld();
+					objectToWorld.translation -= separationDelta;
+					objectB->SetObjectToWorld(objectToWorld);
+				}
+			}
+		}
 	}
 }
 

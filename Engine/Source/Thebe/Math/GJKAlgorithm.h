@@ -113,11 +113,11 @@ namespace Thebe
 		 * of the two given shapes.  It's assumed here that it has already been determined that these
 		 * shapes intersect using the @ref GJKShape::Intersect function.
 		 * 
-		 * @param[in] tetrahedron This could be any tetrahedron contained within the Minkowski difference of the two shapes, but it is typically output from @ref GJKShape::Intersect.
+		 * @param[in] simplex This just needs to be the simplex returned from @ref GJKShape::Intersect, called with the same shapes.
 		 * @param[out] separationDelta This is the vector that, if added to shapeA (or subtracted from shapeB) cause both shapes to share a set of points only on their boundary.
 		 * @return True is returned on success; false, otherwise.
 		 */
-		static bool Penetration(const GJKShape* shapeA, const GJKShape* shapeB, const GJKTetrahedronSimplex* tetrahedron, Vector3& separationDelta);
+		static bool Penetration(const GJKShape* shapeA, const GJKShape* shapeB, std::unique_ptr<GJKSimplex>& simplex, Vector3& separationDelta);
 
 		void SetObjectToWorld(const Transform& objectToWorld);
 		const Transform& GetObjectToWorld() const;

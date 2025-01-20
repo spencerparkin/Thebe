@@ -81,15 +81,27 @@ GJKShape::GJKShape()
 	return false;
 }
 
-/*static*/ bool GJKShape::Penetration(const GJKShape* shapeA, const GJKShape* shapeB, const GJKTetrahedronSimplex* tetrahedron, Vector3& separationDelta)
+/*static*/ bool GJKShape::Penetration(const GJKShape* shapeA, const GJKShape* shapeB, std::unique_ptr<GJKSimplex>& simplex, Vector3& separationDelta)
 {
 	separationDelta.SetComponents(0.0, 0.0, 0.0);
 
-	if (!tetrahedron)
+	if (!simplex.get())
 		return false;
 
 	if (!shapeA || !shapeB)
 		return false;
+
+	GJKTetrahedronSimplex* tetrahedron = nullptr;
+	while (true)
+	{
+		tetrahedron = dynamic_cast<GJKTetrahedronSimplex*>(simplex.get());
+		if (tetrahedron)
+			break;
+
+		simplex.reset(simplex->GenerateSimplex(shapeA, shapeB));
+		if (!simplex.get())
+			return false;
+	}
 
 	ExpandingPolytopeAlgorithm epa;
 	ExpandingPolytopeAlgorithm::TypedTriangleFactory<GJKTriangleForEPA> triangleFactory(1024);
@@ -120,7 +132,8 @@ GJKShape::GJKShape()
 		epa.triangleList.push_back(triangle);
 	}
 
-	epa.Expand(&pointSupplier, &triangleFactory);
+	if (!epa.Expand(&pointSupplier, &triangleFactory))
+		return false;
 
 	double shortestDistance = std::numeric_limits<double>::max();
 	for (auto triangle : epa.triangleList)
@@ -578,7 +591,7 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 			}
 		}
 
-		THEBE_ASSERT(false);
+		return nullptr;
 	}
 
 	if (this->trianglePlane.SignedDistanceTo(Vector3::Zero()) < 0.0)

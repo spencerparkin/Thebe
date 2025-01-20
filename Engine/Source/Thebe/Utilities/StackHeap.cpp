@@ -8,7 +8,6 @@ StackHeap::StackHeap()
 	this->memoryBuffer = nullptr;
 	this->memoryBufferSize = 0;
 	this->blockSize = 0;
-	this->blockStackTop = 0;
 }
 
 /*virtual*/ StackHeap::~StackHeap()
@@ -35,24 +34,24 @@ bool StackHeap::SetManagedMemory(uint8_t* memoryBuffer, uint64_t memoryBufferSiz
 
 	this->blockStack.clear();
 	uint64_t numBlocks = this->memoryBufferSize / this->blockSize;
-	this->blockStack.resize(numBlocks);
-	for (uint64_t i = 0; i < numBlocks; i++)
-		this->blockStack[i] = i * blockSize;
+	this->blockStack.reserve(numBlocks);
+	for (uint64_t i = 1; i <= numBlocks; i++)
+		this->blockStack.push_back(this->memoryBufferSize - i * this->blockSize);
 
-	this->blockStackTop = 0;
 	return true;
 }
 
 uint8_t* StackHeap::AllocateBlock()
 {
-	if (this->blockStackTop == (uint64_t)this->blockStack.size())
+	if (this->blockStack.size() == 0)
 	{
-		THEBE_LOG("Stack overflow!  No more memory can be allocated from the stack heap.");
+		THEBE_LOG("Stack underflow!  No more memory can be allocated from the stack heap.");
 		return nullptr;
 	}
 
-	uint64_t blockOffset = this->blockStack[this->blockStackTop++];
+	uint64_t blockOffset = this->blockStack.back();
 	uint8_t* block = &this->memoryBuffer[blockOffset];
+	this->blockStack.pop_back();
 	return block;
 }
 
@@ -65,12 +64,18 @@ bool StackHeap::DeallocateBlock(uint8_t* block)
 		return false;
 	}
 
-	if (this->blockStackTop == 0)
+	uint64_t numBlocks = this->memoryBufferSize / this->blockSize;
+	if (this->blockStack.size() == numBlocks)
 	{
-		THEBE_LOG("Stack underflow!  All memory is already free in the stack heap.");
+		THEBE_LOG("Stack overflow!  All memory is already free in the stack heap.");
 		return false;
 	}
 
-	this->blockStack[--this->blockStackTop] = blockOffset;
+	this->blockStack.push_back(blockOffset);
 	return true;
+}
+
+uint64_t StackHeap::NumFreeBlocks() const
+{
+	return this->blockStack.size();
 }

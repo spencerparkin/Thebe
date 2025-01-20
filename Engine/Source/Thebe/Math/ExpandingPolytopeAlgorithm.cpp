@@ -13,7 +13,7 @@ ExpandingPolytopeAlgorithm::ExpandingPolytopeAlgorithm()
 {
 }
 
-void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory)
+bool ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFactory* triangleFactory)
 {
 	while (true)
 	{
@@ -28,6 +28,9 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFa
 			if (plane.GetSide(point, this->planeThickness) == Plane::Side::FRONT)
 			{
 				int i = (signed)this->vertexArray.size();
+
+				if (triangleFactory->NumFreeTriangles() < 4)
+					return false;
 
 				Triangle* triangleA = triangle->Reversed(triangleFactory);
 				Triangle* triangleB = triangleFactory->AllocTriangle(i, triangle->vertex[0], triangle->vertex[1]);
@@ -65,6 +68,8 @@ void ExpandingPolytopeAlgorithm::Expand(PointSupplier* pointSupplier, TriangleFa
 				triangleList.push_back(newTriangle);
 		}
 	}
+
+	return true;
 }
 
 //--------------------------- ExpandingPolytopeAlgorithm::Triangle ---------------------------
