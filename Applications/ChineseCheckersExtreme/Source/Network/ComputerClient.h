@@ -15,10 +15,9 @@ public:
 
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
-	virtual void Update() override;
+	virtual void Update(double deltaTimeSeconds) override;
 
 private:
-
 	class Brain : public Thebe::Thread
 	{
 	public:
@@ -35,7 +34,7 @@ private:
 			bool canRecurse,
 			std::vector<double>& scoreStack,
 			std::vector<ChineseCheckersGame::Node*>* bestNodePath,
-			double bestScore);
+			double& bestScore);
 
 		enum Mandate
 		{
@@ -65,4 +64,13 @@ private:
 	};
 
 	Brain brain;
+
+	enum State
+	{
+		WAITING_FOR_MY_TURN,
+		THINKING,
+		WAITING_FOR_TURN_TO_HAPPEN
+	};
+
+	State state;
 };

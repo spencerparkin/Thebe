@@ -125,14 +125,16 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
-			physicsObject->AccumulateForcesAndTorques(this);
+			if (!physicsObject->IsFrozen())
+				physicsObject->AccumulateForcesAndTorques(this);
 		}
 
 		// Numerically integreate the equations of motion or whatever ODEs are applicable.
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
-			physicsObject->IntegrateMotionUnconstrained(timeStepSeconds);
+			if (!physicsObject->IsFrozen())
+				physicsObject->IntegrateMotionUnconstrained(timeStepSeconds);
 		}
 
 		// Detect and gather all collision pairs.
@@ -141,7 +143,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		for (auto& pair : this->physicsObjectMap)
 		{
 			PhysicsObject* physicsObject = pair.second.Get();
-			if (physicsObject->IsStationary())
+			if (physicsObject->IsStationary() || physicsObject->IsFrozen())
 				continue;
 
 			collisionArray.clear();

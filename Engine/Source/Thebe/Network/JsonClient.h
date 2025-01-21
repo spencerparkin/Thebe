@@ -18,7 +18,7 @@ namespace Thebe
 
 		virtual bool Setup();
 		virtual void Shutdown();
-		virtual void Update();
+		virtual void Update(double deltaTimeSeconds);
 
 		void SetAddress(const NetworkAddress& address);
 		void SetNeeds(bool needsSending, bool needsReceiving);

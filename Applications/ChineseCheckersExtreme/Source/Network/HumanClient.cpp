@@ -268,5 +268,10 @@ void HumanClient::SnapCubiesIntoPosition()
 		objectToWorld.translation = node->location + Vector3(0.0, 2.5, 0.0);
 
 		collisionObject->SetObjectToWorld(objectToWorld);
+
+		Reference<PhysicsObject> physicsObject;
+		RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
+		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
+			physicsObject->SetFrozen(true);
 	}
 }

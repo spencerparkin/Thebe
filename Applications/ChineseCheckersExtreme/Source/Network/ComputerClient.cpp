@@ -6,6 +6,7 @@ using namespace Thebe;
 
 ComputerClient::ComputerClient() : brain(this)
 {
+	this->state = State::WAITING_FOR_MY_TURN;
 }
 
 /*virtual*/ ComputerClient::~ComputerClient()
@@ -27,21 +28,41 @@ ComputerClient::ComputerClient() : brain(this)
 	ChineseCheckersClient::Shutdown();
 }
 
-/*virtual*/ void ComputerClient::Update()
+/*virtual*/ void ComputerClient::Update(double deltaTimeSeconds)
 {
-	ChineseCheckersClient::Update();
+	ChineseCheckersClient::Update(deltaTimeSeconds);
 
-	if (this->whoseTurnZoneID == this->GetSourceZoneID())
+	switch (this->state)
 	{
-		this->brain.mandateQueue.Add(Brain::Mandate::FORMULATE_TURN);
-		this->brain.mandateQueueSemaphore.release();
-	}
-
-	std::vector<ChineseCheckersGame::Node*>* nodePathArray = nullptr;
-	if (this->brain.nodePathArrayQueue.Remove(nodePathArray))
-	{
-		this->TakeTurn(*nodePathArray);
-		delete nodePathArray;
+		case State::WAITING_FOR_MY_TURN:
+		{
+			if (this->whoseTurnZoneID == this->GetSourceZoneID())
+			{
+				this->state = State::THINKING;
+				this->brain.mandateQueue.Add(Brain::Mandate::FORMULATE_TURN);
+				this->brain.mandateQueueSemaphore.release();
+			}
+			break;
+		}
+		case State::THINKING:
+		{
+			std::vector<ChineseCheckersGame::Node*>* nodePathArray = nullptr;
+			if (this->brain.nodePathArrayQueue.Remove(nodePathArray))
+			{
+				this->state = State::WAITING_FOR_TURN_TO_HAPPEN;
+				this->TakeTurn(*nodePathArray);
+				delete nodePathArray;
+			}
+			break;
+		}
+		case State::WAITING_FOR_TURN_TO_HAPPEN:
+		{
+			if (this->whoseTurnZoneID != this->GetSourceZoneID())
+			{
+				this->state = State::WAITING_FOR_MY_TURN;
+			}
+			break;
+		}
 	}
 }
 
@@ -87,6 +108,7 @@ void ComputerClient::Brain::FormulateTurn()
 	// This AI is dumb, but my goal here for now is to just make something that works as an automated opponent.
 
 	std::unique_ptr<std::vector<ChineseCheckersGame::Node*>> bestNodePathArray(new std::vector<ChineseCheckersGame::Node*>());
+	double bestScore = 0.0;
 
 	ChineseCheckersGame* game = this->computer->GetGame();
 
@@ -102,7 +124,6 @@ void ComputerClient::Brain::FormulateTurn()
 			this->GenerateIdealDirectionMap(node->occupant->targetZoneID);
 
 		std::vector<ChineseCheckersGame::Node*> nodePathArray;
-		double bestScore = 0.0;
 		std::vector<double> scoreStack;
 		this->SearchPathsRecursive(const_cast<ChineseCheckersGame::Node*>(node.Get()), nodePathArray, true, scoreStack, bestNodePathArray.get(), bestScore);
 	}
@@ -116,7 +137,7 @@ void ComputerClient::Brain::SearchPathsRecursive(
 									bool canRecurse,
 									std::vector<double>& scoreStack,
 									std::vector<ChineseCheckersGame::Node*>* bestNodePath,
-									double bestScore)
+									double& bestScore)
 {
 	nodePathArray.push_back(node);
 
@@ -124,7 +145,7 @@ void ComputerClient::Brain::SearchPathsRecursive(
 	for (double score : scoreStack)
 		pathScore += score;
 
-	if (pathScore > bestScore)
+	if (pathScore > bestScore || bestNodePath->size() == 0)
 	{
 		bestScore = pathScore;
 		*bestNodePath = nodePathArray;
@@ -173,9 +194,13 @@ void ComputerClient::Brain::SearchPathsRecursive(
 void ComputerClient::Brain::GoDirection(ChineseCheckersGame::Node* node, int i, std::vector<double>& scoreStack)
 {
 	auto pair = this->idealDirectionMap.find(node->GetHandle());
-	THEBE_ASSERT(pair != this->idealDirectionMap.end());
-	IdealDirectionSet* idealDirectionSet = pair->second.Get();
-	idealDirectionSet->GoDirection(i, scoreStack);
+	if (pair == this->idealDirectionMap.end())
+		scoreStack.push_back(0.0);
+	else
+	{
+		IdealDirectionSet* idealDirectionSet = pair->second.Get();
+		idealDirectionSet->GoDirection(i, scoreStack);
+	}
 }
 
 void ComputerClient::Brain::GenerateIdealDirectionMap(int targetZoneID)
@@ -210,10 +235,10 @@ void ComputerClient::Brain::GenerateIdealDirectionMap(int targetZoneID)
 	}
 
 	// Ideal directions within the target zone are to move deeper within the zone.
-	std::vector<RefHandle> additionalNodesArray;
+	std::set<RefHandle> additionalNodeSet;
 	while (true)
 	{
-		additionalNodesArray.clear();
+		additionalNodeSet.clear();
 
 		for (const Reference<ChineseCheckersGame::Node>& node : game->GetNodeArray())
 		{
@@ -228,7 +253,7 @@ void ComputerClient::Brain::GenerateIdealDirectionMap(int targetZoneID)
 					if (adjacentNode->zoneID == targetZoneID && zoneNodeSet.find(adjacentNode->GetHandle()) == zoneNodeSet.end())
 					{
 						idealDirectionSet->directionSet.insert(i);
-						additionalNodesArray.push_back(node->GetHandle());
+						additionalNodeSet.insert(adjacentNode->GetHandle());
 					}
 				}
 
@@ -237,19 +262,21 @@ void ComputerClient::Brain::GenerateIdealDirectionMap(int targetZoneID)
 			}
 		}
 
-		if (additionalNodesArray.size() == 0)
+		if (additionalNodeSet.size() == 0)
 			break;
 
-		for (auto& refHandle : additionalNodesArray)
+		for (auto& refHandle : additionalNodeSet)
 			zoneNodeSet.insert(refHandle);
 	}
 
 	// Finally, it's ideal to move from anywhere where we don't know where to go to somewhere where we do know where to go.
-	while (this->idealDirectionMap.size() < game->GetNodeArray().size())
+	while (true)
 	{
+		int additionCount = 0;
+
 		for (const Reference<ChineseCheckersGame::Node>& node : game->GetNodeArray())
 		{
-			if (node->zoneID != targetZoneID)
+			if (node->zoneID != targetZoneID && this->idealDirectionMap.find(node->GetHandle()) == this->idealDirectionMap.end())
 			{
 				Reference<IdealDirectionSet> idealDirectionSet(new IdealDirectionSet());
 
@@ -262,15 +289,21 @@ void ComputerClient::Brain::GenerateIdealDirectionMap(int targetZoneID)
 				}
 
 				if (idealDirectionSet->directionSet.size() > 0)
+				{
 					this->idealDirectionMap.insert(std::pair(node->GetHandle(), idealDirectionSet));
+					additionCount++;
+				}
 			}
 		}
+
+		if (additionCount == 0)
+			break;
 	}
 }
 
 void ComputerClient::Brain::IdealDirectionSet::GoDirection(int i, std::vector<double>& scoreStack) const
 {
-	double score = 0.0;
+	double score = -1.0;
 	if (this->directionSet.find(i) != this->directionSet.end())
 		score = 1.0;
 

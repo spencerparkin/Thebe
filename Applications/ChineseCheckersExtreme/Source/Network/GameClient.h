@@ -15,7 +15,7 @@ public:
 
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
-	virtual void Update() override;
+	virtual void Update(double deltaTimeSeconds) override;
 
 	ChineseCheckersGame* GetGame();
 
@@ -29,4 +29,6 @@ protected:
 	Thebe::Reference<ChineseCheckersGame> game;
 	int whoseTurnZoneID;
 	int sourceZoneID;
+	double pingFrequencySecondsPerPing;
+	double timeSecondsToNextPing;
 };

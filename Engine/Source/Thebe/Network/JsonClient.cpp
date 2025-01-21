@@ -133,7 +133,7 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 	}
 }
 
-/*virtual*/ void JsonClient::Update()
+/*virtual*/ void JsonClient::Update(double deltaTimeSeconds)
 {
 	const ParseParty::JsonValue* jsonValue = nullptr;
 	if (this->jsonMessageQueue.Remove(jsonValue))

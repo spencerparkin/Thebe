@@ -8,6 +8,7 @@ using namespace Thebe;
 PhysicsObject::PhysicsObject()
 {
 	this->stationary = false;
+	this->frozen = false;
 }
 
 /*virtual*/ PhysicsObject::~PhysicsObject()
@@ -160,6 +161,16 @@ void PhysicsObject::SetStationary(bool stationary)
 bool PhysicsObject::IsStationary() const
 {
 	return this->stationary;
+}
+
+void PhysicsObject::SetFrozen(bool frozen)
+{
+	this->frozen = frozen;
+}
+
+bool PhysicsObject::IsFrozen() const
+{
+	return this->frozen;
 }
 
 void PhysicsObject::SetCollisionObject(CollisionObject* collisionObject)

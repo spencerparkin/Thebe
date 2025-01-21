@@ -9,6 +9,8 @@ ChineseCheckersClient::ChineseCheckersClient()
 {
 	this->sourceZoneID = 0;
 	this->whoseTurnZoneID = 0;
+	this->pingFrequencySecondsPerPing = 1.0;
+	this->timeSecondsToNextPing = 0.0;
 }
 
 /*virtual*/ ChineseCheckersClient::~ChineseCheckersClient()
@@ -44,11 +46,23 @@ ChineseCheckersGame* ChineseCheckersClient::GetGame()
 	JsonClient::Shutdown();
 }
 
-/*virtual*/ void ChineseCheckersClient::Update()
+/*virtual*/ void ChineseCheckersClient::Update(double deltaTimeSeconds)
 {
-	JsonClient::Update();
+	using namespace ParseParty;
 
-	// This is where we might continuously ping the server if WinSock keeps failing to flush the sockets.
+	JsonClient::Update(deltaTimeSeconds);
+
+	// I don't know why, but if I don't periodically send data,
+	// then the socket won't flush.
+	this->timeSecondsToNextPing -= deltaTimeSeconds;
+	if (this->timeSecondsToNextPing <= 0.0)
+	{
+		this->timeSecondsToNextPing += pingFrequencySecondsPerPing;
+
+		std::unique_ptr<JsonObject> jsonRequestValue(new JsonObject());
+		jsonRequestValue->SetValue("request", new JsonString("ping"));
+		this->SendJson(jsonRequestValue.get());
+	}
 }
 
 void ChineseCheckersClient::TakeTurn(const std::vector<ChineseCheckersGame::Node*>& nodeArray)

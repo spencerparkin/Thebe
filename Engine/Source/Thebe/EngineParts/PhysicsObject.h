@@ -72,6 +72,9 @@ namespace Thebe
 		void SetStationary(bool stationary);
 		bool IsStationary() const;
 
+		void SetFrozen(bool frozen);
+		bool IsFrozen() const;
+
 		void SetCollisionObject(CollisionObject* collisionObject);
 		CollisionObject* GetCollisionObject();
 		const CollisionObject* GetCollisionObject() const;
@@ -116,5 +119,6 @@ namespace Thebe
 		std::filesystem::path collisionObjectPath;
 
 		bool stationary;
+		bool frozen;
 	};
 }
