@@ -145,7 +145,7 @@ void ComputerClient::Brain::SearchPathsRecursive(
 	for (double score : scoreStack)
 		pathScore += score;
 
-	if (pathScore > bestScore || bestNodePath->size() == 0)
+	if (bestNodePath->size() == 0 || pathScore > bestScore || (pathScore == bestScore && this->random.CoinFlip()))
 	{
 		bestScore = pathScore;
 		*bestNodePath = nodePathArray;

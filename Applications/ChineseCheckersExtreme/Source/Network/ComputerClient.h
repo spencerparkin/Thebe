@@ -2,6 +2,7 @@
 
 #include "GameClient.h"
 #include "Thebe/Utilities/Thread.h"
+#include "Thebe/Math/Random.h"
 #include <semaphore>
 
 /**
@@ -61,6 +62,8 @@ private:
 
 		void GenerateIdealDirectionMap(int targetZoneID);
 		void GoDirection(ChineseCheckersGame::Node* node, int i, std::vector<double>& scoreStack);
+
+		Thebe::Random random;
 	};
 
 	Brain brain;
