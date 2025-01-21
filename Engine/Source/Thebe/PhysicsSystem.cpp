@@ -182,9 +182,6 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			auto& collision = pair.second;
 			const Vector3& separationDelta = collision->separationDelta;
-			double minSeparation = 0.05;
-			if (separationDelta.Length() < minSeparation)
-				continue;
 
 			RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
 			RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
@@ -200,18 +197,6 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 					objectA->SetObjectToWorld(objectToWorld);
 					objectToWorld = objectB->GetObjectToWorld();
 					objectToWorld.translation -= separationDelta / 2.0;
-					objectB->SetObjectToWorld(objectToWorld);
-				}
-				else if (!objectA->IsStationary())
-				{
-					Transform objectToWorld = objectA->GetObjectToWorld();
-					objectToWorld.translation += separationDelta;
-					objectA->SetObjectToWorld(objectToWorld);
-				}
-				else if (!objectB->IsStationary())
-				{
-					Transform objectToWorld = objectB->GetObjectToWorld();
-					objectToWorld.translation -= separationDelta;
 					objectB->SetObjectToWorld(objectToWorld);
 				}
 			}
