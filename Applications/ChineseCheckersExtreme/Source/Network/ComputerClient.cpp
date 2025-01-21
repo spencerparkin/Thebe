@@ -35,19 +35,19 @@ ComputerClient::ComputerClient() : brain(this)
 
 	switch (this->state)
 	{
-		case State::CHILL:
+		case State::WAITING_FOR_MY_TURN:
 		{
-			this->chillTimeSeconds -= deltaTimeSeconds;
-			if (this->chillTimeSeconds <= 0.0)
+			if (this->whoseTurnZoneID == this->GetSourceZoneID())
 			{
-				this->state = State::WAITING_FOR_MY_TURN;
+				this->state = State::CHILL;
 				this->chillTimeSeconds = 1.0;
 			}
 			break;
 		}
-		case State::WAITING_FOR_MY_TURN:
+		case State::CHILL:
 		{
-			if (this->whoseTurnZoneID == this->GetSourceZoneID())
+			this->chillTimeSeconds -= deltaTimeSeconds;
+			if (this->chillTimeSeconds <= 0.0)
 			{
 				this->state = State::THINKING;
 				this->brain.mandateQueue.Add(Brain::Mandate::FORMULATE_TURN);
@@ -70,7 +70,7 @@ ComputerClient::ComputerClient() : brain(this)
 		{
 			if (this->whoseTurnZoneID != this->GetSourceZoneID())
 			{
-				this->state = State::CHILL;
+				this->state = State::WAITING_FOR_MY_TURN;
 			}
 			break;
 		}
