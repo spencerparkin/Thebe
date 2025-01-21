@@ -73,14 +73,14 @@ namespace Thebe
 		class THEBE_API ContactResolverInterface
 		{
 		public:
-			virtual bool ResolveContact(Contact& contact) = 0;
+			virtual bool ResolveContact(Contact& contact, PhysicsSystem* physicsSystem) = 0;
 		};
 
 		template<typename ObjectTypeA, typename ObjectTypeB>
 		class THEBE_API ContactResolver : public ContactResolverInterface
 		{
 		public:
-			virtual bool ResolveContact(Contact& contact) override
+			virtual bool ResolveContact(Contact& contact, PhysicsSystem* physicsSystem) override
 			{
 				return false;
 			}
@@ -90,21 +90,21 @@ namespace Thebe
 		class THEBE_API ContactResolver<RigidBody, RigidBody> : public ContactResolverInterface
 		{
 		public:
-			virtual bool ResolveContact(Contact& contact) override;
+			virtual bool ResolveContact(Contact& contact, PhysicsSystem* physicsSystem) override;
 		};
 
 		template<>
 		class THEBE_API ContactResolver<RigidBody, FloppyBody> : public ContactResolverInterface
 		{
 		public:
-			virtual bool ResolveContact(Contact& contact) override;
+			virtual bool ResolveContact(Contact& contact, PhysicsSystem* physicsSystem) override;
 		};
 
 		template<>
 		class THEBE_API ContactResolver<FloppyBody, FloppyBody> : public ContactResolverInterface
 		{
 		public:
-			virtual bool ResolveContact(Contact& contact) override;
+			virtual bool ResolveContact(Contact& contact, PhysicsSystem* physicsSystem) override;
 		};
 
 		void SetGravity(const Vector3& accelerationDueToGravity);

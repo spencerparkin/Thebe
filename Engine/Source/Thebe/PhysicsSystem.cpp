@@ -226,7 +226,7 @@ bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision
 bool PhysicsSystem::ResolveContact(Contact& contact)
 {
 	for (auto& contactResolver : this->contactResolverArray)
-		if (contactResolver->ResolveContact(contact))
+		if (contactResolver->ResolveContact(contact, this))
 			return true;
 
 	return false;
@@ -234,7 +234,7 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 
 //------------------------------ PhysicsSystem::ContactResolver<RigidBody, RigidBody> ------------------------------
 
-/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, RigidBody>::ResolveContact(Contact& contact)
+/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, RigidBody>::ResolveContact(Contact& contact, PhysicsSystem* physicsSystem)
 {
 	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
 	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
@@ -285,24 +285,23 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 	rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
 	rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
 
-	double coeficientOfFriction = 0.5;
-	double frictionForceMag = ::fabs(relativeVelocity) * coeficientOfFriction;
-
-	Vector3 frictionForceA = -velocityA;
-	if (frictionForceA.Normalize())
+	if (!rigidBodyA->IsStationary())
 	{
+		static double frictionFactor = 1.0;
+		Vector3 frictionForceA = -velocityA * frictionFactor;
 		PhysicsObject::ContactForce contactForce;
 		contactForce.point = contact.surfacePoint;
-		contactForce.force = frictionForceA * frictionForceMag;
+		contactForce.force = frictionForceA;
 		rigidBodyA->AddTransientContactForce(contactForce);
 	}
 
-	Vector3 frictionForceB = -velocityB;
-	if (frictionForceB.Normalize())
+	if (!rigidBodyB->IsStationary())
 	{
+		static double frictionFactor = 1.0;
+		Vector3 frictionForceB = -velocityB * frictionFactor;
 		PhysicsObject::ContactForce contactForce;
 		contactForce.point = contact.surfacePoint;
-		contactForce.force = frictionForceB * frictionForceMag;
+		contactForce.force = frictionForceB;
 		rigidBodyB->AddTransientContactForce(contactForce);
 	}
 
@@ -311,7 +310,7 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 
 //------------------------------ PhysicsSystem::ContactResolver<RigidBody, FloppyBody> ------------------------------
 
-/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, FloppyBody>::ResolveContact(Contact& contact)
+/*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, FloppyBody>::ResolveContact(Contact& contact, PhysicsSystem* physicsSystem)
 {
 	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
 	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
@@ -357,7 +356,7 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 	return resolved;
 }
 
-/*virtual*/ bool PhysicsSystem::ContactResolver<FloppyBody, FloppyBody>::ResolveContact(Contact& contact)
+/*virtual*/ bool PhysicsSystem::ContactResolver<FloppyBody, FloppyBody>::ResolveContact(Contact& contact, PhysicsSystem* physicsSystem)
 {
 	// TODO: Write this.
 	return false;
