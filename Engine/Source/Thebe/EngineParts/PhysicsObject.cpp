@@ -114,34 +114,34 @@ PhysicsObject::PhysicsObject()
 	for (const auto& pair : this->externalContactForceMap)
 	{
 		const ContactForce& contactForce = pair.second;
-		Vector3 vector = this->GetCenterOfMass() - contactForce.point;
-		double length = vector.Length();
-		double scale = (length == 0.0) ? 0.0 : (1.0 / length);
-		if (scale == 0.0 || scale != scale)
-			this->totalForce += contactForce.force;
-		else
-		{
-			Vector3 unitVector = vector * scale;
-			Vector3 force = unitVector * unitVector.Dot(contactForce.force);
-			this->totalForce += force;
-			Vector3 torque = (contactForce.force - force).Cross(vector);
-			this->totalTorque += torque;
-		}
+		this->ApplyContactForce(contactForce);
+	}
+
+	while (this->transientContactForceList.size() > 0)
+	{
+		ContactForce contactForce = *this->transientContactForceList.begin();
+		this->transientContactForceList.pop_front();
+		this->ApplyContactForce(contactForce);
 	}
 
 	Vector3 gravityForce = physicsSystem->GetGravity() * this->GetTotalMass();
 	this->totalForce += gravityForce;
+}
 
-	while (this->frictionForceList.size() > 0)
+void PhysicsObject::ApplyContactForce(const ContactForce& contactForce)
+{
+	Vector3 vector = this->GetCenterOfMass() - contactForce.point;
+	double length = vector.Length();
+	double scale = (length == 0.0) ? 0.0 : (1.0 / length);
+	if (scale == 0.0 || scale != scale)
+		this->totalForce += contactForce.force;
+	else
 	{
-		TransientFrictionForce transientFrictionForce = *this->frictionForceList.begin();
-		this->frictionForceList.pop_front();
-
-		Vector3 frictionForce = -this->GetLinearMotionDirection() * ::fabs(gravityForce.Dot(transientFrictionForce.unitNormal)) * transientFrictionForce.coeficientOfLinearFriction;
-		this->totalForce += frictionForce;
-
-		Vector3 frictionTorque = -this->GetAngularMotionDirection() * ::fabs(gravityForce.Dot(transientFrictionForce.unitNormal)) * transientFrictionForce.coeficientOfAngularFriction;
-		this->totalTorque += frictionTorque;
+		Vector3 unitVector = vector * scale;
+		Vector3 force = unitVector * unitVector.Dot(contactForce.force);
+		this->totalForce += force;
+		Vector3 torque = (contactForce.force - force).Cross(vector);
+		this->totalTorque += torque;
 	}
 }
 
@@ -258,7 +258,17 @@ bool PhysicsObject::GetExternalContactForce(const std::string& name, ContactForc
 	return true;
 }
 
-void PhysicsObject::AddTransientFrictionForce(const TransientFrictionForce& frictionForce)
+void PhysicsObject::AddTransientContactForce(const ContactForce& contactForce)
 {
-	this->frictionForceList.push_back(frictionForce);
+	this->transientContactForceList.push_back(contactForce);
+}
+
+const Vector3& PhysicsObject::GetTotalForce() const
+{
+	return this->totalForce;
+}
+
+const Vector3& PhysicsObject::GetTotalTorque() const
+{
+	return this->totalTorque;
 }

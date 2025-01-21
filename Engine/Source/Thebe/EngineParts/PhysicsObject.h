@@ -96,21 +96,19 @@ namespace Thebe
 		void SetExternalContactForce(const std::string& name, const ContactForce& contactForce);
 		bool GetExternalContactForce(const std::string& name, ContactForce& contactForce) const;
 
-		struct TransientFrictionForce
-		{
-			Vector3 unitNormal;
-			double coeficientOfLinearFriction;
-			double coeficientOfAngularFriction;
-		};
+		void AddTransientContactForce(const ContactForce& contactForce);
 
-		void AddTransientFrictionForce(const TransientFrictionForce& frictionForce);
+		const Vector3& GetTotalForce() const;
+		const Vector3& GetTotalTorque() const;
 
 	protected:
+
+		void ApplyContactForce(const ContactForce& contactForce);
 
 		std::map<std::string, Vector3> externalForceMap;
 		std::map<std::string, Vector3> externalTorqueMap;
 		std::map<std::string, ContactForce> externalContactForceMap;
-		std::list<TransientFrictionForce> frictionForceList;
+		std::list<ContactForce> transientContactForceList;
 
 		Vector3 totalForce;
 		Vector3 totalTorque;

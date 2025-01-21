@@ -205,24 +205,37 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		}
 
 		// Lastly, apply some friction forces.
+		double coeficientOfFriction = 0.5;
 		for (auto& contact : contactList)
 		{
 			if (!contact.objectA->IsStationary())
 			{
-				PhysicsObject::TransientFrictionForce transientFrictionForce;
-				transientFrictionForce.unitNormal = contact.unitNormal;
-				transientFrictionForce.coeficientOfLinearFriction = 0.1;
-				transientFrictionForce.coeficientOfAngularFriction = 0.01;
-				contact.objectA->AddTransientFrictionForce(transientFrictionForce);
+				Vector3 frictionForceDirection = -contact.objectA->GetTotalForce();
+				if (frictionForceDirection.Normalize())
+				{
+					Vector3 gravityForce = this->accelerationDueToGravity * contact.objectA->GetTotalMass() * Vector3(0.0, -1.0, 0.0);
+					double frictionForceMag = ::fabs(gravityForce.Dot(contact.unitNormal)) * coeficientOfFriction;
+					Vector3 frictionForce = frictionForceDirection * frictionForceMag;
+					PhysicsObject::ContactForce contactForce;
+					contactForce.point = contact.surfacePoint;
+					contactForce.force = frictionForce;
+					contact.objectA->AddTransientContactForce(contactForce);
+				}
 			}
 
 			if (!contact.objectB->IsStationary())
 			{
-				PhysicsObject::TransientFrictionForce transientFrictionForce;
-				transientFrictionForce.unitNormal = -contact.unitNormal;
-				transientFrictionForce.coeficientOfLinearFriction = 0.1;
-				transientFrictionForce.coeficientOfAngularFriction = 0.01;
-				contact.objectA->AddTransientFrictionForce(transientFrictionForce);
+				Vector3 frictionForceDirection = -contact.objectB->GetTotalForce();
+				if (frictionForceDirection.Normalize())
+				{
+					Vector3 gravityForce = this->accelerationDueToGravity * contact.objectB->GetTotalMass() * Vector3(0.0, -1.0, 0.0);
+					double frictionForceMag = ::fabs(gravityForce.Dot(contact.unitNormal)) * coeficientOfFriction;
+					Vector3 frictionForce = frictionForceDirection * frictionForceMag;
+					PhysicsObject::ContactForce contactForce;
+					contactForce.point = contact.surfacePoint;
+					contactForce.force = frictionForce;
+					contact.objectB->AddTransientContactForce(contactForce);
+				}
 			}
 		}
 	}
