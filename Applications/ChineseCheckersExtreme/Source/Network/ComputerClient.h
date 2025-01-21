@@ -72,8 +72,10 @@ private:
 	{
 		WAITING_FOR_MY_TURN,
 		THINKING,
-		WAITING_FOR_TURN_TO_HAPPEN
+		WAITING_FOR_TURN_TO_HAPPEN,
+		CHILL
 	};
 
 	State state;
+	double chillTimeSeconds;
 };

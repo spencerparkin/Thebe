@@ -6,7 +6,8 @@ using namespace Thebe;
 
 ComputerClient::ComputerClient() : brain(this)
 {
-	this->state = State::WAITING_FOR_MY_TURN;
+	this->state = State::CHILL;
+	this->chillTimeSeconds = 1.0;
 }
 
 /*virtual*/ ComputerClient::~ComputerClient()
@@ -34,6 +35,16 @@ ComputerClient::ComputerClient() : brain(this)
 
 	switch (this->state)
 	{
+		case State::CHILL:
+		{
+			this->chillTimeSeconds -= deltaTimeSeconds;
+			if (this->chillTimeSeconds <= 0.0)
+			{
+				this->state = State::WAITING_FOR_MY_TURN;
+				this->chillTimeSeconds = 1.0;
+			}
+			break;
+		}
 		case State::WAITING_FOR_MY_TURN:
 		{
 			if (this->whoseTurnZoneID == this->GetSourceZoneID())
@@ -59,7 +70,7 @@ ComputerClient::ComputerClient() : brain(this)
 		{
 			if (this->whoseTurnZoneID != this->GetSourceZoneID())
 			{
-				this->state = State::WAITING_FOR_MY_TURN;
+				this->state = State::CHILL;
 			}
 			break;
 		}
