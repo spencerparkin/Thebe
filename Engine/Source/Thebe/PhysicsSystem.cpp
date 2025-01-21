@@ -203,41 +203,6 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 				}
 			}
 		}
-
-		// Lastly, apply some friction forces.
-		double coeficientOfFriction = 0.5;
-		for (auto& contact : contactList)
-		{
-			if (!contact.objectA->IsStationary())
-			{
-				Vector3 frictionForceDirection = -contact.objectA->GetTotalForce();
-				if (frictionForceDirection.Normalize())
-				{
-					Vector3 gravityForce = this->accelerationDueToGravity * contact.objectA->GetTotalMass() * Vector3(0.0, -1.0, 0.0);
-					double frictionForceMag = ::fabs(gravityForce.Dot(contact.unitNormal)) * coeficientOfFriction;
-					Vector3 frictionForce = frictionForceDirection * frictionForceMag;
-					PhysicsObject::ContactForce contactForce;
-					contactForce.point = contact.surfacePoint;
-					contactForce.force = frictionForce;
-					contact.objectA->AddTransientContactForce(contactForce);
-				}
-			}
-
-			if (!contact.objectB->IsStationary())
-			{
-				Vector3 frictionForceDirection = -contact.objectB->GetTotalForce();
-				if (frictionForceDirection.Normalize())
-				{
-					Vector3 gravityForce = this->accelerationDueToGravity * contact.objectB->GetTotalMass() * Vector3(0.0, -1.0, 0.0);
-					double frictionForceMag = ::fabs(gravityForce.Dot(contact.unitNormal)) * coeficientOfFriction;
-					Vector3 frictionForce = frictionForceDirection * frictionForceMag;
-					PhysicsObject::ContactForce contactForce;
-					contactForce.point = contact.surfacePoint;
-					contactForce.force = frictionForce;
-					contact.objectB->AddTransientContactForce(contactForce);
-				}
-			}
-		}
 	}
 }
 
@@ -319,6 +284,27 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 
 	rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
 	rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
+
+	double coeficientOfFriction = 0.5;
+	double frictionForceMag = ::fabs(relativeVelocity) * coeficientOfFriction;
+
+	Vector3 frictionForceA = -velocityA;
+	if (frictionForceA.Normalize())
+	{
+		PhysicsObject::ContactForce contactForce;
+		contactForce.point = contact.surfacePoint;
+		contactForce.force = frictionForceA * frictionForceMag;
+		rigidBodyA->AddTransientContactForce(contactForce);
+	}
+
+	Vector3 frictionForceB = -velocityB;
+	if (frictionForceB.Normalize())
+	{
+		PhysicsObject::ContactForce contactForce;
+		contactForce.point = contact.surfacePoint;
+		contactForce.force = frictionForceB * frictionForceMag;
+		rigidBodyB->AddTransientContactForce(contactForce);
+	}
 
 	return true;
 }
