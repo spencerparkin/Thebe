@@ -529,54 +529,23 @@ ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyAndDirection(i
 	return node;
 }
 
-ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyInDirection(const Vector3& unitDirection)
+ChineseCheckersGame::Node* ChineseCheckersGame::Node::GetAdjacencyInDirection(const Vector3& unitDirection, int* j /*= nullptr*/)
 {
-	for (Node* node : this->adjacentNodeArray)
+	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
 	{
-		Vector3 nodeUnitDirection = (node->location - this->location).Normalized();
+		Node* adjacentNode = this->adjacentNodeArray[i];
+		Vector3 nodeUnitDirection = (adjacentNode->location - this->location).Normalized();
 		double angle = unitDirection.AngleBetween(nodeUnitDirection);
 		if (angle < THEBE_MEDIUM_EPS)
 		{
-			return node;
+			if (j)
+				*j = i;
+
+			return adjacentNode;
 		}
 	}
 
 	return nullptr;
-}
-
-bool ChineseCheckersGame::Node::FindWithHops(Node* targetNode, std::vector<Node*>& nodePathArray)
-{
-	nodePathArray.push_back(this);
-
-	if (this == targetNode)
-		return true;
-
-	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
-	{
-		Vector3 unitDirection;
-		Node* adjacentNode = this->GetAdjacencyAndDirection(i, unitDirection);
-		if (!adjacentNode->occupant)
-			continue;
-		
-		Node* hopNode = adjacentNode->GetAdjacencyInDirection(unitDirection);
-		if (!hopNode)
-			continue;
-
-		bool alreadyTraveled = false;
-		for (int j = 0; j < (int)nodePathArray.size() && !alreadyTraveled; j++)
-			if (nodePathArray[j] == hopNode)
-				alreadyTraveled = true;
-
-		if (alreadyTraveled)
-			continue;
-
-		if (hopNode->FindWithHops(targetNode, nodePathArray))
-			return true;
-	}
-
-	nodePathArray.pop_back();
-
-	return false;
 }
 
 bool ChineseCheckersGame::Node::IsAdjacentTo(Node* node)

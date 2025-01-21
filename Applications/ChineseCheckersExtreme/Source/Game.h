@@ -60,11 +60,9 @@ public:
 		void RemoveNullAdjacencies();
 
 		Node* GetAdjacencyAndDirection(int i, Thebe::Vector3& unitDirection);
-		Node* GetAdjacencyInDirection(const Thebe::Vector3& unitDirection);
+		Node* GetAdjacencyInDirection(const Thebe::Vector3& unitDirection, int* j = nullptr);
 
 		bool IsAdjacentTo(Node* node);
-
-		bool FindWithHops(Node* targetNode, std::vector<Node*>& nodePathArray);
 
 		std::vector<Node*> adjacentNodeArray;
 		Thebe::Vector3 location;
