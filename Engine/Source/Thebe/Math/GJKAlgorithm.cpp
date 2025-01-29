@@ -85,7 +85,7 @@ GJKShape::GJKShape()
 		Vector3 unitDirection = facet->CalcFacetNormWithBiasTowardsOrigin();
 		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
 		double dot = supportPoint.Dot(unitDirection);
-		if (dot < 0.05)	// SIGH...That's a FAT epsilon.
+		if (dot < 0.1)	// SIGH...That's a FAT epsilon.
 			break;
 
 		simplex.reset(facet->ExtendSimplexWithPoint(supportPoint));
@@ -119,9 +119,10 @@ GJKShape::GJKShape()
 		if (tetrahedron)
 			break;
 
-		// TODO: Fix this.
-		//simplex.reset(simplex->GenerateSimplex(shapeA, shapeB));
-		//if (!simplex.get())
+		Vector3 unitDirection = simplex->CalcFacetNormWithBiasTowardsOrigin();
+		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
+		simplex.reset(simplex->ExtendSimplexWithPoint(supportPoint));
+		if (!simplex.get())
 			return false;
 	}
 
