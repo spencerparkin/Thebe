@@ -714,7 +714,6 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 	return nullptr;
 }
 
-
 #if defined GJK_RENDER_DEBUG
 /*virtual*/ void GJKTetrahedronSimplex::DebugDraw(DebugRenderClient* client, int simplexNumber)
 {
