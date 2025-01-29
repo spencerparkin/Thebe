@@ -285,6 +285,7 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 	rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
 	rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
 
+#if 0
 	if (!rigidBodyA->IsStationary())
 	{
 		static double frictionFactor = 1.0;
@@ -304,6 +305,7 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 		contactForce.force = frictionForceB;
 		rigidBodyB->AddTransientContactForce(contactForce);
 	}
+#endif
 
 	return true;
 }

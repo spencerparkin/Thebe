@@ -12,6 +12,12 @@
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/Math/ExpandingPolytopeAlgorithm.h"
 
+#define GJK_RENDER_DEBUG
+
+#if defined GJK_RENDER_DEBUG
+#include "Thebe/Network/DebugRenderClient.h"
+#endif
+
 namespace Thebe
 {
 	class GJKSimplex;
@@ -247,6 +253,10 @@ namespace Thebe
 		 * The idea is to find such a point as far in the given direction as possible.
 		 */
 		static Vector3 CalcSupportPoint(const GJKShape* shapeA, const GJKShape* shapeB, const Vector3& unitDirection);
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) = 0;
+#endif //GJK_RENDER_DEBUG
 	};
 
 	/**
@@ -262,6 +272,10 @@ namespace Thebe
 		virtual uint32_t GetDimension() const override;
 		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
+#endif //GJK_RENDER_DEBUG
 
 		Vector3 point;
 	};
@@ -280,6 +294,10 @@ namespace Thebe
 		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
+#endif //GJK_RENDER_DEBUG
+
 		LineSegment lineSegment;
 	};
 
@@ -297,6 +315,10 @@ namespace Thebe
 		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
+#endif //GJK_RENDER_DEBUG
+
 		Vector3 vertex[3];
 	};
 
@@ -312,6 +334,10 @@ namespace Thebe
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual uint32_t GetDimension() const override;
 		virtual GJKSimplex* FindFacetWithVoronoiRegionContainingOrigin() const override;
+
+#if defined GJK_RENDER_DEBUG
+		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
+#endif //GJK_RENDER_DEBUG
 
 		struct FacetData
 		{
