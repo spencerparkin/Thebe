@@ -10,15 +10,7 @@
 #include "Thebe/Math/Matrix3x3.h"
 #include "Thebe/Math/Graph.h"
 #include "Thebe/Math/LineSegment.h"
-#include "Thebe/Math/Random.h"
 #include "Thebe/Math/ExpandingPolytopeAlgorithm.h"
-#include <functional>
-
-//#define GJK_RENDER_DEBUG
-
-#if defined GJK_RENDER_DEBUG
-#include "Thebe/Network/DebugRenderClient.h"
-#endif
 
 namespace Thebe
 {
@@ -225,16 +217,35 @@ namespace Thebe
 		virtual bool ContainsOrigin(double epsilon) const = 0;
 
 		/**
-		 * Generate the next simplex we need in the course of the GJK algorithm.
-		 * If null is returned here, the algorithm can terminate, and we can
-		 * conclude that there is no intersection.
+		 * Return the dimensionality of this simplex.
 		 */
-		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const = 0;
+		virtual uint32_t GetDimension() const = 0;
 
-#if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) = 0;
-#endif //GJK_RENDER_DEBUG
+		/**
+		 * This method should always succeed in the cases we're interested in.
+		 * If it does not succeed, then our math has gone wrong.
+		 */
+		virtual GJKSimplex* FindFacetWithVoronoiRegionContainingOrigin() const;
 
+		/**
+		 * This method should always succeed in the cases we're interested in.
+		 * When more than one normal can be orthogonal to this simplex (thought of
+		 * in this case as a facet of a higher-dimensional simplex), the returned
+		 * normal should be chosen such that it points toward the origin as much
+		 * as possible.
+		 */
+		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const;
+
+		/**
+		 * Again, this method should always succeed for the cases in which we're interested.
+		 * In all other cases, it should always fail.
+		 */
+		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const;
+
+		/**
+		 * Provide this as a consistent way to calculate points in the Minkowski difference of the two given shapes.
+		 * The idea is to find such a point as far in the given direction as possible.
+		 */
 		static Vector3 CalcSupportPoint(const GJKShape* shapeA, const GJKShape* shapeB, const Vector3& unitDirection);
 	};
 
@@ -248,11 +259,9 @@ namespace Thebe
 		virtual ~GJKPointSimplex();
 
 		virtual bool ContainsOrigin(double epsilon) const override;
-		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
-
-#if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
-#endif //GJK_RENDER_DEBUG
+		virtual uint32_t GetDimension() const override;
+		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 		Vector3 point;
 	};
@@ -267,11 +276,9 @@ namespace Thebe
 		virtual ~GJKLineSimplex();
 
 		virtual bool ContainsOrigin(double epsilon) const override;
-		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
-
-#if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
-#endif //GJK_RENDER_DEBUG
+		virtual uint32_t GetDimension() const override;
+		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 		LineSegment lineSegment;
 	};
@@ -286,17 +293,11 @@ namespace Thebe
 		virtual ~GJKTriangleSimplex();
 
 		virtual bool ContainsOrigin(double epsilon) const override;
-		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
-
-#if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
-#endif //GJK_RENDER_DEBUG
+		virtual uint32_t GetDimension() const override;
+		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 		Vector3 vertex[3];
-		mutable bool originOnPlane;
-		mutable Plane edgePlane[3];
-		mutable Plane trianglePlane;
-		mutable double originDistanceToTrianglePlane;
 	};
 
 	/**
@@ -309,14 +310,16 @@ namespace Thebe
 		virtual ~GJKTetrahedronSimplex();
 
 		virtual bool ContainsOrigin(double epsilon) const override;
-		virtual GJKSimplex* GenerateSimplex(const GJKShape* shapeA, const GJKShape* shapeB) const override;
+		virtual uint32_t GetDimension() const override;
+		virtual GJKSimplex* FindFacetWithVoronoiRegionContainingOrigin() const override;
 
-#if defined GJK_RENDER_DEBUG
-		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;
-#endif //GJK_RENDER_DEBUG
+		struct FacetData
+		{
+			Plane plane;
+			int vertex[3];
+		};
 
 		Vector3 vertex[4];
-		mutable Plane facePlane[4];
-		static Random random;
+		mutable FacetData facetDataArray[4];
 	};
 }
