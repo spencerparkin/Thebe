@@ -25,6 +25,7 @@
 #define THEBE_SMALL_EPS				1e-9
 #define THEBE_MEDIUM_EPS			1e-5
 #define THEBE_FAT_EPS				1e-2
+#define THEBE_OBESE_EPS				0.1
 
 #if defined _DEBUG
 #	define THEBE_ASSERT(x)			do { Thebe::Assert(x, #x, __FILE__, __LINE__, false); } while(false)

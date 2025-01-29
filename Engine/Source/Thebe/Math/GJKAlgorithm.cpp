@@ -54,7 +54,6 @@ GJKShape::GJKShape()
 	pointSimplex->point = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
 
 	bool intersectionOccurs = false;
-	double epsilon = THEBE_SMALL_EPS;
 	std::unique_ptr<GJKSimplex> simplex(pointSimplex);
 	while (simplex.get())
 	{
@@ -63,7 +62,7 @@ GJKShape::GJKShape()
 			simplex->DebugDraw(client.get(), simplexCount++);
 #endif //GJK_RENDER_DEBUG
 
-		if (simplex->ContainsOrigin(epsilon))
+		if (simplex->ContainsOrigin(THEBE_MEDIUM_EPS))
 		{
 			if (finalSimplex)
 				finalSimplex->reset(simplex.release());
@@ -85,7 +84,7 @@ GJKShape::GJKShape()
 		Vector3 unitDirection = facet->CalcFacetNormWithBiasTowardsOrigin();
 		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
 		double dot = supportPoint.Dot(unitDirection);
-		if (dot < 0.1)	// SIGH...That's a FAT epsilon.
+		if (dot < THEBE_OBESE_EPS)	// The size of this epsilon makes me believe something is seriously flawed here in my GJK implementation.
 			break;
 
 		simplex.reset(facet->ExtendSimplexWithPoint(supportPoint));
