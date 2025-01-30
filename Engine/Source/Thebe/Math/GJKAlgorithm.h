@@ -216,35 +216,27 @@ namespace Thebe
 		virtual ~GJKSimplex();
 
 		/**
-		 * Tell us if the origin is contained within this simplex.
-		 * If it does, then the algorithm can terminate, and we can
-		 * conclude that there is an intersection.
+		 * 
 		 */
 		virtual bool ContainsOrigin(double epsilon) const = 0;
 
 		/**
-		 * Return the dimensionality of this simplex.
+		 *
 		 */
 		virtual uint32_t GetDimension() const = 0;
 
 		/**
-		 * This method should always succeed in the cases we're interested in.
-		 * If it does not succeed, then our math has gone wrong.
+		 *
 		 */
-		virtual GJKSimplex* FindFacetWithVoronoiRegionContainingOrigin() const;
+		virtual GJKSimplex* FindFacetNearestOrigin() const;
 
 		/**
-		 * This method should always succeed in the cases we're interested in.
-		 * When more than one normal can be orthogonal to this simplex (thought of
-		 * in this case as a facet of a higher-dimensional simplex), the returned
-		 * normal should be chosen such that it points toward the origin as much
-		 * as possible.
+		 * 
 		 */
-		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const;
+		virtual Vector3 CalcFacetNorm() const;
 
 		/**
-		 * Again, this method should always succeed for the cases in which we're interested.
-		 * In all other cases, it should always fail.
+		 * 
 		 */
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const;
 
@@ -270,7 +262,7 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual uint32_t GetDimension() const override;
-		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual Vector3 CalcFacetNorm() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 #if defined GJK_RENDER_DEBUG
@@ -291,7 +283,7 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual uint32_t GetDimension() const override;
-		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual Vector3 CalcFacetNorm() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 #if defined GJK_RENDER_DEBUG
@@ -312,7 +304,7 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual uint32_t GetDimension() const override;
-		virtual Vector3 CalcFacetNormWithBiasTowardsOrigin() const override;
+		virtual Vector3 CalcFacetNorm() const override;
 		virtual GJKSimplex* ExtendSimplexWithPoint(const Vector3& supportPoint) const override;
 
 #if defined GJK_RENDER_DEBUG
@@ -333,7 +325,7 @@ namespace Thebe
 
 		virtual bool ContainsOrigin(double epsilon) const override;
 		virtual uint32_t GetDimension() const override;
-		virtual GJKSimplex* FindFacetWithVoronoiRegionContainingOrigin() const override;
+		virtual GJKSimplex* FindFacetNearestOrigin() const override;
 
 #if defined GJK_RENDER_DEBUG
 		virtual void DebugDraw(DebugRenderClient* client, int simplexNumber) override;

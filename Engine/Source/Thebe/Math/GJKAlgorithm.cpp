@@ -75,16 +75,16 @@ GJKShape::GJKShape()
 		if (simplex->GetDimension() < 3)
 			facet.reset(simplex.release());
 		else
-			facet.reset(simplex->FindFacetWithVoronoiRegionContainingOrigin());
+			facet.reset(simplex->FindFacetNearestOrigin());
 
 		THEBE_ASSERT(facet.get() != nullptr);
 		if (facet.get() == nullptr)
 			break;
 
-		Vector3 unitDirection = facet->CalcFacetNormWithBiasTowardsOrigin();
+		Vector3 unitDirection = facet->CalcFacetNorm();
 		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
 		double dot = supportPoint.Dot(unitDirection);
-		if (dot < THEBE_OBESE_EPS)	// The size of this epsilon makes me believe something is seriously flawed here in my GJK implementation.
+		if (dot < 0.0)
 			break;
 
 		simplex.reset(facet->ExtendSimplexWithPoint(supportPoint));
@@ -118,7 +118,7 @@ GJKShape::GJKShape()
 		if (tetrahedron)
 			break;
 
-		Vector3 unitDirection = simplex->CalcFacetNormWithBiasTowardsOrigin();
+		Vector3 unitDirection = simplex->CalcFacetNorm();
 		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(shapeA, shapeB, unitDirection);
 		simplex.reset(simplex->ExtendSimplexWithPoint(supportPoint));
 		if (!simplex.get())
@@ -461,12 +461,12 @@ GJKSimplex::GJKSimplex()
 	return shapeB->FurthestPoint(unitDirection) - shapeA->FurthestPoint(-unitDirection);
 }
 
-/*virtual*/ GJKSimplex* GJKSimplex::FindFacetWithVoronoiRegionContainingOrigin() const
+/*virtual*/ GJKSimplex* GJKSimplex::FindFacetNearestOrigin() const
 {
 	return nullptr;
 }
 
-/*virtual*/ Vector3 GJKSimplex::CalcFacetNormWithBiasTowardsOrigin() const
+/*virtual*/ Vector3 GJKSimplex::CalcFacetNorm() const
 {
 	return Vector3::Zero();
 }
@@ -497,7 +497,7 @@ GJKPointSimplex::GJKPointSimplex()
 	return 0;
 }
 
-/*virtual*/ Vector3 GJKPointSimplex::CalcFacetNormWithBiasTowardsOrigin() const
+/*virtual*/ Vector3 GJKPointSimplex::CalcFacetNorm() const
 {
 	return -this->point.Normalized();
 }
@@ -539,7 +539,7 @@ GJKLineSimplex::GJKLineSimplex()
 	return 1;
 }
 
-/*virtual*/ Vector3 GJKLineSimplex::CalcFacetNormWithBiasTowardsOrigin() const
+/*virtual*/ Vector3 GJKLineSimplex::CalcFacetNorm() const
 {
 	Vector3 unitLineDirection = this->lineSegment.GetDelta().Normalized();
 	return (-lineSegment.point[0]).RejectedFrom(unitLineDirection).Normalized();
@@ -595,7 +595,7 @@ GJKTriangleSimplex::GJKTriangleSimplex()
 	return 2;
 }
 
-/*virtual*/ Vector3 GJKTriangleSimplex::CalcFacetNormWithBiasTowardsOrigin() const
+/*virtual*/ Vector3 GJKTriangleSimplex::CalcFacetNorm() const
 {
 	Plane plane(this->vertex[0], this->vertex[1], this->vertex[2]);
 	if (plane.center.Dot(plane.unitNormal) > 0.0)
@@ -670,47 +670,55 @@ GJKTetrahedronSimplex::GJKTetrahedronSimplex()
 	return 3;
 }
 
-/*virtual*/ GJKSimplex* GJKTetrahedronSimplex::FindFacetWithVoronoiRegionContainingOrigin() const
+/*virtual*/ GJKSimplex* GJKTetrahedronSimplex::FindFacetNearestOrigin() const
 {
-	for (int i = 0; i < 4; i++)
-	{
-		const FacetData& facetA = this->facetDataArray[i];
-		if (facetA.plane.SignedDistanceTo(Vector3::Zero()) <= 0.0)
-			continue;
+	// I have no proof that the GJK algorithm will always converge.
+	// Based on intuition, this is the best I can do...
 
-		for (int j = i + 1; j < 4; j++)
-		{
-			const FacetData& facetB = this->facetDataArray[j];
-			if (facetB.plane.SignedDistanceTo(Vector3::Zero()) <= 0.0)
-				continue;
+	std::vector<std::unique_ptr<GJKTriangleSimplex>> triangleArray(3);
+	std::vector<double> cosAngleArray(3);
 
-			auto line = new GJKLineSimplex();
-			int k = 0;
-			for (int i = 0; i < 3 && k < 2; i++)
-				for (int j = 0; j < 3 && k < 2; j++)
-					if (facetA.vertex[i] == facetB.vertex[j])
-						line->lineSegment.point[k++] = this->vertex[facetA.vertex[i]];
-
-			THEBE_ASSERT(k == 2);
-
-			return line;
-		}
-	}
-
+	int candidateCount = 0;
 	for (int i = 0; i < 4; i++)
 	{
 		const FacetData& facet = this->facetDataArray[i];
 		if (facet.plane.SignedDistanceTo(Vector3::Zero()) <= 0.0)
 			continue;
 
+		THEBE_ASSERT(candidateCount < (int)triangleArray.size());
+
 		auto triangle = new GJKTriangleSimplex();
 		triangle->vertex[0] = this->vertex[facet.vertex[0]];
 		triangle->vertex[1] = this->vertex[facet.vertex[1]];
 		triangle->vertex[2] = this->vertex[facet.vertex[2]];
-		return triangle;
+
+		Vector3 center = (
+			triangle->vertex[0] +
+			triangle->vertex[1] +
+			triangle->vertex[2]) / 3.0;
+
+		double cosAngle = (-center.Normalized()).Dot(facet.plane.unitNormal);
+		
+		triangleArray[candidateCount].reset(triangle);
+		cosAngleArray[candidateCount] = cosAngle;
+		candidateCount++;
 	}
 
-	return nullptr;
+	int chosenTriangle = -1;
+	double largestCosAngle = -2.0;
+	for (int i = 0; i < candidateCount; i++)
+	{
+		double cosAngle = cosAngleArray[i];
+		if (cosAngle > largestCosAngle)
+		{
+			largestCosAngle = cosAngle;
+			chosenTriangle = i;
+		}
+	}
+
+	THEBE_ASSERT(chosenTriangle != -1);
+
+	return triangleArray[chosenTriangle].release();
 }
 
 #if defined GJK_RENDER_DEBUG

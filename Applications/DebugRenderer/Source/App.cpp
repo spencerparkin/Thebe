@@ -90,10 +90,10 @@ DebugRendererApplication::DebugRendererApplication()
 		this->lineRenderer->AddLine(pointsB[0], pointsB[1], &colorB, &colorB);
 	}
 
+	static int simplexNumber = 0;
 	static bool hackC = false;
 	if (hackC)
 	{
-		static int simplexNumber = 0;
 		this->server.SetNameFilter(std::format("simplex{}", simplexNumber));
 	}
 
@@ -113,6 +113,14 @@ DebugRendererApplication::DebugRendererApplication()
 	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_Y))
 	{
 		this->server.ClearAll();
+	}
+	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_X))
+	{
+		simplexNumber--;
+	}
+	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	{
+		simplexNumber++;
 	}
 
 	return 0;
