@@ -123,6 +123,11 @@ namespace Thebe
 		 */
 		bool ResolveContact(Contact& contact);
 
+		/**
+		 * 
+		 */
+		void ApplyFriction(Contact& contact);
+
 		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;
 		std::vector<ContactResolverInterface*> contactResolverArray;

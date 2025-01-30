@@ -55,6 +55,7 @@ PhysicsLabApp::PhysicsLabApp()
 	if (this->objectA.Get())
 	{
 		Transform objectToWorld = this->objectA->GetObjectToWorld();
+		objectToWorld.matrix.SetFromAxisAngle(Vector3::ZAxis(), THEBE_PI / 4.0);
 		objectToWorld.translation.x += 0.0;
 		objectToWorld.translation.y += 5.0;
 		objectToWorld.translation.z += 0.0;
@@ -157,6 +158,21 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 	this->graphicsEngine->Render();
 
 	this->jediCam.Update(deltaTimeSeconds);
+
+	XBoxController* controller = this->jediCam.GetController();
+	if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	{
+		if (this->objectA.Get())
+		{
+			Transform objectToWorld = this->objectA->GetObjectToWorld();
+			objectToWorld.matrix.SetFromAxisAngle(Vector3::ZAxis(), THEBE_PI / 4.0);
+			objectToWorld.translation.x = 0.0;
+			objectToWorld.translation.y = -8.0;
+			objectToWorld.translation.z = 0.0;
+			this->objectA->SetObjectToWorld(objectToWorld);
+			this->objectA->ZeroMomentum();
+		}
+	}
 
 	return 0;
 }

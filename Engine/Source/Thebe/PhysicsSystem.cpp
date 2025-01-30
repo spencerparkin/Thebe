@@ -161,6 +161,10 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 			this->GenerateContacts(collision.Get(), contactList);
 		}
 
+		// Apply friction for all the contacts.
+		for (Contact& contact : contactList)
+			this->ApplyFriction(contact);
+
 		// Go process all collision contacts.
 		uint32_t resolutionCount = 0;
 		uint32_t iterationCount = 0;
@@ -232,6 +236,34 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 	return false;
 }
 
+void PhysicsSystem::ApplyFriction(Contact& contact)
+{
+	// This sort-of works, but there also has to be some logic for resisting rotation too, but it's not obvious to me.
+	// For one thing, the contact information I'm generating is probably not sufficient for our needs.
+	// Hmmm...mabye if there are multiple points of contact for the same object, then we would resist rotation central to those points or something; I don't know.
+#if 0
+	auto rigidBodyA = dynamic_cast<RigidBody*>(contact.objectA.Get());
+	auto rigidBodyB = dynamic_cast<RigidBody*>(contact.objectB.Get());
+	if (!(rigidBodyA && rigidBodyB))
+		return;
+
+	static double frictionFactor = 50.0;
+
+	if (!rigidBodyA->IsStationary())
+	{
+		Vector3 contactVectorA = contact.surfacePoint - rigidBodyA->GetCenterOfMass();
+		Vector3 velocityA = rigidBodyA->GetLinearVelocity() + rigidBodyA->GetAngularVelocity().Cross(contactVectorA);
+		Vector3 frictionForceA = (-velocityA).RejectedFrom(contact.unitNormal) * frictionFactor;
+		rigidBodyA->AddTransientForce(frictionForceA);
+	}
+
+	if (!rigidBodyB->IsStationary())
+	{
+		//...call function here, same as above...
+	}
+#endif
+}
+
 //------------------------------ PhysicsSystem::ContactResolver<RigidBody, RigidBody> ------------------------------
 
 /*virtual*/ bool PhysicsSystem::ContactResolver<RigidBody, RigidBody>::ResolveContact(Contact& contact, PhysicsSystem* physicsSystem)
@@ -284,28 +316,6 @@ bool PhysicsSystem::ResolveContact(Contact& contact)
 
 	rigidBodyA->SetAngularMomentum(rigidBodyA->GetAngularMomentum() + impulseTorqueA);
 	rigidBodyB->SetAngularMomentum(rigidBodyB->GetAngularMomentum() + impulseTorqueB);
-
-#if 0
-	if (!rigidBodyA->IsStationary())
-	{
-		static double frictionFactor = 1.0;
-		Vector3 frictionForceA = -velocityA * frictionFactor;
-		PhysicsObject::ContactForce contactForce;
-		contactForce.point = contact.surfacePoint;
-		contactForce.force = frictionForceA;
-		rigidBodyA->AddTransientContactForce(contactForce);
-	}
-
-	if (!rigidBodyB->IsStationary())
-	{
-		static double frictionFactor = 1.0;
-		Vector3 frictionForceB = -velocityB * frictionFactor;
-		PhysicsObject::ContactForce contactForce;
-		contactForce.point = contact.surfacePoint;
-		contactForce.force = frictionForceB;
-		rigidBodyB->AddTransientContactForce(contactForce);
-	}
-#endif
 
 	return true;
 }

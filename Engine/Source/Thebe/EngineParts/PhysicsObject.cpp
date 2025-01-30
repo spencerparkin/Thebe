@@ -124,6 +124,13 @@ PhysicsObject::PhysicsObject()
 		this->ApplyContactForce(contactForce);
 	}
 
+	while (this->transientForceList.size() > 0)
+	{
+		Vector3 transientForce = *this->transientForceList.begin();
+		this->transientForceList.pop_front();
+		this->totalForce += transientForce;
+	}
+
 	Vector3 gravityForce = physicsSystem->GetGravity() * this->GetTotalMass();
 	this->totalForce += gravityForce;
 }
@@ -261,6 +268,11 @@ bool PhysicsObject::GetExternalContactForce(const std::string& name, ContactForc
 void PhysicsObject::AddTransientContactForce(const ContactForce& contactForce)
 {
 	this->transientContactForceList.push_back(contactForce);
+}
+
+void PhysicsObject::AddTransientForce(const Vector3& transientForce)
+{
+	this->transientForceList.push_back(transientForce);
 }
 
 const Vector3& PhysicsObject::GetTotalForce() const
