@@ -3,7 +3,6 @@
 #include <wx/window.h>
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/EngineParts/CollisionObject.h"
-#include "Game.h"
 
 class ChineseCheckersCanvas : public wxWindow
 {
@@ -22,9 +21,6 @@ public:
 
 private:
 	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
-	std::vector<ChineseCheckersGame::Node*> nodeSequenceArray;
-
-	void UpdateRings();
 
 	bool debugDraw;
 };

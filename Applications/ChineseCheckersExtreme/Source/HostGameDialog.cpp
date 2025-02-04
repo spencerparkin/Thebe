@@ -1,5 +1,4 @@
 #include "HostGameDialog.h"
-#include "Game.h"
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
@@ -16,19 +15,17 @@ HostGameDialog::HostGameDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "H
 	this->hostPortText = new wxTextCtrl(this, wxID_ANY);
 	this->hostPortText->SetValue("5050");
 
-	wxStaticText* numPlayersLabel = new wxStaticText(this, wxID_ANY, "Num. Players:");
-	this->numPlayersSpin = new wxSpinCtrl(this, wxID_ANY);
-	this->numPlayersSpin->SetValue(2);
+	wxStaticText* numHumanPlayersLabel = new wxStaticText(this, wxID_ANY, "Num. Human Players:");
+	this->numHumanPlayersSpin = new wxSpinCtrl(this, wxID_ANY);
+	this->numHumanPlayersSpin->SetValue(1);
 
-	wxStaticText* numAIPlayersLabel = new wxStaticText(this, wxID_ANY, "Num. AI Players:");
-	this->numAIPlayersSpin = new wxSpinCtrl(this, wxID_ANY);
-	this->numAIPlayersSpin->SetValue(1);
+	wxStaticText* numComputerPlayersLabel = new wxStaticText(this, wxID_ANY, "Num. Computer Players:");
+	this->numComputerPlayersSpin = new wxSpinCtrl(this, wxID_ANY);
+	this->numComputerPlayersSpin->SetValue(1);
 
 	wxString gameTypeArray[] =
 	{
-		"cubic",
-		"hexagonal",
-		"octagonal",
+		"traditional"
 	};
 
 	int gameTypeArraySize = sizeof(gameTypeArray) / sizeof(wxString);
@@ -45,10 +42,10 @@ HostGameDialog::HostGameDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "H
 	gridSizer->Add(this->hostAddressText);
 	gridSizer->Add(hostPortLabel);
 	gridSizer->Add(this->hostPortText);
-	gridSizer->Add(numPlayersLabel);
-	gridSizer->Add(this->numPlayersSpin);
-	gridSizer->Add(numAIPlayersLabel);
-	gridSizer->Add(this->numAIPlayersSpin);
+	gridSizer->Add(numHumanPlayersLabel);
+	gridSizer->Add(this->numHumanPlayersSpin);
+	gridSizer->Add(numComputerPlayersLabel);
+	gridSizer->Add(this->numComputerPlayersSpin);
 	
 	wxButton* okayButton = new wxButton(this, wxID_ANY, "Okay");
 	okayButton->Bind(wxEVT_BUTTON, &HostGameDialog::OnOkayButton, this);
@@ -80,35 +77,17 @@ const HostGameDialog::Data& HostGameDialog::GetData() const
 
 void HostGameDialog::OnOkayButton(wxCommandEvent& event)
 {
-	wxString gameType = this->gameTypeCombo->GetValue();
-	std::unique_ptr<ChineseCheckersGame> game(ChineseCheckersGame::Factory((const char*)gameType.c_str()));
-	THEBE_ASSERT_FATAL(game != nullptr);
-
-	// TODO: Can we just add validators to the controls so that it's not possible to choose a wrong value?
-
-	if (this->numPlayersSpin->GetValue() > game->GetMaxPossiblePlayers())
+	if (this->numHumanPlayersSpin->GetValue() == 0 && this->numComputerPlayersSpin->GetValue() == 0)
 	{
-		wxMessageBox(wxString::Format("The \"%s\" game type can only support up to %d players.", (const char*)gameType.c_str(), game->GetMaxPossiblePlayers()), "Validation Error", wxICON_ERROR | wxOK, this);
+		wxMessageBox(wxT("Can't do zero players."), wxT("Validation Error"), wxICON_ERROR | wxOK, this);
 		return;
 	}
 
-	if (this->numPlayersSpin->GetValue() <= 1)
-	{
-		wxMessageBox("The number of players must be greater than one.", "Validation Error", wxICON_ERROR | wxOK, this);
-		return;
-	}
-
-	if (this->numAIPlayersSpin->GetValue() > this->numPlayersSpin->GetValue())
-	{
-		wxMessageBox("The number of AI players can't exceed the number of players.", "Validation Error", wxICON_ERROR | wxOK, this);
-		return;
-	}
-
-	this->data.numPlayers = this->numPlayersSpin->GetValue();
-	this->data.numAIPlayers = this->numAIPlayersSpin->GetValue();
+	this->data.numHumanPlayers = this->numHumanPlayersSpin->GetValue();
+	this->data.numComputerPlayers = this->numComputerPlayersSpin->GetValue();
 	this->data.hostAddress.SetAddress((const char*)this->hostAddressText->GetValue().c_str());
 	this->data.hostAddress.SetPort(::atoi((const char*)this->hostPortText->GetValue().c_str()));
-	this->data.gameType = (const char*)gameType.c_str();
+	this->data.gameType = (const char*)this->gameTypeCombo->GetValue().c_str();
 
 	this->EndModal(wxID_OK);
 }

@@ -19,12 +19,12 @@ namespace ChineseCheckers
 		{
 			NONE,
 			BLACK,
-			WHITE,
-			RED,
-			GREEN,
-			BLUE,
-			MAGENTA,
 			YELLOW,
+			MAGENTA,
+			GREEN,
+			RED,
+			BLUE,
+			WHITE,
 			ORANGE,
 			CYAN
 		};

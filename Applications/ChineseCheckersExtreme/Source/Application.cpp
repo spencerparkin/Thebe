@@ -8,7 +8,6 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/Material.h"
-#include "Network/HumanClient.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -18,15 +17,11 @@ using namespace Thebe;
 
 ChineseCheckersApp::ChineseCheckersApp()
 {
-	this->gameServer = nullptr;
-	this->frame = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
 }
 
 /*virtual*/ ChineseCheckersApp::~ChineseCheckersApp()
 {
-	THEBE_ASSERT(this->gameServer == nullptr);
-	THEBE_ASSERT(this->gameClientArray.size() == 0);
 }
 
 Thebe::FreeCam* ChineseCheckersApp::GetFreeCam()
@@ -54,26 +49,6 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 #if defined THEBE_LOGGING
 	this->log.Set(new Log());
 	Log::Set(this->log);
-
-	/*wxFileName loggerPath(wxStandardPaths::Get().GetExecutablePath());
-	loggerPath.SetName("ThebeLogViewer");
-	loggerPath.SetExt("exe");
-	wxString fullPath = loggerPath.GetFullPath();
-	if (loggerPath.FileExists())
-	{
-		wxString command = loggerPath.GetFullPath() + " --port=12345 --addr=127.0.0.1";
-		long loggerPID = wxExecute(command, wxEXEC_ASYNC);
-		if (loggerPID != 0)
-		{
-			Reference<Thebe::NetLogSink> logSink(new NetLogSink());
-			NetworkAddress address;
-			address.SetIPAddress("127.0.0.1");
-			address.SetPort(12345);
-			logSink->SetConnectAddress(address);
-			this->log->AddSink(logSink);
-		}
-	}*/
-
 	this->log->AddSink(new LogConsoleSink());
 #endif //THEBE_LOGGING
 
@@ -165,8 +140,6 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
-	this->ShutdownClientsAndServer();
-
 	this->graphicsEngine->WaitForGPUIdle();
 
 	if (this->lineRenderer.Get())
@@ -183,52 +156,7 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 	return 0;
 }
 
-void ChineseCheckersApp::ShutdownClientsAndServer()
-{
-	for (ChineseCheckersClient* gameClient : this->gameClientArray)
-	{
-		gameClient->Shutdown();
-		delete gameClient;
-	}
-
-	this->gameClientArray.clear();
-
-	if (this->gameServer)
-	{
-		this->gameServer->Shutdown();
-		delete this->gameServer;
-		this->gameServer = nullptr;
-	}
-}
-
 GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
 {
 	return this->graphicsEngine.Get();
-}
-
-ChineseCheckersServer* ChineseCheckersApp::GetGameServer()
-{
-	return this->gameServer;
-}
-
-void ChineseCheckersApp::SetGameServer(ChineseCheckersServer* gameServer)
-{
-	this->gameServer = gameServer;
-}
-
-std::vector<ChineseCheckersClient*>& ChineseCheckersApp::GetGameClientArray()
-{
-	return this->gameClientArray;
-}
-
-HumanClient* ChineseCheckersApp::GetHumanClient()
-{
-	for (ChineseCheckersClient* client : this->gameClientArray)
-	{
-		auto human = dynamic_cast<HumanClient*>(client);
-		if (human)
-			return human;
-	}
-
-	return nullptr;
 }

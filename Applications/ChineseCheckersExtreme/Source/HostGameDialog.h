@@ -14,8 +14,8 @@ public:
 
 	struct Data
 	{
-		int numPlayers;
-		int numAIPlayers;
+		int numHumanPlayers;
+		int numComputerPlayers;
 		std::string gameType;
 		Thebe::NetworkAddress hostAddress;
 	};
@@ -29,7 +29,7 @@ private:
 	Data data;
 	wxTextCtrl* hostAddressText;
 	wxTextCtrl* hostPortText;
-	wxSpinCtrl* numPlayersSpin;
-	wxSpinCtrl* numAIPlayersSpin;
+	wxSpinCtrl* numHumanPlayersSpin;
+	wxSpinCtrl* numComputerPlayersSpin;
 	wxComboBox* gameTypeCombo;
 };
