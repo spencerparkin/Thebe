@@ -110,29 +110,6 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 	this->graphicsEngine->SetCamera(this->camera);
 	this->freeCam.SetCamera(this->camera);
 
-	Reference<Mesh> ringMesh;
-	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
-		return false;
-
-	Reference<Material> mirrorMaterial;
-	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Materials\PerfectMirror.material)", mirrorMaterial))
-		return false;
-
-	ringMesh->SetMaterial(mirrorMaterial);
-
-	for (int i = 0; i < 20; i++)
-	{
-		Reference<MeshInstance> ringMeshInstance(new MeshInstance());
-		ringMeshInstance->SetGraphicsEngine(this->graphicsEngine);
-		ringMeshInstance->SetMesh(ringMesh);
-		ringMeshInstance->SetName(std::format("ring{}", i));
-		ringMeshInstance->SetFlags(ringMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
-		if (!ringMeshInstance->Setup())
-			return false;
-
-		scene->GetRootSpace()->AddSubSpace(ringMeshInstance);
-	}
-
 	this->frame->Show();
 
 	return true;
