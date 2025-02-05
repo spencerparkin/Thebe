@@ -17,7 +17,7 @@ namespace ChineseCheckers
 		GraphGenerator(Factory* factory);
 		virtual ~GraphGenerator();
 
-		virtual std::shared_ptr<Graph> Generate(const std::set<Marble::Color>& participantSet) = 0;
+		virtual Graph* Generate(const std::set<Marble::Color>& participantSet) = 0;
 
 	protected:
 		Factory* factory;

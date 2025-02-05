@@ -12,22 +12,25 @@ Graph::Graph()
 
 /*virtual*/ Graph::~Graph()
 {
+	this->Clear();
 }
 
 void Graph::Clear()
 {
+	for (Node* node : this->nodeArray)
+		delete node;
+
 	this->nodeArray.clear();
 }
 
-void Graph::AddNode(std::shared_ptr<Node> node)
+void Graph::AddNode(Node* node)
 {
 	this->nodeArray.push_back(node);
 }
 
-std::shared_ptr<Graph> Graph::Clone(Factory* factory) const
+Graph* Graph::Clone(Factory* factory) const
 {
-	std::shared_ptr<Graph> graph = factory->CreateGraph();
-	
+	Graph* graph = factory->CreateGraph();
 	if (graph)
 	{
 		std::unique_ptr<ParseParty::JsonValue> jsonValue;
@@ -47,10 +50,10 @@ std::shared_ptr<Graph> Graph::Clone(Factory* factory) const
 
 	std::map<Node*, int> offsetMap;
 	int offset = 0;
-	for (std::shared_ptr<Node> node : this->nodeArray)
-		offsetMap.insert(std::pair(node.get(), offset++));
+	for (Node* node : this->nodeArray)
+		offsetMap.insert(std::pair(node, offset++));
 
-	for (std::shared_ptr<Node> node : this->nodeArray)
+	for (Node* node : this->nodeArray)
 	{
 		std::unique_ptr<JsonValue> nodeValue;
 		if (!node->ToJson(nodeValue, offsetMap))
@@ -74,7 +77,7 @@ std::shared_ptr<Graph> Graph::Clone(Factory* factory) const
 
 	for (int i = 0; i < (int)nodeArrayValue->GetSize(); i++)
 	{
-		std::shared_ptr<Node> node = factory->CreateNode(Vector(0.0, 0.0), Marble::Color::NONE);
+		Node* node = factory->CreateNode(Vector(0.0, 0.0), Marble::Color::NONE);
 		if (!node)
 			return false;
 
@@ -114,9 +117,9 @@ bool Graph::AllMarblesAtTarget(Marble::Color marbleColor) const
 
 	Marble::Color targetColor = pair->second;
 
-	for (std::shared_ptr<Node> node : this->nodeArray)
+	for (Node* node : this->nodeArray)
 	{
-		std::shared_ptr<Marble> occupant = node->GetOccupant();
+		Marble* occupant = node->GetOccupant();
 		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
@@ -132,7 +135,7 @@ bool Graph::MoveMarbleUnconditionally(const Move& move)
 	if (!move.sourceNode || !move.targetNode)
 		return false;
 
-	std::shared_ptr<Marble> marble = move.sourceNode->GetOccupant();
+	Marble* marble = move.sourceNode->GetOccupant();
 	if (!marble)
 		return false;
 
@@ -140,39 +143,38 @@ bool Graph::MoveMarbleUnconditionally(const Move& move)
 		return false;
 
 	move.targetNode->SetOccupant(marble);
+	move.sourceNode->SetOccupant(nullptr);
 	return true;
 }
 
 bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMovesCollection, const Vector& generalDirection) const
 {
-	for (std::shared_ptr<Node> node : this->nodeArray)
+	for (Node* node : this->nodeArray)
 	{
-		std::shared_ptr<Marble> occupant = node->GetOccupant();
+		Marble* occupant = node->GetOccupant();
 		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
 		for (int i = 0; i < (int)node->GetNumAdjacentNodes(); i++)
 		{
-			std::shared_ptr<Node> adjacentNode;
-			if (!node->GetAdjacentNode(i, adjacentNode))
-				continue;
-
-			if (!adjacentNode->GetOccupant())
+			Node* adjacentNode = node->GetAdjacentNode(i);
+			if (!adjacentNode || adjacentNode->GetOccupant())
 				continue;
 
 			bestMovesCollection.AddMove({ node, adjacentNode }, generalDirection);
 		}
 
 		std::vector<const Node*> nodeStack;
-		node->ForAllJumps(nodeStack, [&node, &bestMovesCollection, &generalDirection](std::shared_ptr<Node> targetNode) {
-			bestMovesCollection.AddMove({ node, targetNode }, generalDirection);
-		});
+		node->ForAllJumps(nodeStack, [&node, &bestMovesCollection, &generalDirection](Node* targetNode)
+			{
+				bestMovesCollection.AddMove({ node, targetNode }, generalDirection);
+			});
 	}
 
 	return true;
 }
 
-const std::vector<std::shared_ptr<Node>>& Graph::GetNodeArray() const
+const std::vector<Node*>& Graph::GetNodeArray() const
 {
 	return this->nodeArray;
 }
@@ -199,7 +201,7 @@ Vector Graph::CalcZoneCentroid(Marble::Color color) const
 	Vector center(0.0, 0.0);
 	int numNodes = 0;
 
-	for (const std::shared_ptr<Node>& node : this->nodeArray)
+	for (const Node* node : this->nodeArray)
 	{
 		if (node->GetColor() == color)
 		{
@@ -219,9 +221,9 @@ Vector Graph::CalcMarbleCentroid(Marble::Color color) const
 	Vector center(0.0, 0.0);
 	int numMarbles = 0;
 
-	for (const std::shared_ptr<Node>& node : this->nodeArray)
+	for (const Node* node : this->nodeArray)
 	{
-		std::shared_ptr<Marble> occupant = node->GetOccupant();
+		const Marble* occupant = node->GetOccupant();
 		if (occupant && occupant->GetColor() == color)
 		{
 			numMarbles++;
@@ -289,10 +291,12 @@ Node::Node(const Vector& location, Marble::Color color)
 {
 	this->location = location;
 	this->color = color;
+	this->occupant = nullptr;
 }
 
 /*virtual*/ Node::~Node()
 {
+	delete this->occupant;
 }
 
 /*virtual*/ bool Node::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const
@@ -331,7 +335,7 @@ Node::Node(const Vector& location, Marble::Color color)
 	return true;
 }
 
-/*virtual*/ bool Node::FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<std::shared_ptr<Node>>& nodeArray, Factory* factory)
+/*virtual*/ bool Node::FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<Node*>& nodeArray, Factory* factory)
 {
 	using namespace ParseParty;
 
@@ -405,17 +409,17 @@ Marble::Color Node::GetColor() const
 	return this->color;
 }
 
-std::shared_ptr<Marble> Node::GetOccupant()
+Marble* Node::GetOccupant()
 {
 	return this->occupant;
 }
 
-const std::shared_ptr<Marble> Node::GetOccupant() const
+const Marble* Node::GetOccupant() const
 {
 	return this->occupant;
 }
 
-void Node::SetOccupant(std::shared_ptr<Marble> marble)
+void Node::SetOccupant(Marble* marble)
 {
 	this->occupant = marble;
 }
@@ -425,30 +429,26 @@ int Node::GetNumAdjacentNodes() const
 	return (int)this->adjacentNodeArray.size();
 }
 
-void Node::AddAjacentNode(std::shared_ptr<Node> node)
+void Node::AddAjacentNode(Node* node)
 {
 	this->adjacentNodeArray.push_back(node);
 }
 
-bool Node::GetAdjacentNode(int i, std::shared_ptr<Node>& node) const
+Node* Node::GetAdjacentNode(int i) const
 {
 	if (i < 0 || i >= (int)this->adjacentNodeArray.size())
-		return false;
+		return nullptr;
 
-	node = this->adjacentNodeArray[i].lock();
-	if (!node)
-		return false;
-
-	return true;
+	return this->adjacentNodeArray[i];
 }
 
-bool Node::GetAdjacentNode(const Vector& givenDirection, std::shared_ptr<Node>& node) const
+Node* Node::GetAdjacentNode(const Vector& givenDirection) const
 {
 	double epsilon = 1e-4;
 
 	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
 	{
-		std::shared_ptr<Node> adjacentNode = this->adjacentNodeArray[i].lock();
+		Node* adjacentNode = this->adjacentNodeArray[i];
 		if (!adjacentNode)
 			continue;
 
@@ -457,48 +457,42 @@ bool Node::GetAdjacentNode(const Vector& givenDirection, std::shared_ptr<Node>& 
 		if (::abs(dot - 1.0) >= epsilon)
 			continue;
 
-		node = adjacentNode;
-		return true;
+		return adjacentNode;
 	}
 
-	return false;
+	return nullptr;
 }
 
-bool Node::JumpInDirection(int i, std::shared_ptr<Node>& node) const
+Node* Node::JumpInDirection(int i) const
 {
 	if (i < 0 || i >= (int)this->adjacentNodeArray.size())
-		return false;
+		return nullptr;
 
-	std::shared_ptr<Node> adjacentNode = this->adjacentNodeArray[i].lock();
-	if (!adjacentNode)
-		return false;
+	Node* adjacentNodeA = this->adjacentNodeArray[i];
+	if (!adjacentNodeA || !adjacentNodeA->GetOccupant())
+		return nullptr;
 
-	if (!adjacentNode->GetOccupant())
-		return false;
+	Vector direction = (adjacentNodeA->location - this->location).Normalized();
+	Node* adjacentNodeB = adjacentNodeA->GetAdjacentNode(direction);
+	if (!adjacentNodeB || adjacentNodeB->GetOccupant())
+		return nullptr;
 
-	Vector direction = (adjacentNode->location - this->location).Normalized();
-	if (!adjacentNode->GetAdjacentNode(direction, node))
-		return false;
-
-	if (node->GetOccupant())
-		return false;
-
-	return true;
+	return adjacentNodeB;
 }
 
-void Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(std::shared_ptr<Node>)> callback) const
+void Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const
 {
 	nodeStack.push_back(this);
 
 	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
 	{
-		std::shared_ptr<Node> jumpNode;
-		if (!this->JumpInDirection(i, jumpNode))
+		Node* jumpNode = this->JumpInDirection(i);
+		if (!jumpNode)
 			continue;
 
 		bool alreadyVisited = false;
 		for (int j = 0; j < (int)nodeStack.size() && !alreadyVisited; j++)
-			if (nodeStack[j] == jumpNode.get())
+			if (nodeStack[j] == jumpNode)
 				alreadyVisited = true;
 
 		if (alreadyVisited)
@@ -517,7 +511,7 @@ void Node::RemoveNullAdjacencies()
 	int i = 0;
 	while (i < (int)this->adjacentNodeArray.size())
 	{
-		std::shared_ptr<Node> adjacentNode = this->adjacentNodeArray[i].lock();
+		Node* adjacentNode = this->adjacentNodeArray[i];
 		if (adjacentNode)
 			i++;
 		else

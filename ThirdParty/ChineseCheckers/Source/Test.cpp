@@ -30,7 +30,7 @@ TwoPlayerGameTest::TwoPlayerGameTest()
 	Factory factory;
 	TraditionalGenerator generator(&factory);
 	std::set<Marble::Color> participantSet{ Marble::Color::YELLOW, Marble::Color::RED };
-	std::shared_ptr<Graph> graph = generator.Generate(participantSet);
+	std::unique_ptr<Graph> graph(generator.Generate(participantSet));
 
 	if (graph->AllMarblesAtTarget(Marble::Color::YELLOW))
 		return false;
@@ -40,8 +40,14 @@ TwoPlayerGameTest::TwoPlayerGameTest()
 
 	Marble::Color whoseTurn = Marble::Color::YELLOW;
 
+	int maxIterations = 512;
+	int i = 0;
+
 	while (!(graph->AllMarblesAtTarget(Marble::Color::YELLOW) || graph->AllMarblesAtTarget(Marble::Color::RED)))
 	{
+		if (++i > maxIterations)
+			return false;
+
 		Vector generalDirection;
 		if (!graph->CalcGeneralDirection(whoseTurn, generalDirection))
 			return false;

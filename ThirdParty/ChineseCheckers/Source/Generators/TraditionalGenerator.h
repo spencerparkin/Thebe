@@ -13,7 +13,7 @@ namespace ChineseCheckers
 		TraditionalGenerator(Factory* factory);
 		virtual ~TraditionalGenerator();
 
-		virtual std::shared_ptr<Graph> Generate(const std::set<Marble::Color>& participantSet) override;
+		virtual Graph* Generate(const std::set<Marble::Color>& participantSet) override;
 
 		enum
 		{

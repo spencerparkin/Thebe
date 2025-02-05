@@ -3,7 +3,6 @@
 #include "Marble.h"
 #include "Vector.h"
 #include "JsonValue.h"
-#include <memory>
 #include <vector>
 #include <functional>
 #include <map>
@@ -24,8 +23,8 @@ namespace ChineseCheckers
 
 		struct Move
 		{
-			std::shared_ptr<Node> sourceNode;
-			std::shared_ptr<Node> targetNode;
+			Node* sourceNode;
+			Node* targetNode;
 
 			double CalcDistanceInDirection(const Vector& unitLengthDirection) const;
 		};
@@ -42,16 +41,16 @@ namespace ChineseCheckers
 		};
 
 		void Clear();
-		void AddNode(std::shared_ptr<Node> node);
+		void AddNode(Node* node);
 
-		std::shared_ptr<Graph> Clone(Factory* factory) const;
+		Graph* Clone(Factory* factory) const;
 
 		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
 		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, Factory* factory);
 
 		bool SetColorTarget(Marble::Color sourceColor, Marble::Color targetColor);
 
-		const std::vector<std::shared_ptr<Node>>& GetNodeArray() const;
+		const std::vector<Node*>& GetNodeArray() const;
 
 		/**
 		 * Tell us if all marbles of the given color have reached their target nodes.
@@ -93,7 +92,7 @@ namespace ChineseCheckers
 		Vector CalcMarbleCentroid(Marble::Color color) const;
 
 	protected:
-		std::vector<std::shared_ptr<Node>> nodeArray;
+		std::vector<Node*> nodeArray;
 		std::map<Marble::Color, Marble::Color> colorMap;
 	};
 
@@ -110,27 +109,27 @@ namespace ChineseCheckers
 		virtual ~Node();
 
 		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const;
-		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<std::shared_ptr<Node>>& nodeArray, Factory* factory);
+		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<Node*>& nodeArray, Factory* factory);
 
 		void SetLocation(const Vector& location);
 		const Vector& GetLocation() const;
 		void SetColor(Marble::Color color);
 		Marble::Color GetColor() const;
-		std::shared_ptr<Marble> GetOccupant();
-		const std::shared_ptr<Marble> GetOccupant() const;
-		void SetOccupant(std::shared_ptr<Marble> marble);
+		Marble* GetOccupant();
+		const Marble* GetOccupant() const;
+		void SetOccupant(Marble* marble);
 		int GetNumAdjacentNodes() const;
-		void AddAjacentNode(std::shared_ptr<Node> node);
-		bool GetAdjacentNode(int i, std::shared_ptr<Node>& node) const;
-		bool GetAdjacentNode(const Vector& givenDirection, std::shared_ptr<Node>& node) const;
-		bool JumpInDirection(int i, std::shared_ptr<Node>& node) const;
-		void ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(std::shared_ptr<Node>)> callback) const;
+		void AddAjacentNode(Node* node);
+		Node* GetAdjacentNode(int i) const;
+		Node* GetAdjacentNode(const Vector& givenDirection) const;
+		Node* JumpInDirection(int i) const;
+		void ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const;
 		void RemoveNullAdjacencies();
 
 	protected:
-		std::shared_ptr<Marble> occupant;
+		Marble* occupant;
 		Vector location;
 		Marble::Color color;
-		std::vector<std::weak_ptr<Node>> adjacentNodeArray;
+		std::vector<Node*> adjacentNodeArray;
 	};
 }

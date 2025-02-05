@@ -19,7 +19,7 @@ void TraditionalGenerator::SetRadius(double radius)
 	this->radius = radius;
 }
 
-/*virtual*/ std::shared_ptr<Graph> TraditionalGenerator::Generate(const std::set<Marble::Color>& participantSet)
+/*virtual*/ Graph* TraditionalGenerator::Generate(const std::set<Marble::Color>& participantSet)
 {
 	constexpr int numRows = 17;
 	constexpr int numCols = 17;
@@ -43,7 +43,7 @@ void TraditionalGenerator::SetRadius(double radius)
 		{ 0,  0,  0,  0, YZ,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}
 	};
 
-	std::shared_ptr<Graph> graph = this->factory->CreateGraph();
+	std::unique_ptr<Graph> graph(this->factory->CreateGraph());
 	if (!graph)
 		return nullptr;
 
@@ -54,7 +54,7 @@ void TraditionalGenerator::SetRadius(double radius)
 	graph->SetColorTarget(Marble::Color::BLUE, Marble::Color::MAGENTA);
 	graph->SetColorTarget(Marble::Color::MAGENTA, Marble::Color::BLUE);
 
-	std::shared_ptr<Node> matrix[numRows][numCols];
+	Node* matrix[numRows][numCols];
 	for (int i = 0; i < numRows; i++)
 		for (int j = 0; j < numCols; j++)
 			matrix[i][j] = nullptr;
@@ -77,32 +77,31 @@ void TraditionalGenerator::SetRadius(double radius)
 				case BZ: color = Marble::Color::BLUE; break;
 			}
 
-			std::shared_ptr<Node> node = this->factory->CreateNode(Vector(0.0, 0.0), color);
+			Node* node = this->factory->CreateNode(Vector(0.0, 0.0), color);
 			if (!node)
 				return nullptr;
 
+			graph->AddNode(node);
+			matrix[i][j] = node;
+
 			if (participantSet.find(color) != participantSet.end())
 			{
-				std::shared_ptr<Marble> marble = this->factory->CreateMarble(color);
+				Marble* marble = this->factory->CreateMarble(color);
 				if (!marble)
 					return nullptr;
 
 				node->SetOccupant(marble);
 			}
-
-			matrix[i][j] = node;
-
-			graph->AddNode(node);
 		}
 	}
 
-	std::shared_ptr<Node> centerNode;
+	Node* centerNode = nullptr;
 
 	for (int i = 0; i < numRows; i++)
 	{
 		for (int j = 0; j < numCols; j++)
 		{
-			std::shared_ptr<Node> node = matrix[i][j];
+			Node* node = matrix[i][j];
 			if (!node)
 				continue;
 
@@ -118,11 +117,14 @@ void TraditionalGenerator::SetRadius(double radius)
 		}
 	}
 
+	if (!centerNode)
+		return nullptr;
+
 	centerNode->SetLocation(Vector(0.0, 0.0));
 	std::set<Node*> locationAssignedSet;
-	locationAssignedSet.insert(centerNode.get());
+	locationAssignedSet.insert(centerNode);
 	std::list<Node*> queue;
-	queue.push_back(centerNode.get());
+	queue.push_back(centerNode);
 	while (queue.size() > 0)
 	{
 		Node* node = *queue.begin();
@@ -130,22 +132,21 @@ void TraditionalGenerator::SetRadius(double radius)
 		
 		for (int i = 0; i < node->GetNumAdjacentNodes(); i++)
 		{
-			std::shared_ptr<Node> adjacentNode;
-			node->GetAdjacentNode(i, adjacentNode);
+			Node* adjacentNode = node->GetAdjacentNode(i);
 
-			if (adjacentNode && locationAssignedSet.find(adjacentNode.get()) == locationAssignedSet.end())
+			if (adjacentNode && locationAssignedSet.find(adjacentNode) == locationAssignedSet.end())
 			{
 				double angle = 2.0 * M_PI * double(i) / double(node->GetNumAdjacentNodes());
 				Vector delta(radius * cos(angle), -radius * sin(angle));
 				adjacentNode->SetLocation(node->GetLocation() + delta);
-				locationAssignedSet.insert(adjacentNode.get());
-				queue.push_back(adjacentNode.get());
+				locationAssignedSet.insert(adjacentNode);
+				queue.push_back(adjacentNode);
 			}
 		}
 	}
 
-	for (const std::shared_ptr<Node>& node : graph->GetNodeArray())
+	for (Node* node : graph->GetNodeArray())
 		node->RemoveNullAdjacencies();
 
-	return graph;
+	return graph.release();
 }

@@ -20,8 +20,8 @@ namespace ChineseCheckers
 		Factory();
 		virtual ~Factory();
 
-		virtual std::shared_ptr<Graph> CreateGraph();
-		virtual std::shared_ptr<Node> CreateNode(const Vector& location, Marble::Color color);
-		virtual std::shared_ptr<Marble> CreateMarble(Marble::Color color);
+		virtual Graph* CreateGraph();
+		virtual Node* CreateNode(const Vector& location, Marble::Color color);
+		virtual Marble* CreateMarble(Marble::Color color);
 	};
 }

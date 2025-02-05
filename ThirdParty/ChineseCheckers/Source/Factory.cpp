@@ -12,17 +12,17 @@ Factory::Factory()
 {
 }
 
-/*virtual*/ std::shared_ptr<Graph> Factory::CreateGraph()
+/*virtual*/ Graph* Factory::CreateGraph()
 {
-	return std::make_shared<Graph>();
+	return new Graph();
 }
 
-/*virtual*/ std::shared_ptr<Node> Factory::CreateNode(const Vector& location, Marble::Color color)
+/*virtual*/ Node* Factory::CreateNode(const Vector& location, Marble::Color color)
 {
-	return std::make_shared<Node>(location, color);
+	return new Node(location, color);
 }
 
-/*virtual*/ std::shared_ptr<Marble> Factory::CreateMarble(Marble::Color color)
+/*virtual*/ Marble* Factory::CreateMarble(Marble::Color color)
 {
-	return std::make_shared<Marble>(color);
+	return new Marble(color);
 }
