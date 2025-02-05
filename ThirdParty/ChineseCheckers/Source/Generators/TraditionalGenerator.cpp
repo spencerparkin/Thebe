@@ -1,6 +1,6 @@
 #include "TraditionalGenerator.h"
-#include "../Graph.h"
-#include "../Factory.h"
+#include "Graph.h"
+#include "Factory.h"
 #include <map>
 
 using namespace ChineseCheckers;

@@ -17,17 +17,31 @@ Marble::Color Marble::GetColor() const
 	return this->color;
 }
 
-bool Marble::GetLocation(Vector& location) const
+/*virtual*/ bool Marble::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
 {
-	std::shared_ptr<Node> node = this->occupyingNode.lock();
-	if (!node)
-		return false;
+	using namespace ParseParty;
 
-	location = node->GetLocation();
+	auto marbleValue = new JsonObject();
+	jsonValue.reset(marbleValue);
+
+	marbleValue->SetValue("color", new JsonInt(this->color));
+
 	return true;
 }
 
-void Marble::SetOccupyingNode(std::shared_ptr<Node> node)
+/*virtual*/ bool Marble::FromJson(const ParseParty::JsonValue* jsonValue)
 {
-	this->occupyingNode = node;
+	using namespace ParseParty;
+
+	auto marbleValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!marbleValue)
+		return false;
+
+	auto colorValue = dynamic_cast<const JsonInt*>(marbleValue->GetValue("color"));
+	if (!colorValue)
+		return false;
+
+	this->color = (Color)colorValue->GetValue();
+
+	return true;
 }

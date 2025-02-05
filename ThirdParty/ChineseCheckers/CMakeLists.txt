@@ -25,3 +25,12 @@ target_compile_definitions(ChineseCheckers PRIVATE
     NOMINMAX
     _USE_MATH_DEFINES
 )
+
+target_link_libraries(ChineseCheckers PRIVATE
+    ParseParty
+)
+
+target_include_directories(ChineseCheckers PUBLIC
+    "Source"
+    "../ParseParty/ParseLibrary/Source"
+)

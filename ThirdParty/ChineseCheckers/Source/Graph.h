@@ -2,6 +2,7 @@
 
 #include "Marble.h"
 #include "Vector.h"
+#include "JsonValue.h"
 #include <memory>
 #include <vector>
 #include <functional>
@@ -10,6 +11,7 @@
 namespace ChineseCheckers
 {
 	class Node;
+	class Factory;
 
 	/**
 	 * An instance of this class is the game board.
@@ -42,7 +44,10 @@ namespace ChineseCheckers
 		void Clear();
 		void AddNode(std::shared_ptr<Node> node);
 
-		std::shared_ptr<Graph> Clone() const;
+		std::shared_ptr<Graph> Clone(Factory* factory) const;
+
+		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, Factory* factory);
 
 		bool SetColorTarget(Marble::Color sourceColor, Marble::Color targetColor);
 
@@ -103,6 +108,9 @@ namespace ChineseCheckers
 	public:
 		Node(const Vector& location, Marble::Color color);
 		virtual ~Node();
+
+		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const;
+		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<std::shared_ptr<Node>>& nodeArray, Factory* factory);
 
 		void SetLocation(const Vector& location);
 		const Vector& GetLocation() const;

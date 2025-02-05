@@ -1,4 +1,5 @@
 #include "Graph.h"
+#include "Factory.h"
 #include <stdlib.h>
 
 using namespace ChineseCheckers;
@@ -23,11 +24,74 @@ void Graph::AddNode(std::shared_ptr<Node> node)
 	this->nodeArray.push_back(node);
 }
 
-std::shared_ptr<Graph> Graph::Clone() const
+std::shared_ptr<Graph> Graph::Clone(Factory* factory) const
 {
-	std::shared_ptr<Graph> graph;
-	//...
+	std::shared_ptr<Graph> graph = factory->CreateGraph();
+	
+	if (graph)
+	{
+		std::unique_ptr<ParseParty::JsonValue> jsonValue;
+		if (this->ToJson(jsonValue))
+			graph->FromJson(jsonValue.get(), factory);
+	}
+
 	return graph;
+}
+
+/*virtual*/ bool Graph::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
+{
+	using namespace ParseParty;
+
+	auto nodeArrayValue = new JsonArray();
+	jsonValue.reset(nodeArrayValue);
+
+	std::map<Node*, int> offsetMap;
+	int offset = 0;
+	for (std::shared_ptr<Node> node : this->nodeArray)
+		offsetMap.insert(std::pair(node.get(), offset++));
+
+	for (std::shared_ptr<Node> node : this->nodeArray)
+	{
+		std::unique_ptr<JsonValue> nodeValue;
+		if (!node->ToJson(nodeValue, offsetMap))
+			return false;
+
+		nodeArrayValue->PushValue(nodeValue.release());
+	}
+
+	return true;
+}
+
+/*virtual*/ bool Graph::FromJson(const ParseParty::JsonValue* jsonValue, Factory* factory)
+{
+	using namespace ParseParty;
+
+	this->Clear();
+
+	auto nodeArrayValue = dynamic_cast<const JsonArray*>(jsonValue);
+	if (!nodeArrayValue)
+		return false;
+
+	for (int i = 0; i < (int)nodeArrayValue->GetSize(); i++)
+	{
+		std::shared_ptr<Node> node = factory->CreateNode(Vector(0.0, 0.0), Marble::Color::NONE);
+		if (!node)
+			return false;
+
+		this->nodeArray.push_back(node);
+	}
+
+	for (int i = 0; i < (int)nodeArrayValue->GetSize(); i++)
+	{
+		auto nodeValue = dynamic_cast<const JsonObject*>(nodeArrayValue->GetValue(i));
+		if (!nodeValue)
+			return false;
+
+		if (!this->nodeArray[i]->FromJson(nodeValue, this->nodeArray, factory))
+			return false;
+	}
+
+	return true;
 }
 
 bool Graph::SetColorTarget(Marble::Color sourceColor, Marble::Color targetColor)
@@ -229,6 +293,96 @@ Node::Node(const Vector& location, Marble::Color color)
 
 /*virtual*/ Node::~Node()
 {
+}
+
+/*virtual*/ bool Node::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const
+{
+	using namespace ParseParty;
+
+	auto nodeObjectValue = new JsonObject();
+	jsonValue.reset(nodeObjectValue);
+
+	nodeObjectValue->SetValue("color", new JsonInt(this->color));
+	nodeObjectValue->SetValue("location_x", new JsonFloat(this->location.x));
+	nodeObjectValue->SetValue("location_y", new JsonFloat(this->location.y));
+	
+	if (this->occupant)
+	{
+		std::unique_ptr<JsonValue> occupantValue;
+		if (!this->occupant->ToJson(occupantValue))
+			return false;
+
+		nodeObjectValue->SetValue("occupant", occupantValue.release());
+	}
+
+	auto adjacencyArrayValue = new JsonArray();
+	nodeObjectValue->SetValue("adjacency_array", adjacencyArrayValue);
+
+	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
+	{
+		std::shared_ptr<Node> adjacentNode(this->adjacentNodeArray[i]);
+		if (adjacentNode)
+		{
+			int j = offsetMap.find(adjacentNode.get())->second;
+			adjacencyArrayValue->PushValue(new JsonInt(j));
+		}
+	}
+
+	return true;
+}
+
+/*virtual*/ bool Node::FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<std::shared_ptr<Node>>& nodeArray, Factory* factory)
+{
+	using namespace ParseParty;
+
+	auto nodeObject = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!nodeObject)
+		return false;
+
+	auto colorValue = dynamic_cast<const JsonInt*>(nodeObject->GetValue("color"));
+	if (!colorValue)
+		return false;
+
+	this->color = (Marble::Color)colorValue->GetValue();
+
+	auto xLocationValue = dynamic_cast<const JsonFloat*>(nodeObject->GetValue("location_x"));
+	auto yLocationValue = dynamic_cast<const JsonFloat*>(nodeObject->GetValue("location_y"));
+	if (!xLocationValue || !yLocationValue)
+		return false;
+
+	this->location.x = xLocationValue->GetValue();
+	this->location.y = yLocationValue->GetValue();
+
+	auto occupantValue = dynamic_cast<const JsonObject*>(nodeObject->GetValue("occupant"));
+	if (occupantValue)
+	{
+		this->occupant = factory->CreateMarble(Marble::Color::NONE);
+		if (!this->occupant)
+			return false;
+
+		if (!this->occupant->FromJson(occupantValue))
+			return false;
+	}
+
+	auto adjacencyArrayValue = dynamic_cast<const JsonArray*>(nodeObject->GetValue("adjacency_array"));
+	if (!adjacencyArrayValue)
+		return false;
+
+	this->adjacentNodeArray.clear();
+	for (int i = 0; i < (int)adjacencyArrayValue->GetSize(); i++)
+	{
+		auto offsetValue = dynamic_cast<const JsonInt*>(adjacencyArrayValue->GetValue(i));
+		if (!offsetValue)
+			return false;
+
+		int j = (int)offsetValue->GetValue();
+		if (j < 0 || j >= (int)nodeArray.size())
+			return false;
+
+		this->adjacentNodeArray.push_back(nodeArray[j]);
+	}
+
+	return true;
 }
 
 void Node::SetLocation(const Vector& location)

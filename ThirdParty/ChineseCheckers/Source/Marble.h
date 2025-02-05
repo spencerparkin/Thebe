@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector.h"
+#include "JsonValue.h"
 #include <memory>
 
 namespace ChineseCheckers
@@ -32,12 +33,12 @@ namespace ChineseCheckers
 		Marble(Color color);
 		virtual ~Marble();
 
+		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
+		virtual bool FromJson(const ParseParty::JsonValue* jsonValue);
+
 		Color GetColor() const;
-		bool GetLocation(Vector& location) const;
-		void SetOccupyingNode(std::shared_ptr<Node> node);
 
 	protected:
 		Color color;
-		std::weak_ptr<Node> occupyingNode;
 	};
 }
