@@ -40,28 +40,31 @@ void JsonSocketReceiver::SetRecvFunc(JsonSocketRecvFunc recvFunc)
 		if (!ringBuffer.WriteBytes((const uint8_t*)recvBuffer.data(), numBytesReceived))
 			break;
 
-		uint32_t numStoredBytes = ringBuffer.GetNumStoredBytes();
-		std::unique_ptr<uint8_t> buffer(new uint8_t[numStoredBytes]);
-		if (!ringBuffer.PeakBytes(buffer.get(), numStoredBytes))
-			break;
+		while (true)
+		{
+			uint32_t numStoredBytes = ringBuffer.GetNumStoredBytes();
+			std::unique_ptr<uint8_t> buffer(new uint8_t[numStoredBytes]);
+			if (!ringBuffer.PeakBytes(buffer.get(), numStoredBytes))
+				break;
+		
+			bool nullTerminated = false;
+			for (uint32_t i = 0; i < numStoredBytes && !nullTerminated; i++)
+				if (buffer.get()[i] == '\0')
+					nullTerminated = true;
 
-		bool nullTerminated = false;
-		for (uint32_t i = 0; i < numStoredBytes && !nullTerminated; i++)
-			if (buffer.get()[i] == '\0')
-				nullTerminated = true;
+			if (!nullTerminated)
+				break;
 
-		if (!nullTerminated)
-			continue;
+			std::string jsonText((const char*)buffer.get());
+			std::string parseError;
+			std::unique_ptr<JsonValue> jsonValue(JsonValue::ParseJson(jsonText, parseError));
+			if (!jsonValue.get())
+				break;
 
-		std::string jsonText((const char*)buffer.get());
-		std::string parseError;
-		std::unique_ptr<JsonValue> jsonValue(JsonValue::ParseJson(jsonText, parseError));
-		if (!jsonValue.get())
-			break;
+			if (!ringBuffer.DeleteBytes(jsonText.length() + 1))
+				break;
 
-		if (!ringBuffer.DeleteBytes(jsonText.length() + 1))
-			break;
-
-		this->ReceiveJson(jsonValue);
+			this->ReceiveJson(jsonValue);
+		}
 	}
 }
