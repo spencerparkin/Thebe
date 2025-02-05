@@ -2,21 +2,16 @@
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/combobox.h>
 #include "Thebe/Network/Address.h"
 
-class HostGameDialog : public wxDialog
+class JoinGameDialog : public wxDialog
 {
 public:
-	HostGameDialog(wxWindow* parent);
-	virtual ~HostGameDialog();
+	JoinGameDialog(wxWindow* parent);
+	virtual ~JoinGameDialog();
 
 	struct Data
 	{
-		int numHumanPlayers;
-		int numComputerPlayers;
-		std::string gameType;
 		Thebe::NetworkAddress hostAddress;
 	};
 
@@ -29,7 +24,4 @@ private:
 	Data data;
 	wxTextCtrl* hostAddressText;
 	wxTextCtrl* hostPortText;
-	wxSpinCtrl* numHumanPlayersSpin;
-	wxSpinCtrl* numComputerPlayersSpin;
-	wxComboBox* gameTypeCombo;
 };

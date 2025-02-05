@@ -324,10 +324,10 @@ Node::Node(const Vector& location, Marble::Color color)
 
 	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
 	{
-		std::shared_ptr<Node> adjacentNode(this->adjacentNodeArray[i]);
+		Node* adjacentNode(this->adjacentNodeArray[i]);
 		if (adjacentNode)
 		{
-			int j = offsetMap.find(adjacentNode.get())->second;
+			int j = offsetMap.find(adjacentNode)->second;
 			adjacencyArrayValue->PushValue(new JsonInt(j));
 		}
 	}

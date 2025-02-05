@@ -9,6 +9,16 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/Canvas.h
     Source/HostGameDialog.cpp
     Source/HostGameDialog.h
+    Source/JoinGameDialog.cpp
+    Source/JoinGameDialog.h
+    Source/GameClient.cpp
+    Source/GameClient.h
+    Source/GameServer.cpp
+    Source/GameServer.h
+    Source/HumanClient.cpp
+    Source/HumanClient.h
+    Source/ComputerClient.cpp
+    Source/ComputerClient.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})

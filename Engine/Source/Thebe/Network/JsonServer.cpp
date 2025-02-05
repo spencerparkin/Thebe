@@ -91,6 +91,7 @@ int JsonServer::GetMaxConnections()
 		return false;
 
 	this->clientManager = new ClientManagerThread(this);
+	this->clientManager->SetName("Client Manager Thread");
 	if (!this->clientManager->Split())
 		return false;
 
@@ -99,6 +100,10 @@ int JsonServer::GetMaxConnections()
 
 /*virtual*/ void JsonServer::Shutdown()
 {
+	ClientMessage message;
+	while (this->clientMessageQueue.Remove(message))
+		delete message.jsonValue;
+
 	if (this->socket != INVALID_SOCKET)
 	{
 		::closesocket(this->socket);
@@ -268,6 +273,7 @@ bool JsonServer::ConnectedClient::Setup()
 	if (needsSending)
 	{
 		this->sender = new JsonSocketSender(this->connectedSocket);
+		this->sender->SetName("Server-Side Sender Thread");
 		if (!this->sender->Split())
 			return false;
 	}
@@ -275,6 +281,7 @@ bool JsonServer::ConnectedClient::Setup()
 	if (needsReceiving)
 	{
 		this->receiver = new JsonSocketReceiver(this->connectedSocket);
+		this->receiver->SetName("Server-Side Receiver Thread");
 		this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->ReceiveJson(jsonValue.release()); });
 		if (!this->receiver->Split())
 			return false;

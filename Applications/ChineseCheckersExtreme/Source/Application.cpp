@@ -8,6 +8,8 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/Material.h"
+#include "GameClient.h"
+#include "GameServer.h"
 #include "Test.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -19,6 +21,7 @@ using namespace Thebe;
 ChineseCheckersApp::ChineseCheckersApp()
 {
 	this->frame = nullptr;
+	this->gameServer = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
 }
 
@@ -39,6 +42,21 @@ Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 {
 	return this->frame;
+}
+
+ChineseCheckersGameServer* ChineseCheckersApp::GetGameServer()
+{
+	return this->gameServer;
+}
+
+void ChineseCheckersApp::SetGameServer(ChineseCheckersGameServer* gameServer)
+{
+	this->gameServer = gameServer;
+}
+
+std::vector<ChineseCheckersGameClient*>& ChineseCheckersApp::GetGameClientArray()
+{
+	return this->gameClientArray;
 }
 
 /*virtual*/ bool ChineseCheckersApp::OnInit(void)
@@ -124,6 +142,8 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
+	this->ShutdownClientsAndServer();
+
 	this->graphicsEngine->WaitForGPUIdle();
 
 	if (this->lineRenderer.Get())
@@ -143,4 +163,22 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 GraphicsEngine* ChineseCheckersApp::GetGraphicsEngine()
 {
 	return this->graphicsEngine.Get();
+}
+
+void ChineseCheckersApp::ShutdownClientsAndServer()
+{
+	for (ChineseCheckersGameClient* gameClient : this->gameClientArray)
+	{
+		gameClient->Shutdown();
+		delete gameClient;
+	}
+
+	this->gameClientArray.clear();
+
+	if (this->gameServer)
+	{
+		this->gameServer->Shutdown();
+		delete this->gameServer;
+		this->gameServer = nullptr;
+	}
 }

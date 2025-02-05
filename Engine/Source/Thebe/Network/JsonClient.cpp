@@ -95,6 +95,7 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 	if (this->needsReceiving)
 	{
 		this->receiver = new JsonSocketReceiver(this->connectedSocket);
+		this->receiver->SetName("Client-Side Receiver Thread");
 		this->receiver->SetRecvFunc([=](std::unique_ptr<ParseParty::JsonValue>& jsonValue) { this->jsonMessageQueue.Add(jsonValue.release()); });
 		if (!this->receiver->Split())
 			return false;
@@ -103,6 +104,7 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 	if (this->needsSending)
 	{
 		this->sender = new JsonSocketSender(this->connectedSocket);
+		this->sender->SetName("Client-Side Sender Thread");
 		if (!this->sender->Split())
 			return false;
 	}

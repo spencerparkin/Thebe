@@ -2,6 +2,12 @@
 #include "Canvas.h"
 #include "Application.h"
 #include "HostGameDialog.h"
+#include "JoinGameDialog.h"
+#include "GameClient.h"
+#include "GameServer.h"
+#include "HumanClient.h"
+#include "ComputerClient.h"
+#include "Generators/TraditionalGenerator.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
@@ -65,15 +71,75 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	
 	const HostGameDialog::Data& data = hostGameDialog.GetData();
 
-	//...
+	std::unique_ptr<ChineseCheckersGameServer> gameServer(new ChineseCheckersGameServer());
+	gameServer->SetAddress(data.hostAddress);
+	gameServer->SetMaxConnections(data.numComputerPlayers + data.numHumanPlayers);
+	gameServer->SetNumPlayers(data.numComputerPlayers + data.numHumanPlayers);
+	gameServer->factory.reset(new ChineseCheckers::Factory());
+	gameServer->graphGenerator.reset(new ChineseCheckers::TraditionalGenerator(gameServer->factory.get()));
+	if (!gameServer->Setup())
+	{
+		gameServer->Shutdown();
+		wxMessageBox("Failed to start game server", "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
+
+	wxGetApp().SetGameServer(gameServer.release());
+
+	if (data.numHumanPlayers > 0)
+	{
+		std::unique_ptr<HumanClient> humanClient(new HumanClient());
+		humanClient->SetAddress(data.hostAddress);
+		humanClient->factory.reset(new ChineseCheckers::Factory());
+		if (!humanClient->Setup())
+		{
+			humanClient->Shutdown();
+			wxMessageBox("Failed to connect to game server!", "Error!", wxICON_ERROR | wxOK, this);
+			return;
+		}
+
+		wxGetApp().GetGameClientArray().push_back(humanClient.release());
+	}
+
+	for (int i = 0; i < data.numComputerPlayers; i++)
+	{
+		std::unique_ptr<ComputerClient> computerClient(new ComputerClient());
+		computerClient->SetAddress(data.hostAddress);
+		computerClient->factory.reset(new ChineseCheckers::Factory());
+		if (!computerClient->Setup())
+		{
+			computerClient->Shutdown();
+			wxMessageBox(wxString::Format("Failed to connect computer client %d to game server!", i), "Error!", wxICON_ERROR | wxOK, this);
+			return;
+		}
+
+		wxGetApp().GetGameClientArray().push_back(computerClient.release());
+	}
 }
 
 void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
 {
+	JoinGameDialog joinGameDialog(this);
+	if (joinGameDialog.ShowModal() != wxID_OK)
+		return;
+
+	const JoinGameDialog::Data& data = joinGameDialog.GetData();
+
+	std::unique_ptr<HumanClient> humanClient(new HumanClient());
+	humanClient->SetAddress(data.hostAddress);
+	if (!humanClient->Setup())
+	{
+		humanClient->Shutdown();
+		wxMessageBox("Failed to connect to game server!", "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
+
+	wxGetApp().GetGameClientArray().push_back(humanClient.release());
 }
 
 void ChineseCheckersFrame::OnLeaveGame(wxCommandEvent& event)
 {
+	wxGetApp().ShutdownClientsAndServer();
 }
 
 void ChineseCheckersFrame::OnCloseWindow(wxCloseEvent& event)
@@ -115,12 +181,12 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_HostGame:
 		case ID_JoinGame:
 		{
-			//...
+			event.Enable(wxGetApp().GetGameServer() == nullptr && wxGetApp().GetGameClientArray().size() == 0);
 			break;
 		}
 		case ID_LeaveGame:
 		{
-			//...
+			event.Enable(wxGetApp().GetGameClientArray().size() > 0);
 			break;
 		}
 	}
@@ -137,5 +203,10 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 	if (controller->WasButtonPressed(XINPUT_GAMEPAD_BACK))
 		this->canvas->SetDebugDraw(!this->canvas->GetDebugDraw());
 
-	//...
+	ChineseCheckersGameServer* gameServer = wxGetApp().GetGameServer();
+	if (gameServer)
+		gameServer->Serve();
+
+	for (ChineseCheckersGameClient* gameClient : wxGetApp().GetGameClientArray())
+		gameClient->Update(deltaTimeSeconds);
 }

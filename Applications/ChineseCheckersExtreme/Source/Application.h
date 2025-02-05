@@ -8,6 +8,10 @@
 #include "Thebe/Log.h"
 
 class ChineseCheckersFrame;
+class ChineseCheckersGameServer;
+class ChineseCheckersGameClient;
+class ComputerClient;
+class HumanClient;
 
 class ChineseCheckersApp : public wxApp
 {
@@ -23,9 +27,16 @@ public:
 	Thebe::DynamicLineRenderer* GetLineRenderer();
 
 	ChineseCheckersFrame* GetFrame();
+	ChineseCheckersGameServer* GetGameServer();
+	void SetGameServer(ChineseCheckersGameServer* gameServer);
+	std::vector<ChineseCheckersGameClient*>& GetGameClientArray();
+
+	void ShutdownClientsAndServer();
 
 private:
 	ChineseCheckersFrame* frame;
+	ChineseCheckersGameServer* gameServer;
+	std::vector<ChineseCheckersGameClient*> gameClientArray;
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::Log> log;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;

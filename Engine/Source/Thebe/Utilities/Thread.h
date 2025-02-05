@@ -12,8 +12,10 @@ namespace Thebe
 	class THEBE_API Thread
 	{
 	public:
-		Thread();
+		Thread(const std::string& name = "Unnamed Thread");
 		virtual ~Thread();
+
+		void SetName(const std::string& name);
 
 		/**
 		 * Override this with any initialization needed before calling this base method to kick-off the thread.
@@ -43,6 +45,7 @@ namespace Thebe
 		 */
 		virtual void Run() = 0;
 
+		std::string name;
 		std::thread* thread;
 		volatile bool isRunning;
 	};

@@ -19,12 +19,12 @@ namespace ChineseCheckers
 		enum Color
 		{
 			NONE,
-			BLACK,
 			YELLOW,
-			MAGENTA,
-			GREEN,
 			RED,
+			BLACK,
+			GREEN,
 			BLUE,
+			MAGENTA,
 			WHITE,
 			ORANGE,
 			CYAN
