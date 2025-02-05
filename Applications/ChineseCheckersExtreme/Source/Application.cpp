@@ -46,8 +46,10 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 	if (!wxApp::OnInit())
 		return false;
 
+#if false
 	ChineseCheckers::TwoPlayerGameTest test;
 	test.Perform();
+#endif
 
 	this->frame = new ChineseCheckersFrame(wxPoint(10, 10), wxSize(1200, 800));
 
