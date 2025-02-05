@@ -117,7 +117,7 @@ bool Graph::AllMarblesAtTarget(Marble::Color marbleColor) const
 	for (std::shared_ptr<Node> node : this->nodeArray)
 	{
 		std::shared_ptr<Marble> occupant = node->GetOccupant();
-		if (occupant->GetColor() != marbleColor)
+		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
 		if (node->GetColor() != targetColor)
@@ -148,7 +148,7 @@ bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMo
 	for (std::shared_ptr<Node> node : this->nodeArray)
 	{
 		std::shared_ptr<Marble> occupant = node->GetOccupant();
-		if (occupant->GetColor() != marbleColor)
+		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
 		for (int i = 0; i < (int)node->GetNumAdjacentNodes(); i++)
@@ -222,7 +222,7 @@ Vector Graph::CalcMarbleCentroid(Marble::Color color) const
 	for (const std::shared_ptr<Node>& node : this->nodeArray)
 	{
 		std::shared_ptr<Marble> occupant = node->GetOccupant();
-		if (occupant->GetColor() == color)
+		if (occupant && occupant->GetColor() == color)
 		{
 			numMarbles++;
 			center += node->GetLocation();

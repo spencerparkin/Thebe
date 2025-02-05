@@ -8,6 +8,7 @@
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/Material.h"
+#include "Test.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 
@@ -17,6 +18,7 @@ using namespace Thebe;
 
 ChineseCheckersApp::ChineseCheckersApp()
 {
+	this->frame = nullptr;
 	this->graphicsEngine.Set(new GraphicsEngine());
 }
 
@@ -43,6 +45,9 @@ ChineseCheckersFrame* ChineseCheckersApp::GetFrame()
 {
 	if (!wxApp::OnInit())
 		return false;
+
+	ChineseCheckers::TwoPlayerGameTest test;
+	test.Perform();
 
 	this->frame = new ChineseCheckersFrame(wxPoint(10, 10), wxSize(1200, 800));
 

@@ -63,6 +63,9 @@ void TraditionalGenerator::SetRadius(double radius)
 	{
 		for (int j = 0; j < numCols; j++)
 		{
+			if (mask[i][j] == 0)
+				continue;
+
 			Marble::Color color = Marble::Color::NONE;
 			switch (mask[i][j])
 			{

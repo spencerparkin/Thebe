@@ -20,6 +20,7 @@ target_compile_definitions(ChineseCheckersGame PUBLIC __WXMSW__ _UNICODE)
 target_link_libraries(ChineseCheckersGame PRIVATE
     ThebeGraphicsEngine
     ParseParty
+    ChineseCheckers
 )
 
 target_compile_definitions(ChineseCheckersGame PRIVATE
