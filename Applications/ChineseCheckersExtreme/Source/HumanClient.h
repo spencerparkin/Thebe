@@ -3,7 +3,6 @@
 #include "GameClient.h"
 #include "ChineseCheckers/Graph.h"
 #include "Thebe/Math/Vector4.h"
-#include "MoveSequence.h"
 
 class HumanClient : public ChineseCheckersGameClient
 {

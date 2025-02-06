@@ -3,7 +3,7 @@
 #include <wx/window.h>
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/EngineParts/CollisionObject.h"
-#include "MoveSequence.h"
+#include "ChineseCheckers/MoveSequence.h"
 
 class ChineseCheckersCanvas : public wxWindow
 {
@@ -27,5 +27,5 @@ private:
 	void UpdateRings();
 
 	bool debugDraw;
-	MoveSequence moveSequence;
+	ChineseCheckers::MoveSequence moveSequence;
 };

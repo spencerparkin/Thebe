@@ -46,7 +46,7 @@ ComputerClient::ComputerClient() : brain(this)
 		}
 		case State::TAKING_TURN:
 		{
-			MoveSequence* moveSequence = nullptr;
+			ChineseCheckers::MoveSequence* moveSequence = nullptr;
 			if (this->brain.moveSequenceQueue.Remove(moveSequence))
 			{
 				this->MakeMove(*moveSequence);
@@ -110,9 +110,9 @@ ComputerClient::Brain::Brain(ComputerClient* computerClient) : mandateQueueSemap
 
 bool ComputerClient::Brain::FormulateTurn()
 {
-	std::unique_ptr<MoveSequence> moveSequence(new MoveSequence());
+	std::unique_ptr<ChineseCheckers::MoveSequence> moveSequence(new ChineseCheckers::MoveSequence());
 
-	ChineseCheckers::Graph* graph = this->computerClient->GetGraph();
+	ChineseCheckers::Graph* graph = this->computerClient->GetGraph();	// TODO: Should probably be given clone for thread-safety.
 	if (!graph)
 		return false;
 

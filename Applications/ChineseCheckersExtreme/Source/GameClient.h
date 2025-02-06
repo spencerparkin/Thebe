@@ -3,7 +3,7 @@
 #include "Thebe/Network/JsonClient.h"
 #include "ChineseCheckers/Graph.h"
 #include "ChineseCheckers/Marble.h"
-#include "MoveSequence.h"
+#include "ChineseCheckers/MoveSequence.h"
 
 class ChineseCheckersGameClient : public Thebe::JsonClient
 {
@@ -20,7 +20,7 @@ public:
 	ChineseCheckers::Graph* GetGraph();
 	ChineseCheckers::Marble::Color GetColor() const;
 
-	void MakeMove(const MoveSequence& moveSequence);
+	void MakeMove(const ChineseCheckers::MoveSequence& moveSequence);
 
 protected:
 	std::unique_ptr<ChineseCheckers::Factory> factory;

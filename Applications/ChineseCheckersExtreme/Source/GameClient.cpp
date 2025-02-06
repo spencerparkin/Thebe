@@ -1,6 +1,6 @@
 #include "GameClient.h"
 #include "Factory.h"
-#include "MoveSequence.h"
+#include "ChineseCheckers/MoveSequence.h"
 
 //------------------------------------ ChineseCheckersGameClient ------------------------------------
 
@@ -101,7 +101,7 @@ ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
 	}
 	else if (response == "make_move")
 	{
-		MoveSequence moveSequence;
+		ChineseCheckers::MoveSequence moveSequence;
 		if (!moveSequence.FromJson(responseValue->GetValue("move_sequence")))
 			return;
 
@@ -123,7 +123,7 @@ ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
 {
 }
 
-void ChineseCheckersGameClient::MakeMove(const MoveSequence& moveSequence)
+void ChineseCheckersGameClient::MakeMove(const ChineseCheckers::MoveSequence& moveSequence)
 {
 	using namespace ParseParty;
 

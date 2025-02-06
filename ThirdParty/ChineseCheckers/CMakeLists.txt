@@ -17,6 +17,8 @@ set(CHINESE_CHECKERS_SOURCES
     Source/ChineseCheckers/Test.h
     Source/ChineseCheckers/Generators/TraditionalGenerator.cpp
     Source/ChineseCheckers/Generators/TraditionalGenerator.h
+    Source/ChineseCheckers/MoveSequence.cpp
+    Source/ChineseCheckers/MoveSequence.h
 )
 
 add_library(ChineseCheckers STATIC ${CHINESE_CHECKERS_SOURCES})

@@ -1,5 +1,7 @@
 #include "MoveSequence.h"
 
+using namespace ChineseCheckers;
+
 MoveSequence::MoveSequence()
 {
 }
@@ -42,16 +44,16 @@ bool MoveSequence::FromJson(const ParseParty::JsonValue* jsonValue)
 	return true;
 }
 
-bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseCheckers::Marble::Color color)
+bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 {
 	if (nodeIndex < 0 || nodeIndex >= (int)graph->GetNodeArray().size())
 		return false;
 
-	ChineseCheckers::Node* newNode = graph->GetNodeArray()[nodeIndex];
+	Node* newNode = graph->GetNodeArray()[nodeIndex];
 
 	if (this->nodeIndexArray.size() == 0)
 	{
-		ChineseCheckers::Marble* marble = newNode->GetOccupant();
+		Marble* marble = newNode->GetOccupant();
 		if (!marble || marble->GetColor() != color)
 			return false;
 
@@ -62,7 +64,7 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 	if (newNode->GetOccupant())
 		return false;
 
-	ChineseCheckers::Node* lastNode = graph->GetNodeArray()[this->nodeIndexArray[this->nodeIndexArray.size() - 1]];
+	Node* lastNode = graph->GetNodeArray()[this->nodeIndexArray[this->nodeIndexArray.size() - 1]];
 
 	if (this->nodeIndexArray.size() == 1 && newNode->IsAdjacentTo(lastNode))
 	{
@@ -72,7 +74,7 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 
 	int originalSize = (int)this->nodeIndexArray.size();
 
-	std::map<ChineseCheckers::Node*, int> offsetMap;
+	std::map<Node*, int> offsetMap;
 	graph->MakeOffsetMap(offsetMap);
 
 	// Note that we must do a BFS here (instead of a DFS), because otherwise the
@@ -82,7 +84,7 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 
 	std::list<int> offsetList;
 
-	if(!lastNode->ForAllJumpsBFS([&offsetMap, nodeIndex, &offsetList, lastNode](ChineseCheckers::Node* node, const std::map<ChineseCheckers::Node*, ChineseCheckers::Node*>& parentMap) -> bool
+	if(!lastNode->ForAllJumpsBFS([&offsetMap, nodeIndex, &offsetList, lastNode](Node* node, const std::map<Node*, Node*>& parentMap) -> bool
 		{
 			if (nodeIndex != offsetMap.find(node)->second)
 				return true;
@@ -111,7 +113,7 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 	return false;
 }
 
-bool MoveSequence::ToMove(ChineseCheckers::Graph::Move& move, ChineseCheckers::Graph* graph) const
+bool MoveSequence::ToMove(Graph::Move& move, Graph* graph) const
 {
 	if (!graph->IsValidMoveSequence(this->nodeIndexArray))
 		return false;
@@ -121,11 +123,11 @@ bool MoveSequence::ToMove(ChineseCheckers::Graph::Move& move, ChineseCheckers::G
 	return true;
 }
 
-bool MoveSequence::FromMove(const ChineseCheckers::Graph::Move& move, ChineseCheckers::Graph* graph)
+bool MoveSequence::FromMove(const Graph::Move& move, Graph* graph)
 {
 	this->nodeIndexArray.clear();
 
-	std::map<ChineseCheckers::Node*, int> offsetMap;
+	std::map<Node*, int> offsetMap;
 	graph->MakeOffsetMap(offsetMap);
 
 	if (move.sourceNode->IsAdjacentTo(move.targetNode))
@@ -135,14 +137,14 @@ bool MoveSequence::FromMove(const ChineseCheckers::Graph::Move& move, ChineseChe
 	}
 	else
 	{
-		std::vector<const ChineseCheckers::Node*> nodeStack;
-		move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &offsetMap, &nodeStack, this](ChineseCheckers::Node* node) -> bool
+		std::vector<const Node*> nodeStack;
+		move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &offsetMap, &nodeStack, this](Node* node) -> bool
 			{
 				if (move.targetNode != node)
 					return true;
 
-				for (const ChineseCheckers::Node* intermediateNode : nodeStack)
-					this->nodeIndexArray.push_back(offsetMap.find(const_cast<ChineseCheckers::Node*>(intermediateNode))->second);
+				for (const Node* intermediateNode : nodeStack)
+					this->nodeIndexArray.push_back(offsetMap.find(const_cast<Node*>(intermediateNode))->second);
 
 				this->nodeIndexArray.push_back(offsetMap.find(node)->second);
 				return false;

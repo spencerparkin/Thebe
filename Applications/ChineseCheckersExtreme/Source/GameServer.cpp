@@ -1,7 +1,7 @@
 #include "GameServer.h"
 #include "ChineseCheckers/Generators/TraditionalGenerator.h"
+#include "ChineseCheckers/MoveSequence.h"
 #include "Factory.h"
-#include "MoveSequence.h"
 
 ChineseCheckersGameServer::ChineseCheckersGameServer()
 {
@@ -123,7 +123,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 	}
 	else if (request == "make_move")
 	{
-		MoveSequence moveSequence;
+		ChineseCheckers::MoveSequence moveSequence;
 		if (!moveSequence.FromJson(requestValue->GetValue("move_sequence")))
 			return;
 		

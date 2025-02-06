@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameClient.h"
-#include "MoveSequence.h"
 #include "Thebe/Utilities/Thread.h"
 #include "Thebe/Math/Random.h"
 #include <semaphore>
@@ -46,7 +45,7 @@ private:
 		Thebe::ThreadSafeQueue<Mandate> mandateQueue;
 		std::binary_semaphore mandateQueueSemaphore;
 
-		Thebe::ThreadSafeQueue<MoveSequence*> moveSequenceQueue;
+		Thebe::ThreadSafeQueue<ChineseCheckers::MoveSequence*> moveSequenceQueue;
 
 		ComputerClient* computerClient;
 		Thebe::Random random;
