@@ -128,18 +128,26 @@ bool MoveSequence::FromMove(const ChineseCheckers::Graph::Move& move, ChineseChe
 	std::map<ChineseCheckers::Node*, int> offsetMap;
 	graph->MakeOffsetMap(offsetMap);
 
-	std::vector<const ChineseCheckers::Node*> nodeStack;
-	move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &offsetMap, &nodeStack, this](ChineseCheckers::Node* node) -> bool
-		{
-			if (move.targetNode != node)
-				return true;
-			
-			for (const ChineseCheckers::Node* intermediateNode : nodeStack)
-				this->nodeIndexArray.push_back(offsetMap.find(const_cast<ChineseCheckers::Node*>(intermediateNode))->second);
+	if (move.sourceNode->IsAdjacentTo(move.targetNode))
+	{
+		this->nodeIndexArray.push_back(offsetMap.find(move.sourceNode)->second);
+		this->nodeIndexArray.push_back(offsetMap.find(move.targetNode)->second);
+	}
+	else
+	{
+		std::vector<const ChineseCheckers::Node*> nodeStack;
+		move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &offsetMap, &nodeStack, this](ChineseCheckers::Node* node) -> bool
+			{
+				if (move.targetNode != node)
+					return true;
 
-			this->nodeIndexArray.push_back(offsetMap.find(node)->second);
-			return false;
-		});
+				for (const ChineseCheckers::Node* intermediateNode : nodeStack)
+					this->nodeIndexArray.push_back(offsetMap.find(const_cast<ChineseCheckers::Node*>(intermediateNode))->second);
+
+				this->nodeIndexArray.push_back(offsetMap.find(node)->second);
+				return false;
+			});
+	}
 
 	return graph->IsValidMoveSequence(this->nodeIndexArray);
 }
