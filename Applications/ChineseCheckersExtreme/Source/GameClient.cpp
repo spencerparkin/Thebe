@@ -1,6 +1,8 @@
 #include "GameClient.h"
 #include "Factory.h"
 
+//------------------------------------ ChineseCheckersGameClient ------------------------------------
+
 ChineseCheckersGameClient::ChineseCheckersGameClient()
 {
 	this->color = ChineseCheckers::Marble::Color::NONE;
@@ -13,11 +15,10 @@ ChineseCheckersGameClient::ChineseCheckersGameClient()
 
 /*virtual*/ bool ChineseCheckersGameClient::Setup()
 {
-	if (!this->factory.get())
-		return false;
-
 	if (!JsonClient::Setup())
 		return false;
+
+	this->factory.reset(new Factory());
 
 	using namespace ParseParty;
 

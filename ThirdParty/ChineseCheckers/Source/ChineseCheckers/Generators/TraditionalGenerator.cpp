@@ -1,22 +1,16 @@
-#include "TraditionalGenerator.h"
-#include "Graph.h"
-#include "Factory.h"
+#include "ChineseCheckers/Generators/TraditionalGenerator.h"
+#include "ChineseCheckers/Graph.h"
+#include "ChineseCheckers/Factory.h"
 #include <map>
 
 using namespace ChineseCheckers;
 
 TraditionalGenerator::TraditionalGenerator(Factory* factory) : GraphGenerator(factory)
 {
-	this->radius = 1.0;
 }
 
 /*virtual*/ TraditionalGenerator::~TraditionalGenerator()
 {
-}
-
-void TraditionalGenerator::SetRadius(double radius)
-{
-	this->radius = radius;
 }
 
 /*virtual*/ Graph* TraditionalGenerator::Generate(const std::set<Marble::Color>& participantSet)
@@ -120,6 +114,7 @@ void TraditionalGenerator::SetRadius(double radius)
 	if (!centerNode)
 		return nullptr;
 
+	double radius = this->scale;
 	centerNode->SetLocation(Vector(0.0, 0.0));
 	std::set<Node*> locationAssignedSet;
 	locationAssignedSet.insert(centerNode);

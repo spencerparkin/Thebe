@@ -1,6 +1,6 @@
-#include "Factory.h"
-#include "Graph.h"
-#include "Marble.h"
+#include "ChineseCheckers/Factory.h"
+#include "ChineseCheckers/Graph.h"
+#include "ChineseCheckers/Marble.h"
 
 using namespace ChineseCheckers;
 

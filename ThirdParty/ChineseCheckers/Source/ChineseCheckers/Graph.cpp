@@ -1,5 +1,5 @@
-#include "Graph.h"
-#include "Factory.h"
+#include "ChineseCheckers/Graph.h"
+#include "ChineseCheckers/Factory.h"
 #include <stdlib.h>
 
 using namespace ChineseCheckers;

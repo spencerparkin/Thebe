@@ -1,7 +1,7 @@
-#include "Test.h"
-#include "Generators/TraditionalGenerator.h"
-#include "Graph.h"
-#include "Factory.h"
+#include "ChineseCheckers/Test.h"
+#include "ChineseCheckers/Generators/TraditionalGenerator.h"
+#include "ChineseCheckers/Graph.h"
+#include "ChineseCheckers/Factory.h"
 
 using namespace ChineseCheckers;
 

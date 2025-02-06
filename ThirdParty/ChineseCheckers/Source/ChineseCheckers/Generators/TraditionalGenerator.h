@@ -26,10 +26,5 @@ namespace ChineseCheckers
 			RZ,
 			BZ
 		};
-
-		void SetRadius(double radius);
-
-	private:
-		double radius;
 	};
 }

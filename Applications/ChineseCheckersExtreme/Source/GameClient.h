@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Thebe/Network/JsonClient.h"
-#include "Graph.h"
+#include "ChineseCheckers/Graph.h"
+#include "ChineseCheckers/Marble.h"
 
 class ChineseCheckersGameClient : public Thebe::JsonClient
 {
@@ -12,11 +13,10 @@ public:
 	virtual bool Setup() override;
 	virtual void Shutdown() override;
 	virtual void Update(double deltaTimeSeconds) override;
-
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
-
 	virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort) override;
 
+protected:
 	std::unique_ptr<ChineseCheckers::Factory> factory;
 	std::unique_ptr<ChineseCheckers::Graph> graph;
 	ChineseCheckers::Marble::Color color;

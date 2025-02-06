@@ -3,20 +3,20 @@
 cmake_minimum_required(VERSION 3.27)
 
 set(CHINESE_CHECKERS_SOURCES
-    Source/Graph.cpp
-    Source/Graph.h
-    Source/GraphGenerator.cpp
-    Source/GraphGenerator.h
-    Source/Marble.cpp
-    Source/Marble.h
-    Source/Factory.cpp
-    Source/Factory.h
-    Source/Vector.cpp
-    Source/Vector.h
-    Source/Test.cpp
-    Source/Test.h
-    Source/Generators/TraditionalGenerator.cpp
-    Source/Generators/TraditionalGenerator.h
+    Source/ChineseCheckers/Graph.cpp
+    Source/ChineseCheckers/Graph.h
+    Source/ChineseCheckers/GraphGenerator.cpp
+    Source/ChineseCheckers/GraphGenerator.h
+    Source/ChineseCheckers/Marble.cpp
+    Source/ChineseCheckers/Marble.h
+    Source/ChineseCheckers/Factory.cpp
+    Source/ChineseCheckers/Factory.h
+    Source/ChineseCheckers/Vector.cpp
+    Source/ChineseCheckers/Vector.h
+    Source/ChineseCheckers/Test.cpp
+    Source/ChineseCheckers/Test.h
+    Source/ChineseCheckers/Generators/TraditionalGenerator.cpp
+    Source/ChineseCheckers/Generators/TraditionalGenerator.h
 )
 
 add_library(ChineseCheckers STATIC ${CHINESE_CHECKERS_SOURCES})

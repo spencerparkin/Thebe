@@ -1,4 +1,4 @@
-#include "Vector.h"
+#include "ChineseCheckers/Vector.h"
 #include <math.h>
 
 using namespace ChineseCheckers;

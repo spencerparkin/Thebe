@@ -10,7 +10,7 @@
 #include "Thebe/EngineParts/Material.h"
 #include "GameClient.h"
 #include "GameServer.h"
-#include "Test.h"
+#include "ChineseCheckers/Test.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 

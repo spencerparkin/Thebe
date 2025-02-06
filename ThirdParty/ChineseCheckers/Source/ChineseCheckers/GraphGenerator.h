@@ -19,7 +19,10 @@ namespace ChineseCheckers
 
 		virtual Graph* Generate(const std::set<Marble::Color>& participantSet) = 0;
 
+		void SetScale(double scale);
+
 	protected:
 		Factory* factory;
+		double scale;
 	};
 }

@@ -7,7 +7,6 @@
 #include "GameServer.h"
 #include "HumanClient.h"
 #include "ComputerClient.h"
-#include "Generators/TraditionalGenerator.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
@@ -75,8 +74,6 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	gameServer->SetAddress(data.hostAddress);
 	gameServer->SetMaxConnections(data.numComputerPlayers + data.numHumanPlayers);
 	gameServer->SetNumPlayers(data.numComputerPlayers + data.numHumanPlayers);
-	gameServer->factory.reset(new ChineseCheckers::Factory());
-	gameServer->graphGenerator.reset(new ChineseCheckers::TraditionalGenerator(gameServer->factory.get()));
 	if (!gameServer->Setup())
 	{
 		gameServer->Shutdown();
@@ -90,7 +87,6 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	{
 		std::unique_ptr<HumanClient> humanClient(new HumanClient());
 		humanClient->SetAddress(data.hostAddress);
-		humanClient->factory.reset(new ChineseCheckers::Factory());
 		if (!humanClient->Setup())
 		{
 			humanClient->Shutdown();
@@ -105,7 +101,6 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	{
 		std::unique_ptr<ComputerClient> computerClient(new ComputerClient());
 		computerClient->SetAddress(data.hostAddress);
-		computerClient->factory.reset(new ChineseCheckers::Factory());
 		if (!computerClient->Setup())
 		{
 			computerClient->Shutdown();

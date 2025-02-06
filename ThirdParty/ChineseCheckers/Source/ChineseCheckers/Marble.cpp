@@ -1,5 +1,5 @@
-#include "Marble.h"
-#include "Graph.h"
+#include "ChineseCheckers/Marble.h"
+#include "ChineseCheckers/Graph.h"
 
 using namespace ChineseCheckers;
 

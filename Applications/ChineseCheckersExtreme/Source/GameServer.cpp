@@ -1,5 +1,5 @@
 #include "GameServer.h"
-#include "Generators/TraditionalGenerator.h"
+#include "ChineseCheckers/Generators/TraditionalGenerator.h"
 #include "Factory.h"
 
 ChineseCheckersGameServer::ChineseCheckersGameServer()
@@ -21,6 +21,11 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 {
 	if (this->graph.get())
 		return false;
+
+	this->factory.reset(new Factory());
+
+	this->graphGenerator.reset(new ChineseCheckers::TraditionalGenerator(this->factory.get()));
+	this->graphGenerator->SetScale(10.0);
 
 	if (!this->graphGenerator.get())
 		return false;
