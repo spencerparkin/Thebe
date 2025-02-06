@@ -109,6 +109,39 @@ bool Graph::SetColorTarget(Marble::Color sourceColor, Marble::Color targetColor)
 	return true;
 }
 
+bool Graph::IsValidMoveSequence(const std::vector<int>& moveSequence) const
+{
+	if (moveSequence.size() < 2)
+		return false;
+
+	for (int i : moveSequence)
+		if (i < 0 || i >= (int)this->nodeArray.size())
+			return false;
+
+	if (!this->nodeArray[moveSequence[0]]->GetOccupant())
+		return false;
+	
+	for (int i = 1; i < (int)moveSequence.size(); i++)
+		if (this->nodeArray[moveSequence[i]]->GetOccupant())
+			return false;
+
+	const Node* nodeA = this->nodeArray[moveSequence[0]];
+	const Node* nodeB = this->nodeArray[moveSequence[1]];
+	if (nodeA->IsAdjacentTo(nodeB))
+		return moveSequence.size() == 2;
+
+	for (int i = 0; i < (int)moveSequence.size() - 1; i++)
+	{
+		nodeA = this->nodeArray[moveSequence[i]];
+		nodeB = this->nodeArray[moveSequence[i + 1]];
+		const Node* mutualAdjacency = Node::FindMutualAdjacency(nodeA, nodeB);
+		if (!mutualAdjacency || !mutualAdjacency->GetOccupant())
+			return false;
+	}
+
+	return true;
+}
+
 bool Graph::AllMarblesAtTarget(Marble::Color marbleColor) const
 {
 	auto pair = this->colorMap.find(marbleColor);
@@ -299,6 +332,19 @@ Node::Node(const Vector& location, Marble::Color color)
 	delete this->occupant;
 }
 
+/*static*/ const Node* Node::FindMutualAdjacency(const Node* nodeA, const Node* nodeB)
+{
+	if (nodeA->IsAdjacentTo(nodeB) || nodeB->IsAdjacentTo(nodeA))
+		return nullptr;
+
+	for (const Node* adjacentNodeA : nodeA->adjacentNodeArray)
+		for (const Node* adjacentNodeB : nodeB->adjacentNodeArray)
+			if (adjacentNodeA == adjacentNodeB)
+				return adjacentNodeA;
+
+	return nullptr;
+}
+
 /*virtual*/ bool Node::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const
 {
 	using namespace ParseParty;
@@ -478,6 +524,15 @@ Node* Node::JumpInDirection(int i) const
 		return nullptr;
 
 	return adjacentNodeB;
+}
+
+bool Node::IsAdjacentTo(const Node* node) const
+{
+	for (const Node* adjacentNode : this->adjacentNodeArray)
+		if (adjacentNode == node)
+			return true;
+
+	return false;
 }
 
 void Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const

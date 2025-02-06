@@ -53,6 +53,12 @@ namespace ChineseCheckers
 		const std::vector<Node*>& GetNodeArray() const;
 
 		/**
+		 * According to the rules of Chinese Checkers, tell us if a marble
+		 * can hop to all the given nodes in a single turn.
+		 */
+		bool IsValidMoveSequence(const std::vector<int>& moveSequence) const;
+
+		/**
 		 * Tell us if all marbles of the given color have reached their target nodes.
 		 * Note that this only considers marbles that are presently on the board.
 		 * (A varient of the game might take marbles off the board temporarily.)
@@ -123,8 +129,11 @@ namespace ChineseCheckers
 		Node* GetAdjacentNode(int i) const;
 		Node* GetAdjacentNode(const Vector& givenDirection) const;
 		Node* JumpInDirection(int i) const;
+		bool IsAdjacentTo(const Node* node) const;
 		void ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const;
 		void RemoveNullAdjacencies();
+
+		static const Node* FindMutualAdjacency(const Node* nodeA, const Node* nodeB);
 
 	protected:
 		Marble* occupant;
