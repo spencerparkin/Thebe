@@ -21,6 +21,7 @@ void Graph::Clear()
 		delete node;
 
 	this->nodeArray.clear();
+	this->colorMap.clear();
 }
 
 void Graph::AddNode(Node* node)
@@ -53,8 +54,11 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 {
 	using namespace ParseParty;
 
+	auto graphValue = new JsonObject();
+	jsonValue.reset(graphValue);
+
 	auto nodeArrayValue = new JsonArray();
-	jsonValue.reset(nodeArrayValue);
+	graphValue->SetValue("node_array", nodeArrayValue);
 
 	std::map<Node*, int> offsetMap;
 	this->MakeOffsetMap(offsetMap);
@@ -68,6 +72,17 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 		nodeArrayValue->PushValue(nodeValue.release());
 	}
 
+	auto colorMapArrayValue = new JsonArray();
+	graphValue->SetValue("color_map_array", colorMapArrayValue);
+
+	for (auto pair : this->colorMap)
+	{
+		auto colorPairArrayValue = new JsonArray();
+		colorPairArrayValue->PushValue(new JsonInt(pair.first));
+		colorPairArrayValue->PushValue(new JsonInt(pair.second));
+		colorMapArrayValue->PushValue(colorPairArrayValue);
+	}
+
 	return true;
 }
 
@@ -77,7 +92,11 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 
 	this->Clear();
 
-	auto nodeArrayValue = dynamic_cast<const JsonArray*>(jsonValue);
+	auto graphValue = dynamic_cast<const JsonObject*>(jsonValue);
+	if (!graphValue)
+		return false;
+
+	auto nodeArrayValue = dynamic_cast<const JsonArray*>(graphValue->GetValue("node_array"));
 	if (!nodeArrayValue)
 		return false;
 
@@ -98,6 +117,24 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 
 		if (!this->nodeArray[i]->FromJson(nodeValue, this->nodeArray, factory))
 			return false;
+	}
+
+	auto colorMapArrayValue = dynamic_cast<const JsonArray*>(graphValue->GetValue("color_map_array"));
+	if (!colorMapArrayValue)
+		return false;
+
+	for (int i = 0; i < (int)colorMapArrayValue->GetSize(); i++)
+	{
+		auto colorPairArrayValue = dynamic_cast<const JsonArray*>(colorMapArrayValue->GetValue(i));
+		if (!colorPairArrayValue)
+			return false;
+
+		auto firstValue = dynamic_cast<const JsonInt*>(colorPairArrayValue->GetValue(0));
+		auto secondValue = dynamic_cast<const JsonInt*>(colorPairArrayValue->GetValue(1));
+		if (!firstValue || !secondValue)
+			return false;
+
+		this->colorMap.insert(std::pair(Marble::Color(firstValue->GetValue()), Marble::Color(secondValue->GetValue())));
 	}
 
 	return true;

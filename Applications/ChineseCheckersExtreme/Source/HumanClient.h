@@ -13,8 +13,6 @@ public:
 
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
 
-	void MakeMove(const MoveSequence& moveSequence);
-
 private:
 	void RegenerateScene();
 	void SnapCubiesIntoPosition();

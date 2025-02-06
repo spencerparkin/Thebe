@@ -106,13 +106,34 @@ ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
 			return;
 
 		ChineseCheckers::Graph::Move move;
-		if (!moveSequence.MakeMove(move, this->graph.get()))
+		if (!moveSequence.ToMove(move, this->graph.get()))
 			return;
 
 		this->graph->MoveMarbleUnconditionally(move);
+
+		auto whoseTurnValue = dynamic_cast<const JsonInt*>(responseValue->GetValue("whose_turn"));
+		if (!whoseTurnValue)
+			return;
+
+		this->whoseTurn = (ChineseCheckers::Marble::Color)whoseTurnValue->GetValue();
 	}
 }
 
 /*virtual*/ void ChineseCheckersGameClient::HandleConnectionStatus(ConnectionStatus status, int i, bool* abort)
 {
+}
+
+void ChineseCheckersGameClient::MakeMove(const MoveSequence& moveSequence)
+{
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonObject> requestValue(new JsonObject());
+	requestValue->SetValue("request", new JsonString("make_move"));
+
+	std::unique_ptr<JsonValue> moveSequenceValue;
+	if (moveSequence.ToJson(moveSequenceValue))
+	{
+		requestValue->SetValue("move_sequence", moveSequenceValue.release());
+		this->SendJson(requestValue.get());
+	}
 }

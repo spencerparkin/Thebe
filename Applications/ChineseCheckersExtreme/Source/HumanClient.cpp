@@ -40,6 +40,10 @@ HumanClient::HumanClient()
 	}
 	else if (response == "make_move")
 	{
+		// TODO: Generate animation and queue it up for playing.  Note that
+		//       it can be interrupted at any time by the user, and this has
+		//       no bearing on an actual update of the internal game state.
+
 		this->SnapCubiesIntoPosition();
 	}
 }
@@ -263,19 +267,4 @@ void HumanClient::SnapCubiesIntoPosition()
 	}
 
 	return Vector4(0.5, 0.5, 0.5, alpha);
-}
-
-void HumanClient::MakeMove(const MoveSequence& moveSequence)
-{
-	using namespace ParseParty;
-
-	std::unique_ptr<JsonObject> requestValue(new JsonObject());
-	requestValue->SetValue("request", new JsonString("make_move"));
-
-	std::unique_ptr<JsonValue> moveSequenceValue;
-	if (moveSequence.ToJson(moveSequenceValue))
-	{
-		requestValue->SetValue("move_sequence", moveSequenceValue.release());
-		this->SendJson(requestValue.get());
-	}
 }

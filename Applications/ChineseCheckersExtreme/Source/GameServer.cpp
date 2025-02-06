@@ -128,7 +128,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 			return;
 		
 		ChineseCheckers::Graph::Move move;
-		if (!moveSequence.MakeMove(move, this->graph.get()))
+		if (!moveSequence.ToMove(move, this->graph.get()))
 			return;
 
 		if (move.sourceNode->GetOccupant()->GetColor() != this->whoseTurn)
@@ -158,6 +158,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 			return;
 
 		responseValue->SetValue("move_sequence", moveSequenceValue.release());
+		responseValue->SetValue("whose_turn", new JsonInt(this->whoseTurn));
 
 		this->clientManager->SendJsonToAllClients(responseValue.get());
 	}
