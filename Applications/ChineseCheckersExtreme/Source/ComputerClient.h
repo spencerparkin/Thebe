@@ -20,10 +20,13 @@ private:
 	{
 		WAITING_FOR_TURN,
 		TAKING_TURN,
-		WAITING_FOR_TURN_TO_CHANGE
+		WAITING_FOR_TURN_TO_CHANGE,
+		THROTTLE,
 	};
 
 	State state;
+	double throttleTimeSeconds;
+	double throttleTimeRemainingSeconds;
 
 	class Brain : public Thebe::Thread
 	{

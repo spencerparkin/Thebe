@@ -5,6 +5,8 @@
 ComputerClient::ComputerClient() : brain(this)
 {
 	this->state = State::WAITING_FOR_TURN;
+	this->throttleTimeSeconds = 2.0;
+	this->throttleTimeRemainingSeconds = 0.0;
 }
 
 /*virtual*/ ComputerClient::~ComputerClient()
@@ -40,6 +42,16 @@ ComputerClient::ComputerClient() : brain(this)
 			{
 				this->brain.mandateQueue.Add(Brain::Mandate::FORMULATE_TURN);
 				this->brain.mandateQueueSemaphore.release();
+				this->state = State::THROTTLE;
+				this->throttleTimeRemainingSeconds = this->throttleTimeSeconds;
+			}
+			break;
+		}
+		case State::THROTTLE:
+		{
+			this->throttleTimeRemainingSeconds -= deltaTimeSeconds;
+			if (this->throttleTimeRemainingSeconds <= 0.0)
+			{
 				this->state = State::TAKING_TURN;
 			}
 			break;

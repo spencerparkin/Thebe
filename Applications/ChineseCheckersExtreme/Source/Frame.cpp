@@ -83,20 +83,6 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 
 	wxGetApp().SetGameServer(gameServer.release());
 
-	if (data.numHumanPlayers > 0)
-	{
-		std::unique_ptr<HumanClient> humanClient(new HumanClient());
-		humanClient->SetAddress(data.hostAddress);
-		if (!humanClient->Setup())
-		{
-			humanClient->Shutdown();
-			wxMessageBox("Failed to connect to game server!", "Error!", wxICON_ERROR | wxOK, this);
-			return;
-		}
-
-		wxGetApp().GetGameClientArray().push_back(humanClient.release());
-	}
-
 	for (int i = 0; i < data.numComputerPlayers; i++)
 	{
 		std::unique_ptr<ComputerClient> computerClient(new ComputerClient());
@@ -110,6 +96,20 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 
 		wxGetApp().GetGameClientArray().push_back(computerClient.release());
 	}
+
+	// Once all computer players have joined the game, join a human player.
+	// If all players were meant to be computer players, then the human player
+	// will just be a spectator.
+	std::unique_ptr<HumanClient> humanClient(new HumanClient());
+	humanClient->SetAddress(data.hostAddress);
+	if (!humanClient->Setup())
+	{
+		humanClient->Shutdown();
+		wxMessageBox("Failed to connect to game server!", "Error!", wxICON_ERROR | wxOK, this);
+		return;
+	}
+
+	wxGetApp().GetGameClientArray().push_back(humanClient.release());
 }
 
 void ChineseCheckersFrame::OnJoinGame(wxCommandEvent& event)
