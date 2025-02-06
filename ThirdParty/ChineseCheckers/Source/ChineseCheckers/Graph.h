@@ -11,6 +11,7 @@ namespace ChineseCheckers
 {
 	class Node;
 	class Factory;
+	class MoveSequence;
 
 	/**
 	 * An instance of this class is the game board.
@@ -56,7 +57,7 @@ namespace ChineseCheckers
 		 * According to the rules of Chinese Checkers, tell us if a marble
 		 * can hop to all the given nodes in a single turn.
 		 */
-		bool IsValidMoveSequence(const std::vector<int>& moveSequence) const;
+		bool IsValidMoveSequence(const MoveSequence& moveSequence) const;
 
 		/**
 		 * Tell us if all marbles of the given color have reached their target nodes.
@@ -68,9 +69,17 @@ namespace ChineseCheckers
 		/**
 		 * Take the occupant from the given source and place it
 		 * at the given destination.  Note that we do not do anything
-		 * here to enforce the rules of the game.
+		 * here to enforce the rules of the game, and so we're
+		 * unconditional here in that sense.  We can fail here if the
+		 * move can't physically take place.
 		 */
 		bool MoveMarbleUnconditionally(const Move& move);
+
+		/**
+		 * This is like @ref MoveMarbleUnconditionally, but here we make
+		 * sure that the rules of the game are enforced.
+		 */
+		virtual bool MoveMarbleConditionally(const MoveSequence& moveSequence);
 
 		/**
 		 * According to the rules of the game of Chinese Checkers, find a

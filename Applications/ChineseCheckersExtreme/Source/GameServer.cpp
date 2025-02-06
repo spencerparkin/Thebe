@@ -127,14 +127,14 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 		if (!moveSequence.FromJson(requestValue->GetValue("move_sequence")))
 			return;
 		
-		ChineseCheckers::Graph::Move move;
-		if (!moveSequence.ToMove(move, this->graph.get()))
+		if (!this->graph->IsValidMoveSequence(moveSequence))
 			return;
 
-		if (move.sourceNode->GetOccupant()->GetColor() != this->whoseTurn)
+		ChineseCheckers::Node* node = this->graph->GetNodeArray()[moveSequence.nodeIndexArray[0]];
+		if (node->GetOccupant()->GetColor() != this->whoseTurn)
 			return;
 
-		if (!this->graph->MoveMarbleUnconditionally(move))
+		if (!this->graph->MoveMarbleConditionally(moveSequence))
 			return;
 
 		std::vector<ChineseCheckers::Marble::Color> colorArray;

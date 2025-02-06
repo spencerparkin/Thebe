@@ -100,7 +100,7 @@ bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 		for (int i : offsetList)
 			this->nodeIndexArray.push_back(i);
 
-		if (graph->IsValidMoveSequence(this->nodeIndexArray))
+		if (graph->IsValidMoveSequence(*this))
 			return true;
 	}
 
@@ -112,7 +112,7 @@ bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 
 bool MoveSequence::ToMove(Graph::Move& move, Graph* graph) const
 {
-	if (!graph->IsValidMoveSequence(this->nodeIndexArray))
+	if (!graph->IsValidMoveSequence(*this))
 		return false;
 
 	move.sourceNode = graph->GetNodeArray()[this->nodeIndexArray[0]];
@@ -145,5 +145,5 @@ bool MoveSequence::FromMove(const Graph::Move& move, Graph* graph)
 			});
 	}
 
-	return graph->IsValidMoveSequence(this->nodeIndexArray);
+	return graph->IsValidMoveSequence(*this);
 }

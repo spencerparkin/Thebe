@@ -13,7 +13,7 @@ Factory::Factory()
 
 /*virtual*/ ChineseCheckers::Graph* Factory::CreateGraph()
 {
-	return new ChineseCheckers::Graph();
+	return new Graph();
 }
 
 /*virtual*/ ChineseCheckers::Node* Factory::CreateNode(const ChineseCheckers::Vector& location, ChineseCheckers::Marble::Color color)
@@ -24,6 +24,28 @@ Factory::Factory()
 /*virtual*/ ChineseCheckers::Marble* Factory::CreateMarble(ChineseCheckers::Marble::Color color)
 {
 	return new Marble(color);
+}
+
+//------------------------------------ Graph ------------------------------------
+
+Graph::Graph()
+{
+}
+
+/*virtual*/ Graph::~Graph()
+{
+}
+
+/*virtual*/ bool Graph::MoveMarbleConditionally(const ChineseCheckers::MoveSequence& moveSequence)
+{
+	if (!ChineseCheckers::Graph::MoveMarbleConditionally(moveSequence))
+		return false;
+
+	// TODO: This is where the "extreme" rules come into play.  Here, a marble
+	//       can take damage and deal damage.  If a marble dies, then it has
+	//       to be set back somehow.
+
+	return true;
 }
 
 //------------------------------------ Node ------------------------------------

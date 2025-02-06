@@ -105,11 +105,8 @@ ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
 		if (!moveSequence.FromJson(responseValue->GetValue("move_sequence")))
 			return;
 
-		ChineseCheckers::Graph::Move move;
-		if (!moveSequence.ToMove(move, this->graph.get()))
+		if (!this->graph->MoveMarbleConditionally(moveSequence))
 			return;
-
-		this->graph->MoveMarbleUnconditionally(move);
 
 		auto whoseTurnValue = dynamic_cast<const JsonInt*>(responseValue->GetValue("whose_turn"));
 		if (!whoseTurnValue)

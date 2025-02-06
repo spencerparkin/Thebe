@@ -1,5 +1,6 @@
 #include "ChineseCheckers/Graph.h"
 #include "ChineseCheckers/Factory.h"
+#include "ChineseCheckers/MoveSequence.h"
 #include <stdlib.h>
 
 using namespace ChineseCheckers;
@@ -150,29 +151,29 @@ bool Graph::SetColorTarget(Marble::Color sourceColor, Marble::Color targetColor)
 	return true;
 }
 
-bool Graph::IsValidMoveSequence(const std::vector<int>& moveSequence) const
+bool Graph::IsValidMoveSequence(const MoveSequence& moveSequence) const
 {
-	if (moveSequence.size() < 2)
+	if (moveSequence.nodeIndexArray.size() < 2)
 		return false;
 
-	for (int i : moveSequence)
+	for (int i : moveSequence.nodeIndexArray)
 		if (i < 0 || i >= (int)this->nodeArray.size())
 			return false;
 
-	if (!this->nodeArray[moveSequence[0]]->GetOccupant())
+	if (!this->nodeArray[moveSequence.nodeIndexArray[0]]->GetOccupant())
 		return false;
 	
-	for (int i = 1; i < (int)moveSequence.size(); i++)
-		if (this->nodeArray[moveSequence[i]]->GetOccupant())
+	for (int i = 1; i < (int)moveSequence.nodeIndexArray.size(); i++)
+		if (this->nodeArray[moveSequence.nodeIndexArray[i]]->GetOccupant())
 			return false;
 
-	const Node* nodeA = this->nodeArray[moveSequence[0]];
-	const Node* nodeB = this->nodeArray[moveSequence[1]];
+	const Node* nodeA = this->nodeArray[moveSequence.nodeIndexArray[0]];
+	const Node* nodeB = this->nodeArray[moveSequence.nodeIndexArray[1]];
 	if (nodeA->IsAdjacentTo(nodeB))
-		return moveSequence.size() == 2;
+		return moveSequence.nodeIndexArray.size() == 2;
 
 	std::set<int> offsetSet;
-	for (int i : moveSequence)
+	for (int i : moveSequence.nodeIndexArray)
 	{
 		if (offsetSet.find(i) != offsetSet.end())
 			return false;
@@ -180,10 +181,10 @@ bool Graph::IsValidMoveSequence(const std::vector<int>& moveSequence) const
 		offsetSet.insert(i);
 	}
 
-	for (int i = 0; i < (int)moveSequence.size() - 1; i++)
+	for (int i = 0; i < (int)moveSequence.nodeIndexArray.size() - 1; i++)
 	{
-		nodeA = this->nodeArray[moveSequence[i]];
-		nodeB = this->nodeArray[moveSequence[i + 1]];
+		nodeA = this->nodeArray[moveSequence.nodeIndexArray[i]];
+		nodeB = this->nodeArray[moveSequence.nodeIndexArray[i + 1]];
 		const Node* mutualAdjacency = Node::FindMutualAdjacency(nodeA, nodeB);
 		if (!mutualAdjacency || !mutualAdjacency->GetOccupant())
 			return false;
@@ -209,6 +210,20 @@ bool Graph::AllMarblesAtTarget(Marble::Color marbleColor) const
 		if (node->GetColor() != targetColor)
 			return false;
 	}
+
+	return true;
+}
+
+/*virtual*/ bool Graph::MoveMarbleConditionally(const MoveSequence& moveSequence)
+{
+	if (!this->IsValidMoveSequence(moveSequence))
+		return false;
+
+	Node* sourceNode = this->nodeArray[moveSequence.nodeIndexArray[0]];
+	Node* targetNode = this->nodeArray[moveSequence.nodeIndexArray[moveSequence.nodeIndexArray.size() - 1]];
+
+	targetNode->SetOccupant(sourceNode->GetOccupant());
+	sourceNode->SetOccupant(nullptr);
 
 	return true;
 }

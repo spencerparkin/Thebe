@@ -17,6 +17,15 @@ public:
 	virtual ChineseCheckers::Marble* CreateMarble(ChineseCheckers::Marble::Color color) override;
 };
 
+class Graph : public ChineseCheckers::Graph
+{
+public:
+	Graph();
+	virtual ~Graph();
+
+	virtual bool MoveMarbleConditionally(const ChineseCheckers::MoveSequence& moveSequence) override;
+};
+
 class Node : public ChineseCheckers::Node
 {
 public:
