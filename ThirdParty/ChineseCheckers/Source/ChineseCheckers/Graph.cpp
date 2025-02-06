@@ -26,6 +26,7 @@ void Graph::Clear()
 
 void Graph::AddNode(Node* node)
 {
+	node->SetOffset((int)this->nodeArray.size());
 	this->nodeArray.push_back(node);
 }
 
@@ -42,12 +43,10 @@ Graph* Graph::Clone(Factory* factory) const
 	return graph;
 }
 
-void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
+void Graph::AssignOffsets() const
 {
-	offsetMap.clear();
-	int offset = 0;
-	for (Node* node : this->nodeArray)
-		offsetMap.insert(std::pair(node, offset++));
+	for (int i = 0; i < (int)this->nodeArray.size(); i++)
+		this->nodeArray[i]->SetOffset(i);
 }
 
 /*virtual*/ bool Graph::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
@@ -60,13 +59,10 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 	auto nodeArrayValue = new JsonArray();
 	graphValue->SetValue("node_array", nodeArrayValue);
 
-	std::map<Node*, int> offsetMap;
-	this->MakeOffsetMap(offsetMap);
-
 	for (Node* node : this->nodeArray)
 	{
 		std::unique_ptr<JsonValue> nodeValue;
-		if (!node->ToJson(nodeValue, offsetMap))
+		if (!node->ToJson(nodeValue))
 			return false;
 
 		nodeArrayValue->PushValue(nodeValue.release());
@@ -118,6 +114,8 @@ void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
 		if (!this->nodeArray[i]->FromJson(nodeValue, this->nodeArray, factory))
 			return false;
 	}
+
+	this->AssignOffsets();
 
 	auto colorMapArrayValue = dynamic_cast<const JsonArray*>(graphValue->GetValue("color_map_array"));
 	if (!colorMapArrayValue)
@@ -260,6 +258,12 @@ bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMo
 	return true;
 }
 
+void Graph::WipeParentPointers() const
+{
+	for (const Node* node : this->nodeArray)
+		node->SetParent(nullptr);
+}
+
 const std::vector<Node*>& Graph::GetNodeArray() const
 {
 	return this->nodeArray;
@@ -378,6 +382,8 @@ Node::Node(const Vector& location, Marble::Color color)
 	this->location = location;
 	this->color = color;
 	this->occupant = nullptr;
+	this->offset = -1;
+	this->parent = nullptr;
 }
 
 /*virtual*/ Node::~Node()
@@ -398,7 +404,7 @@ Node::Node(const Vector& location, Marble::Color color)
 	return nullptr;
 }
 
-/*virtual*/ bool Node::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const
+/*virtual*/ bool Node::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
 {
 	using namespace ParseParty;
 
@@ -425,10 +431,7 @@ Node::Node(const Vector& location, Marble::Color color)
 	{
 		Node* adjacentNode(this->adjacentNodeArray[i]);
 		if (adjacentNode)
-		{
-			int j = offsetMap.find(adjacentNode)->second;
-			adjacencyArrayValue->PushValue(new JsonInt(j));
-		}
+			adjacencyArrayValue->PushValue(new JsonInt(adjacentNode->offset));
 	}
 
 	return true;
@@ -622,10 +625,11 @@ bool Node::ForAllJumpsDFS(std::vector<const Node*>& nodeStack, std::function<boo
 	return keepGoing;
 }
 
-bool Node::ForAllJumpsBFS(std::function<bool(Node*, const std::map<Node*, Node*>&)> callback) const
+bool Node::ForAllJumpsBFS(std::function<bool(Node*)> callback) const
 {
-	std::map<Node*, Node*> parentMap;
-	parentMap.insert(std::pair(const_cast<Node*>(this), nullptr));
+	this->parent = nullptr;
+
+	std::set<const Node*> visitationSet{ this };
 
 	std::list<Node*> queue;
 	queue.push_back(const_cast<Node*>(this));
@@ -641,12 +645,13 @@ bool Node::ForAllJumpsBFS(std::function<bool(Node*, const std::map<Node*, Node*>
 			if (!jumpNode)
 				continue;
 
-			if (parentMap.find(jumpNode) != parentMap.end())
+			if (visitationSet.find(jumpNode) != visitationSet.end())
 				continue;
 
-			parentMap.insert(std::pair(jumpNode, node));
+			visitationSet.insert(jumpNode);
 
-			if (!callback(jumpNode, parentMap))
+			jumpNode->parent = node;
+			if (!callback(jumpNode))
 				return false;
 
 			queue.push_back(jumpNode);
@@ -673,4 +678,29 @@ void Node::RemoveNullAdjacencies()
 			this->adjacentNodeArray.pop_back();
 		}
 	}
+}
+
+Node* Node::GetParent()
+{
+	return this->parent;
+}
+
+const Node* Node::GetParent() const
+{
+	return this->parent;
+}
+
+void Node::SetParent(Node* parent) const
+{
+	this->parent = parent;
+}
+
+int Node::GetOffset() const
+{
+	return this->offset;
+}
+
+void Node::SetOffset(int offset) const
+{
+	this->offset = offset;
 }

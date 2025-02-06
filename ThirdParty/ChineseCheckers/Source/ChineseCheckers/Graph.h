@@ -52,8 +52,6 @@ namespace ChineseCheckers
 
 		const std::vector<Node*>& GetNodeArray() const;
 
-		void MakeOffsetMap(std::map<Node*, int>& offsetMap) const;
-
 		/**
 		 * According to the rules of Chinese Checkers, tell us if a marble
 		 * can hop to all the given nodes in a single turn.
@@ -100,6 +98,9 @@ namespace ChineseCheckers
 		Vector CalcMarbleCentroid(Marble::Color color) const;
 
 	protected:
+		void WipeParentPointers() const;
+		void AssignOffsets() const;
+
 		std::vector<Node*> nodeArray;
 		std::map<Marble::Color, Marble::Color> colorMap;
 	};
@@ -116,7 +117,7 @@ namespace ChineseCheckers
 		Node(const Vector& location, Marble::Color color);
 		virtual ~Node();
 
-		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue, const std::map<Node*, int>& offsetMap) const;
+		virtual bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;
 		virtual bool FromJson(const ParseParty::JsonValue* jsonValue, const std::vector<Node*>& nodeArray, Factory* factory);
 
 		void SetLocation(const Vector& location);
@@ -133,15 +134,24 @@ namespace ChineseCheckers
 		Node* JumpInDirection(int i) const;
 		bool IsAdjacentTo(const Node* node) const;
 		bool ForAllJumpsDFS(std::vector<const Node*>& nodeStack, std::function<bool(Node*)> callback) const;
-		bool ForAllJumpsBFS(std::function<bool(Node*, const std::map<Node*, Node*>&)> callback) const;
+		bool ForAllJumpsBFS(std::function<bool(Node*)> callback) const;
 		void RemoveNullAdjacencies();
 
 		static const Node* FindMutualAdjacency(const Node* nodeA, const Node* nodeB);
+
+		Node* GetParent();
+		const Node* GetParent() const;
+		void SetParent(Node* parent) const;
+
+		int GetOffset() const;
+		void SetOffset(int offset) const;
 
 	protected:
 		Marble* occupant;
 		Vector location;
 		Marble::Color color;
 		std::vector<Node*> adjacentNodeArray;
+		mutable int offset;
+		mutable Node* parent;
 	};
 }

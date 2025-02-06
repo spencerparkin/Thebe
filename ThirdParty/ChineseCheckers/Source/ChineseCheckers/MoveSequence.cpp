@@ -74,9 +74,6 @@ bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 
 	int originalSize = (int)this->nodeIndexArray.size();
 
-	std::map<Node*, int> offsetMap;
-	graph->MakeOffsetMap(offsetMap);
-
 	// Note that we must do a BFS here (instead of a DFS), because otherwise the
 	// user will not be able to author the exact sequences they desire, because
 	// we might end up taking a circutuitous path rather than the shortest path
@@ -84,15 +81,15 @@ bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 
 	std::list<int> offsetList;
 
-	if(!lastNode->ForAllJumpsBFS([&offsetMap, nodeIndex, &offsetList, lastNode](Node* node, const std::map<Node*, Node*>& parentMap) -> bool
+	if(!lastNode->ForAllJumpsBFS([nodeIndex, &offsetList, lastNode](Node* node) -> bool
 		{
-			if (nodeIndex != offsetMap.find(node)->second)
+			if (nodeIndex != node->GetOffset())
 				return true;
 			
 			while (node)
 			{
-				offsetList.push_front(offsetMap.find(node)->second);
-				node = parentMap.find(node)->second;
+				offsetList.push_front(node->GetOffset());
+				node = node->GetParent();
 				if (node == lastNode)
 					break;
 			}
@@ -127,26 +124,23 @@ bool MoveSequence::FromMove(const Graph::Move& move, Graph* graph)
 {
 	this->nodeIndexArray.clear();
 
-	std::map<Node*, int> offsetMap;
-	graph->MakeOffsetMap(offsetMap);
-
 	if (move.sourceNode->IsAdjacentTo(move.targetNode))
 	{
-		this->nodeIndexArray.push_back(offsetMap.find(move.sourceNode)->second);
-		this->nodeIndexArray.push_back(offsetMap.find(move.targetNode)->second);
+		this->nodeIndexArray.push_back(move.sourceNode->GetOffset());
+		this->nodeIndexArray.push_back(move.targetNode->GetOffset());
 	}
 	else
 	{
 		std::vector<const Node*> nodeStack;
-		move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &offsetMap, &nodeStack, this](Node* node) -> bool
+		move.sourceNode->ForAllJumpsDFS(nodeStack, [&move, &nodeStack, this](Node* node) -> bool
 			{
 				if (move.targetNode != node)
 					return true;
 
 				for (const Node* intermediateNode : nodeStack)
-					this->nodeIndexArray.push_back(offsetMap.find(const_cast<Node*>(intermediateNode))->second);
+					this->nodeIndexArray.push_back(intermediateNode->GetOffset());
 
-				this->nodeIndexArray.push_back(offsetMap.find(node)->second);
+				this->nodeIndexArray.push_back(node->GetOffset());
 				return false;
 			});
 	}
