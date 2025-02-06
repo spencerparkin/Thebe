@@ -136,6 +136,15 @@ bool Graph::IsValidMoveSequence(const std::vector<int>& moveSequence) const
 	if (nodeA->IsAdjacentTo(nodeB))
 		return moveSequence.size() == 2;
 
+	std::set<int> offsetSet;
+	for (int i : moveSequence)
+	{
+		if (offsetSet.find(i) != offsetSet.end())
+			return false;
+
+		offsetSet.insert(i);
+	}
+
 	for (int i = 0; i < (int)moveSequence.size() - 1; i++)
 	{
 		nodeA = this->nodeArray[moveSequence[i]];
@@ -204,7 +213,7 @@ bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMo
 		}
 
 		std::vector<const Node*> nodeStack;
-		node->ForAllJumps(nodeStack, [&node, &bestMovesCollection, &generalDirection](Node* targetNode, const std::vector<const Node*>& nodeStack) -> bool
+		node->ForAllJumpsDFS(nodeStack, [&node, &bestMovesCollection, &generalDirection](Node* targetNode) -> bool
 			{
 				bestMovesCollection.AddMove({ node, targetNode }, generalDirection);
 				return true;
@@ -542,7 +551,7 @@ bool Node::IsAdjacentTo(const Node* node) const
 	return false;
 }
 
-bool Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(Node*, const std::vector<const Node*>&)> callback) const
+bool Node::ForAllJumpsDFS(std::vector<const Node*>& nodeStack, std::function<bool(Node*)> callback) const
 {
 	bool keepGoing = true;
 
@@ -562,11 +571,11 @@ bool Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(N
 		if (alreadyVisited)
 			continue;
 
-		keepGoing = callback(jumpNode, nodeStack);
+		keepGoing = callback(jumpNode);
 		if (!keepGoing)
 			break;
 
-		keepGoing = jumpNode->ForAllJumps(nodeStack, callback);
+		keepGoing = jumpNode->ForAllJumpsDFS(nodeStack, callback);
 		if (!keepGoing)
 			break;
 	}
@@ -574,6 +583,40 @@ bool Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(N
 	nodeStack.pop_back();
 
 	return keepGoing;
+}
+
+bool Node::ForAllJumpsBFS(std::function<bool(Node*, const std::map<Node*, Node*>&)> callback) const
+{
+	std::map<Node*, Node*> parentMap;
+	parentMap.insert(std::pair(const_cast<Node*>(this), nullptr));
+
+	std::list<Node*> queue;
+	queue.push_back(const_cast<Node*>(this));
+
+	while (queue.size() > 0)
+	{
+		Node* node = queue.front();
+		queue.pop_front();
+
+		for (int i = 0; i < (int)node->adjacentNodeArray.size(); i++)
+		{
+			Node* jumpNode = node->JumpInDirection(i);
+			if (!jumpNode)
+				continue;
+
+			if (parentMap.find(jumpNode) != parentMap.end())
+				continue;
+
+			parentMap.insert(std::pair(jumpNode, node));
+
+			if (!callback(jumpNode, parentMap))
+				return false;
+
+			queue.push_back(jumpNode);
+		}
+	}
+
+	return true;
 }
 
 void Node::RemoveNullAdjacencies()

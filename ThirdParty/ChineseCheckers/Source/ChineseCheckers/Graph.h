@@ -132,7 +132,8 @@ namespace ChineseCheckers
 		Node* GetAdjacentNode(const Vector& givenDirection) const;
 		Node* JumpInDirection(int i) const;
 		bool IsAdjacentTo(const Node* node) const;
-		bool ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(Node*, const std::vector<const Node*>&)> callback) const;
+		bool ForAllJumpsDFS(std::vector<const Node*>& nodeStack, std::function<bool(Node*)> callback) const;
+		bool ForAllJumpsBFS(std::function<bool(Node*, const std::map<Node*, Node*>&)> callback) const;
 		void RemoveNullAdjacencies();
 
 		static const Node* FindMutualAdjacency(const Node* nodeA, const Node* nodeB);

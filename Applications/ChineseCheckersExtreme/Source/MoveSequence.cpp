@@ -47,10 +47,11 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 	if (nodeIndex < 0 || nodeIndex >= (int)graph->GetNodeArray().size())
 		return false;
 
+	ChineseCheckers::Node* newNode = graph->GetNodeArray()[nodeIndex];
+
 	if (this->nodeIndexArray.size() == 0)
 	{
-		ChineseCheckers::Node* node = graph->GetNodeArray()[nodeIndex];
-		ChineseCheckers::Marble* marble = node->GetOccupant();
+		ChineseCheckers::Marble* marble = newNode->GetOccupant();
 		if (!marble || marble->GetColor() != color)
 			return false;
 
@@ -58,16 +59,15 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 		return true;
 	}
 
+	if (newNode->GetOccupant())
+		return false;
+
 	ChineseCheckers::Node* lastNode = graph->GetNodeArray()[this->nodeIndexArray[this->nodeIndexArray.size() - 1]];
 
-	if (this->nodeIndexArray.size() == 1)
+	if (this->nodeIndexArray.size() == 1 && newNode->IsAdjacentTo(lastNode))
 	{
-		ChineseCheckers::Node* node = graph->GetNodeArray()[nodeIndex];
-		if (node->IsAdjacentTo(lastNode) && !node->GetOccupant())
-		{
-			this->nodeIndexArray.push_back(nodeIndex);
-			return true;
-		}
+		this->nodeIndexArray.push_back(nodeIndex);
+		return true;
 	}
 
 	int originalSize = (int)this->nodeIndexArray.size();
@@ -75,19 +75,32 @@ bool MoveSequence::Extend(int nodeIndex, ChineseCheckers::Graph* graph, ChineseC
 	std::map<ChineseCheckers::Node*, int> offsetMap;
 	graph->MakeOffsetMap(offsetMap);
 
-	std::vector<const ChineseCheckers::Node*> nodeStack;
-	if (!lastNode->ForAllJumps(nodeStack, [&offsetMap, nodeIndex, this](ChineseCheckers::Node* node, const std::vector<const ChineseCheckers::Node*>& nodeStack) -> bool
+	// Note that we must do a BFS here (instead of a DFS), because otherwise the
+	// user will not be able to author the exact sequences they desire, because
+	// we might end up taking a circutuitous path rather than the shortest path
+	// from the last added node to the next node.
+
+	std::list<int> offsetList;
+
+	if(!lastNode->ForAllJumpsBFS([&offsetMap, nodeIndex, &offsetList, lastNode](ChineseCheckers::Node* node, const std::map<ChineseCheckers::Node*, ChineseCheckers::Node*>& parentMap) -> bool
 		{
-			if (nodeIndex == offsetMap.find(node)->second)
+			if (nodeIndex != offsetMap.find(node)->second)
+				return true;
+			
+			while (node)
 			{
-				for (int i = 1; i < (int)nodeStack.size(); i++)
-					this->nodeIndexArray.push_back(offsetMap.find(const_cast<ChineseCheckers::Node*>(nodeStack[i]))->second);
-				this->nodeIndexArray.push_back(nodeIndex);
-				return false;
+				offsetList.push_front(offsetMap.find(node)->second);
+				node = parentMap.find(node)->second;
+				if (node == lastNode)
+					break;
 			}
-			return true;
+
+			return false;
 		}))
 	{
+		for (int i : offsetList)
+			this->nodeIndexArray.push_back(i);
+
 		if (graph->IsValidMoveSequence(this->nodeIndexArray))
 			return true;
 	}
