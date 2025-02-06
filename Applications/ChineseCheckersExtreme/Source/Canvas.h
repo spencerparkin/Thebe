@@ -15,6 +15,7 @@ public:
 	void OnMouseMotion(wxMouseEvent& event);
 	void OnMouseLeftClick(wxMouseEvent& event);
 	void OnMouseRightClick(wxMouseEvent& event);
+	void OnMouseMiddleClick(wxMouseEvent& event);
 
 	void SetDebugDraw(bool debugDraw);
 	bool GetDebugDraw() const;
@@ -22,5 +23,8 @@ public:
 private:
 	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
 
+	void UpdateRings();
+
 	bool debugDraw;
+	std::vector<int> moveSequence;
 };

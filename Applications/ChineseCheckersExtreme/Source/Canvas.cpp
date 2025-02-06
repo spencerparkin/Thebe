@@ -1,5 +1,7 @@
 #include "Canvas.h"
 #include "Application.h"
+#include "HumanClient.h"
+#include "Factory.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/CollisionSystem.h"
 #include "Thebe/PhysicsSystem.h"
@@ -16,6 +18,7 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_MOTION, &ChineseCheckersCanvas::OnMouseMotion, this);
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
 	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
+	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleClick, this);
 
 	this->debugDraw = false;
 }
@@ -90,12 +93,7 @@ void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 {
-	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
-	if (!collisionObject)
-		return;
-
-	//collisionObject->GetUserData();
-	//...
+	// TODO: Click and drag to rotate board...
 }
 
 void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
@@ -104,8 +102,58 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 	if (!collisionObject)
 		return;
 
-	//collisionObject->GetUserData();
-	//...
+	HumanClient* humanClient = wxGetApp().GetHumanClient();
+	if (!humanClient)
+		return;
+
+	ChineseCheckers::Graph* graph = humanClient->GetGraph();
+	if (!graph)
+		return;
+
+	int i = (int)collisionObject->GetUserData();
+	this->moveSequence.push_back(i);
+	if (this->moveSequence.size() > 1)
+	{
+		if (!graph->IsValidMoveSequence(this->moveSequence))
+			this->moveSequence.pop_back();
+	}
+	else
+	{
+		ChineseCheckers::Node* node = graph->GetNodeArray()[i];
+		ChineseCheckers::Marble* marble = node->GetOccupant();
+		if (!marble || marble->GetColor() != humanClient->GetColor())
+			this->moveSequence.pop_back();
+	}
+
+	this->UpdateRings();
+}
+
+void ChineseCheckersCanvas::OnMouseMiddleClick(wxMouseEvent& event)
+{
+	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
+	if (!collisionObject)
+		return;
+
+	HumanClient* humanClient = wxGetApp().GetHumanClient();
+	if (!humanClient)
+		return;
+
+	ChineseCheckers::Graph* graph = humanClient->GetGraph();
+	if (!graph)
+		return;
+
+	int i = (int)collisionObject->GetUserData();
+
+	if (this->moveSequence.size() > 0 && this->moveSequence[this->moveSequence.size() - 1] == i)
+	{
+		// TODO: Commit the move sequence...
+	}
+	else
+	{
+		this->moveSequence.clear();
+	}
+
+	this->UpdateRings();
 }
 
 void ChineseCheckersCanvas::SetDebugDraw(bool debugDraw)
@@ -116,4 +164,50 @@ void ChineseCheckersCanvas::SetDebugDraw(bool debugDraw)
 bool ChineseCheckersCanvas::GetDebugDraw() const
 {
 	return this->debugDraw;
+}
+
+void ChineseCheckersCanvas::UpdateRings()
+{
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
+
+	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
+	if (!scene)
+		return;
+
+	int i = 0;
+	while (true)
+	{
+		MeshInstance* ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName(std::format("ring{}", i)));
+		if (!ringInstance)
+			break;
+
+		ringInstance->SetFlags(ringInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+		i++;
+	}
+
+	HumanClient* humanClient = wxGetApp().GetHumanClient();
+	if (!humanClient)
+		return;
+
+	ChineseCheckers::Graph* graph = humanClient->GetGraph();
+	if (!graph)
+		return;
+
+	for (i = 0; i < (int)this->moveSequence.size(); i++)
+	{
+		int j = this->moveSequence[i];
+		Node* node = dynamic_cast<Node*>(graph->GetNodeArray()[j]);
+		THEBE_ASSERT_FATAL(node != nullptr);
+
+		MeshInstance* ringInstance = dynamic_cast<MeshInstance*>(scene->GetRootSpace()->FindSpaceByName(std::format("ring{}", i)));
+		THEBE_ASSERT_FATAL(ringInstance != nullptr);
+
+		ringInstance->SetFlags(ringInstance->GetFlags() | THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+
+		Transform objectToWorld;
+		objectToWorld.SetIdentity();
+		objectToWorld.translation = node->GetLocation3D() + Vector3(0.0, 2.5, 0.0);
+		ringInstance->SetChildToParentTransform(objectToWorld);
+	}
 }

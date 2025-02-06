@@ -10,6 +10,7 @@
 #include "Thebe/EngineParts/Material.h"
 #include "GameClient.h"
 #include "GameServer.h"
+#include "HumanClient.h"
 #include "ChineseCheckers/Test.h"
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
@@ -57,6 +58,20 @@ void ChineseCheckersApp::SetGameServer(ChineseCheckersGameServer* gameServer)
 std::vector<ChineseCheckersGameClient*>& ChineseCheckersApp::GetGameClientArray()
 {
 	return this->gameClientArray;
+}
+
+HumanClient* ChineseCheckersApp::GetHumanClient()
+{
+	HumanClient* humanClient = nullptr;
+
+	for (ChineseCheckersGameClient* gameClient : this->gameClientArray)
+	{
+		humanClient = dynamic_cast<HumanClient*>(gameClient);
+		if (humanClient)
+			break;
+	}
+
+	return humanClient;
 }
 
 /*virtual*/ bool ChineseCheckersApp::OnInit(void)
@@ -134,6 +149,30 @@ std::vector<ChineseCheckersGameClient*>& ChineseCheckersApp::GetGameClientArray(
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
 	this->graphicsEngine->SetCamera(this->camera);
 	this->freeCam.SetCamera(this->camera);
+
+	Reference<Mesh> ringMesh;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
+		return false;
+
+	Reference<Material> mirrorMaterial;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Materials\PerfectMirror.material)", mirrorMaterial))
+		return false;
+
+	ringMesh->SetMaterial(mirrorMaterial);
+
+	int numRingMeshInstances = 32;
+	for (int i = 0; i < numRingMeshInstances; i++)
+	{
+		Reference<MeshInstance> ringMeshInstance(new MeshInstance());
+		ringMeshInstance->SetGraphicsEngine(this->graphicsEngine);
+		ringMeshInstance->SetMesh(ringMesh);
+		ringMeshInstance->SetName(std::format("ring{}", i));
+		ringMeshInstance->SetFlags(ringMeshInstance->GetFlags() & ~THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+		if (!ringMeshInstance->Setup())
+			return false;
+
+		scene->GetRootSpace()->AddSubSpace(ringMeshInstance);
+	}
 
 	this->frame->Show();
 

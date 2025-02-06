@@ -13,6 +13,16 @@ ChineseCheckersGameClient::ChineseCheckersGameClient()
 {
 }
 
+ChineseCheckers::Graph* ChineseCheckersGameClient::GetGraph()
+{
+	return this->graph.get();
+}
+
+ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
+{
+	return this->color;
+}
+
 /*virtual*/ bool ChineseCheckersGameClient::Setup()
 {
 	if (!JsonClient::Setup())

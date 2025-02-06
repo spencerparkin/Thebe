@@ -30,6 +30,7 @@ public:
 	ChineseCheckersGameServer* GetGameServer();
 	void SetGameServer(ChineseCheckersGameServer* gameServer);
 	std::vector<ChineseCheckersGameClient*>& GetGameClientArray();
+	HumanClient* GetHumanClient();
 
 	void ShutdownClientsAndServer();
 

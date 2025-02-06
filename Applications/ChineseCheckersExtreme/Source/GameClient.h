@@ -16,6 +16,9 @@ public:
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
 	virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort) override;
 
+	ChineseCheckers::Graph* GetGraph();
+	ChineseCheckers::Marble::Color GetColor() const;
+
 protected:
 	std::unique_ptr<ChineseCheckers::Factory> factory;
 	std::unique_ptr<ChineseCheckers::Graph> graph;
