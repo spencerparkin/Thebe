@@ -131,8 +131,24 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 		if (!moveSequence.MakeMove(move, this->graph.get()))
 			return;
 
+		if (move.sourceNode->GetOccupant()->GetColor() != this->whoseTurn)
+			return;
+
 		if (!this->graph->MoveMarbleUnconditionally(move))
 			return;
+
+		std::vector<ChineseCheckers::Marble::Color> colorArray;
+		for (ChineseCheckers::Marble::Color color : this->participantSet)
+			colorArray.push_back(color);
+
+		for (int i = 0; i < (int)colorArray.size(); i++)
+		{
+			if (colorArray[i] == this->whoseTurn)
+			{
+				this->whoseTurn = colorArray[(i + 1) % int(colorArray.size())];
+				break;
+			}
+		}
 
 		std::unique_ptr<JsonObject> responseValue(new JsonObject());
 		responseValue->SetValue("response", new JsonString("make_move"));
