@@ -110,20 +110,9 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 	if (!graph)
 		return;
 
-	int i = (int)collisionObject->GetUserData();
-	this->moveSequence.push_back(i);
-	if (this->moveSequence.size() > 1)
-	{
-		if (!graph->IsValidMoveSequence(this->moveSequence))
-			this->moveSequence.pop_back();
-	}
-	else
-	{
-		ChineseCheckers::Node* node = graph->GetNodeArray()[i];
-		ChineseCheckers::Marble* marble = node->GetOccupant();
-		if (!marble || marble->GetColor() != humanClient->GetColor())
-			this->moveSequence.pop_back();
-	}
+	int nodeIndex = (int)collisionObject->GetUserData();
+	if (this->moveSequence.Extend(nodeIndex, graph, humanClient->GetColor()))
+		this->UpdateRings();
 
 	this->UpdateRings();
 }
@@ -144,14 +133,10 @@ void ChineseCheckersCanvas::OnMouseMiddleClick(wxMouseEvent& event)
 
 	int i = (int)collisionObject->GetUserData();
 
-	if (this->moveSequence.size() > 0 && this->moveSequence[this->moveSequence.size() - 1] == i)
-	{
-		// TODO: Commit the move sequence...
-	}
-	else
-	{
-		this->moveSequence.clear();
-	}
+	if (this->moveSequence.nodeIndexArray.size() > 0 && this->moveSequence.nodeIndexArray[this->moveSequence.nodeIndexArray.size() - 1] == i)
+		humanClient->MakeMove(this->moveSequence);
+	
+	this->moveSequence.nodeIndexArray.clear();
 
 	this->UpdateRings();
 }
@@ -194,9 +179,9 @@ void ChineseCheckersCanvas::UpdateRings()
 	if (!graph)
 		return;
 
-	for (i = 0; i < (int)this->moveSequence.size(); i++)
+	for (i = 0; i < (int)this->moveSequence.nodeIndexArray.size(); i++)
 	{
-		int j = this->moveSequence[i];
+		int j = this->moveSequence.nodeIndexArray[i];
 		Node* node = dynamic_cast<Node*>(graph->GetNodeArray()[j]);
 		THEBE_ASSERT_FATAL(node != nullptr);
 

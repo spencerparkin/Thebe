@@ -52,6 +52,8 @@ namespace ChineseCheckers
 
 		const std::vector<Node*>& GetNodeArray() const;
 
+		void MakeOffsetMap(std::map<Node*, int>& offsetMap) const;
+
 		/**
 		 * According to the rules of Chinese Checkers, tell us if a marble
 		 * can hop to all the given nodes in a single turn.
@@ -130,7 +132,7 @@ namespace ChineseCheckers
 		Node* GetAdjacentNode(const Vector& givenDirection) const;
 		Node* JumpInDirection(int i) const;
 		bool IsAdjacentTo(const Node* node) const;
-		void ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const;
+		bool ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(Node*, const std::vector<const Node*>&)> callback) const;
 		void RemoveNullAdjacencies();
 
 		static const Node* FindMutualAdjacency(const Node* nodeA, const Node* nodeB);

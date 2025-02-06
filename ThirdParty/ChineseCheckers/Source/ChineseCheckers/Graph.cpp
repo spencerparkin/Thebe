@@ -41,6 +41,14 @@ Graph* Graph::Clone(Factory* factory) const
 	return graph;
 }
 
+void Graph::MakeOffsetMap(std::map<Node*, int>& offsetMap) const
+{
+	offsetMap.clear();
+	int offset = 0;
+	for (Node* node : this->nodeArray)
+		offsetMap.insert(std::pair(node, offset++));
+}
+
 /*virtual*/ bool Graph::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
 {
 	using namespace ParseParty;
@@ -49,9 +57,7 @@ Graph* Graph::Clone(Factory* factory) const
 	jsonValue.reset(nodeArrayValue);
 
 	std::map<Node*, int> offsetMap;
-	int offset = 0;
-	for (Node* node : this->nodeArray)
-		offsetMap.insert(std::pair(node, offset++));
+	this->MakeOffsetMap(offsetMap);
 
 	for (Node* node : this->nodeArray)
 	{
@@ -198,9 +204,10 @@ bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMo
 		}
 
 		std::vector<const Node*> nodeStack;
-		node->ForAllJumps(nodeStack, [&node, &bestMovesCollection, &generalDirection](Node* targetNode)
+		node->ForAllJumps(nodeStack, [&node, &bestMovesCollection, &generalDirection](Node* targetNode, const std::vector<const Node*>& nodeStack) -> bool
 			{
 				bestMovesCollection.AddMove({ node, targetNode }, generalDirection);
+				return true;
 			});
 	}
 
@@ -535,8 +542,10 @@ bool Node::IsAdjacentTo(const Node* node) const
 	return false;
 }
 
-void Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(Node*)> callback) const
+bool Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<bool(Node*, const std::vector<const Node*>&)> callback) const
 {
+	bool keepGoing = true;
+
 	nodeStack.push_back(this);
 
 	for (int i = 0; i < (int)this->adjacentNodeArray.size(); i++)
@@ -553,12 +562,18 @@ void Node::ForAllJumps(std::vector<const Node*>& nodeStack, std::function<void(N
 		if (alreadyVisited)
 			continue;
 
-		callback(jumpNode);
+		keepGoing = callback(jumpNode, nodeStack);
+		if (!keepGoing)
+			break;
 
-		jumpNode->ForAllJumps(nodeStack, callback);
+		keepGoing = jumpNode->ForAllJumps(nodeStack, callback);
+		if (!keepGoing)
+			break;
 	}
 
 	nodeStack.pop_back();
+
+	return keepGoing;
 }
 
 void Node::RemoveNullAdjacencies()

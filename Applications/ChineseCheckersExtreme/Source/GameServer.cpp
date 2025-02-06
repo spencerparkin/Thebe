@@ -1,6 +1,7 @@
 #include "GameServer.h"
 #include "ChineseCheckers/Generators/TraditionalGenerator.h"
 #include "Factory.h"
+#include "MoveSequence.h"
 
 ChineseCheckersGameServer::ChineseCheckersGameServer()
 {
@@ -122,6 +123,26 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 	}
 	else if (request == "make_move")
 	{
-		//...
+		MoveSequence moveSequence;
+		if (!moveSequence.FromJson(requestValue->GetValue("move_sequence")))
+			return;
+		
+		ChineseCheckers::Graph::Move move;
+		if (!moveSequence.MakeMove(move, this->graph.get()))
+			return;
+
+		if (!this->graph->MoveMarbleUnconditionally(move))
+			return;
+
+		std::unique_ptr<JsonObject> responseValue(new JsonObject());
+		responseValue->SetValue("response", new JsonString("make_move"));
+
+		std::unique_ptr<JsonValue> moveSequenceValue;
+		if (!moveSequence.ToJson(moveSequenceValue))
+			return;
+
+		responseValue->SetValue("move_sequence", moveSequenceValue.release());
+
+		this->clientManager->SendJsonToAllClients(responseValue.get());
 	}
 }

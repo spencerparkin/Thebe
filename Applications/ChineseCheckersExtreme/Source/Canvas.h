@@ -3,6 +3,7 @@
 #include <wx/window.h>
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/EngineParts/CollisionObject.h"
+#include "MoveSequence.h"
 
 class ChineseCheckersCanvas : public wxWindow
 {
@@ -26,5 +27,5 @@ private:
 	void UpdateRings();
 
 	bool debugDraw;
-	std::vector<int> moveSequence;
+	MoveSequence moveSequence;
 };

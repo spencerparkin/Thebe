@@ -1,5 +1,6 @@
 #include "GameClient.h"
 #include "Factory.h"
+#include "MoveSequence.h"
 
 //------------------------------------ ChineseCheckersGameClient ------------------------------------
 
@@ -97,6 +98,18 @@ ChineseCheckers::Marble::Color ChineseCheckersGameClient::GetColor() const
 			return;
 
 		this->whoseTurn = (ChineseCheckers::Marble::Color)whoseTurnValue->GetValue();
+	}
+	else if (response == "make_move")
+	{
+		MoveSequence moveSequence;
+		if (!moveSequence.FromJson(responseValue->GetValue("move_sequence")))
+			return;
+
+		ChineseCheckers::Graph::Move move;
+		if (!moveSequence.MakeMove(move, this->graph.get()))
+			return;
+
+		this->graph->MoveMarbleUnconditionally(move);
 	}
 }
 

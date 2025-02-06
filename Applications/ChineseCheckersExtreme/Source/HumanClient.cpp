@@ -38,6 +38,10 @@ HumanClient::HumanClient()
 	{
 		this->RegenerateScene();
 	}
+	else if (response == "make_move")
+	{
+		this->SnapCubiesIntoPosition();
+	}
 }
 
 void HumanClient::RegenerateScene()
@@ -259,4 +263,19 @@ void HumanClient::SnapCubiesIntoPosition()
 	}
 
 	return Vector4(0.5, 0.5, 0.5, alpha);
+}
+
+void HumanClient::MakeMove(const MoveSequence& moveSequence)
+{
+	using namespace ParseParty;
+
+	std::unique_ptr<JsonObject> requestValue(new JsonObject());
+	requestValue->SetValue("request", new JsonString("make_move"));
+
+	std::unique_ptr<JsonValue> moveSequenceValue;
+	if (moveSequence.ToJson(moveSequenceValue))
+	{
+		requestValue->SetValue("move_sequence", moveSequenceValue.release());
+		this->SendJson(requestValue.get());
+	}
 }
