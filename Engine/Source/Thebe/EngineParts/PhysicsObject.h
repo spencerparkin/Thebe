@@ -98,6 +98,7 @@ namespace Thebe
 
 		void AddTransientContactForce(const ContactForce& contactForce);
 		void AddTransientForce(const Vector3& transientForce);
+		void AddTransientTorque(const Vector3& transientTorque);
 
 		const Vector3& GetTotalForce() const;
 		const Vector3& GetTotalTorque() const;
@@ -111,6 +112,7 @@ namespace Thebe
 		std::map<std::string, ContactForce> externalContactForceMap;
 		std::list<ContactForce> transientContactForceList;
 		std::list<Vector3> transientForceList;
+		std::list<Vector3> transientTorqueList;
 
 		Vector3 totalForce;
 		Vector3 totalTorque;

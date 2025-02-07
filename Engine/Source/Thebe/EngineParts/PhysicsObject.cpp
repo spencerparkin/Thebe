@@ -131,6 +131,13 @@ PhysicsObject::PhysicsObject()
 		this->totalForce += transientForce;
 	}
 
+	while (this->transientTorqueList.size() > 0)
+	{
+		Vector3 transientTorque = *this->transientTorqueList.begin();
+		this->transientTorqueList.pop_front();
+		this->totalTorque += transientTorque;
+	}
+
 	Vector3 gravityForce = physicsSystem->GetGravity() * this->GetTotalMass();
 	this->totalForce += gravityForce;
 }
@@ -273,6 +280,11 @@ void PhysicsObject::AddTransientContactForce(const ContactForce& contactForce)
 void PhysicsObject::AddTransientForce(const Vector3& transientForce)
 {
 	this->transientForceList.push_back(transientForce);
+}
+
+void PhysicsObject::AddTransientTorque(const Vector3& transientTorque)
+{
+	this->transientTorqueList.push_back(transientTorque);
 }
 
 const Vector3& PhysicsObject::GetTotalForce() const

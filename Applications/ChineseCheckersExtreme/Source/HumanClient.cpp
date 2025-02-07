@@ -18,10 +18,15 @@ HumanClient::HumanClient()
 {
 }
 
+/*virtual*/ void HumanClient::Update(double deltaTimeSeconds)
+{
+	ChineseCheckersGameClient::Update(deltaTimeSeconds);
+
+	this->animationProcessor.Animate(deltaTimeSeconds, this->graph.get());
+}
+
 /*virtual*/ void HumanClient::ProcessServerMessage(const ParseParty::JsonValue* jsonValue)
 {
-	ChineseCheckersGameClient::ProcessServerMessage(jsonValue);
-
 	using namespace ParseParty;
 
 	auto responseValue = dynamic_cast<const JsonObject*>(jsonValue);
@@ -34,17 +39,20 @@ HumanClient::HumanClient()
 
 	std::string response = responseTypeValue->GetValue();
 
+	if (response == "make_move")
+	{
+		ChineseCheckers::MoveSequence moveSequence;
+		if (!moveSequence.FromJson(responseValue->GetValue("move_sequence")))
+			return;
+
+		this->animationProcessor.EnqueueAnimationForMoveSequence(moveSequence, this->graph.get());
+	}
+
+	ChineseCheckersGameClient::ProcessServerMessage(jsonValue);
+
 	if (response == "get_graph")
 	{
 		this->RegenerateScene();
-	}
-	else if (response == "make_move")
-	{
-		// TODO: Generate animation and queue it up for playing.  Note that
-		//       it can be interrupted at any time by the user, and this has
-		//       no bearing on an actual update of the internal game state.
-
-		this->SnapCubiesIntoPosition();
 	}
 }
 
@@ -202,44 +210,7 @@ void HumanClient::RegenerateScene()
 		}
 	}
 
-	this->SnapCubiesIntoPosition();
-}
-
-void HumanClient::SnapCubiesIntoPosition()
-{
-	if (!this->graph)
-		return;
-
-	const std::vector<ChineseCheckers::Node*>& nodeArray = this->graph->GetNodeArray();
-	for (const auto& nativeNode : nodeArray)
-	{
-		const ChineseCheckers::Marble* nativeMarble = nativeNode->GetOccupant();
-		if (!nativeMarble)
-			continue;
-
-		auto marble = dynamic_cast<const Marble*>(nativeMarble);
-		if (!marble)
-			continue;
-
-		auto node = dynamic_cast<const Node*>(nativeNode);
-		if (!node)
-			continue;
-
-		Reference<CollisionObject> collisionObject;
-		if (!HandleManager::Get()->GetObjectFromHandle(marble->collisionObjectHandle, collisionObject))
-			continue;
-
-		Transform objectToWorld;
-		objectToWorld.SetIdentity();
-		objectToWorld.translation = node->GetLocation3D() + Vector3(0.0, 2.5, 0.0);
-
-		collisionObject->SetObjectToWorld(objectToWorld);
-
-		Reference<PhysicsObject> physicsObject;
-		RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
-		if (HandleManager::Get()->GetObjectFromHandle(handle, physicsObject))
-			physicsObject->SetFrozen(true);
-	}
+	this->animationProcessor.SnapAllMarblesToPosition(this->graph.get());
 }
 
 /*static*/ Thebe::Vector4 HumanClient::MarbleColor(ChineseCheckers::Marble::Color color, double alpha)

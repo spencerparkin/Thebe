@@ -21,6 +21,8 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
     Source/ComputerClient.h
     Source/Factory.cpp
     Source/Factory.h
+    Source/Animation.cpp
+    Source/Animation.h
 )
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})
