@@ -34,7 +34,7 @@ namespace Thebe
 		void SetFont(Font* font);
 		Font* GetFont();
 		const Font* GetFont() const;
-		void SetMaxCharacters(UINT maxCharacter);
+		void SetMaxCharacters(UINT maxCharacters);
 		UINT GetMaxCharacters() const;
 		void SetFontSize(double fontSize);
 		double GetFontSize() const;

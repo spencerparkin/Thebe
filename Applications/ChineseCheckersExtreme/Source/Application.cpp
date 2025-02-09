@@ -120,6 +120,24 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 		return false;
 #endif //_DEBUG
 
+	Reference<Scene> scene;
+	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\OceanScene.scene)", scene))
+		return false;
+
+	this->graphicsEngine->SetRenderObject(scene);
+	if (this->lineRenderer.Get())
+		scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+
+#if defined THEBE_PROFILING
+	Reference<ProfileTreeText> profileTreeText;
+	profileTreeText.Set(new ProfileTreeText());
+	profileTreeText->SetGraphicsEngine(this->graphicsEngine);
+	profileTreeText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	if (!profileTreeText->Setup())
+		return false;
+
+	scene->GetRootSpace()->AddSubSpace(profileTreeText);
+#else
 	Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
 	framerateText->SetGraphicsEngine(this->graphicsEngine);
@@ -127,14 +145,8 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 	if (!framerateText->Setup())
 		return false;
 
-	Reference<Scene> scene;
-	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Scenes\OceanScene.scene)", scene))
-		return false;
-
-	this->graphicsEngine->SetRenderObject(scene);
 	scene->GetRootSpace()->AddSubSpace(framerateText);
-	if (this->lineRenderer.Get())
-		scene->GetRenderObjectArray().push_back(this->lineRenderer.Get());
+#endif
 
 	Reference<DirectionalLight> light(new DirectionalLight());
 	light->Setup();

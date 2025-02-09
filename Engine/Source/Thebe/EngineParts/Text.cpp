@@ -338,7 +338,7 @@ const Font* Text::GetFont() const
 	return this->font;
 }
 
-void Text::SetMaxCharacters(UINT maxCharacter)
+void Text::SetMaxCharacters(UINT maxCharacters)
 {
 	this->maxCharacters = maxCharacters;
 }
@@ -483,6 +483,7 @@ ProfileTreeText::ProfileTreeText()
 			return false;
 	}
 
+	this->SetMaxCharacters(2048);
 	this->SetRenderSpace(CAMERA);
 
 	Transform objectToScreen;

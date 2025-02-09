@@ -8,6 +8,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/CollisionObject.h"
+#include "Thebe/Profiler.h"
 
 using namespace Thebe;
 
@@ -29,6 +30,8 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {
+	THEBE_PROFILE_BEGIN_FRAME;
+
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
 	PhysicsSystem* physicsSystem = graphicsEngine->GetPhysicsSystem();
@@ -52,6 +55,8 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 	eventSystem->DispatchAllEvents();
 
 	graphicsEngine->Render();
+
+	THEBE_PROFILE_END_FRAME;
 }
 
 void ChineseCheckersCanvas::OnSize(wxSizeEvent& event)

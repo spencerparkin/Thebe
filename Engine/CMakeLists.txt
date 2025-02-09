@@ -192,6 +192,9 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
     _USE_MATH_DEFINES
     WIN32_LEAN_AND_MEAN
     NOMINMAX
+)
+
+target_compile_definitions(ThebeGraphicsEngine PUBLIC
     THEBE_PROFILING
 )
 

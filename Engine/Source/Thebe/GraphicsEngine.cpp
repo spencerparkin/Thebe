@@ -21,6 +21,7 @@
 #include "Thebe/EngineParts/RigidBody.h"
 #include "Thebe/Math/Rectangle.h"
 #include "Thebe/Log.h"
+#include "Thebe/Profiler.h"
 #include "JsonValue.h"
 #include <locale>
 #include <ctype.h>
@@ -394,6 +395,8 @@ CubeMapBuffer* GraphicsEngine::GetEnvMap()
 
 void GraphicsEngine::Render()
 {
+	THEBE_PROFILE_BLOCK(Render);
+
 	if (!this->renderObject)
 		return;
 

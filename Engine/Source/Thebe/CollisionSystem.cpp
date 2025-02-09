@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/Log.h"
+#include "Thebe/Profiler.h"
 
 using namespace Thebe;
 
@@ -123,7 +124,13 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 		{
 			std::unique_ptr<GJKSimplex> simplex;
 
-			if (GJKShape::Intersect(collisionObject->GetShape(), otherCollisionObject->GetShape(), &simplex))
+			bool intersect = false;
+			{
+				THEBE_PROFILE_BLOCK(GJKIntersect);
+				intersect = GJKShape::Intersect(collisionObject->GetShape(), otherCollisionObject->GetShape(), &simplex);
+			}
+
+			if (intersect)
 			{
 				collision.Set(new Collision());
 				collision->validFrameA = collisionObject->GetFrameWhenLastMoved();
@@ -131,7 +138,10 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 				collision->objectA = collisionObject;
 				collision->objectB = otherCollisionObject;
 				
-				GJKShape::Penetration(collisionObject->GetShape(), otherCollisionObject->GetShape(), simplex, collision->separationDelta);
+				{
+					THEBE_PROFILE_BLOCK(PenetrationCalc);
+					GJKShape::Penetration(collisionObject->GetShape(), otherCollisionObject->GetShape(), simplex, collision->separationDelta);
+				}
 			}
 		}
 

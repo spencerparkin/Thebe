@@ -11,6 +11,7 @@ Profiler::Profiler()
 	this->rootRecord = nullptr;
 	this->currentRecord = nullptr;
 	this->blockRecordHeap.SetSize(sizeof(ProfileBlockRecord) * 2048);
+	this->frameKey = 0;
 }
 
 /*virtual*/ Profiler::~Profiler()
@@ -26,6 +27,7 @@ Profiler::Profiler()
 
 void Profiler::BeginFrame()
 {
+	this->frameKey++;
 	this->rootRecord = this->blockRecordHeap.AllocateObject();
 	this->rootRecord->name = "Frame";
 	this->currentRecord = this->rootRecord;
@@ -40,7 +42,7 @@ void Profiler::EndFrame()
 	if (!this->persistentRootRecord)
 		this->persistentRootRecord = new PersistentRecord();
 
-	this->persistentRootRecord->UpdateTree(this->rootRecord);
+	this->persistentRootRecord->UpdateTree(this->rootRecord, this->frameKey);
 
 	this->blockRecordHeap.Reset();
 }
@@ -86,20 +88,24 @@ Profiler::PersistentRecord::PersistentRecord()
 {
 	this->name = nullptr;
 	this->timeTakenMilliseconds = 0.0;
-	this->minTimeTakenMilliseconds = std::numeric_limits<double>::max();
-	this->maxTimeTakenMilliseconds = -std::numeric_limits<double>::max();
+	this->frameKey = 0;
 }
 
 /*virtual*/ Profiler::PersistentRecord::~PersistentRecord()
 {
 }
 
-void Profiler::PersistentRecord::UpdateTree(const ProfileBlockRecord* blockRecord)
+void Profiler::PersistentRecord::UpdateTree(const ProfileBlockRecord* blockRecord, uint64_t masterFrameKey)
 {
 	this->name = blockRecord->name;
-	this->timeTakenMilliseconds = blockRecord->timeTakenMilliseconds;
-	this->maxTimeTakenMilliseconds = THEBE_MAX(this->maxTimeTakenMilliseconds, this->timeTakenMilliseconds);
-	this->minTimeTakenMilliseconds = THEBE_MIN(this->minTimeTakenMilliseconds, this->timeTakenMilliseconds);
+
+	if (this->frameKey != masterFrameKey)
+	{
+		this->frameKey = masterFrameKey;
+		this->timeTakenMilliseconds = 0.0;
+	}
+
+	this->timeTakenMilliseconds += blockRecord->timeTakenMilliseconds;
 
 	for (const LinkedListNode* node = blockRecord->nestedBlockList.GetHeadNode(); node; node = node->GetNextNode())
 	{
@@ -115,19 +121,16 @@ void Profiler::PersistentRecord::UpdateTree(const ProfileBlockRecord* blockRecor
 			this->childMap.insert(std::pair(nestedRecord->name, childRecord));
 		}
 
-		childRecord->UpdateTree(nestedRecord);
+		childRecord->UpdateTree(nestedRecord, masterFrameKey);
 	}
 }
 
 std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) const
 {
-	std::string text = std::format("{}: {:2.2f} (min: {:2.2f}) (max: {:2.2f})\n",
-											this->name, this->timeTakenMilliseconds,
-											this->minTimeTakenMilliseconds,
-											this->maxTimeTakenMilliseconds);
+	std::string text = std::format("{}: {:2.2f}\n", this->name, this->timeTakenMilliseconds);
 
 	for (int i = 0; i < indentLevel; i++)
-		text = " " + text;
+		text = "   " + text;
 
 	for (const auto& pair : this->childMap)
 	{

@@ -6,6 +6,7 @@
 #include "Thebe/Math/Graph.h"
 #include "Thebe/Math/LineSegment.h"
 #include "Thebe/Log.h"
+#include "Thebe/Profiler.h"
 
 using namespace Thebe;
 
@@ -105,6 +106,8 @@ void PhysicsSystem::UntrackAllObjects()
 
 void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* collisionSystem)
 {
+	THEBE_PROFILE_BLOCK(StepSimulation);
+
 	// If the given time delta is larger than what is reasonable for
 	// an animated system, then bail here.  This is one way we can
 	// account for being stopped in the debugger, for example.
@@ -122,43 +125,59 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		deltaTimeSeconds -= timeStepSeconds;
 
 		// Determine the net force and torque acting on each object.
-		for (auto& pair : this->physicsObjectMap)
 		{
-			PhysicsObject* physicsObject = pair.second.Get();
-			if (!physicsObject->IsFrozen())
-				physicsObject->AccumulateForcesAndTorques(this);
+			THEBE_PROFILE_BLOCK(AccumulateForces);
+
+			for (auto& pair : this->physicsObjectMap)
+			{
+				PhysicsObject* physicsObject = pair.second.Get();
+				if (!physicsObject->IsFrozen())
+					physicsObject->AccumulateForcesAndTorques(this);
+			}
 		}
 
 		// Numerically integreate the equations of motion or whatever ODEs are applicable.
-		for (auto& pair : this->physicsObjectMap)
 		{
-			PhysicsObject* physicsObject = pair.second.Get();
-			if (!physicsObject->IsFrozen())
-				physicsObject->IntegrateMotionUnconstrained(timeStepSeconds);
+			THEBE_PROFILE_BLOCK(IntegrateMotion);
+
+			for (auto& pair : this->physicsObjectMap)
+			{
+				PhysicsObject* physicsObject = pair.second.Get();
+				if (!physicsObject->IsFrozen())
+					physicsObject->IntegrateMotionUnconstrained(timeStepSeconds);
+			}
 		}
 
 		// Detect and gather all collision pairs.
-		collisionMap.clear();
-		collisionArray.clear();
-		for (auto& pair : this->physicsObjectMap)
 		{
-			PhysicsObject* physicsObject = pair.second.Get();
-			if (physicsObject->IsStationary() || physicsObject->IsFrozen())
-				continue;
+			THEBE_PROFILE_BLOCK(DetectCollisionPairs);
 
+			collisionMap.clear();
 			collisionArray.clear();
-			collisionSystem->FindAllCollisions(physicsObject->GetCollisionObject(), collisionArray);
-			for (auto& collision : collisionArray)
-				if (collisionMap.find(collision->GetHandle()) == collisionMap.end())
-					collisionMap.insert(std::pair(collision->GetHandle(), collision));
+			for (auto& pair : this->physicsObjectMap)
+			{
+				PhysicsObject* physicsObject = pair.second.Get();
+				if (physicsObject->IsStationary() || physicsObject->IsFrozen())
+					continue;
+
+				collisionArray.clear();
+				collisionSystem->FindAllCollisions(physicsObject->GetCollisionObject(), collisionArray);
+				for (auto& collision : collisionArray)
+					if (collisionMap.find(collision->GetHandle()) == collisionMap.end())
+						collisionMap.insert(std::pair(collision->GetHandle(), collision));
+			}
 		}
 
 		// Generate all collision contacts.
-		contactList.clear();
-		for (auto& pair : collisionMap)
 		{
-			const auto& collision = pair.second;
-			this->GenerateContacts(collision.Get(), contactList);
+			THEBE_PROFILE_BLOCK(GenerateContacts);
+
+			contactList.clear();
+			for (auto& pair : collisionMap)
+			{
+				const auto& collision = pair.second;
+				this->GenerateContacts(collision.Get(), contactList);
+			}
 		}
 
 		// Apply friction for all the contacts.
@@ -166,44 +185,52 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 			this->ApplyFriction(contact);
 
 		// Go process all collision contacts.
-		uint32_t resolutionCount = 0;
-		uint32_t iterationCount = 0;
-		constexpr uint32_t maxIterationCount = 8;
-		do
 		{
-			if (++iterationCount >= maxIterationCount)
-				break;
+			THEBE_PROFILE_BLOCK(ResolveContacts);
 
-			// Note that Baraff says a more advanced technique involves handling
-			// multiple contact points for a single object simultaneously.
-			resolutionCount = 0;
-			for (Contact& contact : contactList)
-				if (this->ResolveContact(contact))
-					resolutionCount++;
-			
-		} while (resolutionCount > 0);
+			uint32_t resolutionCount = 0;
+			uint32_t iterationCount = 0;
+			constexpr uint32_t maxIterationCount = 8;
+			do
+			{
+				if (++iterationCount >= maxIterationCount)
+					break;
+
+				// Note that Baraff says a more advanced technique involves handling
+				// multiple contact points for a single object simultaneously.
+				resolutionCount = 0;
+				for (Contact& contact : contactList)
+					if (this->ResolveContact(contact))
+						resolutionCount++;
+
+			} while (resolutionCount > 0);
+		}
 
 		// Go Separate all the bodies the best we can.
-		for (auto& pair : collisionMap)
 		{
-			auto& collision = pair.second;
-			const Vector3& separationDelta = collision->separationDelta;
+			THEBE_PROFILE_BLOCK(SeparateBodies);
 
-			RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
-			RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
-
-			Reference<PhysicsObject> objectA, objectB;
-
-			if (HandleManager::Get()->GetObjectFromHandle(handleA, objectA) && HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
+			for (auto& pair : collisionMap)
 			{
-				if (!objectA->IsStationary() && !objectB->IsStationary())
+				auto& collision = pair.second;
+				const Vector3& separationDelta = collision->separationDelta;
+
+				RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
+				RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
+
+				Reference<PhysicsObject> objectA, objectB;
+
+				if (HandleManager::Get()->GetObjectFromHandle(handleA, objectA) && HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
 				{
-					Transform objectToWorld = objectA->GetObjectToWorld();
-					objectToWorld.translation += separationDelta / 2.0;
-					objectA->SetObjectToWorld(objectToWorld);
-					objectToWorld = objectB->GetObjectToWorld();
-					objectToWorld.translation -= separationDelta / 2.0;
-					objectB->SetObjectToWorld(objectToWorld);
+					if (!objectA->IsStationary() && !objectB->IsStationary())
+					{
+						Transform objectToWorld = objectA->GetObjectToWorld();
+						objectToWorld.translation += separationDelta / 2.0;
+						objectA->SetObjectToWorld(objectToWorld);
+						objectToWorld = objectB->GetObjectToWorld();
+						objectToWorld.translation -= separationDelta / 2.0;
+						objectB->SetObjectToWorld(objectToWorld);
+					}
 				}
 			}
 		}
