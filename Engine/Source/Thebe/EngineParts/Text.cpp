@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/ConstantsBuffer.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/GraphicsEngine.h"
+#include "Thebe/Profiler.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -458,4 +459,52 @@ void FramerateText::ResetWaterMarks()
 {
 	this->frameRateLowWaterMark = std::numeric_limits<double>::max();
 	this->frameRateHighWaterMark = -std::numeric_limits<double>::max();
+}
+
+//------------------------------ ProfileTreeText ------------------------------
+
+ProfileTreeText::ProfileTreeText()
+{
+}
+
+/*virtual*/ ProfileTreeText::~ProfileTreeText()
+{
+}
+
+/*virtual*/ bool ProfileTreeText::Setup()
+{
+	if (!this->font)
+	{
+		Reference<GraphicsEngine> graphicsEngine;
+		if (!this->GetGraphicsEngine(graphicsEngine))
+			return false;
+
+		if (!graphicsEngine->LoadEnginePartFromFile(R"(Fonts\Roboto_Regular.font)", this->font))
+			return false;
+	}
+
+	this->SetRenderSpace(CAMERA);
+
+	Transform objectToScreen;
+	objectToScreen.SetIdentity();
+	objectToScreen.translation.SetComponents(-1.0, 0.5, -2.0);
+	this->SetChildToParentTransform(objectToScreen);
+
+	if (!Text::Setup())
+		return false;
+
+	return true;
+}
+
+/*virtual*/ void ProfileTreeText::PrepareForRender()
+{
+	std::string profileText;
+
+	const Profiler::PersistentRecord* record = Profiler::Get()->GetProfileTree();
+	if (record)
+		profileText = record->GenerateText();
+
+	this->SetText(profileText);
+
+	Text::PrepareForRender();
 }

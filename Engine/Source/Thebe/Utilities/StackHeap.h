@@ -34,14 +34,14 @@ namespace Thebe
 	 * are called on allocation and deallocation, respectively.
 	 */
 	template<typename T>
-	class THEBE_API ObjectHeap : public StackHeap
+	class THEBE_API ObjectStackHeap : public StackHeap
 	{
 	public:
-		ObjectHeap()
+		ObjectStackHeap()
 		{
 		}
 
-		virtual ~ObjectHeap()
+		virtual ~ObjectStackHeap()
 		{
 		}
 

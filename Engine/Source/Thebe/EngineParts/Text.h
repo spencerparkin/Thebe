@@ -101,4 +101,17 @@ namespace Thebe
 		double frameRateHighWaterMark;
 		UINT64 waterMarkResetFrequency;
 	};
+
+	/**
+	 * 
+	 */
+	class THEBE_API ProfileTreeText : public Text
+	{
+	public:
+		ProfileTreeText();
+		virtual ~ProfileTreeText();
+
+		virtual bool Setup() override;
+		virtual void PrepareForRender() override;
+	};
 }

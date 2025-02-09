@@ -114,7 +114,7 @@ namespace Thebe
 			}
 
 		private:
-			ObjectHeap<T> objectHeap;
+			ObjectStackHeap<T> objectHeap;
 			uint8_t* memoryBuffer;
 		};
 

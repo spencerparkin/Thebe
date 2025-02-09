@@ -25,6 +25,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/CollisionSystem.h
     Source/Thebe/PhysicsSystem.cpp
     Source/Thebe/PhysicsSystem.h
+    Source/Thebe/Profiler.cpp
+    Source/Thebe/Profiler.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
@@ -190,6 +192,7 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
     _USE_MATH_DEFINES
     WIN32_LEAN_AND_MEAN
     NOMINMAX
+    THEBE_PROFILING
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

@@ -1,0 +1,153 @@
+#include "Profiler.h"
+#include <format>
+
+using namespace Thebe;
+
+//------------------------------------ Profiler ------------------------------------
+
+Profiler::Profiler()
+{
+	this->persistentRootRecord = nullptr;
+	this->rootRecord = nullptr;
+	this->currentRecord = nullptr;
+	this->blockRecordHeap.SetSize(sizeof(ProfileBlockRecord) * 2048);
+}
+
+/*virtual*/ Profiler::~Profiler()
+{
+	delete this->persistentRootRecord;
+}
+
+/*static*/ Profiler* Profiler::Get()
+{
+	static Profiler profiler;
+	return &profiler;
+}
+
+void Profiler::BeginFrame()
+{
+	this->rootRecord = this->blockRecordHeap.AllocateObject();
+	this->rootRecord->name = "Frame";
+	this->currentRecord = this->rootRecord;
+	this->clock.Reset();
+}
+
+void Profiler::EndFrame()
+{
+	THEBE_ASSERT(this->currentRecord == this->rootRecord);
+	this->rootRecord->timeTakenMilliseconds = this->clock.GetCurrentTimeMilliseconds();
+
+	if (!this->persistentRootRecord)
+		this->persistentRootRecord = new PersistentRecord();
+
+	this->persistentRootRecord->UpdateTree(this->rootRecord);
+
+	this->blockRecordHeap.Reset();
+}
+
+void Profiler::ProfileBlockBegin(const char* name)
+{
+	THEBE_ASSERT_FATAL(this->currentRecord != nullptr);
+	ProfileBlockRecord* newRecord = this->blockRecordHeap.AllocateObject();
+	newRecord->name = name;
+	newRecord->parentBlock = this->currentRecord;
+	this->currentRecord->nestedBlockList.InsertNodeAfter(newRecord);
+	this->currentRecord = newRecord;
+}
+
+void Profiler::ProfileBlockEnd(double timeTakenMilliseconds)
+{
+	THEBE_ASSERT_FATAL(this->currentRecord != nullptr);
+	this->currentRecord->timeTakenMilliseconds = timeTakenMilliseconds;
+	this->currentRecord = this->currentRecord->parentBlock;
+}
+
+const Profiler::PersistentRecord* Profiler::GetProfileTree()
+{
+	return this->persistentRootRecord;
+}
+
+//------------------------------------ Profiler::ProfileBlockRecord ------------------------------------
+
+Profiler::ProfileBlockRecord::ProfileBlockRecord()
+{
+	this->parentBlock = nullptr;
+	this->name = nullptr;
+	this->timeTakenMilliseconds = 0.0;
+}
+
+/*virtual*/ Profiler::ProfileBlockRecord::~ProfileBlockRecord()
+{
+}
+
+//------------------------------------ Profiler::PersistentRecord ------------------------------------
+
+Profiler::PersistentRecord::PersistentRecord()
+{
+	this->name = nullptr;
+	this->timeTakenMilliseconds = 0.0;
+	this->minTimeTakenMilliseconds = std::numeric_limits<double>::max();
+	this->maxTimeTakenMilliseconds = -std::numeric_limits<double>::max();
+}
+
+/*virtual*/ Profiler::PersistentRecord::~PersistentRecord()
+{
+}
+
+void Profiler::PersistentRecord::UpdateTree(const ProfileBlockRecord* blockRecord)
+{
+	this->name = blockRecord->name;
+	this->timeTakenMilliseconds = blockRecord->timeTakenMilliseconds;
+	this->maxTimeTakenMilliseconds = THEBE_MAX(this->maxTimeTakenMilliseconds, this->timeTakenMilliseconds);
+	this->minTimeTakenMilliseconds = THEBE_MIN(this->minTimeTakenMilliseconds, this->timeTakenMilliseconds);
+
+	for (const LinkedListNode* node = blockRecord->nestedBlockList.GetHeadNode(); node; node = node->GetNextNode())
+	{
+		auto nestedRecord = dynamic_cast<const ProfileBlockRecord*>(node);
+
+		PersistentRecord* childRecord = nullptr;
+		auto pair = this->childMap.find(nestedRecord->name);
+		if (pair != this->childMap.end())
+			childRecord = pair->second.Get();
+		else
+		{
+			childRecord = new PersistentRecord();
+			this->childMap.insert(std::pair(nestedRecord->name, childRecord));
+		}
+
+		childRecord->UpdateTree(nestedRecord);
+	}
+}
+
+std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) const
+{
+	std::string text = std::format("{}: {:2.2f} (min: {:2.2f}) (max: {:2.2f})\n",
+											this->name, this->timeTakenMilliseconds,
+											this->minTimeTakenMilliseconds,
+											this->maxTimeTakenMilliseconds);
+
+	for (int i = 0; i < indentLevel; i++)
+		text = " " + text;
+
+	for (const auto& pair : this->childMap)
+	{
+		std::string subText = pair.second->GenerateText(indentLevel + 1);
+		text += subText;
+	}
+
+	return text;
+}
+
+//------------------------------------ ScopedProfileBlock ------------------------------------
+
+ScopedProfileBlock::ScopedProfileBlock(const char* name)
+{
+	Profiler::Get()->ProfileBlockBegin(name);
+	this->clock.Reset();
+}
+
+/*virtual*/ ScopedProfileBlock::~ScopedProfileBlock()
+{
+	double timeTakenMilliseconds = this->clock.GetCurrentTimeMilliseconds();
+	Profiler::Get()->ProfileBlockEnd(timeTakenMilliseconds);
+}
