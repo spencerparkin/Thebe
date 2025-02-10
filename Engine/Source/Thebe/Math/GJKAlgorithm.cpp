@@ -201,9 +201,7 @@ GJKPointSupplierForEPA::GJKPointSupplierForEPA(const GJKShape* shapeA, const GJK
 
 /*virtual*/ bool GJKPointSupplierForEPA::GetNextPoint(Vector3& point)
 {
-	// New triangles are added at the end of the list and those are most likely to be
-	// unchecked, so start our search at the end and work toward the start.
-	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::reverse_iterator iter = this->epa->triangleList.rbegin(); iter != this->epa->triangleList.rend(); ++iter)
+	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::iterator iter = this->epa->triangleList.begin(); iter != this->epa->triangleList.end(); ++iter)
 	{
 		auto triangle = (GJKTriangleForEPA*)*iter;
 		if (triangle->status != GJKTriangleForEPA::Status::UNCONSIDERED)
