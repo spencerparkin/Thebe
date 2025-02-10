@@ -2,6 +2,7 @@
 
 #include "Thebe/Reference.h"
 #include "Thebe/Math/Vector3.h"
+#include "Thebe/Math/Random.h"
 #include "Thebe/EngineParts/RigidBody.h"
 #include "ChineseCheckers/Graph.h"
 #include "Chinesecheckers/MoveSequence.h"
@@ -25,6 +26,7 @@ public:
 	void SnapAllMarblesToPosition(const ChineseCheckers::Graph* graph);
 
 protected:
+	Thebe::Random random;
 	std::list<Thebe::Reference<AnimationTask>> animationTaskQueue;
 };
 
@@ -102,4 +104,21 @@ public:
 	Thebe::Reference<Thebe::RigidBody> rigidBody;
 	Thebe::Vector3 targetLocation;
 	double timeLimitRemainingSeconds;
+};
+
+/**
+ * 
+ */
+class DramaticDeathTask : public AnimationTask
+{
+public:
+	DramaticDeathTask();
+	virtual ~DramaticDeathTask();
+
+	virtual bool Animate(double deltaTimeSeconds) override;
+
+	Thebe::Random* random;
+	const ChineseCheckers::Graph* graph;
+	Thebe::Reference<Thebe::RigidBody> rigidBody;
+	double totalFlightTime;
 };

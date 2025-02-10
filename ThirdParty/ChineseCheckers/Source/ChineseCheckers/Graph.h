@@ -41,7 +41,7 @@ namespace ChineseCheckers
 			bool GetRandom(Move& move) const;
 		};
 
-		void Clear();
+		virtual void Clear();
 		void AddNode(Node* node);
 
 		Graph* Clone(Factory* factory) const;

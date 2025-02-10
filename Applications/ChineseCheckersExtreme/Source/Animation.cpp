@@ -58,6 +58,8 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
 	HandleManager::Get()->GetObjectFromHandle(handle, rigidBody);
 
+	std::vector<Marble*> doomedMarbleArray;
+
 	for (int i = 0; i < (int)moveSequence.nodeIndexArray.size() - 1; i++)
 	{
 		auto nodeSource = (Node*)graph->GetNodeArray()[moveSequence.nodeIndexArray[i]];
@@ -70,10 +72,20 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 		this->EnqueueTask(launchTask);
 
 		// In the extreme version of Chinese Checkers, we don't jump over opponent marbles; we jump onto them!
-		if (!nodeJumped || nodeJumped->GetOccupant()->GetColor() == marble->GetColor())
+		if (!nodeJumped)
 			launchTask->landingTarget = nodeTarget->GetLocation3D();
 		else
-			launchTask->landingTarget = nodeJumped->GetLocation3D();
+		{
+			auto marbleJumped = (Marble*)nodeJumped->GetOccupant();
+			if(marbleJumped->GetColor() == marble->GetColor())
+				launchTask->landingTarget = nodeTarget->GetLocation3D();
+			else
+			{
+				launchTask->landingTarget = nodeJumped->GetLocation3D();
+				if (marbleJumped->numLives == 1)
+					doomedMarbleArray.push_back(marbleJumped);
+			}
+		}
 
 		auto waitForImpactTask = new WaitForMarbleImpactTask();
 		waitForImpactTask->collisionObject = collisionObject;
@@ -89,6 +101,27 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	stabilizeTask->targetLocation = node->GetLocation3D() + Vector3(0.0, 2.5, 0.0);
 	stabilizeTask->rigidBody = rigidBody;
 	this->EnqueueTask(stabilizeTask);
+
+	for (Marble* doomedMarble : doomedMarbleArray)
+	{
+		if (!HandleManager::Get()->GetObjectFromHandle(doomedMarble->collisionObjectHandle, collisionObject))
+			continue;
+
+		handle = (RefHandle)collisionObject->GetPhysicsData();
+		if (!HandleManager::Get()->GetObjectFromHandle(handle, rigidBody))
+			continue;
+
+		auto deathTask = new DramaticDeathTask();
+		deathTask->rigidBody = rigidBody;
+		deathTask->totalFlightTime = 5.0;
+		deathTask->graph = graph;
+		deathTask->random = &this->random;
+		this->EnqueueTask(deathTask);
+
+		auto delayTask = new DelayTask();
+		delayTask->delayTimeRemainingSeconds = 1.0;
+		this->EnqueueTask(delayTask);
+	}
 
 	return true;
 }
@@ -245,4 +278,56 @@ StabilizeMarbleOnPlatformTask::StabilizeMarbleOnPlatformTask()
 	Vector3 force = delta * forceFactor;
 	this->rigidBody->AddTransientForce(force);
 	return true;
+}
+
+//---------------------------------- DramaticDeathTask ----------------------------------
+
+DramaticDeathTask::DramaticDeathTask()
+{
+	this->totalFlightTime = 5.0;
+	this->graph = nullptr;
+	this->random = nullptr;
+}
+
+/*virtual*/ DramaticDeathTask::~DramaticDeathTask()
+{
+}
+
+/*virtual*/ bool DramaticDeathTask::Animate(double deltaTimeSeconds)
+{
+	const Transform& objectToWorld = this->rigidBody->GetObjectToWorld();
+
+	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
+	this->rigidBody->GetGraphicsEngine(graphicsEngine);
+	const Vector3& accelerationDueToGravity = graphicsEngine->GetPhysicsSystem()->GetGravity();
+
+	AxisAlignedBoundingBox box;
+	box.MakeReadyForExpansion();
+	for (const auto& nativeNode : this->graph->GetNodeArray())
+	{
+		auto node = (Node*)nativeNode;
+		box.Expand(node->GetLocation3D());
+	}
+
+	Vector3 center = box.GetCenter();
+	double randomAngle = this->random->InRange(0.0, 2.0 * THEBE_PI);
+	Vector3 randomDirection(::cos(randomAngle), 0.0, -::sin(randomAngle));
+
+	double width, height, depth;
+	box.GetDimensions(width, height, depth);
+	double throwDistance = THEBE_MAX(THEBE_MAX(width, height), depth) * 1.1;
+
+	Vector3 landingTarget = center + randomDirection * throwDistance;
+
+	Vector3 delta = landingTarget - objectToWorld.translation;
+	Vector3 initialVelocity = delta / this->totalFlightTime - accelerationDueToGravity * this->totalFlightTime / 2.0;
+	double totalMass = this->rigidBody->GetTotalMass();
+
+	this->rigidBody->SetLinearMomentum(initialVelocity * totalMass);
+
+	double spinTorque = 5000.0;
+	Vector3 torque = Vector3::YAxis().Cross(delta).Normalized() * spinTorque;
+	this->rigidBody->AddTransientTorque(torque);
+
+	return false;
 }

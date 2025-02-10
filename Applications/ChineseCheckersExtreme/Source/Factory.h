@@ -17,13 +17,19 @@ public:
 	virtual ChineseCheckers::Marble* CreateMarble(ChineseCheckers::Marble::Color color) override;
 };
 
+class Marble;
+
 class Graph : public ChineseCheckers::Graph
 {
 public:
 	Graph();
 	virtual ~Graph();
 
+	virtual void Clear() override;
 	virtual bool MoveMarbleConditionally(const ChineseCheckers::MoveSequence& moveSequence) override;
+
+public:
+	std::list<Marble*> deadMarbleArray;
 };
 
 class Node : public ChineseCheckers::Node
@@ -42,6 +48,6 @@ public:
 	virtual ~Marble();
 
 public:
-	double health;
+	int numLives;
 	mutable Thebe::RefHandle collisionObjectHandle;
 };

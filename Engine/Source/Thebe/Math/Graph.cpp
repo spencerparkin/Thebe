@@ -50,7 +50,7 @@ void Graph::operator=(const Graph& graph)
 	}
 }
 
-void Graph::Clear()
+/*virtual*/ void Graph::Clear()
 {
 	for (Node* node : this->nodeArray)
 		delete node;
