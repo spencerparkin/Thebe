@@ -132,7 +132,8 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 	Reference<ProfileTreeText> profileTreeText;
 	profileTreeText.Set(new ProfileTreeText());
 	profileTreeText->SetGraphicsEngine(this->graphicsEngine);
-	profileTreeText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	profileTreeText->SetFlags(0);
+	profileTreeText->SetName("ProfileText");
 	if (!profileTreeText->Setup())
 		return false;
 
@@ -141,7 +142,8 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 	Reference<FramerateText> framerateText;
 	framerateText.Set(new FramerateText());
 	framerateText->SetGraphicsEngine(this->graphicsEngine);
-	framerateText->SetFlags(THEBE_RENDER_OBJECT_FLAG_VISIBLE);
+	framerateText->SetFlags(0);
+	framerateText->SetName("ProfileText");
 	if (!framerateText->Setup())
 		return false;
 

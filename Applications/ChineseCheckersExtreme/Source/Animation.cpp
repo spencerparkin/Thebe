@@ -58,18 +58,22 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
 	HandleManager::Get()->GetObjectFromHandle(handle, rigidBody);
 
-	for (int i = 1; i < (int)moveSequence.nodeIndexArray.size(); i++)
+	for (int i = 0; i < (int)moveSequence.nodeIndexArray.size() - 1; i++)
 	{
-		// TODO: Need to slam into opposing marbles.
-
-		auto node = (Node*)graph->GetNodeArray()[moveSequence.nodeIndexArray[i]];
+		auto nodeSource = (Node*)graph->GetNodeArray()[moveSequence.nodeIndexArray[i]];
+		auto nodeTarget = (Node*)graph->GetNodeArray()[moveSequence.nodeIndexArray[i + 1]];
+		auto nodeJumped = (Node*)Node::FindMutualAdjacency(nodeSource, nodeTarget);
 
 		auto launchTask = new LaunchMarbleTask();
-		
-		launchTask->totalFlightTime = 2.0;
-		launchTask->landingTarget = node->GetLocation3D();
+		launchTask->totalFlightTime = 2.5;
 		launchTask->rigidBody = rigidBody;
 		this->EnqueueTask(launchTask);
+
+		// In the extreme version of Chinese Checkers, we don't jump over opponent marbles; we jump onto them!
+		if (!nodeJumped || nodeJumped->GetOccupant()->GetColor() == marble->GetColor())
+			launchTask->landingTarget = nodeTarget->GetLocation3D();
+		else
+			launchTask->landingTarget = nodeJumped->GetLocation3D();
 
 		auto waitForImpactTask = new WaitForMarbleImpactTask();
 		waitForImpactTask->collisionObject = collisionObject;

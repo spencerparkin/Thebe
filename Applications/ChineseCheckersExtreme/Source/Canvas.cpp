@@ -20,12 +20,32 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
 	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
 	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleClick, this);
+	this->Bind(wxEVT_KEY_UP, &ChineseCheckersCanvas::OnKeyUp, this);
 
 	this->debugDraw = false;
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
 {
+}
+
+void ChineseCheckersCanvas::OnKeyUp(wxKeyEvent& event)
+{
+	if (event.GetKeyCode() == 'P')
+	{
+		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+		auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
+		if (scene)
+		{
+			Space* profileText = scene->GetRootSpace()->FindSpaceByName("ProfileText");
+			if (profileText)
+			{
+				uint32_t flags = profileText->GetFlags();
+				flags ^= THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+				profileText->SetFlags(flags);
+			}
+		}
+	}
 }
 
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
