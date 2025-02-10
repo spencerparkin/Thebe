@@ -49,7 +49,9 @@ void Profiler::EndFrame()
 
 void Profiler::ProfileBlockBegin(const char* name)
 {
-	THEBE_ASSERT_FATAL(this->currentRecord != nullptr);
+	if (!this->currentRecord)
+		return;
+
 	ProfileBlockRecord* newRecord = this->blockRecordHeap.AllocateObject();
 	newRecord->name = name;
 	newRecord->parentBlock = this->currentRecord;
@@ -59,7 +61,9 @@ void Profiler::ProfileBlockBegin(const char* name)
 
 void Profiler::ProfileBlockEnd(double timeTakenMilliseconds)
 {
-	THEBE_ASSERT_FATAL(this->currentRecord != nullptr);
+	if (!this->currentRecord)
+		return;
+
 	this->currentRecord->timeTakenMilliseconds = timeTakenMilliseconds;
 	this->currentRecord = this->currentRecord->parentBlock;
 }

@@ -154,22 +154,12 @@ GJKShape::GJKShape()
 		epa.triangleList.push_back(triangle);
 	}
 
+	// Note that we only partially expand the tetrahedron to fill the entire Minkowski space.
+	// We don't have to fill the entire space before we know what the penetration delta is.
 	if (!epa.Expand(&pointSupplier, &triangleFactory))
 		return false;
 
-	double shortestDistance = std::numeric_limits<double>::max();
-	for (auto triangle : epa.triangleList)
-	{
-		Plane trianglePlane = triangle->MakePlane(epa.vertexArray);
-		Vector3 planePoint = trianglePlane.ClosestPointTo(Vector3::Zero());
-		double distance = planePoint.Length();
-		if (distance < shortestDistance)
-		{
-			shortestDistance = distance;
-			separationDelta = planePoint;
-		}
-	}
-
+	separationDelta = pointSupplier.GetSeparationDelta();
 	return true;
 }
 
@@ -202,6 +192,7 @@ GJKPointSupplierForEPA::GJKPointSupplierForEPA(const GJKShape* shapeA, const GJK
 	this->shapeA = shapeA;
 	this->shapeB = shapeB;
 	this->epa = epa;
+	this->smallestDistance = std::numeric_limits<double>::max();
 }
 
 /*virtual*/ GJKPointSupplierForEPA::~GJKPointSupplierForEPA()
@@ -215,21 +206,43 @@ GJKPointSupplierForEPA::GJKPointSupplierForEPA(const GJKShape* shapeA, const GJK
 	for (std::list<ExpandingPolytopeAlgorithm::Triangle*>::reverse_iterator iter = this->epa->triangleList.rbegin(); iter != this->epa->triangleList.rend(); ++iter)
 	{
 		auto triangle = (GJKTriangleForEPA*)*iter;
-		if (!triangle->onEdgeOfMinkowskiHull)
-		{
-			Plane trianglePlane = triangle->MakePlane(this->epa->vertexArray);
-			Vector3 supportPoint = GJKSimplex::CalcSupportPoint(this->shapeA, this->shapeB, trianglePlane.unitNormal);
-			if (trianglePlane.GetSide(supportPoint, this->epa->planeThickness) == Plane::Side::FRONT)
-			{
-				point = supportPoint;
-				return true;
-			}
+		if (triangle->status != GJKTriangleForEPA::Status::UNCONSIDERED)
+			continue;
 
-			triangle->onEdgeOfMinkowskiHull = true;
+		Plane trianglePlane = triangle->MakePlane(this->epa->vertexArray);
+		Vector3 planePoint = trianglePlane.ClosestPointTo(Vector3::Zero());
+		double distance = planePoint.Length();
+		if (distance > this->smallestDistance)
+		{
+			// This triangle may or may not be on the Minkowski hull boundary, but it doesn't matter,
+			// because anything at or beyond this triangle is further from the origin than an already
+			// known part of the Minkowski hull boundary.
+			triangle->status = GJKTriangleForEPA::Status::CAN_BE_IGNORED;
+			continue;
+		}
+
+		Vector3 supportPoint = GJKSimplex::CalcSupportPoint(this->shapeA, this->shapeB, trianglePlane.unitNormal);
+		if (trianglePlane.GetSide(supportPoint, this->epa->planeThickness) == Plane::Side::FRONT)
+		{
+			triangle->status = GJKTriangleForEPA::Status::CAN_BE_IGNORED;
+			point = supportPoint;
+			return true;
+		}
+
+		triangle->status = GJKTriangleForEPA::Status::CONFIRMED_ON_HULL_BOUNDARY;
+		if (distance < this->smallestDistance)
+		{
+			this->smallestDistance = distance;
+			this->separationDelta = planePoint;
 		}
 	}
 
 	return false;
+}
+
+const Vector3& GJKPointSupplierForEPA::GetSeparationDelta() const
+{
+	return this->separationDelta;
 }
 
 //------------------------------------- GJKSphere -------------------------------------

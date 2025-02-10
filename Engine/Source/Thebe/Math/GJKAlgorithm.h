@@ -130,12 +130,19 @@ namespace Thebe
 	class THEBE_API GJKTriangleForEPA : public ExpandingPolytopeAlgorithm::Triangle
 	{
 	public:
+		enum Status
+		{
+			UNCONSIDERED,
+			CONFIRMED_ON_HULL_BOUNDARY,
+			CAN_BE_IGNORED
+		};
+
 		GJKTriangleForEPA()
 		{
-			this->onEdgeOfMinkowskiHull = false;
+			this->status = Status::UNCONSIDERED;
 		}
 
-		bool onEdgeOfMinkowskiHull;
+		Status status;
 	};
 
 	/**
@@ -149,10 +156,14 @@ namespace Thebe
 
 		virtual bool GetNextPoint(Vector3& point) override;
 
+		const Vector3& GetSeparationDelta() const;
+
 	private:
 		const GJKShape* shapeA;
 		const GJKShape* shapeB;
 		ExpandingPolytopeAlgorithm* epa;
+		Vector3 separationDelta;
+		double smallestDistance;
 	};
 
 	/**
