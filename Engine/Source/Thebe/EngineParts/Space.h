@@ -2,6 +2,7 @@
 
 #include "Thebe/EngineParts/RenderObject.h"
 #include "Thebe/Math/Transform.h"
+#include <functional>
 
 namespace Thebe
 {
@@ -36,6 +37,8 @@ namespace Thebe
 		static Space* Factory(const ParseParty::JsonObject* jsonObject);
 
 		Space* FindSpaceByName(const std::string& searchName, Space** parentSpace = nullptr);
+
+		void ForAllSpaces(std::function<void(Space*)> callback);
 
 		void Collapse();
 		static void StaticCollapse(Reference<Space>& rootNode);

@@ -7,6 +7,9 @@
 #include "GameServer.h"
 #include "HumanClient.h"
 #include "ComputerClient.h"
+#include "Thebe/EngineParts/Scene.h"
+#include "Thebe/EngineParts/Space.h"
+#include "LifeText.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
@@ -45,8 +48,19 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
 	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
+	this->infoText = new wxStaticText(this, wxID_ANY, "Info...");
+
+	this->lifeToggleButton = new wxToggleButton(this, wxID_ANY, "Show Life Counts");
+	this->lifeToggleButton->Bind(wxEVT_TOGGLEBUTTON, &ChineseCheckersFrame::OnToggleLifeCountsButtonPressed, this);
+
+	wxBoxSizer* barSizer = new wxBoxSizer(wxHORIZONTAL);
+	barSizer->Add(this->infoText, 1, wxGROW);
+	barSizer->AddStretchSpacer();
+	barSizer->Add(this->lifeToggleButton, 0, wxALL, 0);
+
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 	this->canvas = new ChineseCheckersCanvas(this);
+	sizer->Add(barSizer, 0, wxALL, 2);
 	sizer->Add(this->canvas, 1, wxGROW);
 	this->SetSizer(sizer);
 
@@ -60,6 +74,29 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 {
 	return this->canvas;
+}
+
+void ChineseCheckersFrame::OnToggleLifeCountsButtonPressed(wxCommandEvent& event)
+{
+	bool showLifeCounts = this->lifeToggleButton->GetValue();
+
+	auto scene = dynamic_cast<Scene*>(wxGetApp().GetGraphicsEngine()->GetRenderObject());
+	if (scene)
+	{
+		scene->GetRootSpace()->ForAllSpaces([showLifeCounts](Space* space)
+			{
+				auto lifeCountText = dynamic_cast<LifeText*>(space);
+				if (lifeCountText)
+				{
+					uint32_t flags = lifeCountText->GetFlags();
+					if (showLifeCounts)
+						flags |= THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+					else
+						flags &= ~THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+					lifeCountText->SetFlags(flags);
+				}
+			});
+	}
 }
 
 void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)

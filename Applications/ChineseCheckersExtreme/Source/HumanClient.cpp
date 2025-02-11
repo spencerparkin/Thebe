@@ -218,6 +218,7 @@ void HumanClient::RegenerateScene()
 			lifeText->SetGraphicsEngine(graphicsEngine);
 			lifeText->SetChildToParentTransform(lifeTextTransform);
 			lifeText->SetTextColor(Vector3(0.0, 0.0, 0.0));
+			lifeText->SetFlags(0);
 			lifeText->marbleWeakRef = nativeMarble;
 			if (!lifeText->Setup())
 			{

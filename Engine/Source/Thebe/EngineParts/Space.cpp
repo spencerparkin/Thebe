@@ -37,6 +37,14 @@ std::vector<Reference<Space>>& Space::GetSubSpaceArray()
 	this->subSpaceArray.clear();
 }
 
+void Space::ForAllSpaces(std::function<void(Space*)> callback)
+{
+	callback(this);
+
+	for (Space* subSpace : this->subSpaceArray)
+		subSpace->ForAllSpaces(callback);
+}
+
 void Space::CalcGraphicsMatrices(const Camera* camera, Matrix4x4& objectToProjMatrix, Matrix4x4& objectToCameraMatrix, Matrix4x4& objectToWorldMatrix) const
 {
 	const Matrix4x4& cameraToProjMatrix = camera->GetCameraToProjectionMatrix();

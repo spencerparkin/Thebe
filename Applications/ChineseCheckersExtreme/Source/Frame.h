@@ -2,6 +2,8 @@
 
 #include <wx/frame.h>
 #include <wx/timer.h>
+#include <wx/stattext.h>
+#include <wx/tglbtn.h>
 
 class ChineseCheckersCanvas;
 
@@ -32,7 +34,10 @@ private:
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
+	void OnToggleLifeCountsButtonPressed(wxCommandEvent& event);
 
+	wxStaticText* infoText;
+	wxToggleButton* lifeToggleButton;
 	ChineseCheckersCanvas* canvas;
 	wxTimer timer;
 };
