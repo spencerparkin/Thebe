@@ -165,6 +165,8 @@ const Vector4& MeshInstance::GetColor() const
 
 /*virtual*/ void MeshInstance::Shutdown()
 {
+	Space::Shutdown();
+
 	if (this->constantsBuffer.Get())
 	{
 		this->constantsBuffer->Shutdown();

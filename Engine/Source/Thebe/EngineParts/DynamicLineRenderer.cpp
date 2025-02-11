@@ -135,6 +135,12 @@ DynamicLineRenderer::DynamicLineRenderer()
 		this->vertexBuffer = nullptr;
 	}
 
+	if (this->constantsBuffer.Get())
+	{
+		this->constantsBuffer->Shutdown();
+		this->constantsBuffer = nullptr;
+	}
+
 	this->material = nullptr;
 
 	RenderObject::Shutdown();

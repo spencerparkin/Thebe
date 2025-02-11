@@ -219,7 +219,7 @@ void HumanClient::RegenerateScene()
 			lifeText->SetChildToParentTransform(lifeTextTransform);
 			lifeText->SetTextColor(Vector3(0.0, 0.0, 0.0));
 			lifeText->marbleWeakRef = nativeMarble;
-			if (!lifeText->Setup())		// TODO: This is a source of a memory leak.  Figure it out.
+			if (!lifeText->Setup())
 			{
 				THEBE_LOG("Failed to setup life text for marble.");
 				return;
