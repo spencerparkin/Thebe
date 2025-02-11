@@ -203,7 +203,7 @@ bool Graph::AllMarblesAtTarget(Marble::Color marbleColor) const
 
 	for (Node* node : this->nodeArray)
 	{
-		Marble* occupant = node->GetOccupant();
+		std::shared_ptr<Marble> occupant = node->GetOccupant();
 		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
@@ -233,7 +233,7 @@ bool Graph::MoveMarbleUnconditionally(const Move& move)
 	if (!move.sourceNode || !move.targetNode)
 		return false;
 
-	Marble* marble = move.sourceNode->GetOccupant();
+	std::shared_ptr<Marble> marble = move.sourceNode->GetOccupant();
 	if (!marble)
 		return false;
 
@@ -249,7 +249,7 @@ bool Graph::FindBestMoves(Marble::Color marbleColor, BestMovesCollection& bestMo
 {
 	for (Node* node : this->nodeArray)
 	{
-		Marble* occupant = node->GetOccupant();
+		std::shared_ptr<Marble> occupant = node->GetOccupant();
 		if (!occupant || occupant->GetColor() != marbleColor)
 			continue;
 		
@@ -328,7 +328,7 @@ Vector Graph::CalcMarbleCentroid(Marble::Color color) const
 
 	for (const Node* node : this->nodeArray)
 	{
-		const Marble* occupant = node->GetOccupant();
+		const std::shared_ptr<Marble> occupant = node->GetOccupant();
 		if (occupant && occupant->GetColor() == color)
 		{
 			numMarbles++;
@@ -403,7 +403,6 @@ Node::Node(const Vector& location, Marble::Color color)
 
 /*virtual*/ Node::~Node()
 {
-	delete this->occupant;
 }
 
 /*static*/ const Node* Node::FindMutualAdjacency(const Node* nodeA, const Node* nodeB)
@@ -526,17 +525,17 @@ Marble::Color Node::GetColor() const
 	return this->color;
 }
 
-Marble* Node::GetOccupant()
+std::shared_ptr<Marble> Node::GetOccupant()
 {
 	return this->occupant;
 }
 
-const Marble* Node::GetOccupant() const
+const std::shared_ptr<Marble> Node::GetOccupant() const
 {
 	return this->occupant;
 }
 
-void Node::SetOccupant(Marble* marble)
+void Node::SetOccupant(std::shared_ptr<Marble> marble)
 {
 	this->occupant = marble;
 }

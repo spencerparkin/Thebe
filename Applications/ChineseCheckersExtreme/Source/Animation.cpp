@@ -46,7 +46,8 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	if (moveSequence.nodeIndexArray.size() == 0)
 		return false;
 
-	auto marble = dynamic_cast<Marble*>(graph->GetNodeArray()[moveSequence.nodeIndexArray[0]]->GetOccupant());
+	std::shared_ptr<ChineseCheckers::Marble> nativeMarble = graph->GetNodeArray()[moveSequence.nodeIndexArray[0]]->GetOccupant();
+	auto marble = dynamic_cast<Marble*>(nativeMarble.get());
 	if (!marble)
 		return false;
 
@@ -58,7 +59,7 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
 	HandleManager::Get()->GetObjectFromHandle(handle, rigidBody);
 
-	std::vector<Marble*> doomedMarbleArray;
+	std::vector<std::shared_ptr<ChineseCheckers::Marble>> doomedMarbleArray;
 
 	for (int i = 0; i < (int)moveSequence.nodeIndexArray.size() - 1; i++)
 	{
@@ -76,14 +77,15 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 			launchTask->landingTarget = nodeTarget->GetLocation3D();
 		else
 		{
-			auto marbleJumped = (Marble*)nodeJumped->GetOccupant();
+			std::shared_ptr<ChineseCheckers::Marble> nativeMarbleJumped = nodeJumped->GetOccupant();
+			auto marbleJumped = dynamic_cast<Marble*>(nativeMarbleJumped.get());
 			if(marbleJumped->GetColor() == marble->GetColor())
 				launchTask->landingTarget = nodeTarget->GetLocation3D();
 			else
 			{
 				launchTask->landingTarget = nodeJumped->GetLocation3D();
 				if (marbleJumped->numLives == 1)
-					doomedMarbleArray.push_back(marbleJumped);
+					doomedMarbleArray.push_back(nativeMarbleJumped);
 			}
 		}
 
@@ -102,8 +104,12 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	stabilizeTask->rigidBody = rigidBody;
 	this->EnqueueTask(stabilizeTask);
 
-	for (Marble* doomedMarble : doomedMarbleArray)
+	for (std::shared_ptr<ChineseCheckers::Marble>& nativeDoomedMarble : doomedMarbleArray)
 	{
+		auto doomedMarble = dynamic_cast<Marble*>(nativeDoomedMarble.get());
+		if (!doomedMarble)
+			continue;
+
 		if (!HandleManager::Get()->GetObjectFromHandle(doomedMarble->collisionObjectHandle, collisionObject))
 			continue;
 
@@ -131,7 +137,7 @@ void AnimationProcessor::SnapAllMarblesToPosition(const ChineseCheckers::Graph* 
 	const std::vector<ChineseCheckers::Node*>& nodeArray = graph->GetNodeArray();
 	for (const auto& nativeNode : nodeArray)
 	{
-		const ChineseCheckers::Marble* nativeMarble = nativeNode->GetOccupant();
+		const ChineseCheckers::Marble* nativeMarble = nativeNode->GetOccupant().get();
 		if (!nativeMarble)
 			continue;
 

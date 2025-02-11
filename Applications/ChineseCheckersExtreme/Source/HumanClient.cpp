@@ -7,6 +7,7 @@
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/RigidBody.h"
+#include "LifeText.h"
 
 using namespace Thebe;
 
@@ -173,7 +174,7 @@ void HumanClient::RegenerateScene()
 		platformBody->SetObjectToWorld(objectToWorld);
 		platformBody->GetCollisionObject()->SetUserData(i);
 
-		ChineseCheckers::Marble* nativeMarble = node->GetOccupant();
+		std::shared_ptr<ChineseCheckers::Marble> nativeMarble = node->GetOccupant();
 		if (nativeMarble)
 		{
 			Vector4 marbleColor = this->MarbleColor(nativeMarble->GetColor(), 1.0);
@@ -199,7 +200,7 @@ void HumanClient::RegenerateScene()
 
 			cubieBody->GetCollisionObject()->SetTargetSpace(cubieMeshInstance, Transform::Identity());
 
-			Marble* marble = dynamic_cast<Marble*>(nativeMarble);
+			Marble* marble = dynamic_cast<Marble*>(nativeMarble.get());
 			if (!marble)
 			{
 				THEBE_LOG("Factory not working to create proper marbles.");
@@ -207,6 +208,24 @@ void HumanClient::RegenerateScene()
 			}
 
 			marble->collisionObjectHandle = cubieBody->GetCollisionObject()->GetHandle();
+
+			Transform lifeTextTransform;
+			lifeTextTransform.SetIdentity();
+			lifeTextTransform.matrix.SetUniformScale(100.0);
+			lifeTextTransform.translation.SetComponents(0.0, 2.0, 0.0);
+
+			Reference<LifeText> lifeText(new LifeText());
+			lifeText->SetGraphicsEngine(graphicsEngine);
+			lifeText->SetChildToParentTransform(lifeTextTransform);
+			lifeText->SetTextColor(Vector3(0.0, 0.0, 0.0));
+			lifeText->marbleWeakRef = nativeMarble;
+			if (!lifeText->Setup())		// TODO: This is a source of a memory leak.  Figure it out.
+			{
+				THEBE_LOG("Failed to setup life text for marble.");
+				return;
+			}
+
+			cubieMeshInstance->AddSubSpace(lifeText);
 		}
 	}
 

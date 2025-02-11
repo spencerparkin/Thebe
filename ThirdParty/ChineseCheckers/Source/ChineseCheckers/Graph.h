@@ -133,9 +133,9 @@ namespace ChineseCheckers
 		const Vector& GetLocation() const;
 		void SetColor(Marble::Color color);
 		Marble::Color GetColor() const;
-		Marble* GetOccupant();
-		const Marble* GetOccupant() const;
-		void SetOccupant(Marble* marble);
+		std::shared_ptr<Marble> GetOccupant();
+		const std::shared_ptr<Marble> GetOccupant() const;
+		void SetOccupant(std::shared_ptr<Marble> marble);
 		int GetNumAdjacentNodes() const;
 		void AddAjacentNode(Node* node);
 		Node* GetAdjacentNode(int i) const;
@@ -156,7 +156,7 @@ namespace ChineseCheckers
 		void SetOffset(int offset) const;
 
 	protected:
-		Marble* occupant;
+		std::shared_ptr<Marble> occupant;
 		Vector location;
 		Marble::Color color;
 		std::vector<Node*> adjacentNodeArray;

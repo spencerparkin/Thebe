@@ -53,7 +53,7 @@ bool MoveSequence::Extend(int nodeIndex, Graph* graph, Marble::Color color)
 
 	if (this->nodeIndexArray.size() == 0)
 	{
-		Marble* marble = newNode->GetOccupant();
+		std::shared_ptr<Marble> marble = newNode->GetOccupant();
 		if (!marble || marble->GetColor() != color)
 			return false;
 

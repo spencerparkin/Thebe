@@ -80,7 +80,7 @@ TraditionalGenerator::TraditionalGenerator(Factory* factory) : GraphGenerator(fa
 
 			if (participantSet.find(color) != participantSet.end())
 			{
-				Marble* marble = this->factory->CreateMarble(color);
+				std::shared_ptr<Marble> marble = this->factory->CreateMarble(color);
 				if (!marble)
 					return nullptr;
 

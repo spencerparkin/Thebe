@@ -179,6 +179,9 @@ Text::Text()
 	}
 
 	const std::vector<Font::CharacterInfo>& charInfoArray = this->font->GetCharacterInfoArray();
+	if (!this->charBuffer)
+		return;
+
 	auto charRenderInfo = reinterpret_cast<CharRenderInfo*>(this->charBuffer->GetBufferPtr());
 
 	Vector2 penPosition(0.0, 0.0);

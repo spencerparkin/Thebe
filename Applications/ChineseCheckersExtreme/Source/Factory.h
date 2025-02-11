@@ -14,7 +14,7 @@ public:
 
 	virtual ChineseCheckers::Graph* CreateGraph() override;
 	virtual ChineseCheckers::Node* CreateNode(const ChineseCheckers::Vector& location, ChineseCheckers::Marble::Color color) override;
-	virtual ChineseCheckers::Marble* CreateMarble(ChineseCheckers::Marble::Color color) override;
+	virtual std::shared_ptr<ChineseCheckers::Marble> CreateMarble(ChineseCheckers::Marble::Color color) override;
 };
 
 class Marble;
@@ -29,7 +29,7 @@ public:
 	virtual bool MoveMarbleConditionally(const ChineseCheckers::MoveSequence& moveSequence) override;
 
 public:
-	std::list<Marble*> deadMarbleArray;
+	std::list<std::shared_ptr<ChineseCheckers::Marble>> deadMarbleArray;
 };
 
 class Node : public ChineseCheckers::Node

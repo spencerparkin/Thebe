@@ -22,7 +22,7 @@ Factory::Factory()
 	return new Node(location, color);
 }
 
-/*virtual*/ Marble* Factory::CreateMarble(Marble::Color color)
+/*virtual*/ std::shared_ptr<Marble> Factory::CreateMarble(Marble::Color color)
 {
-	return new Marble(color);
+	return std::make_shared<Marble>(color);
 }

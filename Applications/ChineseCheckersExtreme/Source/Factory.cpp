@@ -21,9 +21,9 @@ Factory::Factory()
 	return new Node(location, color);
 }
 
-/*virtual*/ ChineseCheckers::Marble* Factory::CreateMarble(ChineseCheckers::Marble::Color color)
+/*virtual*/ std::shared_ptr<ChineseCheckers::Marble> Factory::CreateMarble(ChineseCheckers::Marble::Color color)
 {
-	return new Marble(color);
+	return std::make_shared<Marble>(color);
 }
 
 //------------------------------------ Graph ------------------------------------
@@ -41,9 +41,6 @@ Graph::Graph()
 {
 	ChineseCheckers::Graph::Clear();
 
-	for (Marble* marble : this->deadMarbleArray)
-		delete marble;
-
 	this->deadMarbleArray.clear();
 }
 
@@ -52,7 +49,8 @@ Graph::Graph()
 	if (!this->IsValidMoveSequence(moveSequence))
 		return false;
 
-	auto marble = (Marble*)this->nodeArray[moveSequence.nodeIndexArray[0]]->GetOccupant();
+	std::shared_ptr<ChineseCheckers::Marble> nativeMarble = this->nodeArray[moveSequence.nodeIndexArray[0]]->GetOccupant();
+	Marble* marble = dynamic_cast<Marble*>(nativeMarble.get());
 	THEBE_ASSERT_FATAL(marble != nullptr);
 
 	if (!ChineseCheckers::Graph::MoveMarbleConditionally(moveSequence))
@@ -65,12 +63,13 @@ Graph::Graph()
 		auto hoppedNode = (Node*)Node::FindMutualAdjacency(nodeA, nodeB);
 		if (hoppedNode)
 		{
-			auto hoppedMarble = (Marble*)hoppedNode->GetOccupant();
+			std::shared_ptr<ChineseCheckers::Marble> nativeHoppedMarble = hoppedNode->GetOccupant();
+			auto hoppedMarble = dynamic_cast<Marble*>(nativeHoppedMarble.get());
 			THEBE_ASSERT_FATAL(hoppedMarble != nullptr);
 			if (hoppedMarble->GetColor() != marble->GetColor() && --hoppedMarble->numLives == 0)
 			{
 				hoppedNode->SetOccupant(nullptr);
-				this->deadMarbleArray.push_back(hoppedMarble);
+				this->deadMarbleArray.push_back(nativeHoppedMarble);
 			}
 		}
 	}
