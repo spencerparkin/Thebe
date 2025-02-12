@@ -17,13 +17,12 @@ public:
 	void OnMouseLeftClick(wxMouseEvent& event);
 	void OnMouseRightClick(wxMouseEvent& event);
 	void OnMouseMiddleClick(wxMouseEvent& event);
-	void OnKeyUp(wxKeyEvent& event);
 
 	void SetDebugDraw(bool debugDraw);
 	bool GetDebugDraw() const;
 
 private:
-	Thebe::CollisionObject* PickCollisionObject(const wxPoint& mousePoint);
+	ChineseCheckers::Node* PickNode(const wxPoint& mousePoint);
 
 	void UpdateRings();
 

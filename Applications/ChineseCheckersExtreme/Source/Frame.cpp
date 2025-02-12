@@ -48,19 +48,24 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
 	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
-	this->infoText = new wxStaticText(this, wxID_ANY, "Info...");
+	this->infoText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1));
 
 	this->lifeToggleButton = new wxToggleButton(this, wxID_ANY, "Show Life Counts");
 	this->lifeToggleButton->Bind(wxEVT_TOGGLEBUTTON, &ChineseCheckersFrame::OnToggleLifeCountsButtonPressed, this);
 
+	this->profileStatsToggleButton = new wxToggleButton(this, wxID_ANY, "Show Profile Stats");
+	this->profileStatsToggleButton->Bind(wxEVT_TOGGLEBUTTON, &ChineseCheckersFrame::OnToggleProfileStatsButtonPressed, this);
+
+	this->canvas = new ChineseCheckersCanvas(this);
+
 	wxBoxSizer* barSizer = new wxBoxSizer(wxHORIZONTAL);
-	barSizer->Add(this->infoText, 1, wxGROW);
+	barSizer->Add(this->infoText, 0, wxALL, 2);
 	barSizer->AddStretchSpacer();
 	barSizer->Add(this->lifeToggleButton, 0, wxALL, 0);
+	barSizer->Add(this->profileStatsToggleButton, 0, wxALL, 0);
 
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-	this->canvas = new ChineseCheckersCanvas(this);
-	sizer->Add(barSizer, 0, wxALL, 2);
+	sizer->Add(barSizer, 0, wxALL | wxGROW, 2);
 	sizer->Add(this->canvas, 1, wxGROW);
 	this->SetSizer(sizer);
 
@@ -74,6 +79,16 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 {
 	return this->canvas;
+}
+
+void ChineseCheckersFrame::SetInfoText(const wxString& infoText)
+{
+	this->infoText->SetLabelText(infoText);
+}
+
+void ChineseCheckersFrame::SetStatusText(const wxString& statusText)
+{
+	this->GetStatusBar()->SetLabelText(statusText);
 }
 
 void ChineseCheckersFrame::OnToggleLifeCountsButtonPressed(wxCommandEvent& event)
@@ -96,6 +111,27 @@ void ChineseCheckersFrame::OnToggleLifeCountsButtonPressed(wxCommandEvent& event
 					lifeCountText->SetFlags(flags);
 				}
 			});
+	}
+}
+
+void ChineseCheckersFrame::OnToggleProfileStatsButtonPressed(wxCommandEvent& event)
+{
+	bool showProfileStats = this->profileStatsToggleButton->GetValue();
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
+	if (scene)
+	{
+		Space* profileText = scene->GetRootSpace()->FindSpaceByName("ProfileText");
+		if (profileText)
+		{
+			uint32_t flags = profileText->GetFlags();
+			if (showProfileStats)
+				flags |= THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+			else
+				flags &= ~THEBE_RENDER_OBJECT_FLAG_VISIBLE;
+			profileText->SetFlags(flags);
+		}
 	}
 }
 

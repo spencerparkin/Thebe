@@ -25,6 +25,9 @@ public:
 
 	ChineseCheckersCanvas* GetCanvas();
 
+	void SetInfoText(const wxString& infoText);
+	void SetStatusText(const wxString& statusText);
+
 private:
 	void OnHostGame(wxCommandEvent& event);
 	void OnJoinGame(wxCommandEvent& event);
@@ -35,9 +38,11 @@ private:
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
 	void OnToggleLifeCountsButtonPressed(wxCommandEvent& event);
+	void OnToggleProfileStatsButtonPressed(wxCommandEvent& event);
 
 	wxStaticText* infoText;
 	wxToggleButton* lifeToggleButton;
+	wxToggleButton* profileStatsToggleButton;
 	ChineseCheckersCanvas* canvas;
 	wxTimer timer;
 };

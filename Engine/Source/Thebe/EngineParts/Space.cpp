@@ -207,14 +207,16 @@ void Space::ClearAllSubSpaces()
 
 Space* Space::FindSpaceByName(const std::string& searchName, Space** parentSpace /*= nullptr*/)
 {
-	if (this->name == searchName)
-		return this;
-
-	if (parentSpace)
-		*parentSpace = this;
-
 	for (Space* subSpace : this->subSpaceArray)
 	{
+		if (subSpace->GetName() == searchName)
+		{
+			if (parentSpace)
+				*parentSpace = this;
+
+			return subSpace;
+		}
+
 		Space* foundSpace = subSpace->FindSpaceByName(searchName, parentSpace);
 		if (foundSpace)
 			return foundSpace;

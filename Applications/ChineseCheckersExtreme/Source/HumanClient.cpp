@@ -8,6 +8,7 @@
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/RigidBody.h"
 #include "LifeText.h"
+#include "Frame.h"
 
 using namespace Thebe;
 
@@ -17,6 +18,33 @@ HumanClient::HumanClient()
 
 /*virtual*/ HumanClient::~HumanClient()
 {
+}
+
+/*virtual*/ void HumanClient::Shutdown()
+{
+	ChineseCheckersGameClient::Shutdown();
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	graphicsEngine->WaitForGPUIdle();
+
+	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
+	if (scene)
+	{
+		Space* rootSpace = scene->GetRootSpace();
+		if (rootSpace)
+		{
+			Space* parentSpace = nullptr;
+			Reference<Space> boardSpace(rootSpace->FindSpaceByName("board", &parentSpace));
+			if (boardSpace)
+			{
+				boardSpace->Shutdown();
+				parentSpace->RemoveSubSpace(boardSpace);
+			}
+		}
+	}
+
+	wxGetApp().GetFrame()->SetStatusText("");
+	wxGetApp().GetFrame()->SetInfoText("");
 }
 
 /*virtual*/ void HumanClient::Update(double deltaTimeSeconds)
@@ -55,6 +83,9 @@ HumanClient::HumanClient()
 	{
 		this->RegenerateScene();
 	}
+	
+	wxGetApp().GetFrame()->SetStatusText("You are color " + this->MarbleText(this->GetColor()) + ".");
+	wxGetApp().GetFrame()->SetInfoText("Waiting for color " + this->MarbleText(this->whoseTurn) + " to take their turn.");
 }
 
 void HumanClient::RegenerateScene()
@@ -172,7 +203,7 @@ void HumanClient::RegenerateScene()
 		}
 
 		platformBody->SetObjectToWorld(objectToWorld);
-		platformBody->GetCollisionObject()->SetUserData(i);
+		platformBody->GetCollisionObject()->SetUserData(uintptr_t(nativeNode));		// Note that care must be taken to prevent this from going stale.
 
 		std::shared_ptr<ChineseCheckers::Marble> nativeMarble = node->GetOccupant();
 		if (nativeMarble)
@@ -258,4 +289,31 @@ void HumanClient::RegenerateScene()
 	}
 
 	return Vector4(0.5, 0.5, 0.5, alpha);
+}
+
+/*static*/ wxString HumanClient::MarbleText(ChineseCheckers::Marble::Color color)
+{
+	switch (color)
+	{
+	case ChineseCheckers::Marble::Color::BLACK:
+		return "Black";
+	case ChineseCheckers::Marble::Color::WHITE:
+		return "White";
+	case ChineseCheckers::Marble::Color::RED:
+		return "Red";
+	case ChineseCheckers::Marble::Color::GREEN:
+		return "Green";
+	case ChineseCheckers::Marble::Color::BLUE:
+		return "Blue";
+	case ChineseCheckers::Marble::Color::CYAN:
+		return "Cyan";
+	case ChineseCheckers::Marble::Color::MAGENTA:
+		return "Magenta";
+	case ChineseCheckers::Marble::Color::ORANGE:
+		return "Orange";
+	case ChineseCheckers::Marble::Color::YELLOW:
+		return "Yellow";
+	}
+
+	return "?";
 }

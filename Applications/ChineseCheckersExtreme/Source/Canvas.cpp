@@ -20,32 +20,12 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
 	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
 	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleClick, this);
-	this->Bind(wxEVT_KEY_UP, &ChineseCheckersCanvas::OnKeyUp, this);
 
 	this->debugDraw = false;
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
 {
-}
-
-void ChineseCheckersCanvas::OnKeyUp(wxKeyEvent& event)
-{
-	if (event.GetKeyCode() == 'P')
-	{
-		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
-		auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
-		if (scene)
-		{
-			Space* profileText = scene->GetRootSpace()->FindSpaceByName("ProfileText");
-			if (profileText)
-			{
-				uint32_t flags = profileText->GetFlags();
-				flags ^= THEBE_RENDER_OBJECT_FLAG_VISIBLE;
-				profileText->SetFlags(flags);
-			}
-		}
-	}
 }
 
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
@@ -86,7 +66,7 @@ void ChineseCheckersCanvas::OnSize(wxSizeEvent& event)
 	graphicsEngine->Resize(windowSize.x, windowSize.y);
 }
 
-CollisionObject* ChineseCheckersCanvas::PickCollisionObject(const wxPoint& mousePoint)
+ChineseCheckers::Node* ChineseCheckersCanvas::PickNode(const wxPoint& mousePoint)
 {
 	CollisionObject* collisionObject = nullptr;
 
@@ -101,7 +81,30 @@ CollisionObject* ChineseCheckersCanvas::PickCollisionObject(const wxPoint& mouse
 		collisionSystem->RayCast(ray, collisionObject, unitSurfaceNormal);
 	}
 
-	return collisionObject;
+	if (!collisionObject)
+		return nullptr;
+
+	auto node = reinterpret_cast<ChineseCheckers::Node*>(collisionObject->GetUserData());
+	if (!node)
+	{
+		HumanClient* humanClient = wxGetApp().GetHumanClient();
+		if (humanClient)
+		{
+			ChineseCheckers::Graph* graph = humanClient->GetGraph();
+			if (graph)
+			{
+				for (int i = 0; i < (int)graph->GetNodeArray().size(); i++)
+				{
+					std::shared_ptr<ChineseCheckers::Marble> nativeMarble = graph->GetNodeArray()[i]->GetOccupant();
+					auto marble = dynamic_cast<Marble*>(nativeMarble.get());
+					if (marble && marble->collisionObjectHandle == collisionObject->GetHandle())
+						node = graph->GetNodeArray()[i];
+				}
+			}
+		}
+	}
+
+	return node;
 }
 
 void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
@@ -123,8 +126,8 @@ void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 {
-	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
-	if (!collisionObject)
+	ChineseCheckers::Node* nativeNode = this->PickNode(event.GetPosition());
+	if (!nativeNode)
 		return;
 
 	HumanClient* humanClient = wxGetApp().GetHumanClient();
@@ -135,7 +138,7 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 	if (!graph)
 		return;
 
-	int nodeIndex = (int)collisionObject->GetUserData();
+	int nodeIndex = nativeNode->GetOffset();
 	if (this->moveSequence.Extend(nodeIndex, graph, humanClient->GetColor()))
 		this->UpdateRings();
 
@@ -144,21 +147,16 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseMiddleClick(wxMouseEvent& event)
 {
-	CollisionObject* collisionObject = this->PickCollisionObject(event.GetPosition());
-	if (!collisionObject)
+	ChineseCheckers::Node* nativeNode = this->PickNode(event.GetPosition());
+	if (!nativeNode)
 		return;
 
 	HumanClient* humanClient = wxGetApp().GetHumanClient();
 	if (!humanClient)
 		return;
 
-	ChineseCheckers::Graph* graph = humanClient->GetGraph();
-	if (!graph)
-		return;
-
-	int i = (int)collisionObject->GetUserData();
-
-	if (this->moveSequence.nodeIndexArray.size() > 0 && this->moveSequence.nodeIndexArray[this->moveSequence.nodeIndexArray.size() - 1] == i)
+	int nodeIndex = nativeNode->GetOffset();
+	if (this->moveSequence.nodeIndexArray.size() > 0 && this->moveSequence.nodeIndexArray[this->moveSequence.nodeIndexArray.size() - 1] == nodeIndex)
 		humanClient->MakeMove(this->moveSequence);
 	
 	this->moveSequence.nodeIndexArray.clear();
