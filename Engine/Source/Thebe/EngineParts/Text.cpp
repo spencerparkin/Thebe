@@ -266,6 +266,33 @@ Text::Text()
 			this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
 			break;
 		}
+		case RenderSpace::BILLBOARD:
+		{
+			Matrix3x3 rotationMatrix, shearMatrix, scaleMatrix;
+			this->objectToWorld.matrix.FactorRHS(rotationMatrix, shearMatrix, scaleMatrix);
+
+			Vector3 zAxis = (context->camera->GetCameraToWorldTransform().translation - this->objectToWorld.translation).Normalized();
+			Vector3 xAxis = Vector3::YAxis().Cross(zAxis).Normalized();
+			Vector3 yAxis = zAxis.Cross(xAxis);
+
+			xAxis = scaleMatrix * xAxis;
+			yAxis = scaleMatrix * yAxis;
+			zAxis = scaleMatrix * zAxis;
+
+			Matrix4x4 objectToWorldMatrix;
+			objectToWorldMatrix.SetAxes(xAxis, yAxis, zAxis);
+			objectToWorldMatrix.SetTranslation(this->objectToWorld.translation);
+
+			Matrix4x4 worldToCameraMatrix;
+			context->camera->GetWorldToCameraTransform().GetToMatrix(worldToCameraMatrix);
+
+			const Matrix4x4& cameraToProjMatrix = context->camera->GetCameraToProjectionMatrix();
+			
+			Matrix4x4 objectToProjMatrix = cameraToProjMatrix * worldToCameraMatrix * objectToWorldMatrix;
+			this->constantsBuffer->SetParameter("objToProj", objectToProjMatrix);
+
+			break;
+		}
 		default:
 		{
 			THEBE_LOG("Render space (%d) unknown.", this->renderSpace);

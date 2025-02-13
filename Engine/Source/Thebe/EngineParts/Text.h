@@ -44,7 +44,8 @@ namespace Thebe
 		enum RenderSpace
 		{
 			WORLD,
-			CAMERA
+			CAMERA,
+			BILLBOARD
 		};
 
 		void SetRenderSpace(RenderSpace renderSpace);

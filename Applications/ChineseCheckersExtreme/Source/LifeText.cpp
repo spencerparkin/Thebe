@@ -27,7 +27,7 @@ LifeText::LifeText()
 			return false;
 	}
 
-	this->SetRenderSpace(RenderSpace::WORLD);
+	this->SetRenderSpace(RenderSpace::BILLBOARD);
 
 	if (!Text::Setup())
 		return false;
