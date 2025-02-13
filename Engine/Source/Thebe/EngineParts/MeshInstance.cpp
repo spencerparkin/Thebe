@@ -306,12 +306,14 @@ Mesh* MeshInstance::GetMesh()
 	return this->mesh;
 }
 
-/*virtual*/ uint32_t MeshInstance::GetRenderOrder() const
+/*virtual*/ void MeshInstance::PrepareRenderOrder(RenderContext* context) const
 {
-	if (this->material.Get() && this->material->RendersTransparency())
-		return THEBE_RENDER_ORDER_ALPHA_BLEND;
+	this->renderOrder.secondary = 0.0;
 
-	return THEBE_RENDER_ORDER_OPAQUE;
+	if (this->material.Get() && this->material->RendersTransparency())
+		this->renderOrder.primary = THEBE_RENDER_ORDER_ALPHA_BLEND;
+	else
+		this->renderOrder.primary = THEBE_RENDER_ORDER_OPAQUE;
 }
 
 /*virtual*/ bool MeshInstance::LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath)

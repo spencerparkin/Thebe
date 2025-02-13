@@ -51,13 +51,20 @@ Scene::Scene()
 	std::list<RenderObject*> renderObjectList;
 	this->GatherVisibleRenderObjects(renderObjectList, context->camera, context->renderTarget);
 
+	for (auto renderObject : renderObjectList)
+		renderObject->PrepareRenderOrder(context);
+
 	// This ensures that opaque objects are render before those with some amount of transparency.
 	// We might also try to use this mechanism to sort by PSO to reduce PSO switching.
 	renderObjectList.sort([](const RenderObject* renderObjectA, const RenderObject* renderObjectB) -> bool
 		{
-			uint32_t renderOrderA = renderObjectA->GetRenderOrder();
-			uint32_t renderOrderB = renderObjectB->GetRenderOrder();
-			return renderOrderA < renderOrderB;
+			const RenderObject::RenderOrder& orderA = renderObjectA->GetRenderOrder();
+			const RenderObject::RenderOrder& orderB = renderObjectB->GetRenderOrder();
+
+			if (orderA.primary == orderB.primary)
+				return orderA.secondary < orderB.secondary;
+
+			return orderA.primary < orderB.primary;
 		});
 
 	for (RenderObject* renderObject : renderObjectList)

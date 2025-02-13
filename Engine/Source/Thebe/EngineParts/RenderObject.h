@@ -32,12 +32,18 @@ namespace Thebe
 			RenderTarget* renderTarget;
 		};
 
+		struct RenderOrder
+		{
+			uint32_t primary;
+			double secondary;
+		};
+
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context);
 		virtual void PrepareForRender();
 		virtual void AppendAllChildRenderObjects(std::list<RenderObject*>& renderObjectList);
-		virtual uint32_t GetRenderOrder() const;
+		virtual void PrepareRenderOrder(RenderContext* context) const;
 		virtual bool RendersToTarget(RenderTarget* renderTarget) const;
 
 		uint32_t GetFlags() const;
@@ -45,7 +51,10 @@ namespace Thebe
 
 		bool IsVisible() const;
 
+		const RenderOrder& GetRenderOrder() const;
+
 	protected:
 		uint32_t flags;
+		mutable RenderOrder renderOrder;
 	};
 }

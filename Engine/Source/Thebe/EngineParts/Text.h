@@ -22,7 +22,7 @@ namespace Thebe
 
 		virtual bool Setup() override;
 		virtual void Shutdown() override;
-		virtual uint32_t GetRenderOrder() const override;
+		virtual void PrepareRenderOrder(RenderContext* context) const override;
 		virtual bool Render(ID3D12GraphicsCommandList* commandList, RenderContext* context) override;
 		virtual bool RendersToTarget(RenderTarget* renderTarget) const override;
 		virtual void PrepareForRender() override;

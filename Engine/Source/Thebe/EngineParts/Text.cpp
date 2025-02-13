@@ -338,9 +338,14 @@ Text::Text()
 	return true;
 }
 
-/*virtual*/ uint32_t Text::GetRenderOrder() const
+/*virtual*/ void Text::PrepareRenderOrder(RenderContext* context) const
 {
-	return THEBE_RENDER_ORDER_TEXT;
+	this->renderOrder.primary = THEBE_RENDER_ORDER_TEXT;
+
+	double eyeToTextDistance = (this->objectToWorld.translation - context->camera->GetCameraToWorldTransform().translation).Length();
+	double viewDistance = context->camera->GetViewDistance();
+
+	this->renderOrder.secondary = viewDistance - eyeToTextDistance;
 }
 
 void Text::SetText(const std::string& text)

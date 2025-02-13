@@ -24,6 +24,7 @@ namespace Thebe
 		virtual void UpdateProjection(double aspectRatio);
 		virtual bool CanSee(const RenderObject* renderObject) const;
 		virtual bool SetShaderParameters(ConstantsBuffer* constantsBuffer);
+		virtual double GetViewDistance() const;
 
 		void SetCameraToWorldTransform(const Transform& cameraToWorld);
 		const Transform& GetCameraToWorldTransform() const;
@@ -48,6 +49,7 @@ namespace Thebe
 
 		virtual void UpdateProjection(double aspectRatio) override;
 		virtual bool CanSee(const RenderObject* renderObject) const override;
+		virtual double GetViewDistance() const override;
 
 		Frustum& GetFrustum();
 
@@ -66,6 +68,7 @@ namespace Thebe
 
 		virtual void UpdateProjection(double aspectRatio) override;
 		virtual bool CanSee(const RenderObject* renderObject) const override;
+		virtual double GetViewDistance() const override;
 
 		struct Params
 		{

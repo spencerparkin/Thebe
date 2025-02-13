@@ -54,6 +54,11 @@ const Transform& Camera::GetWorldToCameraTransform() const
 	return true;
 }
 
+/*virtual*/ double Camera::GetViewDistance() const
+{
+	return 0.0;
+}
+
 /*virtual*/ void Camera::UpdateProjection(double aspectRatio)
 {
 }
@@ -87,6 +92,11 @@ PerspectiveCamera::PerspectiveCamera()
 {
 	// TODO: Write this.  Check the given render object's bounding box or sphere or something against our frustum.
 	return true;
+}
+
+/*virtual*/ double PerspectiveCamera::GetViewDistance() const
+{
+	return this->frustum.farClip;
 }
 
 Frustum& PerspectiveCamera::GetFrustum()
@@ -129,6 +139,11 @@ OrthographicCamera::OrthographicCamera()
 {
 	// TODO: Write this.  Check render object against the frustum.
 	return true;
+}
+
+/*virtual*/ double OrthographicCamera::GetViewDistance() const
+{
+	return this->params.farClip;
 }
 
 OrthographicCamera::Params& OrthographicCamera::GetParams()
