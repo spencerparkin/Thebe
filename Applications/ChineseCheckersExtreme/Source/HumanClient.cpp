@@ -43,8 +43,12 @@ HumanClient::HumanClient()
 		}
 	}
 
-	wxGetApp().GetFrame()->SetStatusText("");
-	wxGetApp().GetFrame()->SetInfoText("");
+	ChineseCheckersFrame* frame = wxGetApp().GetFrame();
+	if (frame)
+	{
+		frame->SetStatusText("");
+		frame->SetInfoText("");
+	}
 }
 
 /*virtual*/ void HumanClient::Update(double deltaTimeSeconds)

@@ -88,7 +88,9 @@ void ChineseCheckersFrame::SetInfoText(const wxString& infoText)
 
 void ChineseCheckersFrame::SetStatusText(const wxString& statusText)
 {
-	this->GetStatusBar()->SetLabelText(statusText);
+	wxStatusBar* statusBar = this->GetStatusBar();
+	if (statusBar)
+		statusBar->SetLabelText(statusText);
 }
 
 void ChineseCheckersFrame::OnToggleLifeCountsButtonPressed(wxCommandEvent& event)
@@ -229,7 +231,7 @@ void ChineseCheckersFrame::OnAbout(wxCommandEvent& event)
 	wxAboutDialogInfo aboutDialogInfo;
 
 	aboutDialogInfo.SetName("Chinese Checkers Extreme");
-	aboutDialogInfo.SetDescription("This is a variation of the traditional game of Chinese Checkers.");
+	aboutDialogInfo.SetDescription("This is a variation on the traditional game of Chinese Checkers.");
 	
 	wxArrayString developerArray;
 	developerArray.Add("Spencer T. Parkin (spencer.parkin@proton.me)");

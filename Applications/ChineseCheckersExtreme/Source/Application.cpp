@@ -195,6 +195,8 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 
 /*virtual*/ int ChineseCheckersApp::OnExit(void)
 {
+	this->frame = nullptr;
+
 	this->ShutdownClientsAndServer();
 
 	this->graphicsEngine->WaitForGPUIdle();
