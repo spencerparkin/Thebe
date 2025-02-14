@@ -267,11 +267,13 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 	this->canvas->Refresh(false);
 
 	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
-	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 
-	XBoxController* controller = wxGetApp().GetFreeCam()->GetController();
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_BACK))
-		this->canvas->SetDebugDraw(!this->canvas->GetDebugDraw());
+	XBoxController* controller = wxGetApp().GetController();
+	if (controller)
+	{
+		if (controller->WasButtonPressed(XINPUT_GAMEPAD_BACK))
+			this->canvas->SetDebugDraw(!this->canvas->GetDebugDraw());
+	}
 
 	ChineseCheckersGameServer* gameServer = wxGetApp().GetGameServer();
 	if (gameServer)

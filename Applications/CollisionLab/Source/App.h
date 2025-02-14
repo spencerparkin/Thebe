@@ -7,7 +7,7 @@
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/Text.h"
 #include "Thebe/CollisionSystem.h"
-#include "MoverCam.h"
+#include "Thebe/XBoxController.h"
 
 class CollisionLabApp : public Thebe::Application
 {
@@ -31,6 +31,6 @@ private:
 	Thebe::Reference<Thebe::CollisionObject> shapeA;
 	Thebe::Reference<Thebe::CollisionObject> shapeB;
 	Thebe::Reference<Thebe::Text> text;
-	MoverCam moverCam;
+	Thebe::Reference<Thebe::XBoxController> controller;
 	Thebe::Vector3 separationDelta;
 };

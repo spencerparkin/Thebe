@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Thebe/FreeCam.h"
+#include "Thebe/CameraSystem.h"
 #include "Thebe/EngineParts/PhysicsObject.h"
 
 class JediCam : public Thebe::FreeCam
@@ -9,7 +9,7 @@ public:
 	JediCam();
 	virtual ~JediCam();
 
-	virtual void Update(double deltaTimeSeconds) override;
+	virtual void ControlCamera(Thebe::Transform& cameraToWorld, double deltaTimeSeconds) override;
 	virtual void OnButtonPressed(DWORD button) override;
 
 	void AddObject(Thebe::PhysicsObject* moveObject);

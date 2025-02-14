@@ -30,11 +30,6 @@ ChineseCheckersApp::ChineseCheckersApp()
 {
 }
 
-Thebe::FreeCam* ChineseCheckersApp::GetFreeCam()
-{
-	return &this->freeCam;
-}
-
 Thebe::DynamicLineRenderer* ChineseCheckersApp::GetLineRenderer()
 {
 	return this->lineRenderer.Get();
@@ -72,6 +67,11 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 	}
 
 	return humanClient;
+}
+
+Thebe::XBoxController* ChineseCheckersApp::GetController()
+{
+	return this->controller;
 }
 
 /*virtual*/ bool ChineseCheckersApp::OnInit(void)
@@ -161,8 +161,16 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 	cameraToWorld.LookAt(Vector3(0.0, 50.0, 100.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(this->camera);
-	this->freeCam.SetCamera(this->camera);
+
+	this->controller = new XBoxController(0);
+
+	Reference<FreeCam> freeCam(new FreeCam());
+	freeCam->SetXBoxController(this->controller);
+
+	CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	cameraSystem->SetCamera(this->camera);
+	cameraSystem->AddController("free_cam", freeCam);
+	cameraSystem->SetActiveController("free_cam");
 
 	Reference<Mesh> ringMesh;
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Meshes\Ring.mesh)", ringMesh))
@@ -209,6 +217,8 @@ HumanClient* ChineseCheckersApp::GetHumanClient()
 
 	this->graphicsEngine->Shutdown();
 	this->graphicsEngine = nullptr;
+
+	this->controller = nullptr;
 
 	THEBE_LOG("CloseLogViewer");
 

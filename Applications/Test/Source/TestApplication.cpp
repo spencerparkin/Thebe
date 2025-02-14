@@ -96,10 +96,14 @@ TestApplication::TestApplication()
 	cameraToWorld.translation.SetComponents(0.0, 30.0, 100.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(this->camera);
+	this->graphicsEngine->GetCameraSystem()->SetCamera(this->camera);
 
 	// Let the our free-cam control the camera.
-	this->freeCam.SetCamera(this->camera);
+	Reference<FreeCam> freeCam(new FreeCam());
+	this->controller = new XBoxController(0);
+	freeCam->SetXBoxController(this->controller);
+	this->graphicsEngine->GetCameraSystem()->AddController("free_cam", freeCam);
+	this->graphicsEngine->GetCameraSystem()->SetActiveController("free_cam");
 
 	return true;
 }
@@ -117,20 +121,23 @@ TestApplication::TestApplication()
 
 /*virtual*/ LRESULT TestApplication::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->controller->Update();
+
 	this->graphicsEngine->Render();
 	
-	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
+	CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
+	cameraSystem->Update(deltaTimeSeconds);
 
-	XBoxController* controller = this->freeCam.GetController();
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_X))
+	if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_X))
 	{
-		if (this->graphicsEngine->GetCamera() != this->camera.Get())
-			this->graphicsEngine->SetCamera(this->camera.Get());
+		if (cameraSystem->GetCamera() != this->camera.Get())
+			cameraSystem->SetCamera(this->camera.Get());
 		else
 		{
 			// View the scene from the perspective of the light.
 			Camera* lightCamera = this->graphicsEngine->GetLight()->GetCamera();
-			this->graphicsEngine->SetCamera(lightCamera);
+			cameraSystem->SetCamera(lightCamera);
 		}
 	}
 

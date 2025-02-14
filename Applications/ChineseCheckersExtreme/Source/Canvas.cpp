@@ -32,10 +32,13 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {
 	THEBE_PROFILE_BEGIN_FRAME;
 
+	wxGetApp().GetController()->Update();
+
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
 	PhysicsSystem* physicsSystem = graphicsEngine->GetPhysicsSystem();
 	EventSystem* eventSystem = graphicsEngine->GetEventSystem();
+	CameraSystem* cameraSystem = graphicsEngine->GetCameraSystem();
 
 	DynamicLineRenderer* lineRenderer = wxGetApp().GetLineRenderer();
 	if (lineRenderer)
@@ -55,6 +58,8 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 	eventSystem->DispatchAllEvents();
 
 	graphicsEngine->Render();
+
+	cameraSystem->Update(deltaTimeSeconds);
 
 	THEBE_PROFILE_END_FRAME;
 }

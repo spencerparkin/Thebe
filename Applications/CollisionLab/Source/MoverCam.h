@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Thebe/FreeCam.h"
+#include "Thebe/CameraSystem.h"
 #include "Thebe/EngineParts/CollisionObject.h"
 
 class MoverCam : public Thebe::FreeCam
@@ -9,7 +9,7 @@ public:
 	MoverCam();
 	virtual ~MoverCam();
 
-	virtual void Update(double deltaTimeSeconds) override;
+	virtual void ControlCamera(Thebe::Transform& cameraToWorld, double deltaTimeSeconds) override;
 	virtual void OnButtonPressed(DWORD button) override;
 
 	void AddMoveObject(Thebe::CollisionObject* moveObject);

@@ -4,7 +4,6 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Camera.h"
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
-#include "Thebe/FreeCam.h"
 #include "Thebe/Log.h"
 
 class ChineseCheckersFrame;
@@ -23,7 +22,6 @@ public:
 	virtual int OnExit(void) override;
 
 	Thebe::GraphicsEngine* GetGraphicsEngine();
-	Thebe::FreeCam* GetFreeCam();
 	Thebe::DynamicLineRenderer* GetLineRenderer();
 
 	ChineseCheckersFrame* GetFrame();
@@ -31,6 +29,7 @@ public:
 	void SetGameServer(ChineseCheckersGameServer* gameServer);
 	std::vector<ChineseCheckersGameClient*>& GetGameClientArray();
 	HumanClient* GetHumanClient();
+	Thebe::XBoxController* GetController();
 
 	void ShutdownClientsAndServer();
 
@@ -42,7 +41,7 @@ private:
 	Thebe::Reference<Thebe::Log> log;
 	Thebe::Reference<Thebe::PerspectiveCamera> camera;
 	Thebe::Reference<Thebe::DynamicLineRenderer> lineRenderer;
-	Thebe::FreeCam freeCam;
+	Thebe::Reference<Thebe::XBoxController> controller;
 };
 
 wxDECLARE_APP(ChineseCheckersApp);

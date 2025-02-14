@@ -287,8 +287,6 @@ void GraphicsToolFrame::OnExit(wxCommandEvent& event)
 void GraphicsToolFrame::OnTimer(wxTimerEvent& event)
 {
 	this->canvas->Refresh();
-	double deltaTimeSeconds = wxGetApp().GetGraphicsEngine()->GetDeltaTime();
-	wxGetApp().GetFreeCam()->Update(deltaTimeSeconds);
 }
 
 void GraphicsToolFrame::OnUpdateUI(wxUpdateUIEvent& event)

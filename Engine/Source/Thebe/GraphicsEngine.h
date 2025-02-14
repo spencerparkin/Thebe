@@ -7,6 +7,7 @@
 #include "Thebe/CollisionSystem.h"
 #include "Thebe/PhysicsSystem.h"
 #include "Thebe/EventSystem.h"
+#include "Thebe/CameraSystem.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -89,12 +90,10 @@ namespace Thebe
 		UploadHeap* GetUploadHeap();
 
 		void SetRenderObject(RenderObject* renderObject);
-		void SetCamera(Camera* camera);
 		void SetLight(Light* light);
 		void SetEnvMap(CubeMapBuffer* envMap);
 
 		RenderObject* GetRenderObject();
-		Camera* GetCamera();
 		Light* GetLight();
 		CubeMapBuffer* GetEnvMap();
 
@@ -149,6 +148,7 @@ namespace Thebe
 		CollisionSystem* GetCollisionSystem();
 		PhysicsSystem* GetPhysicsSystem();
 		EventSystem* GetEventSystem();
+		CameraSystem* GetCameraSystem();
 
 		/**
 		 * Convert a location in screen-space to a ray in world space
@@ -180,12 +180,12 @@ namespace Thebe
 		std::unordered_map<std::string, Reference<EnginePart>> enginePartCacheMap;
 		std::unordered_map<uint64_t, PSO*> pipelineStateCacheMap;
 		Reference<RenderObject> renderObject;
-		Reference<Camera> camera;
 		Reference<Light> light;
 		Reference<CubeMapBuffer> envMap;
 		CollisionSystem collisionSystem;
 		PhysicsSystem physicsSystem;
 		EventSystem eventSystem;
+		CameraSystem cameraSystem;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);

@@ -11,10 +11,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
     Source/Thebe/Log.h
+    Source/Thebe/CameraSystem.cpp
+    Source/Thebe/CameraSystem.h
     Source/Thebe/NetLog.cpp
     Source/Thebe/NetLog.h
-    Source/Thebe/FreeCam.cpp
-    Source/Thebe/FreeCam.h
     Source/Thebe/EventSystem.cpp
     Source/Thebe/EventSystem.h
     Source/Thebe/XBoxController.cpp

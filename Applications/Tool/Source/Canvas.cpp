@@ -13,8 +13,13 @@ GraphicsToolCanvas::GraphicsToolCanvas(wxWindow* parent) : wxWindow(parent, wxID
 
 void GraphicsToolCanvas::OnPaint(wxPaintEvent& event)
 {
+	wxGetApp().GetController()->Update();
+
 	Thebe::GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->Render();
+
+	double deltaTimeSeconds = graphicsEngine->GetDeltaTime();
+	graphicsEngine->GetCameraSystem()->Update(deltaTimeSeconds);
 }
 
 void GraphicsToolCanvas::OnSize(wxSizeEvent& event)

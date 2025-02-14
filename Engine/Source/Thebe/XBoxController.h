@@ -2,6 +2,7 @@
 
 #include "Thebe/Common.h"
 #include "Thebe/Math/Vector2.h"
+#include "Thebe/Reference.h"
 #include <Windows.h>
 #include <Xinput.h>
 
@@ -12,7 +13,7 @@ namespace Thebe
 	/**
 	 * Provide an interface to an X-box controller.
 	 */
-	class THEBE_API XBoxController
+	class THEBE_API XBoxController : public ReferenceCounted
 	{
 	public:
 		XBoxController(DWORD controllerNumber);

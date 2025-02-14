@@ -40,9 +40,16 @@ DebugRendererApplication::DebugRendererApplication()
 	cameraToWorld.LookAt(Vector3(10.0, 10.0, 10.0), Vector3::Zero(), Vector3(0.0, 1.0, 0.0));
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(this->camera);
 
-	this->freeCam.SetCamera(this->camera);
+	this->controller = new XBoxController(0);
+
+	Reference<FreeCam> freeCam(new FreeCam());
+	freeCam->SetXBoxController(this->controller);
+
+	CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	cameraSystem->SetCamera(this->camera);
+	cameraSystem->AddController("free_cam", freeCam);
+	cameraSystem->SetActiveController("free_cam");
 
 	return true;
 }
@@ -62,6 +69,8 @@ DebugRendererApplication::DebugRendererApplication()
 
 /*virtual*/ LRESULT DebugRendererApplication::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->controller->Update();
+
 	this->server.Serve();
 
 	this->lineRenderer->ResetLines();
@@ -101,24 +110,24 @@ DebugRendererApplication::DebugRendererApplication()
 
 	this->graphicsEngine->Render();
 
-	this->freeCam.Update(this->graphicsEngine->GetDeltaTime());
+	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
+	this->graphicsEngine->GetCameraSystem()->Update(deltaTimeSeconds);
 
-	XBoxController* controller = this->freeCam.GetController();
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_B))
+	if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_B))
 	{
 		Transform cameraToWorld;
 		cameraToWorld.LookAt(Vector3(10.0, 10.0, 10.0), Vector3::Zero(), Vector3(0.0, 1.0, 0.0));
 		this->camera->SetCameraToWorldTransform(cameraToWorld);
 	}
-	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_Y))
+	else if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_Y))
 	{
 		this->server.ClearAll();
 	}
-	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_X))
+	else if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_X))
 	{
 		simplexNumber--;
 	}
-	else if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	else if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_A))
 	{
 		simplexNumber++;
 	}

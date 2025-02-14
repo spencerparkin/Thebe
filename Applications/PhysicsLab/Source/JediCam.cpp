@@ -11,7 +11,7 @@ JediCam::JediCam()
 {
 }
 
-/*virtual*/ void JediCam::Update(double deltaTimeSeconds)
+/*virtual*/ void JediCam::ControlCamera(Thebe::Transform& cameraToWorld, double deltaTimeSeconds)
 {
 	using namespace Thebe;
 
@@ -19,24 +19,20 @@ JediCam::JediCam()
 	{
 		case Mode::FREECAM:
 		{
-			FreeCam::Update(deltaTimeSeconds);
+			FreeCam::ControlCamera(cameraToWorld, deltaTimeSeconds);
 			break;
 		}
 		case Mode::INFLUENCE_OBJECT:
 		{
-			this->controller.Update();
-
 			if (this->objectIndex < this->objectArray.size())
 			{
 				PhysicsObject* object = this->objectArray[this->objectIndex];
 
-				Transform cameraToWorld = this->camera->GetCameraToWorldTransform();
-
 				Vector3 xAxis, yAxis, zAxis;
 				cameraToWorld.matrix.GetColumnVectors(xAxis, yAxis, zAxis);
 
-				Vector2 leftJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_LEFT_THUMB);
-				Vector2 rightJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_RIGHT_THUMB);
+				Vector2 leftJoyStick = this->controller->GetAnalogJoyStick(XINPUT_GAMEPAD_LEFT_THUMB);
+				Vector2 rightJoyStick = this->controller->GetAnalogJoyStick(XINPUT_GAMEPAD_RIGHT_THUMB);
 
 				double forceStrength = 10.0;
 				Vector3 force(0.0, 0.0, 0.0);

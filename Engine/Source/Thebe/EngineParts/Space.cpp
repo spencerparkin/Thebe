@@ -178,6 +178,11 @@ const Transform& Space::GetChildToParentTransform() const
 	return this->childToParent;
 }
 
+const Transform& Space::GetObjectToWorldTransoform() const
+{
+	return this->objectToWorld;
+}
+
 void Space::AddSubSpace(Space* space)
 {
 	this->subSpaceArray.push_back(space);

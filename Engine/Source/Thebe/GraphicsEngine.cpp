@@ -296,12 +296,6 @@ void GraphicsEngine::Shutdown()
 		this->renderObject = nullptr;
 	}
 
-	if (this->camera)
-	{
-		this->camera->Shutdown();
-		this->camera = nullptr;
-	}
-
 	if (this->light)
 	{
 		this->light->Shutdown();
@@ -358,11 +352,6 @@ void GraphicsEngine::SetRenderObject(RenderObject* renderObject)
 	this->renderObject = renderObject;
 }
 
-void GraphicsEngine::SetCamera(Camera* camera)
-{
-	this->camera = camera;
-}
-
 void GraphicsEngine::SetLight(Light* light)
 {
 	this->light = light;
@@ -376,11 +365,6 @@ void GraphicsEngine::SetEnvMap(CubeMapBuffer* envMap)
 RenderObject* GraphicsEngine::GetRenderObject()
 {
 	return this->renderObject;
-}
-
-Camera* GraphicsEngine::GetCamera()
-{
-	return this->camera;
 }
 
 Light* GraphicsEngine::GetLight()
@@ -423,7 +407,8 @@ void GraphicsEngine::Resize(int width, int height)
 	if (swapChain)
 		swapChain->Resize(width, height);
 
-	if (this->camera.Get())
+	Camera* camera = this->cameraSystem.GetCamera();
+	if (camera)
 	{
 		double aspectRatio = (height != 0) ? (double(width) / double(height)) : 1.0;
 		camera->UpdateProjection(aspectRatio);
@@ -551,6 +536,11 @@ PhysicsSystem* GraphicsEngine::GetPhysicsSystem()
 EventSystem* GraphicsEngine::GetEventSystem()
 {
 	return &this->eventSystem;
+}
+
+CameraSystem* GraphicsEngine::GetCameraSystem()
+{
+	return &this->cameraSystem;
 }
 
 bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)
@@ -827,13 +817,14 @@ bool GraphicsEngine::DumpEnginePartToFile(std::filesystem::path enginePartPath, 
 
 bool GraphicsEngine::CalcPickingRay(const Vector2& screenCoords, Ray& ray)
 {
-	if (!this->camera.Get())
+	Camera* camera = this->cameraSystem.GetCamera();
+	if (!camera)
 	{
 		THEBE_LOG("Can't do picking without a camera.");
 		return false;
 	}
 
-	Matrix4x4 cameraToProj = this->camera->GetCameraToProjectionMatrix();
+	Matrix4x4 cameraToProj = camera->GetCameraToProjectionMatrix();
 	Matrix4x4 projToCamera;
 	if (!projToCamera.Invert(cameraToProj))
 	{
@@ -842,7 +833,7 @@ bool GraphicsEngine::CalcPickingRay(const Vector2& screenCoords, Ray& ray)
 	}
 
 	Matrix4x4 cameraToWorld;
-	this->camera->GetCameraToWorldTransform().GetToMatrix(cameraToWorld);
+	camera->GetCameraToWorldTransform().GetToMatrix(cameraToWorld);
 
 	Matrix4x4 projToWorld = cameraToWorld * projToCamera;
 

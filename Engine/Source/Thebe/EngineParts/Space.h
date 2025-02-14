@@ -27,6 +27,7 @@ namespace Thebe
 		void UpdateObjectToWorldTransform(const Transform& parentToWorld);
 		void SetChildToParentTransform(const Transform& childToParent);
 		const Transform& GetChildToParentTransform() const;
+		const Transform& GetObjectToWorldTransoform() const;
 		void AddSubSpace(Space* space);
 		bool RemoveSubSpace(Space* space);
 		void ClearAllSubSpaces();

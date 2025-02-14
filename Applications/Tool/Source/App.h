@@ -3,7 +3,6 @@
 #include <wx/app.h>
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/Log.h"
-#include "Thebe/FreeCam.h"
 
 class GraphicsToolFrame;
 
@@ -17,13 +16,13 @@ public:
 	virtual int OnExit(void) override;
 
 	Thebe::GraphicsEngine* GetGraphicsEngine();
-	Thebe::FreeCam* GetFreeCam();
+	Thebe::XBoxController* GetController();
 
 private:
 	GraphicsToolFrame* frame;
 	Thebe::Reference<Thebe::GraphicsEngine> graphicsEngine;
 	Thebe::Reference<Thebe::Log> log;
-	Thebe::FreeCam freeCam;
+	Thebe::Reference<Thebe::XBoxController> controller;
 };
 
 wxDECLARE_APP(GraphicsToolApp);

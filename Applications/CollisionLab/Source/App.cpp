@@ -2,6 +2,7 @@
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Font.h"
 #include "Thebe/EngineParts/RigidBody.h"
+#include "MoverCam.h"
 
 using namespace Thebe;
 
@@ -72,11 +73,19 @@ CollisionLabApp::CollisionLabApp()
 	cameraToWorld.translation.SetComponents(0.0, 0.0, 20.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(this->camera);
-	this->moverCam.SetCamera(this->camera);
 
-	this->moverCam.AddMoveObject(this->shapeA);
-	this->moverCam.AddMoveObject(this->shapeB);
+	this->controller = new XBoxController(0);
+
+	Reference<MoverCam> moverCam(new MoverCam);
+	moverCam->SetXBoxController(this->controller);
+
+	Thebe::CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	cameraSystem->SetCamera(this->camera);
+	cameraSystem->AddController("mover_cam", moverCam);
+	cameraSystem->SetActiveController("mover_cam");
+
+	moverCam->AddMoveObject(this->shapeA);
+	moverCam->AddMoveObject(this->shapeB);
 
 	return true;
 }
@@ -94,6 +103,8 @@ CollisionLabApp::CollisionLabApp()
 
 /*virtual*/ LRESULT CollisionLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->controller->Update();
+
 	this->lineRenderer->ResetLines();
 
 	Vector3 origin(0.0, 0.0, 0.0);
@@ -123,11 +134,10 @@ CollisionLabApp::CollisionLabApp()
 
 	this->graphicsEngine->Render();
 
-	this->moverCam.Update(this->graphicsEngine->GetDeltaTime());
+	double deltaTimeSeconds = this->graphicsEngine->GetDeltaTime();
+	this->graphicsEngine->GetCameraSystem()->Update(deltaTimeSeconds);
 
-	XBoxController* controller = this->moverCam.GetController();
-	
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_A))
 	{
 		Transform objectToWorld = this->shapeA->GetObjectToWorld();
 		objectToWorld.translation += this->separationDelta;
@@ -135,7 +145,7 @@ CollisionLabApp::CollisionLabApp()
 		this->separationDelta = Vector3::Zero();
 	}
 
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_B))
+	if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_B))
 	{
 		Transform objectToWorld = this->shapeB->GetObjectToWorld();
 		objectToWorld.translation -= this->separationDelta;

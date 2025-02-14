@@ -24,12 +24,12 @@ GraphicsToolApp::GraphicsToolApp()
 
 Thebe::GraphicsEngine* GraphicsToolApp::GetGraphicsEngine()
 {
-	return this->graphicsEngine.Get();
+	return this->graphicsEngine;
 }
 
-Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
+Thebe::XBoxController* GraphicsToolApp::GetController()
 {
-	return &this->freeCam;
+	return this->controller;
 }
 
 /*virtual*/ bool GraphicsToolApp::OnInit(void)
@@ -79,11 +79,18 @@ Thebe::FreeCam* GraphicsToolApp::GetFreeCam()
 	Thebe::Reference<Thebe::Camera> camera;
 	camera.Set(new Thebe::PerspectiveCamera());
 	camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(camera);
+
+	this->controller = new Thebe::XBoxController(0);
+
+	Thebe::Reference<Thebe::FreeCam> freeCam(new Thebe::FreeCam());
+	freeCam->SetXBoxController(this->controller);
+
+	Thebe::CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	cameraSystem->SetCamera(camera);
+	cameraSystem->AddController("free_cam", freeCam);
+	cameraSystem->SetActiveController("free_cam");
 
 	this->frame->Show();
-
-	this->freeCam.SetCamera(camera);
 
 	return true;
 }

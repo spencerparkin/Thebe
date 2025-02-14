@@ -481,7 +481,7 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 	THEBE_ASSERT(graphicsEngine->GetFrameIndex() == this->swapChain->GetCurrentBackBufferIndex());
 
-	context.camera = graphicsEngine->GetCamera();
+	context.camera = graphicsEngine->GetCameraSystem()->GetCamera();
 	context.light = graphicsEngine->GetLight();
 
 	UINT frameIndex = graphicsEngine->GetFrameIndex();

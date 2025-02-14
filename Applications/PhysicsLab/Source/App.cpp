@@ -2,6 +2,7 @@
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Text.h"
 #include "Thebe/EngineParts/Scene.h"
+#include "JediCam.h"
 
 using namespace Thebe;
 
@@ -87,17 +88,25 @@ PhysicsLabApp::PhysicsLabApp()
 	cameraToWorld.translation.SetComponents(0.0, 0.0, 40.0);
 	this->camera.Set(new PerspectiveCamera());
 	this->camera->SetCameraToWorldTransform(cameraToWorld);
-	this->graphicsEngine->SetCamera(this->camera);
-	this->jediCam.SetCamera(this->camera);
 
+	this->controller = new XBoxController(0);
+
+	Reference<JediCam> jediCam(new JediCam);
+	jediCam->SetXBoxController(this->controller);
+
+	Thebe::CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
+	cameraSystem->SetCamera(this->camera);
+	cameraSystem->AddController("jedi_cam", jediCam);
+	cameraSystem->SetActiveController("jedi_cam");
+	
 	if (this->objectA.Get())
-		this->jediCam.AddObject(this->objectA);
+		jediCam->AddObject(this->objectA);
 
 	if (this->objectB.Get())
-		this->jediCam.AddObject(this->objectB);
+		jediCam->AddObject(this->objectB);
 
 	if (this->objectC.Get())
-		this->jediCam.AddObject(this->objectC);
+		jediCam->AddObject(this->objectC);
 
 	this->graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event) { this->HandleCollisionObjectEvent(event); });
 
@@ -135,9 +144,12 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 
 /*virtual*/ LRESULT PhysicsLabApp::OnPaint(WPARAM wParam, LPARAM lParam)
 {
+	this->controller->Update();
+
 	CollisionSystem* collisionSystem = this->graphicsEngine->GetCollisionSystem();
 	PhysicsSystem* physicsSystem = this->graphicsEngine->GetPhysicsSystem();
 	EventSystem* eventSystem = this->graphicsEngine->GetEventSystem();
+	CameraSystem* cameraSystem = this->graphicsEngine->GetCameraSystem();
 
 	this->lineRenderer->ResetLines();
 
@@ -157,10 +169,9 @@ void PhysicsLabApp::HandleCollisionObjectEvent(const Event* event)
 
 	this->graphicsEngine->Render();
 
-	this->jediCam.Update(deltaTimeSeconds);
+	cameraSystem->Update(deltaTimeSeconds);
 
-	XBoxController* controller = this->jediCam.GetController();
-	if (controller->WasButtonPressed(XINPUT_GAMEPAD_A))
+	if (this->controller->WasButtonPressed(XINPUT_GAMEPAD_A))
 	{
 		if (this->objectA.Get())
 		{

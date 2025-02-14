@@ -16,7 +16,7 @@ void MoverCam::AddMoveObject(Thebe::CollisionObject* moveObject)
 	this->moveObjectArray.push_back(moveObject);
 }
 
-/*virtual*/ void MoverCam::Update(double deltaTimeSeconds)
+/*virtual*/ void MoverCam::ControlCamera(Thebe::Transform& cameraToWorld, double deltaTimeSeconds)
 {
 	using namespace Thebe;
 
@@ -24,24 +24,20 @@ void MoverCam::AddMoveObject(Thebe::CollisionObject* moveObject)
 	{
 		case Mode::MOVE_FREECAM:
 		{
-			FreeCam::Update(deltaTimeSeconds);
+			FreeCam::ControlCamera(cameraToWorld, deltaTimeSeconds);
 			break;
 		}
 		case Mode::MOVE_OBJECT:
 		{
-			this->controller.Update();
-
 			if (this->moveObjectIndex < this->moveObjectArray.size())
 			{
 				CollisionObject* moveObject = this->moveObjectArray[this->moveObjectIndex];
 
-				Transform cameraToWorld = this->camera->GetCameraToWorldTransform();
-
 				Vector3 xAxis, yAxis, zAxis;
 				cameraToWorld.matrix.GetColumnVectors(xAxis, yAxis, zAxis);
 
-				Vector2 leftJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_LEFT_THUMB);
-				Vector2 rightJoyStick = this->controller.GetAnalogJoyStick(XINPUT_GAMEPAD_RIGHT_THUMB);
+				Vector2 leftJoyStick = this->controller->GetAnalogJoyStick(XINPUT_GAMEPAD_LEFT_THUMB);
+				Vector2 rightJoyStick = this->controller->GetAnalogJoyStick(XINPUT_GAMEPAD_RIGHT_THUMB);
 
 				Transform objectToWorld = moveObject->GetObjectToWorld();
 				
