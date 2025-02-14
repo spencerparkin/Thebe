@@ -1,3 +1,4 @@
+#include "Application.h"
 #include "Animation.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/PhysicsSystem.h"
@@ -59,6 +60,14 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	RefHandle handle = (RefHandle)collisionObject->GetPhysicsData();
 	HandleManager::Get()->GetObjectFromHandle(handle, rigidBody);
 
+	auto startFollowTask = new StartFollowCamTask();
+	startFollowTask->collisionObject = collisionObject;
+	this->EnqueueTask(startFollowTask);
+
+	auto delayTask = new DelayTask();
+	delayTask->delayTimeRemainingSeconds = 1.5;
+	this->EnqueueTask(delayTask);
+
 	std::vector<std::shared_ptr<ChineseCheckers::Marble>> doomedMarbleArray;
 
 	for (int i = 0; i < (int)moveSequence.nodeIndexArray.size() - 1; i++)
@@ -93,7 +102,7 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 		waitForImpactTask->collisionObject = collisionObject;
 		this->EnqueueTask(waitForImpactTask);
 
-		auto delayTask = new DelayTask();
+		delayTask = new DelayTask();
 		delayTask->delayTimeRemainingSeconds = 1.0;
 		this->EnqueueTask(delayTask);
 	}
@@ -103,6 +112,9 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 	stabilizeTask->targetLocation = node->GetLocation3D() + Vector3(0.0, 2.5, 0.0);
 	stabilizeTask->rigidBody = rigidBody;
 	this->EnqueueTask(stabilizeTask);
+
+	auto stopFollowTask = new StopFollowCamTask();
+	this->EnqueueTask(stopFollowTask);
 
 	for (std::shared_ptr<ChineseCheckers::Marble>& nativeDoomedMarble : doomedMarbleArray)
 	{
@@ -124,7 +136,7 @@ bool AnimationProcessor::EnqueueAnimationForMoveSequence(const ChineseCheckers::
 		deathTask->random = &this->random;
 		this->EnqueueTask(deathTask);
 
-		auto delayTask = new DelayTask();
+		delayTask = new DelayTask();
 		delayTask->delayTimeRemainingSeconds = 1.0;
 		this->EnqueueTask(delayTask);
 	}
@@ -335,5 +347,53 @@ DramaticDeathTask::DramaticDeathTask()
 	Vector3 torque = Vector3::YAxis().Cross(delta).Normalized() * spinTorque;
 	this->rigidBody->AddTransientTorque(torque);
 
+	return false;
+}
+
+//---------------------------------- StartFollowCamTask ----------------------------------
+
+StartFollowCamTask::StartFollowCamTask()
+{
+}
+
+/*virtual*/ StartFollowCamTask::~StartFollowCamTask()
+{
+}
+
+/*virtual*/ bool StartFollowCamTask::Animate(double deltaTimeSeconds)
+{
+	CameraSystem* cameraSystem = wxGetApp().GetGraphicsEngine()->GetCameraSystem();
+
+	auto followCam = dynamic_cast<FollowCam*>(cameraSystem->GetControllerByName("follow_cam"));
+	if (!followCam)
+	{
+		followCam = new FollowCam();
+		followCam->SetHeightBounds(Thebe::Interval(1.5, std::numeric_limits<double>::max()));
+		cameraSystem->AddController("follow_cam", followCam);
+	}
+
+	if (followCam)
+	{
+		followCam->SetFollowDistance(20.0);
+		followCam->SetSubject(this->collisionObject->GetHandle());
+	}
+
+	cameraSystem->PushActiveController("follow_cam");
+	return false;
+}
+
+//---------------------------------- StopFollowCamTask ----------------------------------
+
+StopFollowCamTask::StopFollowCamTask()
+{
+}
+
+/*virtual*/ StopFollowCamTask::~StopFollowCamTask()
+{
+}
+
+/*virtual*/ bool StopFollowCamTask::Animate(double deltaTimeSeconds)
+{
+	wxGetApp().GetGraphicsEngine()->GetCameraSystem()->PopActiveController();
 	return false;
 }

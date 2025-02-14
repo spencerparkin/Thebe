@@ -174,6 +174,17 @@ double Interval::Random() const
 	return this->Lerp(alpha);
 }
 
+double Interval::Clamp(double value) const
+{
+	if (value < this->A)
+		return this->A;
+
+	if (value > this->B)
+		return this->B;
+
+	return value;
+}
+
 void Interval::Dump(std::ostream& stream) const
 {
 	stream.write((char*)&this->A, sizeof(this->A));

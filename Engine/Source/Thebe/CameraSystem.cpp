@@ -1,5 +1,7 @@
 #include "CameraSystem.h"
 #include "Thebe/Math/Quaternion.h"
+#include "Thebe/EngineParts/Space.h"
+#include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -10,7 +12,7 @@ CameraSystem::CameraSystem()
 {
 	this->doBlending = true;
 	this->boundToController = false;
-	this->translationalBlendRate = 10.0;
+	this->translationalBlendRate = 50.0;
 	this->rotationalBlendRate = 1.0;
 }
 
@@ -27,6 +29,8 @@ void CameraSystem::SetActiveController(const std::string& name)
 		int i = (int)this->activeControllerStack.size() - 1;
 		this->activeControllerStack[i] = name;
 	}
+
+	this->boundToController = false;
 }
 
 std::string CameraSystem::GetActiveController()
@@ -41,11 +45,13 @@ std::string CameraSystem::GetActiveController()
 void CameraSystem::PushActiveController(const std::string& name)
 {
 	this->activeControllerStack.push_back(name);
+	this->boundToController = false;
 }
 
 void CameraSystem::PopActiveController()
 {
 	this->activeControllerStack.pop_back();
+	this->boundToController = false;
 }
 
 void CameraSystem::SetCamera(Camera* camera)
@@ -79,16 +85,19 @@ void CameraSystem::Update(double deltaTimeSeconds)
 	const Transform& currentCameraToWorld = this->camera->GetCameraToWorldTransform();
 	Transform desiredCameraToWorld = currentCameraToWorld;
 	controller->ControlCamera(desiredCameraToWorld, deltaTimeSeconds);
-
+	
+	Transform cameraToWorld;
 	if (this->boundToController)
-		this->camera->SetCameraToWorldTransform(desiredCameraToWorld);
+		cameraToWorld = desiredCameraToWorld;
 	else
 	{
 		double translationalStep = this->translationalBlendRate * deltaTimeSeconds;
 		double rotationalStep = this->rotationalBlendRate * deltaTimeSeconds;
-		if (!desiredCameraToWorld.MoveTo(currentCameraToWorld, desiredCameraToWorld, translationalStep, rotationalStep))
+		if (!cameraToWorld.MoveTo(currentCameraToWorld, desiredCameraToWorld, translationalStep, rotationalStep))
 			this->boundToController = true;
 	}
+
+	this->camera->SetCameraToWorldTransform(cameraToWorld);
 }
 
 void CameraSystem::AddController(const std::string& name, CameraController* controller)
@@ -245,6 +254,8 @@ void FreeCam::SetXBoxController(XBoxController* controller)
 FollowCam::FollowCam()
 {
 	this->followDistance = 20.0;
+	this->heightBounds.A = std::numeric_limits<double>::max();
+	this->heightBounds.B = -std::numeric_limits<double>::max();
 	this->subjectHandle = THEBE_INVALID_REF_HANDLE;
 }
 
@@ -254,23 +265,42 @@ FollowCam::FollowCam()
 
 /*virtual*/ void FollowCam::ControlCamera(Transform& cameraToWorld, double deltaTimeSeconds)
 {
-	Reference<Space> subject;
-	HandleManager::Get()->GetObjectFromHandle(this->subjectHandle, subject);
-	if (!subject)
+	Reference<ReferenceCounted> ref;
+	HandleManager::Get()->GetObjectFromHandle(this->subjectHandle, ref);
+	if (!ref)
 		return;
 
+	auto space = dynamic_cast<Space*>(ref.Get());
+	auto collisionObject = dynamic_cast<CollisionObject*>(ref.Get());
+	
+	Vector3 subjectLocation(0.0, 0.0, 0.0);
+	if (space)
+		subjectLocation = space->GetObjectToWorldTransoform().translation;
+	else if (collisionObject)
+		subjectLocation = collisionObject->GetObjectToWorld().translation;
+	
 	Vector3 cameraEye = cameraToWorld.translation;
-	Vector3 subjectLocation = subject->GetObjectToWorldTransoform().translation;
 	Vector3 delta = cameraEye - subjectLocation;
 	double length = delta.Length();
 	delta *= this->followDistance / length;
 	cameraEye = subjectLocation + delta;
+	cameraEye.y = this->heightBounds.Clamp(cameraEye.y);
 	cameraToWorld.LookAt(cameraEye, subjectLocation, Vector3::YAxis());
 }
 
-void FollowCam::SetSubject(Space* subject)
+void FollowCam::SetHeightBounds(const Thebe::Interval& heightBounds)
 {
-	this->subjectHandle = subject->GetHandle();
+	this->heightBounds = heightBounds;
+}
+
+const Thebe::Interval& FollowCam::GetHeightBounds() const
+{
+	return this->heightBounds;
+}
+
+void FollowCam::SetSubject(RefHandle subjectHandle)
+{
+	this->subjectHandle = subjectHandle;
 }
 
 void FollowCam::SetFollowDistance(double followDistance)

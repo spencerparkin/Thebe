@@ -122,3 +122,23 @@ public:
 	Thebe::Reference<Thebe::RigidBody> rigidBody;
 	double totalFlightTime;
 };
+
+class StartFollowCamTask : public AnimationTask
+{
+public:
+	StartFollowCamTask();
+	virtual ~StartFollowCamTask();
+
+	virtual bool Animate(double deltaTimeSeconds) override;
+
+	Thebe::Reference<Thebe::CollisionObject> collisionObject;
+};
+
+class StopFollowCamTask : public AnimationTask
+{
+public:
+	StopFollowCamTask();
+	virtual ~StopFollowCamTask();
+
+	virtual bool Animate(double deltaTimeSeconds) override;
+};

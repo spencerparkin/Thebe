@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Thebe/EngineParts/Camera.h"
-#include "Thebe/EngineParts/Space.h"
 #include "Thebe/XBoxController.h"
+#include "Thebe/Math/Interval.h"
 #include <unordered_map>
 
 #define THEBE_FREE_CAM_MAX_MOVE_SPEED		100.0
@@ -108,11 +108,16 @@ namespace Thebe
 
 		virtual void ControlCamera(Transform& cameraToWorld, double deltaTimeSeconds) override;
 
-		void SetSubject(Space* subject);
+		void SetSubject(RefHandle subjectHandle);
+
+		void SetHeightBounds(const Thebe::Interval& heightBounds);
+		const Thebe::Interval& GetHeightBounds() const;
+
 		void SetFollowDistance(double followDistance);
 		double GetFollowDistance() const;
 
 	protected:
+		Thebe::Interval heightBounds;
 		double followDistance;
 		RefHandle subjectHandle;
 	};

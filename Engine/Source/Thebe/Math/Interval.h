@@ -153,6 +153,14 @@ namespace Thebe
 		double Random() const;
 
 		/**
+		 * Return the given value clamped to this range.
+		 * 
+		 * @param[in] value The value to clamp.
+		 * @return Return the given value if it is in range.  Otherwise, return the min or max of this range depending on where the given value falls.
+		 */
+		double Clamp(double value) const;
+
+		/**
 		 * Write this interval to the given stream in binary form.
 		 */
 		void Dump(std::ostream& stream) const;
