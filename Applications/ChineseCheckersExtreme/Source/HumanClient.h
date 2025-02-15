@@ -12,6 +12,7 @@ public:
 	HumanClient();
 	virtual ~HumanClient();
 
+	virtual bool Setup() override;
 	virtual void Shutdown() override;
 	virtual void Update(double deltaTimeSeconds) override;
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;

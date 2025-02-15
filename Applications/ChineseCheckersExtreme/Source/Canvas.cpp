@@ -9,6 +9,8 @@
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/Profiler.h"
+#include "BoardCam.h"
+#include <wx/utils.h>
 
 using namespace Thebe;
 
@@ -17,11 +19,14 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_PAINT, &ChineseCheckersCanvas::OnPaint, this);
 	this->Bind(wxEVT_SIZE, &ChineseCheckersCanvas::OnSize, this);
 	this->Bind(wxEVT_MOTION, &ChineseCheckersCanvas::OnMouseMotion, this);
-	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftClick, this);
-	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightClick, this);
-	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleClick, this);
+	this->Bind(wxEVT_LEFT_DOWN, &ChineseCheckersCanvas::OnMouseLeftDown, this);
+	this->Bind(wxEVT_LEFT_UP, &ChineseCheckersCanvas::OnMouseLeftUp, this);
+	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightDown, this);
+	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleDown, this);
+	this->Bind(wxEVT_MOUSE_CAPTURE_LOST, &ChineseCheckersCanvas::OnMouseCaptureLost, this);
 
 	this->debugDraw = false;
+	this->mouseDragging = false;
 }
 
 /*virtual*/ ChineseCheckersCanvas::~ChineseCheckersCanvas()
@@ -114,22 +119,74 @@ ChineseCheckers::Node* ChineseCheckersCanvas::PickNode(const wxPoint& mousePoint
 
 void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 {
-	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
-	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
-
-	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
-	if (!scene)
+	if (!this->mouseDragging)
 		return;
 
-	//...
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CameraSystem* cameraSystem = graphicsEngine->GetCameraSystem();
+	auto boardCam = dynamic_cast<BoardCam*>(cameraSystem->GetControllerByName("board_cam"));
+	if (!boardCam)
+		return;
+
+	this->mousePointB = event.GetPosition();
+
+	Vector2 screenCoordsA(double(this->mousePointA.x), double(this->mousePointA.y));
+	Ray rayA;
+	if (!graphicsEngine->CalcPickingRay(screenCoordsA, rayA))
+		return;
+
+	Vector2 screenCoordsB(double(this->mousePointB.x), double(this->mousePointB.y));
+	Ray rayB;
+	if (!graphicsEngine->CalcPickingRay(screenCoordsB, rayB))
+		return;
+
+	Plane xzPlane(Vector3::Zero(), Vector3::YAxis());
+	Vector3 worldPointA = rayA.CalculatePoint(rayA.CastAgainst(xzPlane));
+	Vector3 worldPointB = rayB.CalculatePoint(rayB.CastAgainst(xzPlane));
+
+	if (wxGetKeyState(wxKeyCode::WXK_CONTROL))
+	{
+		const Vector3& focalPoint = boardCam->GetDynamicParams().focalPoint;
+		Vector3 vectorA = worldPointA - focalPoint;
+		Vector3 vectorB = worldPointB - focalPoint;
+		double angleDelta = vectorA.Normalized().AngleBetween(vectorB.Normalized());
+		double det = Vector3::YAxis().Dot(vectorA.Cross(vectorB));
+		angleDelta *= THEBE_SIGN(det);
+		boardCam->ApplyPivot(angleDelta);
+	}
+	else
+	{
+		Vector3 delta = worldPointA - worldPointB;
+		boardCam->ApplyStrafe(delta);
+	}
+
+	this->mousePointA = this->mousePointB;
 }
 
-void ChineseCheckersCanvas::OnMouseLeftClick(wxMouseEvent& event)
+void ChineseCheckersCanvas::OnMouseLeftDown(wxMouseEvent& event)
 {
-	// TODO: Click and drag to rotate board...
+	this->mousePointA = event.GetPosition();
+	this->mouseDragging = true;
+	this->CaptureMouse();
 }
 
-void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
+void ChineseCheckersCanvas::OnMouseLeftUp(wxMouseEvent& event)
+{
+	if (this->mouseDragging)
+	{
+		this->mouseDragging = false;
+		this->ReleaseMouse();
+	}
+}
+
+void ChineseCheckersCanvas::OnMouseCaptureLost(wxMouseCaptureLostEvent& event)
+{
+	this->mouseDragging = false;
+}
+
+// TODO: Mouse wheel to zoom in/out and mouse wheel plus control to tilt up/down.
+
+void ChineseCheckersCanvas::OnMouseRightDown(wxMouseEvent& event)
 {
 	ChineseCheckers::Node* nativeNode = this->PickNode(event.GetPosition());
 	if (!nativeNode)
@@ -150,7 +207,7 @@ void ChineseCheckersCanvas::OnMouseRightClick(wxMouseEvent& event)
 	this->UpdateRings();
 }
 
-void ChineseCheckersCanvas::OnMouseMiddleClick(wxMouseEvent& event)
+void ChineseCheckersCanvas::OnMouseMiddleDown(wxMouseEvent& event)
 {
 	ChineseCheckers::Node* nativeNode = this->PickNode(event.GetPosition());
 	if (!nativeNode)

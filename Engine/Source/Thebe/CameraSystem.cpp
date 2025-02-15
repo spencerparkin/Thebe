@@ -13,7 +13,7 @@ CameraSystem::CameraSystem()
 	this->doBlending = true;
 	this->boundToController = false;
 	this->translationalBlendRate = 50.0;
-	this->rotationalBlendRate = 1.0;
+	this->rotationalBlendRate = 1.5;
 }
 
 /*virtual*/ CameraSystem::~CameraSystem()

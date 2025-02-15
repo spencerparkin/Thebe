@@ -8,6 +8,7 @@
 #include "Thebe/EngineParts/MeshInstance.h"
 #include "Thebe/EngineParts/RigidBody.h"
 #include "LifeText.h"
+#include "BoardCam.h"
 #include "Frame.h"
 
 using namespace Thebe;
@@ -20,12 +21,29 @@ HumanClient::HumanClient()
 {
 }
 
+/*virtual*/ bool HumanClient::Setup()
+{
+	if (!ChineseCheckersGameClient::Setup())
+		return false;
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+
+	CameraSystem* cameraSystem = graphicsEngine->GetCameraSystem();
+	Reference<BoardCam> boardCam(new BoardCam());
+	cameraSystem->AddController("board_cam", boardCam);
+	cameraSystem->SetActiveController("board_cam");
+
+	return true;
+}
+
 /*virtual*/ void HumanClient::Shutdown()
 {
 	ChineseCheckersGameClient::Shutdown();
 
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->WaitForGPUIdle();
+
+	graphicsEngine->GetCameraSystem()->RemoveController("board_cam");
 
 	auto scene = dynamic_cast<Scene*>(graphicsEngine->GetRenderObject());
 	if (scene)

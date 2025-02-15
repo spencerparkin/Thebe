@@ -14,9 +14,11 @@ public:
 	void OnPaint(wxPaintEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnMouseMotion(wxMouseEvent& event);
-	void OnMouseLeftClick(wxMouseEvent& event);
-	void OnMouseRightClick(wxMouseEvent& event);
-	void OnMouseMiddleClick(wxMouseEvent& event);
+	void OnMouseLeftDown(wxMouseEvent& event);
+	void OnMouseLeftUp(wxMouseEvent& event);
+	void OnMouseRightDown(wxMouseEvent& event);
+	void OnMouseMiddleDown(wxMouseEvent& event);
+	void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
 
 	void SetDebugDraw(bool debugDraw);
 	bool GetDebugDraw() const;
@@ -26,6 +28,8 @@ private:
 
 	void UpdateRings();
 
+	wxPoint mousePointA, mousePointB;
+	bool mouseDragging;
 	bool debugDraw;
 	ChineseCheckers::MoveSequence moveSequence;
 };
