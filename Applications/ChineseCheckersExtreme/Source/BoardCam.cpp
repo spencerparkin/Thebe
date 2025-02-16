@@ -9,8 +9,8 @@ BoardCam::BoardCam()
 	this->staticParams.diskRadius = 75.0;
 	this->staticParams.zoomInterval.A = 2.0;
 	this->staticParams.zoomInterval.B = 200.0;
-	this->staticParams.tiltRange.A = 0.0;
-	this->staticParams.tiltRange.B = THEBE_PI / 2.0;
+	this->staticParams.tiltRange.A = THEBE_PI / 256.0;
+	this->staticParams.tiltRange.B = THEBE_PI / 2.0 - THEBE_PI / 256.0;
 
 	this->dynamicParams.focalPoint = this->staticParams.diskCenter;
 	this->dynamicParams.relativeEyePoint.SetFromVector(Vector3(100.0, 100.0, 100.0));

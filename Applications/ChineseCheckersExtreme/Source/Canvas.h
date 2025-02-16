@@ -19,6 +19,7 @@ public:
 	void OnMouseRightDown(wxMouseEvent& event);
 	void OnMouseMiddleDown(wxMouseEvent& event);
 	void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
+	void OnMouseWheelMoved(wxMouseEvent& event);
 
 	void SetDebugDraw(bool debugDraw);
 	bool GetDebugDraw() const;

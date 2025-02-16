@@ -24,6 +24,7 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 	this->Bind(wxEVT_RIGHT_DOWN, &ChineseCheckersCanvas::OnMouseRightDown, this);
 	this->Bind(wxEVT_MIDDLE_DOWN, &ChineseCheckersCanvas::OnMouseMiddleDown, this);
 	this->Bind(wxEVT_MOUSE_CAPTURE_LOST, &ChineseCheckersCanvas::OnMouseCaptureLost, this);
+	this->Bind(wxEVT_MOUSEWHEEL, &ChineseCheckersCanvas::OnMouseWheelMoved, this);
 
 	this->debugDraw = false;
 	this->mouseDragging = false;
@@ -184,7 +185,29 @@ void ChineseCheckersCanvas::OnMouseCaptureLost(wxMouseCaptureLostEvent& event)
 	this->mouseDragging = false;
 }
 
-// TODO: Mouse wheel to zoom in/out and mouse wheel plus control to tilt up/down.
+void ChineseCheckersCanvas::OnMouseWheelMoved(wxMouseEvent& event)
+{
+	double wheelChange = double(event.GetWheelRotation() / event.GetWheelDelta());
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	CameraSystem* cameraSystem = graphicsEngine->GetCameraSystem();
+	auto boardCam = dynamic_cast<BoardCam*>(cameraSystem->GetControllerByName("board_cam"));
+	if (!boardCam)
+		return;
+
+	if (wxGetKeyState(wxKeyCode::WXK_CONTROL))
+	{
+		static double tiltSensativity = THEBE_PI / 64.0;
+		double tiltDelta = -wheelChange * tiltSensativity;
+		boardCam->ApplyTilt(tiltDelta);
+	}
+	else
+	{
+		static double zoomSensativity = 5.0;
+		double zoomDelta = -wheelChange * zoomSensativity;
+		boardCam->ApplyZoom(zoomDelta);
+	}
+}
 
 void ChineseCheckersCanvas::OnMouseRightDown(wxMouseEvent& event)
 {
