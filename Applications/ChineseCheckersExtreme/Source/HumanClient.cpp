@@ -15,6 +15,7 @@ using namespace Thebe;
 
 HumanClient::HumanClient()
 {
+	this->connectionProgressDialog = nullptr;
 }
 
 /*virtual*/ HumanClient::~HumanClient()
@@ -74,6 +75,48 @@ HumanClient::HumanClient()
 	ChineseCheckersGameClient::Update(deltaTimeSeconds);
 
 	this->animationProcessor.Animate(deltaTimeSeconds, this->graph.get());
+}
+
+/*virtual*/ void HumanClient::HandleConnectionStatus(ConnectionStatus status, int i, bool* abort)
+{
+	switch (status)
+	{
+		case ConnectionStatus::STARTING_TO_CONNECT:
+		{
+			this->connectionProgressDialog = new wxProgressDialog(
+				wxString::Format("Trying to connect to %s...", this->address.GetAddress().c_str()),
+				"Connecting...",
+				this->maxConnectionAttempts,
+				wxGetApp().GetFrame(),
+				wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_SMOOTH | wxPD_AUTO_HIDE);
+			this->connectionProgressDialog->Show();
+			break;
+		}
+		case ConnectionStatus::GIVING_UP:
+		{
+			this->connectionProgressDialog->Update(0, "Failed to connect!");
+			break;
+		}
+		case ConnectionStatus::MAKING_CONNECTION_ATTEMPT:
+		{
+			this->connectionProgressDialog->Update(i, wxString::Format("Connection attempt #%d...", i + 1));
+			if (abort)
+				*abort = this->connectionProgressDialog->WasCancelled();
+			break;
+		}
+		case ConnectionStatus::SUCCESSFULLY_CONNECTED:
+		{
+			this->connectionProgressDialog->Update(this->maxConnectionAttempts, "Connected!");
+			break;
+		}
+		case ConnectionStatus::DONE_TRYING_TO_CONNECT:
+		{
+			this->connectionProgressDialog->Destroy();
+			delete this->connectionProgressDialog;
+			this->connectionProgressDialog = nullptr;
+			break;
+		}
+	}
 }
 
 /*virtual*/ void HumanClient::ProcessServerMessage(const ParseParty::JsonValue* jsonValue)

@@ -5,6 +5,7 @@
 #include "Thebe/Math/Vector4.h"
 #include "Animation.h"
 #include <wx/string.h>
+#include <wx/progdlg.h>
 
 class HumanClient : public ChineseCheckersGameClient
 {
@@ -16,6 +17,7 @@ public:
 	virtual void Shutdown() override;
 	virtual void Update(double deltaTimeSeconds) override;
 	virtual void ProcessServerMessage(const ParseParty::JsonValue* jsonValue) override;
+	virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort) override;
 
 private:
 	void RegenerateScene();
@@ -24,4 +26,5 @@ private:
 	static wxString MarbleText(ChineseCheckers::Marble::Color color);
 
 	AnimationProcessor animationProcessor;
+	wxProgressDialog* connectionProgressDialog;
 };
