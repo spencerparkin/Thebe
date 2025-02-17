@@ -16,6 +16,7 @@ public:
 	enum
 	{
 		ID_About = wxID_HIGHEST,
+		ID_Help,
 		ID_Exit,
 		ID_HostGame,
 		ID_JoinGame,
@@ -34,6 +35,7 @@ private:
 	void OnLeaveGame(wxCommandEvent& event);
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
+	void OnHelp(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);

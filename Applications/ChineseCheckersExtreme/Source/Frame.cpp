@@ -14,6 +14,7 @@
 #include <wx/sizer.h>
 #include <wx/aboutdlg.h>
 #include <wx/msgdlg.h>
+#include <wx/utils.h>
 
 using namespace Thebe;
 
@@ -28,6 +29,8 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	gameMenu->Append(new wxMenuItem(gameMenu, ID_Exit, "Exit", "Go ski."));
 
 	wxMenu* helpMenu = new wxMenu();
+	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
+	helpMenu->AppendSeparator();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_About, "About", "Show the about-box."));
 
 	wxMenuBar* menuBar = new wxMenuBar();
@@ -42,6 +45,7 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnLeaveGame, this, ID_LeaveGame);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnAbout, this, ID_About);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnHelp, this, ID_Help);
 	this->Bind(wxEVT_TIMER, &ChineseCheckersFrame::OnTimer, this, ID_Timer);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
@@ -242,6 +246,15 @@ void ChineseCheckersFrame::OnAbout(wxCommandEvent& event)
 	aboutDialogInfo.SetVersion("0.1");
 
 	wxAboutBox(aboutDialogInfo);
+}
+
+void ChineseCheckersFrame::OnHelp(wxCommandEvent& event)
+{
+	std::filesystem::path helpFilePath(R"(Applications\ChineseCheckersExtreme\Help\HowToPlay.html)");
+	if (wxGetApp().GetGraphicsEngine()->ResolvePath(helpFilePath, GraphicsEngine::RELATIVE_TO_EXECUTABLE))
+		wxLaunchDefaultBrowser(helpFilePath.string().c_str());
+	else
+		wxMessageBox("Failed to resolve path to help file.", "Error!", wxICON_ERROR | wxOK, this);
 }
 
 void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
