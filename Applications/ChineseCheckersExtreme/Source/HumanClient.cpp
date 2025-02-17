@@ -10,6 +10,7 @@
 #include "LifeText.h"
 #include "BoardCam.h"
 #include "Frame.h"
+#include <wx/msgdlg.h>
 
 using namespace Thebe;
 
@@ -140,6 +141,16 @@ HumanClient::HumanClient()
 			return;
 
 		this->animationProcessor.EnqueueAnimationForMoveSequence(moveSequence, this->graph.get());
+
+		auto winnerValue = dynamic_cast<const JsonInt*>(responseValue->GetValue("winner"));
+		if (winnerValue)
+		{
+			auto winner = (ChineseCheckers::Marble::Color)winnerValue->GetValue();
+			if (winner != ChineseCheckers::Marble::Color::NONE)
+			{
+				wxMessageBox("Color " + this->MarbleText(winner) + " wins!", "Game Over!", wxICON_INFORMATION | wxOK, wxGetApp().GetFrame());
+			}
+		}
 	}
 
 	ChineseCheckersGameClient::ProcessServerMessage(jsonValue);

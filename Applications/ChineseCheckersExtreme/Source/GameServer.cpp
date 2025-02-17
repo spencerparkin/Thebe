@@ -6,6 +6,7 @@
 ChineseCheckersGameServer::ChineseCheckersGameServer()
 {
 	this->whoseTurn = ChineseCheckers::Marble::Color::NONE;
+	this->winner = ChineseCheckers::Marble::Color::NONE;
 }
 
 /*virtual*/ ChineseCheckersGameServer::~ChineseCheckersGameServer()
@@ -45,6 +46,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 		this->freeColorStack.push_back(color);
 
 	this->whoseTurn = this->freeColorStack[0];
+	this->winner = ChineseCheckers::Marble::Color::NONE;
 
 	return true;
 }
@@ -123,6 +125,9 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 	}
 	else if (request == "make_move")
 	{
+		if (this->winner != ChineseCheckers::Marble::Color::NONE)
+			return;
+
 		ChineseCheckers::MoveSequence moveSequence;
 		if (!moveSequence.FromJson(requestValue->GetValue("move_sequence")))
 			return;
@@ -137,18 +142,38 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 		if (!this->graph->MoveMarbleConditionally(moveSequence))
 			return;
 
-		std::vector<ChineseCheckers::Marble::Color> colorArray;
+		std::vector<ChineseCheckers::Marble::Color> survivingColorArray;
 		for (ChineseCheckers::Marble::Color color : this->participantSet)
-			colorArray.push_back(color);
-
-		for (int i = 0; i < (int)colorArray.size(); i++)
 		{
-			if (colorArray[i] == this->whoseTurn)
+			if (!this->graph->ColorPlaying(color))
+				continue;
+			
+			survivingColorArray.push_back(color);
+
+			if (this->graph->AllMarblesAtTarget(color))
 			{
-				this->whoseTurn = colorArray[(i + 1) % int(colorArray.size())];
+				THEBE_ASSERT(this->winner == ChineseCheckers::Marble::Color::NONE);
+				this->winner = color;
+			}
+		}
+
+		THEBE_ASSERT(survivingColorArray.size() > 0);
+
+		auto nextTurn = ChineseCheckers::Marble::Color::NONE;
+		for (int i = 0; i < (int)survivingColorArray.size(); i++)
+		{
+			if (survivingColorArray[i] == this->whoseTurn)
+			{
+				nextTurn = survivingColorArray[(i + 1) % int(survivingColorArray.size())];
 				break;
 			}
 		}
+
+		THEBE_ASSERT(nextTurn != ChineseCheckers::Marble::Color::NONE);
+		this->whoseTurn = nextTurn;
+
+		if (survivingColorArray.size() == 1)
+			this->winner = survivingColorArray[0];
 
 		std::unique_ptr<JsonObject> responseValue(new JsonObject());
 		responseValue->SetValue("response", new JsonString("make_move"));
@@ -159,6 +184,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 
 		responseValue->SetValue("move_sequence", moveSequenceValue.release());
 		responseValue->SetValue("whose_turn", new JsonInt(this->whoseTurn));
+		responseValue->SetValue("winner", new JsonInt(this->winner));
 
 		this->clientManager->SendJsonToAllClients(responseValue.get());
 	}

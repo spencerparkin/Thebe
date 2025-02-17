@@ -106,6 +106,11 @@ namespace ChineseCheckers
 		 */
 		Vector CalcMarbleCentroid(Marble::Color color) const;
 
+		/**
+		 * Tell us if the marble with the given color is on the board.
+		 */
+		bool ColorPlaying(Marble::Color color) const;
+
 	protected:
 		void WipeParentPointers() const;
 		void AssignOffsets() const;

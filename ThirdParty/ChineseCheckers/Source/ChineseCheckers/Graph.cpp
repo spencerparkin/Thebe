@@ -342,6 +342,18 @@ Vector Graph::CalcMarbleCentroid(Marble::Color color) const
 	return center;
 }
 
+bool Graph::ColorPlaying(Marble::Color color) const
+{
+	for (const Node* node : this->nodeArray)
+	{
+		const std::shared_ptr<Marble> occupant = node->GetOccupant();
+		if (occupant && occupant->GetColor() == color)
+			return true;
+	}
+
+	return false;
+}
+
 //--------------------------------------- Graph::Move ---------------------------------------
 
 double Graph::Move::CalcDistanceInDirection(const Vector& unitLengthDirection) const

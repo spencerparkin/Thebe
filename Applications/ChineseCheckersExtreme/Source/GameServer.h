@@ -29,4 +29,5 @@ protected:
 	std::unique_ptr<ChineseCheckers::GraphGenerator> graphGenerator;
 	std::unique_ptr<ChineseCheckers::Graph> graph;
 	ChineseCheckers::Marble::Color whoseTurn;
+	ChineseCheckers::Marble::Color winner;
 };
