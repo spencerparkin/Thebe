@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>How to play Chinese Checkers Extreme</title>
+        <link rel="stylesheet" href="HowToPlay.css">
+    </head>
+    <body>
+        <h1>How to Play Chinese Checkers <i>Extreme</i></h2>
+        <p>
+        If you already know how to play the traditional game of Chinese Checkers, then there are only a few
+        more things to know about this <i>extreme</i> variation of the game.  Nevertheless, I will start at
+        the beginning, because I not only explain the rules of the game here, but also how to use this software.
+        </p>
+        <h2>1 -- Starting a Game</h2>
+        <p>
+        You can begin a game by either joining a game already started by someone else, or by starting a new game yourself.
+        </p>
+        <h3>1.1 -- Hosting a New Game</h3>
+        <p>
+        Choosing <b>Host Game</b> from the <b>Game</b> menu brings up the following dialog.
+        </p>
+        <center><img src="Images/HostGameDialog.png"/></center>
+        <p>
+        Here, the <b>Game Type</b> refers to the type of board you're going to use, which also determines the maximum number
+        of players that can participate in the game.  The <b>traditional</b> board can host anywhere from 2 to 6 players.
+        </p>
+        <p>
+        There is no need to change the <b>Host Address</b> field unless there's a specific NIC you want to use.
+        More likely, it's the <b>Host Port</b> field that will concern you.  Choose a free port on your system, and one
+        that isn't blocked by a fire-wall.  Those who want to join your game will need to know your machine's host address
+        and the port number you've chosen here.
+        </p>
+        <p>
+        The total number of players participating will be the sum of human and computer players, which must not exceed the
+        total number of players supported by the chosen board type.  Note that after a server is created, the software will
+        automatically try to join the game as a human.  If there are zero human players, then it will just spectate.
+        If two or more human players are specified here, then the game can't progress until enough human players join the game
+        from other instances of the program running elsewhere on the network (or even the same machine.)
+        </p>
+        <h3>1.2 -- Joining an Existing Game</h3>
+        <p>
+        Choosing <b>Join Game</b> from the <b>Game</b> menu brings up the following dialog.
+        </p>
+        <center><img src="Images/JoinGameDialog.png"/></center>
+        <p>
+        Here, you just need to know the <b>Host Address</b> of the machine that's running the game server, and
+        the <b>Host Port</b> that it's listening on for new connections.  What color you are in the game just
+        depends on the order in which people join.
+        </p>
+        <h2>2 -- Taking a Turn</h2>
+        <p>
+        Once a game is joined, you'll see indicators specifying what color you are, and when it's your turn.
+        </p>
+        <center><img src="Images/Fresh2PlayerGame.png" width="700"/></center>
+        <p>
+        You can see here it says "<b>You are color Yellow</b>" at the bottom, and "<b>Waiting for color Yellow to take their turn.</b>"
+        </p>
+        <h3>2.1 -- Inspecting the Game Board</h3>
+        <p>
+        You only need a mouse with three buttons and a wheel to play this game.  Click and drag with the left mouse button to shift the board
+        around.  Do this while holding the control key down to rotate the board about the focal point.  Use the mouse wheel to zoom in and out.
+        Do this while holding the control key down to tilt the board up and down.
+        </p>
+        <h3>2.2 -- Formulating Your Turn</h3>
+        <p>
+        Your turn consists of choosing one of your board pieces (a Yellow piece, in this case) and then describing how it should move
+        along the board in a sequence of hops.  You can either hop to an unoccupied adjacent location on the board, or you can hop over
+        some other board piece (doesn't matter what color it is) to a location on the opposite side.  In this latter case you are allowed
+        to do an additional hop as long as it is also a jump over some other board piece.  You can continue to do this, all in a single turn,
+        as long as each additional hop jumps over another board piece.
+        </p>
+        <p>
+        To choose the piece you want to move, right-click on it.  Doing so, a ring is placed around the piece to indicate its selection,
+        as shown below.
+        </p>
+        <center><img src="Images/SelectedPieceToMove.png" width="700"/></center>
+        <p>
+        Where can this piece go?  Note that there is no immediately adjacent and unoccupied board location to which it can hop.  But it
+        can hop over one of its fellow board pieces to a location you can indicate by right clicking on it as shown in the following screenshot.
+        </p>
+        <center><img src="Images/SingleHopMoveFormulated.png" width="700"/></center>
+        <p>
+        Once your hop sequence has been formulated, you can commit to executing it as your turn by middle-clicking on the final board
+        location where you would like your board piece to ultimately land.  If you want to cancel this sequence, just middle-clock on some
+        other board location to erase the sequence so that you can start over.  Having committed to the board sequence, the result as as follows.
+        </p>
+        <center><img src="Images/SingleHopTurnTaken.png" width="700"/></center>
+        <p>
+        You'll notice here that <b>Red</b> also took their turn.  The computer will automatically takes its own turn when it detects that the
+        progress of the game is dependent upon it making a decision.
+        </p>
+        <h2>3 -- The Goal of the Game</h2>
+        <p>
+        The goal of this variation of the game is the same as that of the traditional version, but with a bit of a twist.
+        Traditionally, the goal is to get all of your pieces into the target zone directly across the board before your opponent
+        does the same.  That is, <b>Yellow</b> wants to move all of its pieces into the <b>Red</b> zone (where <b>Red</b> starts) before <b>Red</b>
+        is able to move all of their pieces into the <b>Yellow</b> zone (where <b>Yellow</b> starts.)
+        </p>
+        <p>
+        In the extreme variation, the goal is to get all of your <i>surviving</i> pieces into the target zone.  That's right, your pieces can
+        be killed!  Note that this presents one other way to win: being the last group of pieces on the board with one or more surviving pieces
+        still in play.  If all your pieces are killed (taken off the board), then you're out of contention for winning the game.
+        </p>
+        <h3>3.1 -- Dealing Damage to an Opponent</h3>
+        <p>
+        Consider the following game that has already progressed as shown below.
+        </p>
+        <center><img src="Images/LifeCountsAndOpportunityToDealDamage.png" width="700"/></center>
+        <p>
+        Note that to show these numbers above the pieces, click the <b>Show Life Counts</b> toggle button near the top-right of the window.
+        </p>
+        <p>
+        Here you can see the number of lives assigned to each board piece.  Each initially gets 3 lives at the start of the game.
+        The life-count of a piece is decremented by 1 every time an opponent pieces jumps over it.  Once the count goes to zero,
+        that pieces is removed from the game.
+        </p>
+        <p>
+        See here that we can choose to deal damage to the <b>Red</b> near the <b>Yellow</b> zone with the following hop sequence.
+        </p>
+        <center><img src="Images/ChoosingToDealDamage.png" width="700"/></center>
+        <p>
+        We could also do it using a different sequence as follows.
+        </p>
+        <center><img src="Images/ChoosingToDealDamageAlternate.png" width="700"/></center>
+        <p>
+        This is a bit ambiguous, but if you formulated the sequence, then you know that the <b>Yellow</b> piece will jump down and left,
+        then over the <b>Red</b> piece toward the right.  The result is as follows (which also shows the state of the board after <b>Red</b>
+        took their turn too.)
+        </p>
+        <center><img src="Images/DamageDone.png" width="700"/></center>
+        <p>
+        Here, the <b>Yellow</b> piece highlighted (with a ring) dealt damage to the <b>Red</b> piece left of it.  The computer also moved
+        another <b>Red</b> near the <b>Yellow</b> zone, and in the process, dealt some damage to some <b>Yellow</b> pieces, which you can
+        glean by comparing the two previous screenshots.  Note how the piece we have highlighted here is poised, ready to deal more damage
+        to <b>Red</b>.  One possible move sequence we could make is as follows.
+        </p>
+        <center><img src="Images/DealDoubleDamage.png" width="700"/></center>
+        <p>
+        I think you get the idea.  You'll notice as you play the game, that instead of hopping over opponent pieces, you hop on top of
+        them.  This is just for dramatic effect.  The animation has no bearing on the outcome of the game.
+        </p>
+        <h2>4 -- Some Considerations in Closing</h2>
+        <p>
+        That's basically all there is to it.  You're now ready to play!
+        </p>
+        <p>
+        Note that in this variation of Chinese Checkers, it is not always to your advantage to kill off an opponent's piece.
+        Remember, to win, they need only get their last surviving pieces into the target zone, even if they only have one left.
+        </p>
+        <p>
+        At the time of this writing, the game is a beta, so if you find bugs, don't hesitate to send them to me at <a href="mailto:spencer.parkin@proton.me">spencer.parkin@proton.me</a>.
+        </p>
+    </body>
+</html>
