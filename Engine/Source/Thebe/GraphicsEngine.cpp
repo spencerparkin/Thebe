@@ -19,6 +19,8 @@
 #include "Thebe/EngineParts/CollisionObject.h"
 #include "Thebe/EngineParts/FloppyBody.h"
 #include "Thebe/EngineParts/RigidBody.h"
+#include "Thebe/EngineParts/AudioClip.h"
+#include "Thebe/EngineParts/MidiSong.h"
 #include "Thebe/Math/Rectangle.h"
 #include "Thebe/Log.h"
 #include "Thebe/Profiler.h"
@@ -225,6 +227,12 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 	
 	this->physicsSystem.Initialize(&this->eventSystem);
 
+	if (!this->audioSystem.Setup())
+	{
+		THEBE_LOG("Failed to setup audio system.");
+		return false;
+	}
+
 	this->clock.Reset();
 
 	return true;
@@ -264,6 +272,8 @@ void GraphicsEngine::RemoveExpiredPSOs(bool removeAllNow /*= false*/)
 
 void GraphicsEngine::Shutdown()
 {
+	this->audioSystem.Shutdown();
+
 	this->WaitForGPUIdle();
 
 	this->PurgeCache();
@@ -543,6 +553,11 @@ CameraSystem* GraphicsEngine::GetCameraSystem()
 	return &this->cameraSystem;
 }
 
+AudioSystem* GraphicsEngine::GetAudioSystem()
+{
+	return &this->audioSystem;
+}
+
 bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)
 {
 	if (!assetPath.is_absolute())
@@ -736,6 +751,10 @@ bool GraphicsEngine::LoadEnginePartFromFile(std::filesystem::path enginePartPath
 		enginePart.Set(new RigidBody());
 	else if (ext == ".floppy_body")
 		enginePart.Set(new FloppyBody());
+	else if (ext == ".audio_clip")
+		enginePart.Set(new AudioClip());
+	else if (ext == ".midi_song")
+		enginePart.Set(new MidiSong());
 
 	if (!enginePart.Get())
 	{

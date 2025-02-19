@@ -8,6 +8,7 @@
 #include "Thebe/PhysicsSystem.h"
 #include "Thebe/EventSystem.h"
 #include "Thebe/CameraSystem.h"
+#include "Thebe/AudioSystem.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -149,6 +150,7 @@ namespace Thebe
 		PhysicsSystem* GetPhysicsSystem();
 		EventSystem* GetEventSystem();
 		CameraSystem* GetCameraSystem();
+		AudioSystem* GetAudioSystem();
 
 		/**
 		 * Convert a location in screen-space to a ray in world space
@@ -186,6 +188,7 @@ namespace Thebe
 		PhysicsSystem physicsSystem;
 		EventSystem eventSystem;
 		CameraSystem cameraSystem;
+		AudioSystem audioSystem;
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);

@@ -7,6 +7,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/GraphicsEngine.h
     Source/Thebe/Common.cpp
     Source/Thebe/Common.h
+    Source/Thebe/AudioSystem.cpp
+    Source/Thebe/AudioSystem.h
     Source/Thebe/Reference.cpp
     Source/Thebe/Reference.h
     Source/Thebe/Log.cpp
@@ -129,6 +131,10 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/StructuredBuffer.h
     Source/Thebe/EngineParts/DynamicLineRenderer.cpp
     Source/Thebe/EngineParts/DynamicLineRenderer.h
+    Source/Thebe/EngineParts/AudioClip.cpp
+    Source/Thebe/EngineParts/AudioClip.h
+    Source/Thebe/EngineParts/MidiSong.cpp
+    Source/Thebe/EngineParts/MidiSong.h
     Source/Thebe/Math/AnimTransform.cpp
     Source/Thebe/Math/AnimTransform.h
     Source/Thebe/Math/AxisAlignedBoundingBox.cpp
@@ -213,6 +219,7 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     zlib.lib
     Ws2_32.lib
     ParseParty
+    AudioDataLib
 )
 
 target_link_directories(ThebeGraphicsEngine PRIVATE
@@ -224,4 +231,5 @@ target_include_directories(ThebeGraphicsEngine PUBLIC
     "DirectXHeader"
     "../ThirdParty/ParseParty/ParseLibrary/Source"
     "../ThirdParty/zLib/include"
+    "../ThirdParty/AudioDataLib/Source/Library"
 )

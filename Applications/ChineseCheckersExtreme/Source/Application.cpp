@@ -102,6 +102,8 @@ Thebe::XBoxController* ChineseCheckersApp::GetController()
 	if (!this->graphicsEngine->AddAssetFolder("Applications/ChineseCheckersExtreme/Assets"))
 		return false;
 
+	this->graphicsEngine->GetAudioSystem()->LoadAudioFromFolder("MidiSongs", this->graphicsEngine);
+
 	Reference<CubeMapBuffer> envMap;
 	if (!this->graphicsEngine->LoadEnginePartFromFile(R"(Textures/OceanCubeMap/OceanCubeMap.cube_map)", envMap))
 		return false;
