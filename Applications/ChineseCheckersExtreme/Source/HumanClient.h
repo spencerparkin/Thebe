@@ -3,6 +3,7 @@
 #include "GameClient.h"
 #include "ChineseCheckers/Graph.h"
 #include "Thebe/Math/Vector4.h"
+#include "Thebe/AudioSystem.h"
 #include "Animation.h"
 #include <wx/string.h>
 #include <wx/progdlg.h>
@@ -21,6 +22,9 @@ public:
 
 private:
 	void RegenerateScene();
+
+	void HandleAudioEvent(const Thebe::AudioEvent* audioEvent);
+	void QueueUpSongs();
 
 	static Thebe::Vector4 MarbleColor(ChineseCheckers::Marble::Color color, double alpha);
 	static wxString MarbleText(ChineseCheckers::Marble::Color color);

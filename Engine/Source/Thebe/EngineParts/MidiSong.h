@@ -17,6 +17,8 @@ namespace Thebe
 		virtual bool Setup() override;
 		virtual bool LoadConfigurationFromJson(const ParseParty::JsonValue* jsonValue, const std::filesystem::path& assetPath) override;
 
+		AudioDataLib::MidiData* GetMidiData();
+
 	protected:
 		std::shared_ptr<AudioDataLib::MidiData> midiData;
 		std::filesystem::path midiDataPath;

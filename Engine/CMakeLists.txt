@@ -218,8 +218,12 @@ target_link_libraries(ThebeGraphicsEngine PRIVATE
     cabinet.lib
     zlib.lib
     Ws2_32.lib
+)
+
+target_link_libraries(ThebeGraphicsEngine PUBLIC
     ParseParty
     AudioDataLib
+    RtMidi
 )
 
 target_link_directories(ThebeGraphicsEngine PRIVATE

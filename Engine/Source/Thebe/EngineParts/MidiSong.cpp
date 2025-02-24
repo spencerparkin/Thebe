@@ -14,6 +14,11 @@ MidiSong::MidiSong()
 {
 }
 
+AudioDataLib::MidiData* MidiSong::GetMidiData()
+{
+	return this->midiData.get();
+}
+
 /*virtual*/ bool MidiSong::Setup()
 {
 	using namespace AudioDataLib;

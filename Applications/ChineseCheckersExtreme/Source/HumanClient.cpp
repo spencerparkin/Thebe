@@ -158,10 +158,41 @@ HumanClient::HumanClient()
 	if (response == "get_graph")
 	{
 		this->RegenerateScene();
+
+		this->QueueUpSongs();
+
+		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+		//graphicsEngine->GetAudioSystem()->ChangeMidiVolume(0.7);
+
+		graphicsEngine->GetEventSystem()->RegisterEventHandler("Audio", [=](const Event* event)
+			{
+				this->HandleAudioEvent(dynamic_cast<const AudioEvent*>(event));
+			});
 	}
 	
 	wxGetApp().GetFrame()->SetStatusText("You are color " + this->MarbleText(this->GetColor()) + ".");
 	wxGetApp().GetFrame()->SetInfoText("Waiting for color " + this->MarbleText(this->whoseTurn) + " to take their turn.");
+}
+
+void HumanClient::HandleAudioEvent(const Thebe::AudioEvent* audioEvent)
+{
+	if (audioEvent->type == AudioEvent::SONG_QUEUE_EMPTY)
+	{
+		this->QueueUpSongs();
+	}
+}
+
+void HumanClient::QueueUpSongs()
+{
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AllOfMe");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("Thriller");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("OneRingToRuleThemAll");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("GollumsSong");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("DontStopTill");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("ConcerningHobbits");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AustinPowers-TheSpyWhoShaggedMe");
+	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AustinPowers-SecretAgentMan");
 }
 
 void HumanClient::RegenerateScene()

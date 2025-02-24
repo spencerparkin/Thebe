@@ -57,7 +57,7 @@ namespace std
 
 using namespace Thebe;
 
-GraphicsEngine::GraphicsEngine()
+GraphicsEngine::GraphicsEngine() : audioSystem(&this->eventSystem)
 {
 	this->frameCount = 0L;
 	this->deltaTimeSeconds = 0.0;
