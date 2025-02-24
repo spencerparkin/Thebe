@@ -5,9 +5,10 @@
 	"shader": "Shaders/PBRShader.shader",
 	"texture_map":
 	{
-		"albedo": "Textures\\AlientSlime\\alien-slime1-albedo.texture_buffer",
-		"metalic": "Textures\\AlientSlime\\alien-slime1-metallic.texture_buffer",
-		"normal": "Textures\\AlientSlime\\alien-slime1-normal-dx.texture_buffer",
-		"roughness": "Textures\\AlientSlime\\alien-slime1-roughness.texture_buffer"
+		"albedo": "Textures\\AlientSlime\\alien_slime1_albedo.texture_buffer",
+		"ambient_occlusion": "Textures\\AlientSlime\\alien_slime1_ao.texture_buffer",
+		"metalic": "Textures\\AlientSlime\\alien_slime1_metallic.texture_buffer",
+		"normal": "Textures\\AlientSlime\\alien_slime1_normal_dx.texture_buffer",
+		"roughness": "Textures\\AlientSlime\\alien_slime1_roughness.texture_buffer"
 	}
 }

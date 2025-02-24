@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\CubicRing.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "CubicRing",
+	"vertex_buffer": "Buffers\\CubicRing.vertex_buffer"
+}

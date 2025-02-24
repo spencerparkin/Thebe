@@ -1,0 +1,21 @@
+{
+	"collision_object": "CollisionObjects\\CubicPlatform.collision_object",
+	"name": "CubicPlatform_RigidBody",
+	"object_space_inertia_tensor":
+	{
+		"elements":
+		[
+			106.250000,
+			0.000000,
+			0.000000,
+			0.000000,
+			208.343751,
+			0.156250,
+			0.000000,
+			0.156250,
+			106.249999
+		]
+	},
+	"stationary": true,
+	"total_mass": 50.008125
+}

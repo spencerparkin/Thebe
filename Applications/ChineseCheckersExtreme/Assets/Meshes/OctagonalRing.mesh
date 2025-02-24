@@ -1,0 +1,6 @@
+{
+	"index_buffer": "Buffers\\OctagonalRing.index_buffer",
+	"material": "Materials\\DefaultMaterial.material",
+	"name": "OctagonalRing",
+	"vertex_buffer": "Buffers\\OctagonalRing.vertex_buffer"
+}

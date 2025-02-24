@@ -1,9 +1,9 @@
 {
 	"compressed": true,
 	"compressed_size": 4723941,
-	"data": "Textures\\AlientSlime\\alien-slime1-albedo.texture_buffer_data",
+	"data": "Textures\\AlientSlime\\alien_slime1_albedo.texture_buffer_data",
 	"height": 2048,
-	"name": "alien-slime1-albedo",
+	"name": "alien_slime1_albedo",
 	"num_mips": 12,
 	"pixel_format": 28,
 	"size": 22369620,

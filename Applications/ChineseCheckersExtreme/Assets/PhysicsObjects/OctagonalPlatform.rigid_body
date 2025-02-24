@@ -1,0 +1,21 @@
+{
+	"collision_object": "CollisionObjects\\OctagonalPlatform.collision_object",
+	"name": "OctagonalPlatform_RigidBody",
+	"object_space_inertia_tensor":
+	{
+		"elements":
+		[
+			201.584116,
+			0.015279,
+			-0.010854,
+			0.015279,
+			397.352268,
+			0.000050,
+			-0.010854,
+			0.000050,
+			201.608304
+		]
+	},
+	"stationary": true,
+	"total_mass": 70.260000
+}

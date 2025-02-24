@@ -1,9 +1,9 @@
 {
 	"compressed": true,
 	"compressed_size": 3023919,
-	"data": "Textures\\AlientSlime\\alien-slime1-roughness.texture_buffer_data",
+	"data": "Textures\\AlientSlime\\alien_slime1_roughness.texture_buffer_data",
 	"height": 2048,
-	"name": "alien-slime1-roughness",
+	"name": "alien_slime1_roughness",
 	"num_mips": 12,
 	"pixel_format": 61,
 	"size": 5592405,

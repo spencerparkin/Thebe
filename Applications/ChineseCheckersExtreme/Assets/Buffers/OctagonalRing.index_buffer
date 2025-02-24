@@ -1,0 +1,9 @@
+{
+	"compressed": false,
+	"data": "Buffers\\OctagonalRing.index_buffer_data",
+	"format": 42,
+	"name": "OctagonalRing_IndexBuffer",
+	"primitive_topology": 4,
+	"size": 768,
+	"type": 1
+}

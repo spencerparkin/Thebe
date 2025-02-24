@@ -1,9 +1,9 @@
 {
 	"compressed": true,
 	"compressed_size": 13464480,
-	"data": "Textures\\AlientSlime\\alien-slime1-normal-dx.texture_buffer_data",
+	"data": "Textures\\AlientSlime\\alien_slime1_normal_dx.texture_buffer_data",
 	"height": 2048,
-	"name": "alien-slime1-normal-dx",
+	"name": "alien_slime1_normal_dx",
 	"num_mips": 12,
 	"pixel_format": 28,
 	"size": 22369620,
