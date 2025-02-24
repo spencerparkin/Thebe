@@ -65,7 +65,7 @@ Graph::Graph()
 		{
 			std::shared_ptr<ChineseCheckers::Marble> nativeHoppedMarble = hoppedNode->GetOccupant();
 			auto hoppedMarble = dynamic_cast<Marble*>(nativeHoppedMarble.get());
-			THEBE_ASSERT_FATAL(hoppedMarble != nullptr);
+			THEBE_ASSERT_FATAL(hoppedMarble != nullptr);	// TODO: I've seen the program crash here due to there being no occupant in the hopped node.  How did this happen?
 			if (hoppedMarble->GetColor() != marble->GetColor() && --hoppedMarble->numLives == 0)
 			{
 				hoppedNode->SetOccupant(nullptr);
