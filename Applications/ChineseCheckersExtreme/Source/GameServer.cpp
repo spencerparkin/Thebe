@@ -1,5 +1,7 @@
 #include "GameServer.h"
 #include "ChineseCheckers/Generators/TraditionalGenerator.h"
+#include "ChineseCheckers/Generators/CubicDonutGenerator.h"
+#include "ChineseCheckers/Generators/CubicGenerator.h"
 #include "ChineseCheckers/MoveSequence.h"
 #include "Factory.h"
 
@@ -19,14 +21,30 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 		this->participantSet.insert((ChineseCheckers::Marble::Color)i);
 }
 
+void ChineseCheckersGameServer::SetGameType(const std::string& gameType)
+{
+	this->gameType = gameType;
+}
+
 /*virtual*/ bool ChineseCheckersGameServer::Setup()
 {
 	if (this->graph.get())
 		return false;
 
+	if (this->gameType.size() == 0)
+		return false;
+
 	this->factory.reset(new Factory());
 
-	this->graphGenerator.reset(new ChineseCheckers::TraditionalGenerator(this->factory.get()));
+	if (this->gameType == "traditional")
+		this->graphGenerator.reset(new ChineseCheckers::TraditionalGenerator(this->factory.get()));
+	else if (this->gameType == "cubic")
+		this->graphGenerator.reset(new ChineseCheckers::CubicGenerator(this->factory.get()));
+	else if (this->gameType == "cubic/donut")
+		this->graphGenerator.reset(new ChineseCheckers::CubicDonutGenerator(this->factory.get()));
+	else
+		return false;
+
 	this->graphGenerator->SetScale(10.0);
 
 	if (!this->graphGenerator.get())
@@ -106,6 +124,7 @@ void ChineseCheckersGameServer::SetNumPlayers(int numPlayers)
 			return;
 
 		responseValue->SetValue("graph", graphValue.release());
+		responseValue->SetValue("game_type", new JsonString(this->gameType));
 	}
 	else if (request == "get_color")
 	{

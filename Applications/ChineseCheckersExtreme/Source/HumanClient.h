@@ -22,7 +22,7 @@ public:
 	virtual void HandleConnectionStatus(ConnectionStatus status, int i, bool* abort) override;
 
 private:
-	void RegenerateScene();
+	void RegenerateScene(const std::string& gameType);
 
 	void HandleAudioEvent(const Thebe::AudioEvent* audioEvent);
 	void QueueUpSongs();

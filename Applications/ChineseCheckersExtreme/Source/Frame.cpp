@@ -153,6 +153,7 @@ void ChineseCheckersFrame::OnHostGame(wxCommandEvent& event)
 	gameServer->SetAddress(data.hostAddress);
 	gameServer->SetMaxConnections(data.numComputerPlayers + data.numHumanPlayers);
 	gameServer->SetNumPlayers(data.numComputerPlayers + data.numHumanPlayers);
+	gameServer->SetGameType(data.gameType);
 	if (!gameServer->Setup())
 	{
 		gameServer->Shutdown();

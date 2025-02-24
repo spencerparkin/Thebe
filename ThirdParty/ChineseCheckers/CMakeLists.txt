@@ -19,8 +19,8 @@ set(CHINESE_CHECKERS_SOURCES
     Source/ChineseCheckers/Generators/TraditionalGenerator.h
     Source/ChineseCheckers/Generators/CubicGenerator.cpp
     Source/ChineseCheckers/Generators/CubicGenerator.h
-    Source/ChineseCheckers/Generators/OctagonalGenerator.cpp
-    Source/ChineseCheckers/Generators/OctagonalGenerator.h
+    Source/ChineseCheckers/Generators/CubicDonutGenerator.cpp
+    Source/ChineseCheckers/Generators/CubicDonutGenerator.h
     Source/ChineseCheckers/MoveSequence.cpp
     Source/ChineseCheckers/MoveSequence.h
 )

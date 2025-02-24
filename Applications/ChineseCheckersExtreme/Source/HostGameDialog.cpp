@@ -25,13 +25,15 @@ HostGameDialog::HostGameDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "H
 
 	wxString gameTypeArray[] =
 	{
-		"traditional"
+		"traditional",
+		"cubic",
+		"cubic/donut"
 	};
 
 	int gameTypeArraySize = sizeof(gameTypeArray) / sizeof(wxString);
 
 	wxStaticText* gameTypeLabel = new wxStaticText(this, wxID_ANY, "Game Type:");
-	this->gameTypeCombo = new wxComboBox(this, wxID_ANY, gameTypeArray[1], wxDefaultPosition, wxDefaultSize, gameTypeArraySize, gameTypeArray, wxCB_READONLY | wxCB_SORT);
+	this->gameTypeCombo = new wxComboBox(this, wxID_ANY, gameTypeArray[0], wxDefaultPosition, wxDefaultSize, gameTypeArraySize, gameTypeArray, wxCB_READONLY | wxCB_SORT);
 
 	wxGridSizer* gridSizer = new wxGridSizer(2);
 	gridSizer->SetRows(5);

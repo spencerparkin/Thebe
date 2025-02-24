@@ -166,7 +166,12 @@ HumanClient::HumanClient()
 
 	if (response == "get_graph")
 	{
-		this->RegenerateScene();
+		auto gameTypeValue = dynamic_cast<const JsonString*>(responseValue->GetValue("game_type"));
+		if (!gameTypeValue)
+			return;
+
+		std::string gameType = gameTypeValue->GetValue();
+		this->RegenerateScene(gameType);
 
 		this->QueueUpSongs();
 
@@ -215,7 +220,7 @@ void HumanClient::QueueUpSongs()
 		graphicsEngine->GetAudioSystem()->EnqueueMidiSong(songArray[i]);
 }
 
-void HumanClient::RegenerateScene()
+void HumanClient::RegenerateScene(const std::string& gameType)
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	graphicsEngine->WaitForGPUIdle();
@@ -225,17 +230,29 @@ void HumanClient::RegenerateScene()
 	std::filesystem::path cubieMeshPath = "Meshes/cubie.mesh";
 	std::filesystem::path cubieBodyPath = "PhysicsObjects/cubie.rigid_body";
 
-	//platformMeshPath = "Meshes/CubicPlatform.mesh";
-	//platformBodyPath = "PhysicsObjects/CubicPlatform.rigid_body";
-	//ringMeshPath = "Meshes/CubicRing.mesh";
-	
-	platformMeshPath = "Meshes/HexagonalPlatform.mesh";
-	platformBodyPath = "PhysicsObjects/HexagonalPlatform.rigid_body";
-	ringMeshPath = "Meshes/HexagonalRing.mesh";
-	
-	//platformMeshPath = "Meshes/OctagonalPlatform.mesh";
-	//platformBodyPath = "PhysicsObjects/OctagonalPlatform.rigid_body";
-	//ringMeshPath = "Meshes/OctagonalRing.mesh";
+	if (gameType == "traditional")
+	{
+		platformMeshPath = "Meshes/HexagonalPlatform.mesh";
+		platformBodyPath = "PhysicsObjects/HexagonalPlatform.rigid_body";
+		ringMeshPath = "Meshes/HexagonalRing.mesh";
+	}
+	else if (gameType == "cubic")
+	{
+		platformMeshPath = "Meshes/CubicPlatform.mesh";
+		platformBodyPath = "PhysicsObjects/CubicPlatform.rigid_body";
+		ringMeshPath = "Meshes/CubicRing.mesh";
+	}
+	else if (gameType == "cubic/donut")
+	{
+		platformMeshPath = "Meshes/OctagonalPlatform.mesh";
+		platformBodyPath = "PhysicsObjects/OctagonalPlatform.rigid_body";
+		ringMeshPath = "Meshes/OctagonalRing.mesh";
+	}
+	else
+	{
+		THEBE_LOG("Did not recognize game type: %s", gameType.c_str());
+		return;
+	}
 
 	Reference<Mesh> platformMesh;
 	if (!graphicsEngine->LoadEnginePartFromFile(platformMeshPath, platformMesh))

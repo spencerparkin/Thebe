@@ -21,6 +21,7 @@ public:
 	virtual void ProcessClientMessage(ClientMessage* message, std::unique_ptr<ParseParty::JsonValue>& jsonReply) override;
 
 	void SetNumPlayers(int numPlayers);
+	void SetGameType(const std::string& gameType);
 
 protected:
 	std::unique_ptr<ChineseCheckers::Factory> factory;
@@ -30,4 +31,5 @@ protected:
 	std::unique_ptr<ChineseCheckers::Graph> graph;
 	ChineseCheckers::Marble::Color whoseTurn;
 	ChineseCheckers::Marble::Color winner;
+	std::string gameType;
 };

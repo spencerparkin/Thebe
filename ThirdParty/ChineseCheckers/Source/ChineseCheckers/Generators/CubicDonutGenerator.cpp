@@ -1,22 +1,24 @@
-#include "ChineseCheckers/Generators/CubicGenerator.h"
+#include "ChineseCheckers/Generators/CubicDonutGenerator.h"
 #include "ChineseCheckers/Factory.h"
 #include "ChineseCheckers/Graph.h"
 
 using namespace ChineseCheckers;
 
-CubicGenerator::CubicGenerator(Factory* factory) : GraphGenerator(factory)
+CubicDonutGenerator::CubicDonutGenerator(Factory* factory) : GraphGenerator(factory)
+{
+	this->addDiagonalConnections = true;
+}
+
+/*virtual*/ CubicDonutGenerator::~CubicDonutGenerator()
 {
 }
 
-/*virtual*/ CubicGenerator::~CubicGenerator()
+/*virtual*/ Graph* CubicDonutGenerator::Generate(const std::set<Marble::Color>& participantSet)
 {
-}
-
-/*virtual*/ Graph* CubicGenerator::Generate(const std::set<Marble::Color>& participantSet)
-{
-	constexpr int numRows = 11;
-	constexpr int numCols = 11;
-	constexpr int zoneSize = 3;
+	const int numRows = 13;
+	const int numCols = 13;
+	const int marginSize = 4;
+	const int zoneSize = 3;
 
 	std::unique_ptr<Graph> graph(this->factory->CreateGraph());
 
@@ -34,19 +36,23 @@ CubicGenerator::CubicGenerator(Factory* factory) : GraphGenerator(factory)
 	{
 		for (int j = 0; j < numCols; j++)
 		{
+			if (i >= marginSize && i < numRows - marginSize &&
+				j >= marginSize && j < numCols - marginSize)
+			{
+				continue;
+			}
+
 			Marble::Color color = Marble::Color::NONE;
 			if (i < zoneSize && j < zoneSize)
 				color = Marble::Color::YELLOW;
-			else if (i < zoneSize && j > numCols - 1 - zoneSize)
+			else if (i < zoneSize && j >= numCols - zoneSize)
 				color = Marble::Color::BLACK;
-			else if (i > numRows - 1 - zoneSize && j < zoneSize)
+			else if (i >= numRows - zoneSize && j < zoneSize)
 				color = Marble::Color::GREEN;
-			else if (i > numRows - 1 - zoneSize && j > numCols - 1 - zoneSize)
+			else if (i >= numRows - zoneSize && j >= numCols - zoneSize)
 				color = Marble::Color::RED;
 
 			Node* node = this->factory->CreateNode(Vector(0.0, 0.0), color);
-			if (!node)
-				return nullptr;
 
 			graph->AddNode(node);
 			matrix[i][j] = node;
@@ -67,15 +73,29 @@ CubicGenerator::CubicGenerator(Factory* factory) : GraphGenerator(factory)
 		for (int j = 0; j < numCols; j++)
 		{
 			Node* node = matrix[i][j];
+			if (!node)
+				continue;
 
-			if (i > 0)
+			if (i > 0 && matrix[i - 1][j])
 				node->AddAjacentNode(matrix[i - 1][j]);
-			if (i < numRows - 1)
+			if (i < numRows - 1 && matrix[i + 1][j])
 				node->AddAjacentNode(matrix[i + 1][j]);
-			if (j > 0)
+			if (j > 0 && matrix[i][j - 1])
 				node->AddAjacentNode(matrix[i][j - 1]);
-			if (j < numCols - 1)
+			if (j < numCols - 1 && matrix[i][j + 1])
 				node->AddAjacentNode(matrix[i][j + 1]);
+
+			if (this->addDiagonalConnections)
+			{
+				if (i > 0 && j > 0 && matrix[i - 1][j - 1])
+					node->AddAjacentNode(matrix[i - 1][j - 1]);
+				if (i > 0 && j < numCols - 1 && matrix[i - 1][j + 1])
+					node->AddAjacentNode(matrix[i - 1][j + 1]);
+				if (i < numRows - 1 && j > 0 && matrix[i + 1][j - 1])
+					node->AddAjacentNode(matrix[i + 1][j - 1]);
+				if (i < numRows - 1 && j < numCols - 1 && matrix[i + 1][j + 1])
+					node->AddAjacentNode(matrix[i + 1][j + 1]);
+			}
 		}
 	}
 
@@ -84,6 +104,9 @@ CubicGenerator::CubicGenerator(Factory* factory) : GraphGenerator(factory)
 		for (int j = 0; j < numCols; j++)
 		{
 			Node* node = matrix[i][j];
+			if (!node)
+				continue;
+
 			Vector location(double(i - (numRows - 1) / 2), double(j - (numCols - 1) / 2));
 			location *= this->scale;
 			node->SetLocation(location);
