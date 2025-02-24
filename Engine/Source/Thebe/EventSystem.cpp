@@ -94,13 +94,13 @@ void EventSystem::DispatchEvent(Event* event)
 	if (categoryPair == this->categoryHandlerMap.end())
 		return;
 
-	std::vector<EventHandlerMap::iterator> doomedHandlerArray;
+	std::vector<EventHandlerID> doomedHandlerIDArray;
 	std::list<EventHandlerID>* eventHandlerIDList = categoryPair->second;
 	for(auto eventHandlerID : *eventHandlerIDList)
 	{
 		EventHandlerMap::iterator handlerPair = this->eventHandlerMap.find(eventHandlerID);
 		if (handlerPair == this->eventHandlerMap.end())
-			doomedHandlerArray.push_back(handlerPair);
+			doomedHandlerIDArray.push_back(eventHandlerID);
 		else
 		{
 			EventHandler eventHandler = handlerPair->second;
@@ -108,8 +108,8 @@ void EventSystem::DispatchEvent(Event* event)
 		}
 	}
 
-	for (auto& handlerPair : doomedHandlerArray)
-		this->eventHandlerMap.erase(handlerPair);
+	for (auto eventHandlerID : doomedHandlerIDArray)
+		this->eventHandlerMap.erase(eventHandlerID);
 }
 
 //---------------------------------- Event ----------------------------------

@@ -34,6 +34,8 @@ namespace Thebe
 
 		bool EnqueueMidiSong(const std::string& midiSongName);
 		bool ChangeMidiVolume(double volume);
+		bool SkipCurrentSong();
+		bool ClearMidiSongQueue();
 
 		bool PlayWaveSoundNow(const std::string& waveSoundName);
 
@@ -49,6 +51,8 @@ namespace Thebe
 		{
 			friend class EnqueueSongTask;
 			friend class ChangeVolumeTask;
+			friend class SkipCurrentSongTask;
+			friend class CancelAllQueuedSongsTask;
 
 		public:
 			MidiThread(EventSystem* eventSystem);
@@ -83,7 +87,21 @@ namespace Thebe
 				double volume;
 			};
 
+			class SkipCurrentSongTask : public Task
+			{
+			public:
+				virtual void Perform(MidiThread* thread) override;
+			};
+
+			class CancelAllQueuedSongsTask : public Task
+			{
+			public:
+				virtual void Perform(MidiThread* thread) override;
+			};
+
 		private:
+			void ShutdownCurrentSong();
+
 			std::list<Reference<Task>> taskQueue;
 			std::mutex taskQueueMutex;
 			std::counting_semaphore<std::numeric_limits<uint32_t>::max()> taskQueueSemaphore;

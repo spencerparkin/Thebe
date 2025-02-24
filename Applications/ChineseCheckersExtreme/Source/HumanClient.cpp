@@ -17,6 +17,7 @@ using namespace Thebe;
 HumanClient::HumanClient()
 {
 	this->connectionProgressDialog = nullptr;
+	this->audioEventHandlerID = 0;
 }
 
 /*virtual*/ HumanClient::~HumanClient()
@@ -27,6 +28,8 @@ HumanClient::HumanClient()
 {
 	if (!ChineseCheckersGameClient::Setup())
 		return false;
+
+	this->random.SetSeed(::time(nullptr));
 
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 
@@ -69,6 +72,12 @@ HumanClient::HumanClient()
 		frame->SetStatusText("");
 		frame->SetInfoText("");
 	}
+
+	graphicsEngine->GetEventSystem()->UnregisterEventHandler(this->audioEventHandlerID);
+
+	AudioSystem* audioSystem = graphicsEngine->GetAudioSystem();
+	audioSystem->ClearMidiSongQueue();
+	audioSystem->SkipCurrentSong();
 }
 
 /*virtual*/ void HumanClient::Update(double deltaTimeSeconds)
@@ -164,7 +173,7 @@ HumanClient::HumanClient()
 		GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 		//graphicsEngine->GetAudioSystem()->ChangeMidiVolume(0.7);
 
-		graphicsEngine->GetEventSystem()->RegisterEventHandler("Audio", [=](const Event* event)
+		this->audioEventHandlerID = graphicsEngine->GetEventSystem()->RegisterEventHandler("Audio", [=](const Event* event)
 			{
 				this->HandleAudioEvent(dynamic_cast<const AudioEvent*>(event));
 			});
@@ -185,14 +194,25 @@ void HumanClient::HandleAudioEvent(const Thebe::AudioEvent* audioEvent)
 void HumanClient::QueueUpSongs()
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AllOfMe");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("Thriller");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("OneRingToRuleThemAll");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("GollumsSong");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("DontStopTill");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("ConcerningHobbits");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AustinPowers-TheSpyWhoShaggedMe");
-	graphicsEngine->GetAudioSystem()->EnqueueMidiSong("AustinPowers-SecretAgentMan");
+
+	const char* songArray[] =
+	{
+		"AllOfMe",
+		"Thriller",
+		"OneRingToRuleThemAll",
+		"GollumsSong",
+		"DontStopTill",
+		"ConcerningHobbits",
+		"AustinPowers-TheSpyWhoShaggedMe",
+		"AustinPowers-SecretAgentMan"
+	};
+
+	int songArraySize = sizeof(songArray) / sizeof(const char*);
+
+	this->random.Shuffle(songArray, songArraySize);
+
+	for (int i = 0; i < songArraySize; i++)
+		graphicsEngine->GetAudioSystem()->EnqueueMidiSong(songArray[i]);
 }
 
 void HumanClient::RegenerateScene()

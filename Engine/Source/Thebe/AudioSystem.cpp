@@ -101,6 +101,26 @@ bool AudioSystem::ChangeMidiVolume(double volume)
 	return true;
 }
 
+bool AudioSystem::SkipCurrentSong()
+{
+	if (!this->midiThread.get())
+		return false;
+
+	auto task = new MidiThread::SkipCurrentSongTask();
+	this->midiThread->EnqueueTask(task);
+	return true;
+}
+
+bool AudioSystem::ClearMidiSongQueue()
+{
+	if (!this->midiThread.get())
+		return false;
+
+	auto task = new MidiThread::CancelAllQueuedSongsTask();
+	this->midiThread->EnqueueTask(task);
+	return true;
+}
+
 bool AudioSystem::PlayWaveSoundNow(const std::string& waveSoundName)
 {
 	return false;
@@ -245,23 +265,7 @@ void AudioSystem::MidiThread::EnqueueTask(Task* task)
 		if (this->currentlyPlayingSong)
 		{
 			if (this->player.NoMoreToPlay())
-			{
-				this->player.Shutdown();
-
-				auto audioEvent = new AudioEvent();
-				audioEvent->type = AudioEvent::SONG_ENDED;
-				audioEvent->extraInfo = this->currentlyPlayingSong->GetName();
-				this->eventSystem->SendEvent(audioEvent);
-
-				if (this->midiSongQueue.size() == 0)
-				{
-					audioEvent = new AudioEvent();
-					audioEvent->type = AudioEvent::SONG_QUEUE_EMPTY;
-					this->eventSystem->SendEvent(audioEvent);
-				}
-
-				this->currentlyPlayingSong = nullptr;
-			}
+				this->ShutdownCurrentSong();
 			else if (!this->player.Process())
 			{
 				THEBE_LOG("MIDI player processing failed!");
@@ -270,6 +274,25 @@ void AudioSystem::MidiThread::EnqueueTask(Task* task)
 			}
 		}
 	}
+}
+
+void AudioSystem::MidiThread::ShutdownCurrentSong()
+{
+	this->player.Shutdown();
+
+	auto audioEvent = new AudioEvent();
+	audioEvent->type = AudioEvent::SONG_ENDED;
+	audioEvent->extraInfo = this->currentlyPlayingSong->GetName();
+	this->eventSystem->SendEvent(audioEvent);
+
+	if (this->midiSongQueue.size() == 0)
+	{
+		audioEvent = new AudioEvent();
+		audioEvent->type = AudioEvent::SONG_QUEUE_EMPTY;
+		this->eventSystem->SendEvent(audioEvent);
+	}
+
+	this->currentlyPlayingSong = nullptr;
 }
 
 //------------------------------------ AudioSystem::MidiThread::EnqueueSongTask ------------------------------------
@@ -298,6 +321,20 @@ AudioSystem::MidiThread::ChangeVolumeTask::ChangeVolumeTask(double volume)
 	event.Encode(outputStream);
 
 	thread->midiOut->sendMessage(outputStream.GetBuffer(), outputStream.GetSize());
+}
+
+//------------------------------------ AudioSystem::MidiThread::SkipCurrentSongTask ------------------------------------
+
+/*virtual*/ void AudioSystem::MidiThread::SkipCurrentSongTask::Perform(MidiThread* thread)
+{
+	thread->ShutdownCurrentSong();
+}
+
+//------------------------------------ AudioSystem::MidiThread::CancelAllQueuedSongsTask ------------------------------------
+
+/*virtual*/ void AudioSystem::MidiThread::CancelAllQueuedSongsTask::Perform(MidiThread* thread)
+{
+	thread->midiSongQueue.clear();
 }
 
 //------------------------------------ AudioEvent ------------------------------------

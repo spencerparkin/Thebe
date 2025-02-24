@@ -4,6 +4,7 @@
 #include "ChineseCheckers/Graph.h"
 #include "Thebe/Math/Vector4.h"
 #include "Thebe/AudioSystem.h"
+#include "Thebe/Math/Random.h"
 #include "Animation.h"
 #include <wx/string.h>
 #include <wx/progdlg.h>
@@ -31,4 +32,6 @@ private:
 
 	AnimationProcessor animationProcessor;
 	wxProgressDialog* connectionProgressDialog;
+	Thebe::EventHandlerID audioEventHandlerID;
+	Thebe::Random random;
 };

@@ -49,6 +49,27 @@ namespace Thebe
 		 */
 		bool CoinFlip();
 
+		/**
+		 * Put the elements of the given array in a random order.
+		 * 
+		 * @param[in,out] givenArray This is the array to shuffle.
+		 * @param[in] givenArraySize Pass here the size of the given array.
+		 */
+		template<typename T>
+		void Shuffle(T* givenArray, uint32_t givenArraySize)
+		{
+			for (int i = 0; i < givenArraySize - 1; i++)
+			{
+				int j = this->InRange(i, givenArraySize - 1);
+				if (i != j)
+				{
+					T temp = givenArray[i];
+					givenArray[i] = givenArray[j];
+					givenArray[j] = temp;
+				}
+			}
+		}
+
 	protected:
 		std::random_device randomDevice;
 		std::mt19937 generator;
