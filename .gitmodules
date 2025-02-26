@@ -4,3 +4,6 @@
 [submodule "ThirdParty/AudioDataLib"]
 	path = ThirdParty/AudioDataLib
 	url = https://github.com/spencerparkin/AudioDataLib
+[submodule "ThirdParty/imgui"]
+	path = ThirdParty/imgui
+	url = https://github.com/ocornut/imgui
