@@ -187,10 +187,29 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Math/Rectangle.h
 )
 
+set(IMGUI_SOURCES
+    Source/ImGui/imconfig.h
+    Source/ImGui/imgui.cpp
+    Source/ImGui/imgui.h
+    Source/ImGui/imgui_demo.cpp
+    Source/ImGui/imgui_draw.cpp
+    Source/ImGui/imgui_internal.h
+    Source/ImGui/imgui_tables.cpp
+    Source/ImGui/imgui_widgets.cpp
+    Source/ImGui/imstb_rectpack.h
+    Source/ImGui/imstb_textedit.h
+    Source/ImGui/imstb_truetype.h
+    Source/ImGui/backends/imgui_impl_dx12.cpp
+    Source/ImGui/backends/imgui_impl_dx12.h
+    Source/ImGui/backends/imgui_impl_win32.cpp
+    Source/ImGui/backends/imgui_impl_win32.h
+)
+
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})
 
 add_library(ThebeGraphicsEngine SHARED
     ${GRAPHICS_ENGINE_SOURCES}
+    ${IMGUI_SOURCES}
 )
 
 target_compile_definitions(ThebeGraphicsEngine PRIVATE
@@ -232,6 +251,7 @@ target_link_directories(ThebeGraphicsEngine PRIVATE
 
 target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
+    "Source/ImGui"
     "DirectXHeader"
     "../ThirdParty/ParseParty/ParseLibrary/Source"
     "../ThirdParty/zLib/include"
