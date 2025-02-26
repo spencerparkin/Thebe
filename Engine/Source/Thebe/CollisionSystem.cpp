@@ -94,9 +94,12 @@ void CollisionSystem::FindAllCollisions(CollisionObject* collisionObject, std::v
 	collisionArray.clear();
 
 	// Peform the broad phase of collision detection.
-	AxisAlignedBoundingBox worldBoundingBox = collisionObject->GetWorldBoundingBox();
 	std::list<BVHObject*> objectList;
-	this->boxTree->FindObjects(worldBoundingBox, objectList);
+	AxisAlignedBoundingBox worldBoundingBox = collisionObject->GetWorldBoundingBox();
+	{
+		THEBE_PROFILE_BLOCK(BVHSearch);
+		this->boxTree->FindObjects(worldBoundingBox, objectList);
+	}
 
 	// Now perform the narrow phase of collision detection.
 	for (auto object : objectList)
