@@ -92,7 +92,7 @@ namespace Thebe
 		std::string MakeCollisionCacheKey(const CollisionObject* objectA, const CollisionObject* objectB);
 
 		Reference<BVHTree> boxTree;
-		std::map<RefHandle, Reference<CollisionObject>> collisionObjectMap;
+		std::unordered_map<RefHandle, Reference<CollisionObject>> collisionObjectMap;
 		std::unordered_map<std::string, Reference<Collision>> collisionCacheMap;
 	};
 }
