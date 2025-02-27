@@ -34,6 +34,19 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 {
 }
 
+#if defined THEBE_USE_IMGUI
+/*virtual*/ bool ChineseCheckersCanvas::MSWHandleMessage(WXLRESULT* result, WXUINT message, WXWPARAM wParam, WXLPARAM lParam)
+{
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+
+	*result = graphicsEngine->GetImGuiManager()->HandleWindowsMessage(this->GetHWND(), message, wParam, lParam);
+	if (*result != 0)
+		return true;
+
+	return wxWindow::MSWHandleMessage(result, message, wParam, lParam);
+}
+#endif //THEBE_USE_IMGUI
+
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {
 	THEBE_PROFILE_BEGIN_FRAME;
@@ -166,6 +179,8 @@ void ChineseCheckersCanvas::OnMouseMotion(wxMouseEvent& event)
 
 void ChineseCheckersCanvas::OnMouseLeftDown(wxMouseEvent& event)
 {
+	this->SetFocus();	// Without this, the ImGui stuff can't get keyboard events.
+
 	this->mousePointA = event.GetPosition();
 	this->mouseDragging = true;
 	this->CaptureMouse();

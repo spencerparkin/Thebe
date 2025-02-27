@@ -28,6 +28,7 @@ namespace Thebe
 		void Shutdown();
 		void BeginRender();
 		void EndRender(ID3D12GraphicsCommandList* commandList);
+		static LRESULT HandleWindowsMessage(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	private:
 

@@ -108,6 +108,12 @@ void ImGuiManager::EndRender(ID3D12GraphicsCommandList* commandList)
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 }
 
+/*static*/ LRESULT ImGuiManager::HandleWindowsMessage(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);
+	return ImGui_ImplWin32_WndProcHandler(windowHandle, msg, wParam, lParam);
+}
+
 /*static*/ void ImGuiManager::AllocSrvDescriptorEntryFunc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_desc_handle)
 {
 	auto manager = (ImGuiManager*)info->UserData;

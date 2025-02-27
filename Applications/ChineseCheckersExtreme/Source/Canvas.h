@@ -11,6 +11,10 @@ public:
 	ChineseCheckersCanvas(wxWindow* parent);
 	virtual ~ChineseCheckersCanvas();
 
+#if defined THEBE_USE_IMGUI
+	virtual bool MSWHandleMessage(WXLRESULT* result, WXUINT message, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif //THEBE_USE_IMGUI
+
 	void OnPaint(wxPaintEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnMouseMotion(wxMouseEvent& event);
