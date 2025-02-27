@@ -29,6 +29,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/PhysicsSystem.h
     Source/Thebe/Profiler.cpp
     Source/Thebe/Profiler.h
+    Source/Thebe/ImGuiManager.cpp
+    Source/Thebe/ImGuiManager.h
     Source/Thebe/Utilities/Clock.cpp
     Source/Thebe/Utilities/Clock.h
     Source/Thebe/Utilities/BlockManager.cpp
@@ -115,6 +117,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/EngineParts/MeshInstance.h
     Source/Thebe/EngineParts/DescriptorHeap.cpp
     Source/Thebe/EngineParts/DescriptorHeap.h
+    Source/Thebe/EngineParts/DescriptorPool.cpp
+    Source/Thebe/EngineParts/DescriptorPool.h
     Source/Thebe/EngineParts/UploadHeap.cpp
     Source/Thebe/EngineParts/UploadHeap.h
     Source/Thebe/EngineParts/Light.cpp
@@ -221,6 +225,7 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
 
 target_compile_definitions(ThebeGraphicsEngine PUBLIC
     THEBE_PROFILING
+    THEBE_USE_IMGUI
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

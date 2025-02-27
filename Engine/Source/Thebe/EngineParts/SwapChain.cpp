@@ -268,6 +268,40 @@ bool SwapChain::RecreateViews(ID3D12Device* device)
 	return true;
 }
 
+DXGI_FORMAT SwapChain::GetRenderTargetFormat()
+{
+	if (this->frameArray.size() == 0)
+		return DXGI_FORMAT_UNKNOWN;
+
+	D3D12_RESOURCE_DESC desc{};
+
+	auto frame = (SwapFrame*)this->frameArray[0].Get();
+
+	if (this->CanAndShouldDoMSAA(frame))
+		desc = frame->renderTarget->GetDesc();
+	else
+		desc = frame->msaaRenderTarget->GetDesc();
+
+	return desc.Format;
+}
+
+DXGI_FORMAT SwapChain::GetDepthStencileViewFormat()
+{
+	if (this->frameArray.size() == 0)
+		return DXGI_FORMAT_UNKNOWN;
+
+	D3D12_RESOURCE_DESC desc{};
+
+	auto frame = (SwapFrame*)this->frameArray[0].Get();
+
+	if (this->CanAndShouldDoMSAA(frame))
+		desc = frame->msaaDepthBuffer->GetDesc();
+	else
+		desc = frame->depthBuffer->GetDesc();
+
+	return desc.Format;
+}
+
 bool SwapChain::ResizeBuffers(int width, int height, ID3D12Device* device)
 {
 	HRESULT result = 0;
@@ -384,6 +418,11 @@ bool SwapChain::ResizeBuffers(int width, int height, ID3D12Device* device)
 const CD3DX12_VIEWPORT& SwapChain::GetViewport() const
 {
 	return this->viewport;
+}
+
+IDXGISwapChain3* SwapChain::GetSwapChain()
+{
+	return this->swapChain.Get();
 }
 
 bool SwapChain::Resize(int width, int height)
@@ -530,6 +569,10 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	commandList->RSSetViewports(1, &this->viewport);
 	commandList->RSSetScissorRects(1, &this->scissorRect);
 
+#if defined THEBE_USE_IMGUI
+	graphicsEngine->GetImGuiManager()->BeginRender();
+#endif //THEBE_USE_IMGUI
+
 	return true;
 }
 
@@ -549,11 +592,33 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 		commandList->ResolveSubresource(frame->renderTarget.Get(), 0, frame->msaaRenderTarget.Get(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
 
+#if !defined THEBE_USE_IMGUI
 		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);
+#else
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		commandList->ResourceBarrier(1, &barrier);
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+		this->rtvDescriptorSet.GetCpuHandle(frameIndex, rtvHandle);
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+		this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
+
+		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+
+		graphicsEngine->GetImGuiManager()->EndRender(commandList);
+
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		commandList->ResourceBarrier(1, &barrier);
+#endif //THEBE_USE_IMGUI
 	}
 	else
 	{
+#if defined THEBE_USE_IMGUI
+		graphicsEngine->GetImGuiManager()->EndRender(commandList);
+#endif //THEBE_USE_IMGUI
+
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);
 	}

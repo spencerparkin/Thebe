@@ -9,6 +9,7 @@
 #include "Thebe/EventSystem.h"
 #include "Thebe/CameraSystem.h"
 #include "Thebe/AudioSystem.h"
+#include "Thebe/ImGuiManager.h"
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <wrl.h>
@@ -151,6 +152,9 @@ namespace Thebe
 		EventSystem* GetEventSystem();
 		CameraSystem* GetCameraSystem();
 		AudioSystem* GetAudioSystem();
+#if defined THEBE_USE_IMGUI
+		ImGuiManager* GetImGuiManager();
+#endif //THEBE_USE_IMGUI
 
 		/**
 		 * Convert a location in screen-space to a ray in world space
@@ -189,6 +193,9 @@ namespace Thebe
 		EventSystem eventSystem;
 		CameraSystem cameraSystem;
 		AudioSystem audioSystem;
+#if defined THEBE_USE_IMGUI
+		ImGuiManager imGuiManager;
+#endif //THEBE_USE_IMGUI
 
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);

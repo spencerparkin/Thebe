@@ -35,6 +35,11 @@ namespace Thebe
 
 		const CD3DX12_VIEWPORT& GetViewport() const;
 
+		IDXGISwapChain3* GetSwapChain();
+
+		DXGI_FORMAT GetRenderTargetFormat();
+		DXGI_FORMAT GetDepthStencileViewFormat();
+
 	protected:
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context) override;
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList) override;

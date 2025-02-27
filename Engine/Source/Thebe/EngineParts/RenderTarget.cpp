@@ -154,6 +154,11 @@ RenderTarget::RenderTarget()
 {
 }
 
+uint32_t RenderTarget::GetNumFrames()
+{
+	return (uint32_t)this->frameArray.size();
+}
+
 //---------------------------------------- RenderTarget::Frame ----------------------------------------
 
 RenderTarget::Frame::Frame()

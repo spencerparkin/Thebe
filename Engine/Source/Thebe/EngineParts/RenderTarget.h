@@ -25,6 +25,8 @@ namespace Thebe
 		virtual bool Render();
 		virtual void ConfigurePiplineStateDesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
 
+		uint32_t GetNumFrames();
+
 	protected:
 		virtual bool PreRender(ID3D12GraphicsCommandList* commandList, RenderObject::RenderContext& context);
 		virtual bool PostRender(ID3D12GraphicsCommandList* commandList);
