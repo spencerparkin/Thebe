@@ -54,6 +54,7 @@ DescriptorPool::DescriptorPool()
 /*virtual*/ void DescriptorPool::Shutdown()
 {
 	this->descriptorHeap = nullptr;
+	this->descriptorOffsetStack.clear();
 }
 
 D3D12_DESCRIPTOR_HEAP_DESC& DescriptorPool::GetDescriptorHeapDesc()
