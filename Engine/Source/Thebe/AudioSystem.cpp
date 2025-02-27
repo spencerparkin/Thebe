@@ -176,10 +176,9 @@ AudioSystem::MidiThread::MidiThread(EventSystem* eventSystem) : Thread("AudioSys
 {
 	this->exitSignaled = true;
 	this->taskQueueSemaphore.release();
-	// TODO: I'm seeing a hang here that can happen, but it doesn't begin here.
-	//       It happens when head-phones are pulled out of the computer while a song is playing.
-	//       At that point, the "midiOutShortMsg" function hangs, making it impossible to later join the thread.
-	//       I'm not yet sure how to fix this.
+	if (this->midiOut)
+		this->midiOut->closePort();
+	this->midiOut.reset(nullptr);
 	return Thread::Join();
 }
 
