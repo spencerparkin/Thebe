@@ -61,10 +61,23 @@ GraphicsEngine::GraphicsEngine() : audioSystem(&this->eventSystem), imGuiManager
 {
 	this->frameCount = 0L;
 	this->deltaTimeSeconds = 0.0;
+	this->messageCallbackCookie = 0;
 }
 
 /*virtual*/ GraphicsEngine::~GraphicsEngine()
 {
+}
+
+/*static*/ void GraphicsEngine::MessageCallbackEntryPoint(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description, void* context)
+{
+	auto graphicsEngine = reinterpret_cast<GraphicsEngine*>(context);
+	graphicsEngine->MessageCallback(category, severity, messageId, description);
+}
+
+void GraphicsEngine::MessageCallback(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description)
+{
+	// TODO: Use this callback to trap an error I sometimes see (but not always!)
+	description = nullptr;
 }
 
 bool GraphicsEngine::Setup(HWND windowHandle)
@@ -140,6 +153,25 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		THEBE_LOG("Failed to find a D3D12-compatible device.");
 		return false;
 	}
+
+#if defined _DEBUG
+	ComPtr<ID3D12InfoQueue1> infoQueue;
+	result = this->device->QueryInterface(IID_PPV_ARGS(&infoQueue));
+	if (SUCCEEDED(result))
+	{
+		result = infoQueue->RegisterMessageCallback(&GraphicsEngine::MessageCallbackEntryPoint, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &this->messageCallbackCookie);
+		if (FAILED(result))
+		{
+			THEBE_LOG("Failed to register message callback with D3D debug stuff.  Error: 0x%08x", result);
+			return false;
+		}
+	}
+	else
+	{
+		THEBE_LOG("Failed to get info queue.  Error: 0x%08x", result);
+		return false;
+	}
+#endif //_DEBUG
 
 	this->commandQueue.Set(new CommandQueue());
 	this->commandQueue->SetGraphicsEngine(this);
@@ -350,6 +382,11 @@ void GraphicsEngine::Shutdown()
 		this->uploadHeap->Shutdown();
 		this->uploadHeap = nullptr;
 	}
+
+	ComPtr<ID3D12InfoQueue1> infoQueue;
+	this->device->QueryInterface(IID_PPV_ARGS(&infoQueue));
+	if (infoQueue.Get())
+		infoQueue->UnregisterMessageCallback(this->messageCallbackCookie);
 
 	this->device = nullptr;
 }

@@ -29,6 +29,9 @@ DescriptorHeap::DescriptorHeap()
 		return false;
 	}
 
+	if (this->descriptorHeapDesc.Type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+		this->descriptorHeapDesc.Flags |= D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	
 	Reference<GraphicsEngine> graphicsEngine;
 	if (!this->GetGraphicsEngine(graphicsEngine))
 		return false;
@@ -79,14 +82,20 @@ bool DescriptorHeap::AllocDescriptorSet(UINT numDescriptors, DescriptorSet& desc
 	descriptorSet.size = numDescriptors;
 	descriptorSet.descriptorSize = graphicsEngine->GetDevice()->GetDescriptorHandleIncrementSize(this->descriptorHeapDesc.Type);
 	
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(this->descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(this->descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
-	gpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
 	cpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
-
-	descriptorSet.gpuHandle = gpuHandle;
 	descriptorSet.cpuHandle = cpuHandle;
+
+	if ((this->descriptorHeapDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0)
+	{
+		CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(this->descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		gpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
+		descriptorSet.gpuHandle = gpuHandle;
+	}
+	else
+	{
+		descriptorSet.gpuHandle.ptr = 0;
+	}
 
 	descriptorSet.heapHandle = this->GetHandle();
 

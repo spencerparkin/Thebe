@@ -114,7 +114,8 @@ const std::vector<UINT8>& Buffer::GetOriginalBuffer() const
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&this->gpuBufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
+		//D3D12_RESOURCE_STATE_COPY_DEST,		Not sure why, but D3D12 doesn't like this.
+		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		IID_PPV_ARGS(&this->gpuBuffer));
 	if (FAILED(result))

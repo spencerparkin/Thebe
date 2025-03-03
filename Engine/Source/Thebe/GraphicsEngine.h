@@ -173,6 +173,14 @@ namespace Thebe
 			UINT expirationCount;
 		};
 
+		std::string MakeAssetKey(const std::filesystem::path& assetPath);
+		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
+		void RemoveExpiredPSOs(bool removeAllNow = false);
+
+		static void MessageCallbackEntryPoint(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description, void* context);
+
+		void MessageCallback(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description);
+
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
 		std::vector<Reference<RenderTarget>> renderTargetArray;
@@ -196,11 +204,7 @@ namespace Thebe
 #if defined THEBE_USE_IMGUI
 		ImGuiManager imGuiManager;
 #endif //THEBE_USE_IMGUI
-
-		std::string MakeAssetKey(const std::filesystem::path& assetPath);
-		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
-		void RemoveExpiredPSOs(bool removeAllNow = false);
-
+		DWORD messageCallbackCookie;
 		Clock clock;
 		UINT64 frameCount;
 		double deltaTimeSeconds;

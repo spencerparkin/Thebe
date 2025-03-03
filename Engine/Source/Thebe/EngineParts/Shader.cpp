@@ -11,6 +11,10 @@ Shader::Shader()
 {
 	this->shadowMapRegister = -1;
 	this->structuredBufferRegister = -1;
+	this->constantsBufferTableIndex = -1;
+	this->shadowMapTableIndex = -1;
+	this->textureMapsTableIndex = -1;
+	this->structuredBufferTableIndex = -1;
 }
 
 /*virtual*/ Shader::~Shader()
@@ -98,23 +102,47 @@ Shader::Shader()
 	structuredBufferDescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	std::vector<D3D12_ROOT_PARAMETER1> rootParameterArray;
-	rootParameterArray.resize(4);
-	rootParameterArray[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[0].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameterArray[0].DescriptorTable.pDescriptorRanges = &constantsBufferDescriptorRange;
-	rootParameterArray[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterArray[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[1].DescriptorTable.NumDescriptorRanges = (this->shadowMapRegister == -1) ? 0 : 1;
-	rootParameterArray[1].DescriptorTable.pDescriptorRanges = (this->shadowMapRegister == -1) ? nullptr : &shadowBufferDescriptorRange;
-	rootParameterArray[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterArray[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[2].DescriptorTable.NumDescriptorRanges = (UINT)textureDescriptorRangeArray.size();
-	rootParameterArray[2].DescriptorTable.pDescriptorRanges = textureDescriptorRangeArray.data();
-	rootParameterArray[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterArray[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterArray[3].DescriptorTable.NumDescriptorRanges = (this->structuredBufferRegister == -1) ? 0 : 1;
-	rootParameterArray[3].DescriptorTable.pDescriptorRanges = (this->structuredBufferRegister == -1) ? nullptr : &structuredBufferDescriptorRange;
-	rootParameterArray[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	
+	D3D12_ROOT_PARAMETER1 constantsBufferRootParam;
+	constantsBufferRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	constantsBufferRootParam.DescriptorTable.NumDescriptorRanges = 1;
+	constantsBufferRootParam.DescriptorTable.pDescriptorRanges = &constantsBufferDescriptorRange;
+	constantsBufferRootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	this->constantsBufferTableIndex = (UINT)rootParameterArray.size();
+	rootParameterArray.push_back(constantsBufferRootParam);
+
+	if (this->shadowMapRegister != -1)
+	{
+		D3D12_ROOT_PARAMETER1 shadowMapRootParam;
+		shadowMapRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		shadowMapRootParam.DescriptorTable.NumDescriptorRanges = 1;
+		shadowMapRootParam.DescriptorTable.pDescriptorRanges = &shadowBufferDescriptorRange;
+		shadowMapRootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		this->shadowMapTableIndex = (UINT)rootParameterArray.size();
+		rootParameterArray.push_back(shadowMapRootParam);
+	}
+
+	if (textureDescriptorRangeArray.size() > 0)
+	{
+		D3D12_ROOT_PARAMETER1 textureMapsRootParam;
+		textureMapsRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		textureMapsRootParam.DescriptorTable.NumDescriptorRanges = (UINT)textureDescriptorRangeArray.size();
+		textureMapsRootParam.DescriptorTable.pDescriptorRanges = textureDescriptorRangeArray.data();
+		textureMapsRootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		this->textureMapsTableIndex = (UINT)rootParameterArray.size();
+		rootParameterArray.push_back(textureMapsRootParam);
+	}
+
+	if (this->structuredBufferRegister != -1)
+	{
+		D3D12_ROOT_PARAMETER1 structuredBufferRootParam;
+		structuredBufferRootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		structuredBufferRootParam.DescriptorTable.NumDescriptorRanges = (this->structuredBufferRegister == -1) ? 0 : 1;
+		structuredBufferRootParam.DescriptorTable.pDescriptorRanges = (this->structuredBufferRegister == -1) ? nullptr : &structuredBufferDescriptorRange;
+		structuredBufferRootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		this->structuredBufferTableIndex = (UINT)rootParameterArray.size();
+		rootParameterArray.push_back(structuredBufferRootParam);
+	}
 
 	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -182,7 +210,7 @@ void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 	if (constantsSet && constantsSet->IsAllocated())
 	{
 		constantsSet->GetGpuHandle(0, handle);
-		commandList->SetGraphicsRootDescriptorTable(0, handle);
+		commandList->SetGraphicsRootDescriptorTable(this->constantsBufferTableIndex, handle);
 	}
 
 	if (this->shadowMapRegister != -1)
@@ -190,14 +218,14 @@ void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 		if (shadowMapSet && shadowMapSet->IsAllocated())
 		{
 			shadowMapSet->GetGpuHandle(0, handle);
-			commandList->SetGraphicsRootDescriptorTable(1, handle);
+			commandList->SetGraphicsRootDescriptorTable(this->shadowMapTableIndex, handle);
 		}
 	}
 
 	if (texturesSet && texturesSet->IsAllocated())
 	{
 		texturesSet->GetGpuHandle(0, handle);
-		commandList->SetGraphicsRootDescriptorTable(2, handle);
+		commandList->SetGraphicsRootDescriptorTable(this->textureMapsTableIndex, handle);
 	}
 
 	if (this->structuredBufferRegister != -1)
@@ -205,7 +233,7 @@ void Shader::SetRootParameters(ID3D12GraphicsCommandList* commandList,
 		if (structuredBufferSet && structuredBufferSet->IsAllocated())
 		{
 			structuredBufferSet->GetGpuHandle(0, handle);
-			commandList->SetGraphicsRootDescriptorTable(3, handle);
+			commandList->SetGraphicsRootDescriptorTable(this->structuredBufferTableIndex, handle);
 		}
 	}
 }

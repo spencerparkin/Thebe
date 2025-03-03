@@ -71,5 +71,9 @@ namespace Thebe
 		std::map<UINT, std::string> textureRegisterMap;
 		UINT shadowMapRegister;
 		UINT structuredBufferRegister;
+		UINT constantsBufferTableIndex;
+		UINT shadowMapTableIndex;
+		UINT textureMapsTableIndex;
+		UINT structuredBufferTableIndex;
 	};
 }

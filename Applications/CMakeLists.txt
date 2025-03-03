@@ -1,6 +1,6 @@
 # CMakeLists.txt file for Applications directory.
 
-set(WX_WIDGETS_ROOT "E:/wxWidgets")
+set(WX_WIDGETS_ROOT "C:/wxWidgets")
 
 add_subdirectory(Test)
 add_subdirectory(Tool)
