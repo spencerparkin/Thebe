@@ -63,14 +63,19 @@ Fence::Fence()
 
 void Fence::EnqueueSignalAndWaitForIt(ID3D12CommandQueue* commandQueue)
 {
-	this->EnqueueSignal(commandQueue);
-	this->WaitForSignalIfNecessary();
+	if (this->EnqueueSignal(commandQueue))
+		this->WaitForSignalIfNecessary();
 }
 
-void Fence::EnqueueSignal(ID3D12CommandQueue* commandQueue)
+bool Fence::EnqueueSignal(ID3D12CommandQueue* commandQueue)
 {
 	this->count = this->fence->GetCompletedValue() + 1;
-	commandQueue->Signal(this->fence.Get(), this->count);
+	HRESULT result = commandQueue->Signal(this->fence.Get(), this->count);
+	if (SUCCEEDED(result))
+		return true;
+
+	THEBE_ASSERT(false);
+	return false;
 }
 
 void Fence::WaitForSignalIfNecessary()
@@ -83,7 +88,8 @@ void Fence::WaitForSignalIfNecessary()
 		THEBE_LOG("Failed to set event on fence completion!");
 	else
 	{
-		WaitForSingleObjectEx(this->eventHandle, INFINITE, FALSE);
+		DWORD waitResult = WaitForSingleObjectEx(this->eventHandle, 1000, FALSE);
+		THEBE_ASSERT(waitResult == WAIT_OBJECT_0);
 		THEBE_ASSERT(this->count == this->fence->GetCompletedValue());
 	}
 }

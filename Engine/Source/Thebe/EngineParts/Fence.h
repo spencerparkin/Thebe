@@ -21,7 +21,7 @@ namespace Thebe
 		virtual void Shutdown() override;
 
 		void EnqueueSignalAndWaitForIt(ID3D12CommandQueue* commandQueue);
-		void EnqueueSignal(ID3D12CommandQueue* commandQueue);
+		bool EnqueueSignal(ID3D12CommandQueue* commandQueue);
 		void WaitForSignalIfNecessary();
 
 	protected:
