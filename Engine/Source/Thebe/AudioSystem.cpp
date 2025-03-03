@@ -176,9 +176,6 @@ AudioSystem::MidiThread::MidiThread(EventSystem* eventSystem) : Thread("AudioSys
 {
 	this->exitSignaled = true;
 	this->taskQueueSemaphore.release();
-	if (this->midiOut)
-		this->midiOut->closePort();
-	this->midiOut.reset(nullptr);
 	return Thread::Join();
 }
 
