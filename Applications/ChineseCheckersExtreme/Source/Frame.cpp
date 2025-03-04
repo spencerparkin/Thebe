@@ -9,6 +9,7 @@
 #include "ComputerClient.h"
 #include "Thebe/EngineParts/Scene.h"
 #include "Thebe/EngineParts/Space.h"
+#include "Thebe/GraphicsEngine.h"
 #include "LifeText.h"
 #include <wx/menu.h>
 #include <wx/sizer.h>
@@ -220,6 +221,9 @@ void ChineseCheckersFrame::OnLeaveGame(wxCommandEvent& event)
 void ChineseCheckersFrame::OnCloseWindow(wxCloseEvent& event)
 {
 	this->timer.Stop();
+
+	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
+	graphicsEngine->WaitForGPUIdle();
 
 	wxFrame::OnCloseWindow(event);
 }
