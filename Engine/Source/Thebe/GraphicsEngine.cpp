@@ -57,7 +57,11 @@ namespace std
 
 using namespace Thebe;
 
-GraphicsEngine::GraphicsEngine() : audioSystem(&this->eventSystem), imGuiManager(this)
+GraphicsEngine::GraphicsEngine()
+		: audioSystem(&this->eventSystem)
+#if defined THEBE_USE_IMGUI
+		, imGuiManager(this)
+#endif //THEBE_USE_IMGUI
 {
 	this->frameCount = 0L;
 	this->deltaTimeSeconds = 0.0;
