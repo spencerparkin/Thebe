@@ -28,6 +28,7 @@
 #include <locale>
 #include <ctype.h>
 #include <codecvt>
+#include <shlobj.h>
 
 namespace std
 {
@@ -84,8 +85,52 @@ void GraphicsEngine::MessageCallback(D3D12_MESSAGE_CATEGORY category, D3D12_MESS
 	description = nullptr;
 }
 
+bool GraphicsEngine::MakeAttachableToPIXIfNecessary()
+{
+	if (GetModuleHandle(TEXT("WinPixGpuCapturer.dll")) != NULL)
+		return true;	// In this case we were probably launched from PIX already.
+
+	// This is the currently prescribed way of finding the desired PIX DLL file.
+	LPWSTR programFilesPath = nullptr;
+	SHGetKnownFolderPath(FOLDERID_ProgramFiles, KF_FLAG_DEFAULT, NULL, &programFilesPath);
+	std::filesystem::path pixInstallationPath = programFilesPath;
+	pixInstallationPath /= "Microsoft PIX";
+	std::wstring newestVersionFound;
+	for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
+		if (directory_entry.is_directory())
+			if (newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str())
+				newestVersionFound = directory_entry.path().filename().c_str();
+
+	if (newestVersionFound.empty())
+	{
+		THEBE_LOG("Could not find PIX DLL!");
+		return false;
+	}
+	
+	std::filesystem::path dllPath = pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
+	if (!std::filesystem::exists(dllPath))
+	{
+		THEBE_LOG("File doesn't exist?  Could not get at PIX DLL.");
+		return false;
+	}
+
+	HANDLE handle = ::LoadLibrary(dllPath.string().c_str());
+	if (handle == NULL)
+	{
+		THEBE_LOG("Failed to load DLL: %s", dllPath.string().c_str());
+		return false;
+	}
+
+	return true;
+}
+
 bool GraphicsEngine::Setup(HWND windowHandle)
 {
+#if defined _DEBUG
+	if (!this->MakeAttachableToPIXIfNecessary())
+		return false;
+#endif //_DEBUG
+
 	if (this->device.Get())
 	{
 		THEBE_LOG("Graphics engine already setup.");

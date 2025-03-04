@@ -176,10 +176,9 @@ namespace Thebe
 		std::string MakeAssetKey(const std::filesystem::path& assetPath);
 		uint64_t MakePipelineStateKey(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc);
 		void RemoveExpiredPSOs(bool removeAllNow = false);
-
 		static void MessageCallbackEntryPoint(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description, void* context);
-
 		void MessageCallback(D3D12_MESSAGE_CATEGORY category, D3D12_MESSAGE_SEVERITY severity, D3D12_MESSAGE_ID messageId, LPCSTR description);
+		bool MakeAttachableToPIXIfNecessary();
 
 		ComPtr<ID3D12Device> device;
 		ComPtr<IDXGIFactory4> factory;
