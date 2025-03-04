@@ -310,6 +310,7 @@ void HumanClient::RegenerateScene(const std::string& gameType)
 		Reference<MeshInstance> platformMeshInstance(new MeshInstance());
 		platformMeshInstance->SetGraphicsEngine(graphicsEngine);
 		platformMeshInstance->SetMesh(platformMesh);
+		platformMeshInstance->SetName("platformMeshInstance");
 		if (!platformMeshInstance->Setup())
 		{
 			THEBE_LOG("Failed to setup platform mesh instance.");
@@ -329,6 +330,7 @@ void HumanClient::RegenerateScene(const std::string& gameType)
 			ringMeshInstance->SetGraphicsEngine(graphicsEngine);
 			ringMeshInstance->SetMesh(ringMesh);
 			ringMeshInstance->SetColor(zoneColor);
+			ringMeshInstance->SetName("ringMeshInstance");
 			if (!ringMeshInstance->Setup())
 			{
 				THEBE_LOG("Failed to setup ring mesh instance.");
@@ -358,6 +360,7 @@ void HumanClient::RegenerateScene(const std::string& gameType)
 			cubieMeshInstance->SetGraphicsEngine(graphicsEngine);
 			cubieMeshInstance->SetMesh(cubieMesh);
 			cubieMeshInstance->SetColor(marbleColor);
+			cubieMeshInstance->SetName("cubieMeshInstance");
 			if (!cubieMeshInstance->Setup())
 			{
 				THEBE_LOG("Failed to setup cubie mesh instance.");
@@ -394,6 +397,7 @@ void HumanClient::RegenerateScene(const std::string& gameType)
 			lifeText->SetChildToParentTransform(lifeTextTransform);
 			lifeText->SetTextColor(Vector3(0.0, 0.0, 0.0));
 			lifeText->SetFlags(0);
+			lifeText->SetName("lifeText");
 			lifeText->marbleWeakRef = nativeMarble;
 			if (!lifeText->Setup())
 			{

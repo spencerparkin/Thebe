@@ -88,6 +88,10 @@ void Fence::WaitForSignalIfNecessary()
 		THEBE_LOG("Failed to set event on fence completion!");
 	else
 	{
+		// TODO: I'm getting a hang here (hence the need for the time-out), and
+		//       it may be due to me deleting a GPU resource before the GPU is done
+		//       using the resource, causing the GPU to hang.  Right now, I'm not
+		//       sure where/how I'm doing that.
 		DWORD waitResult = WaitForSingleObjectEx(this->eventHandle, 1000, FALSE);
 		THEBE_ASSERT(waitResult == WAIT_OBJECT_0);
 		THEBE_ASSERT(this->count == this->fence->GetCompletedValue());
