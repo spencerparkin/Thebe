@@ -274,6 +274,8 @@ void AudioSystem::MidiThread::EnqueueTask(Task* task)
 			}
 		}
 	}
+
+	this->midiOut->closePort();
 }
 
 void AudioSystem::MidiThread::ShutdownCurrentSong()
