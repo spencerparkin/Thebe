@@ -231,6 +231,7 @@ target_compile_definitions(ThebeGraphicsEngine PUBLIC
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(ThebeGraphicsEngine PUBLIC
         THEBE_LOGGING
+        THEBE_PIX_ATTACH
     )
 endif()
 

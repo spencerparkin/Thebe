@@ -126,10 +126,10 @@ bool GraphicsEngine::MakeAttachableToPIXIfNecessary()
 
 bool GraphicsEngine::Setup(HWND windowHandle)
 {
-#if defined _DEBUG
+#if defined THEBE_PIX_ATTACH
 	if (!this->MakeAttachableToPIXIfNecessary())
 		return false;
-#endif //_DEBUG
+#endif //THEBE_PIX_ATTACH
 
 	if (this->device.Get())
 	{
