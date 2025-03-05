@@ -78,6 +78,9 @@ HumanClient::HumanClient()
 	AudioSystem* audioSystem = graphicsEngine->GetAudioSystem();
 	audioSystem->ClearMidiSongQueue();
 	audioSystem->SkipCurrentSong();
+
+	graphicsEngine->GetPhysicsSystem()->UntrackAllObjects();
+	graphicsEngine->GetCollisionSystem()->UntrackAllObjects();
 }
 
 /*virtual*/ void HumanClient::Update(double deltaTimeSeconds)

@@ -75,6 +75,7 @@ bool CollisionSystem::UntrackObject(CollisionObject* collisionObject)
 void CollisionSystem::UntrackAllObjects()
 {
 	this->collisionObjectMap.clear();
+	this->boxTree->RemoveAllObjects();
 }
 
 bool CollisionSystem::RayCast(const Ray& ray, CollisionObject*& collisionObject, Vector3& unitSurfaceNormal)
