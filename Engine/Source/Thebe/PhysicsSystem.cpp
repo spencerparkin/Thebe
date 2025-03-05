@@ -114,10 +114,6 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 	if (deltaTimeSeconds >= 1.0)
 		return;
 
-	std::map<RefHandle, Reference<CollisionSystem::Collision>> collisionMap;
-	std::vector<Reference<CollisionSystem::Collision>> collisionArray;
-	std::list<Contact> contactList;
-
 	// Step the simulation forward until the given delta-time has been consumed.
 	while (deltaTimeSeconds > 0.0)
 	{
@@ -152,19 +148,18 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			THEBE_PROFILE_BLOCK(DetectCollisionPairs);
 
-			collisionMap.clear();
-			collisionArray.clear();
+			this->collisionMap.clear();
 			for (auto& pair : this->physicsObjectMap)
 			{
 				PhysicsObject* physicsObject = pair.second.Get();
 				if (physicsObject->IsStationary() || physicsObject->IsFrozen())
 					continue;
 
-				collisionArray.clear();
-				collisionSystem->FindAllCollisions(physicsObject->GetCollisionObject(), collisionArray);
-				for (auto& collision : collisionArray)
-					if (collisionMap.find(collision->GetHandle()) == collisionMap.end())
-						collisionMap.insert(std::pair(collision->GetHandle(), collision));
+				this->collisionArray.clear();
+				collisionSystem->FindAllCollisions(physicsObject->GetCollisionObject(), this->collisionArray);
+				for (auto& collision : this->collisionArray)
+					if (this->collisionMap.find(collision->GetHandle()) == this->collisionMap.end())
+						this->collisionMap.insert(std::pair(collision->GetHandle(), collision));
 			}
 		}
 
@@ -172,16 +167,16 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			THEBE_PROFILE_BLOCK(GenerateContacts);
 
-			contactList.clear();
-			for (auto& pair : collisionMap)
+			this->contactList.clear();
+			for (auto& pair : this->collisionMap)
 			{
 				const auto& collision = pair.second;
-				this->GenerateContacts(collision.Get(), contactList);
+				this->GenerateContacts(collision.Get());
 			}
 		}
 
 		// Apply friction for all the contacts.
-		for (Contact& contact : contactList)
+		for (Contact& contact : this->contactList)
 			this->ApplyFriction(contact);
 
 		// Go process all collision contacts.
@@ -199,7 +194,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 				// Note that Baraff says a more advanced technique involves handling
 				// multiple contact points for a single object simultaneously.
 				resolutionCount = 0;
-				for (Contact& contact : contactList)
+				for (Contact& contact : this->contactList)
 					if (this->ResolveContact(contact))
 						resolutionCount++;
 
@@ -210,7 +205,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			THEBE_PROFILE_BLOCK(SeparateBodies);
 
-			for (auto& pair : collisionMap)
+			for (auto& pair : this->collisionMap)
 			{
 				auto& collision = pair.second;
 				const Vector3& separationDelta = collision->separationDelta;
@@ -237,7 +232,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 	}
 }
 
-bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList)
+bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision)
 {
 	Reference<PhysicsObject> objectA, objectB;
 
@@ -248,7 +243,7 @@ bool PhysicsSystem::GenerateContacts(const CollisionSystem::Collision* collision
 		return false;
 
 	for (auto calculator : this->contactCalculatorArray)
-		if (calculator->CalculateContacts(objectA, objectB, contactList))
+		if (calculator->CalculateContacts(objectA, objectB, this->contactList))
 			return true;
 
 	return true;

@@ -5,7 +5,7 @@
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/GJKAlgorithm.h"
 #include "Thebe/CollisionSystem.h"
-#include <map>
+#include <unordered_map>
 
 #define THEBE_MAX_PHYSICS_TIME_STEP		0.05
 
@@ -114,9 +114,9 @@ namespace Thebe
 		void HandleCollisionObjectEvent(const Event* event);
 
 		/**
-		 * Add one or more collision contacts to the given list as a function of the given collision.
+		 * Add one or more collision contacts to the contacts list as a function of the given collision.
 		 */
-		bool GenerateContacts(const CollisionSystem::Collision* collision, std::list<Contact>& contactList);
+		bool GenerateContacts(const CollisionSystem::Collision* collision);
 
 		/**
 		 * True is returned here if and only if an impulse was applied to prevent interpenetration.
@@ -128,9 +128,16 @@ namespace Thebe
 		 */
 		void ApplyFriction(Contact& contact);
 
-		std::map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
+		std::unordered_map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;
 		std::vector<ContactResolverInterface*> contactResolverArray;
+
+		// These could be declared locally within the StepSimulation function, but
+		// we declare them here so that we don't thrash the allocators for each
+		// container type.  Rather, we want to re-use that storage each step.
+		std::unordered_map<RefHandle, Reference<CollisionSystem::Collision>> collisionMap;
+		std::vector<Reference<CollisionSystem::Collision>> collisionArray;
+		std::list<Contact> contactList;
 
 		Vector3 accelerationDueToGravity;
 	};
