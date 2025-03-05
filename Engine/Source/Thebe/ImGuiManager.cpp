@@ -6,6 +6,7 @@
 #include "Thebe/EngineParts/CommandQueue.h"
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/SwapChain.h"
+#include "Thebe/Profiler.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -95,7 +96,9 @@ void ImGuiManager::BeginRender()
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
+
+	Profiler::Get()->ShowImGuiPlotTreeWindow();
 }
 
 void ImGuiManager::EndRender(ID3D12GraphicsCommandList* commandList)

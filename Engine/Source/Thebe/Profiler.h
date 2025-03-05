@@ -27,6 +27,10 @@ namespace Thebe
 		void BeginFrame();
 		void EndFrame();
 
+#if defined THEBE_USE_IMGUI
+		void ShowImGuiPlotTreeWindow();
+#endif //THEBE_USE_IMGUI
+
 		class PersistentRecord : public ReferenceCounted
 		{
 		public:
@@ -35,6 +39,10 @@ namespace Thebe
 
 			void UpdateTree(const ProfileBlockRecord* blockRecord, uint64_t masterFrameKey);
 			std::string GenerateText(int indentLevel = 0) const;
+
+#if defined THEBE_USE_IMGUI
+			void GenerateImGuiPlotTree() const;
+#endif //THEBE_USE_IMGUI
 
 		public:
 			const char* name;

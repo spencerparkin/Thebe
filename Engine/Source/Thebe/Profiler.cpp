@@ -1,5 +1,8 @@
 #include "Profiler.h"
 #include <format>
+#if defined THEBE_USE_IMGUI
+#	include <ImGui/imgui.h>
+#endif //THEBE_USE_IMGUI
 
 using namespace Thebe;
 
@@ -73,6 +76,21 @@ const Profiler::PersistentRecord* Profiler::GetProfileTree()
 	return this->persistentRootRecord;
 }
 
+#if defined THEBE_USE_IMGUI
+void Profiler::ShowImGuiPlotTreeWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
+
+	if (ImGui::Begin("Profiler Plots"))
+	{
+		if (this->persistentRootRecord)
+			this->persistentRootRecord->GenerateImGuiPlotTree();
+
+		ImGui::End();
+	}
+}
+#endif //THEBE_USE_IMGUI
+
 //------------------------------------ Profiler::ProfileBlockRecord ------------------------------------
 
 Profiler::ProfileBlockRecord::ProfileBlockRecord()
@@ -144,6 +162,21 @@ std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) co
 
 	return text;
 }
+
+#if defined THEBE_USE_IMGUI
+void Profiler::PersistentRecord::GenerateImGuiPlotTree() const
+{
+	if (ImGui::TreeNode(this->name))
+	{
+		// TODO: Add plot here.
+
+		for (const auto& pair : this->childMap)
+			pair.second->GenerateImGuiPlotTree();
+
+		ImGui::TreePop();
+	}
+}
+#endif //THEBE_USE_IMGUI
 
 //------------------------------------ ScopedProfileBlock ------------------------------------
 
