@@ -15,6 +15,8 @@ ImGuiManager::ImGuiManager(GraphicsEngine* graphicsEngine)
 {
 	this->graphicsEngine = graphicsEngine;
 	this->imGuiContext = nullptr;
+	this->imPlotContext = nullptr;
+	this->nextCookie = 1;
 }
 
 /*virtual*/ ImGuiManager::~ImGuiManager()
@@ -29,6 +31,13 @@ bool ImGuiManager::Setup(HWND windowHandle)
 	if (!this->imGuiContext)
 	{
 		THEBE_LOG("Failed to create ImGui context!");
+		return false;
+	}
+
+	this->imPlotContext = ImPlot::CreateContext();
+	if (!this->imPlotContext)
+	{
+		THEBE_LOG("Failed to create ImPlot context!");
 		return false;
 	}
 
@@ -81,8 +90,17 @@ void ImGuiManager::Shutdown()
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 
-	ImGui::DestroyContext(this->imGuiContext);
-	this->imGuiContext = nullptr;
+	if (this->imPlotContext)
+	{
+		ImPlot::DestroyContext(this->imPlotContext);
+		this->imPlotContext = nullptr;
+	}
+
+	if (this->imGuiContext)
+	{
+		ImGui::DestroyContext(this->imGuiContext);
+		this->imGuiContext = nullptr;
+	}
 
 	if (this->descriptorPool)
 	{
@@ -91,14 +109,32 @@ void ImGuiManager::Shutdown()
 	}
 }
 
+bool ImGuiManager::RegisterGuiCallback(ImGuiCallback callback, int& cookie)
+{
+	cookie = this->nextCookie++;
+	this->callbackMap.insert(std::pair(cookie, callback));
+	return true;
+}
+
+bool ImGuiManager::UnregisterGuiCallback(int& cookie)
+{
+	auto pair = this->callbackMap.find(cookie);
+	if (pair == this->callbackMap.end())
+		return false;
+
+	this->callbackMap.erase(pair);
+	cookie = 0;
+	return true;
+}
+
 void ImGuiManager::BeginRender()
 {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	//ImGui::ShowDemoWindow();
 
-	Profiler::Get()->ShowImGuiPlotTreeWindow();
+	for (auto& pair : this->callbackMap)
+		pair.second();
 }
 
 void ImGuiManager::EndRender(ID3D12GraphicsCommandList* commandList)

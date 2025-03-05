@@ -209,11 +209,20 @@ set(IMGUI_SOURCES
     Source/ImGui/backends/imgui_impl_win32.h
 )
 
+set(IMPLOT_SOURCES
+    Source/ImPlot/implot.cpp
+    Source/ImPlot/implot.h
+    Source/ImPlot/implot_demo.cpp
+    Source/ImPlot/implot_internal.h
+    Source/ImPlot/implot_items.cpp
+)
+
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})
 
 add_library(ThebeGraphicsEngine SHARED
     ${GRAPHICS_ENGINE_SOURCES}
     ${IMGUI_SOURCES}
+    ${IMPLOT_SOURCES}
 )
 
 target_compile_definitions(ThebeGraphicsEngine PRIVATE
@@ -258,6 +267,7 @@ target_link_directories(ThebeGraphicsEngine PRIVATE
 target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
     "Source/ImGui"
+    "Source/ImPlot"
     "DirectXHeader"
     "../ThirdParty/ParseParty/ParseLibrary/Source"
     "../ThirdParty/zLib/include"

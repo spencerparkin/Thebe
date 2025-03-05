@@ -1,8 +1,6 @@
-#include "Profiler.h"
+#include "Thebe/Profiler.h"
+#include "Thebe/Math/Random.h"
 #include <format>
-#if defined THEBE_USE_IMGUI
-#	include <ImGui/imgui.h>
-#endif //THEBE_USE_IMGUI
 
 using namespace Thebe;
 
@@ -15,6 +13,9 @@ Profiler::Profiler()
 	this->currentRecord = nullptr;
 	this->blockRecordHeap.SetSize(sizeof(ProfileBlockRecord) * 2048);
 	this->frameKey = 0;
+#if defined THEBE_USE_IMGUI
+	this->profilerWindowCookie = 0;
+#endif //THEBE_USE_IMGUI
 }
 
 /*virtual*/ Profiler::~Profiler()
@@ -77,18 +78,50 @@ const Profiler::PersistentRecord* Profiler::GetProfileTree()
 }
 
 #if defined THEBE_USE_IMGUI
-void Profiler::ShowImGuiPlotTreeWindow()
+
+void Profiler::EnableImGuiProfilerWindow(bool enable, ImGuiManager* manager)
+{
+	if (enable)
+	{
+		if (this->profilerWindowCookie == 0)
+			manager->RegisterGuiCallback([this]() { this->ShowImGuiProfilerWindow(); }, this->profilerWindowCookie);
+	}
+	else
+	{
+		if (this->profilerWindowCookie != 0)
+			manager->UnregisterGuiCallback(this->profilerWindowCookie);
+	}
+}
+
+bool Profiler::ShowingImGuiProfilerWindow()
+{
+	return this->profilerWindowCookie != 0;
+}
+
+void Profiler::ShowImGuiProfilerWindow()
 {
 	ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
 
-	if (ImGui::Begin("Profiler Plots"))
+	if (ImGui::Begin("Profiler Graph"))
 	{
 		if (this->persistentRootRecord)
-			this->persistentRootRecord->GenerateImGuiPlotTree();
+		{
+			ImPlot::SetNextAxesLimits(0.0, double(THEBE_NUM_GRAPH_PLOT_FRAMES - 1), 0.0, 30.0, ImPlotCond_Once);
+
+			if (ImPlot::BeginPlot("Frame Times", "Frame", "Milliseconds"))
+			{
+				this->persistentRootRecord->GenerateImGuiPlotGraphs();
+
+				ImPlot::EndPlot();
+			}
+
+			this->persistentRootRecord->GenerateImGuiProfileTree();
+		}
 
 		ImGui::End();
 	}
 }
+
 #endif //THEBE_USE_IMGUI
 
 //------------------------------------ Profiler::ProfileBlockRecord ------------------------------------
@@ -108,9 +141,17 @@ Profiler::ProfileBlockRecord::ProfileBlockRecord()
 
 Profiler::PersistentRecord::PersistentRecord()
 {
+	static Random random;
+
 	this->name = nullptr;
 	this->timeTakenMilliseconds = 0.0;
 	this->frameKey = 0;
+#if defined THEBE_USE_IMGUI
+	this->graphColor.x = random.InRange(0.0, 1.0);
+	this->graphColor.y = random.InRange(0.0, 1.0);
+	this->graphColor.z = random.InRange(0.0, 1.0);
+	this->graphColor.w = 1.0;
+#endif //THEBE_USE_IMGUI
 }
 
 /*virtual*/ Profiler::PersistentRecord::~PersistentRecord()
@@ -164,17 +205,42 @@ std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) co
 }
 
 #if defined THEBE_USE_IMGUI
-void Profiler::PersistentRecord::GenerateImGuiPlotTree() const
+void Profiler::PersistentRecord::GenerateImGuiProfileTree() const
 {
 	if (ImGui::TreeNode(this->name))
 	{
-		// TODO: Add plot here.
+		ImGui::LabelText("Time Taken", "%1.2f ms", this->timeTakenMilliseconds);
 
 		for (const auto& pair : this->childMap)
-			pair.second->GenerateImGuiPlotTree();
+			pair.second->GenerateImGuiProfileTree();
 
 		ImGui::TreePop();
 	}
+}
+
+void Profiler::PersistentRecord::GenerateImGuiPlotGraphs() const
+{
+	this->plotDataHistory.push_back(this->timeTakenMilliseconds);
+	while (this->plotDataHistory.size() > THEBE_NUM_GRAPH_PLOT_FRAMES)
+		this->plotDataHistory.pop_front();
+
+	this->plotDataArray.clear();
+	for (const double& timeTakenEntry : this->plotDataHistory)
+		this->plotDataArray.push_back(&timeTakenEntry);
+
+	ImPlot::SetNextLineStyle(this->graphColor);
+
+	ImPlot::PlotLineG(this->name, [](int index, void* data)
+		{
+			const auto* persistentRecord = reinterpret_cast<const PersistentRecord*>(data);
+			ImPlotPoint point;
+			point.x = (double)index;
+			point.y = *persistentRecord->plotDataArray[index];
+			return point;
+		}, const_cast<PersistentRecord*>(this), (int)this->plotDataArray.size());
+
+	for (const auto& pair : this->childMap)
+		pair.second->GenerateImGuiPlotGraphs();
 }
 #endif //THEBE_USE_IMGUI
 

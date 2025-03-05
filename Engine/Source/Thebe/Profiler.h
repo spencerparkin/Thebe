@@ -6,6 +6,13 @@
 #include "Thebe/Reference.h"
 #include <memory>
 #include <map>
+#if defined THEBE_USE_IMGUI
+#	include <ImGui/imgui.h>
+#	include <ImPlot/implot.h>
+#	include "Thebe/ImGuiManager.h"
+#endif //THEBE_USE_IMGUI
+
+#define THEBE_NUM_GRAPH_PLOT_FRAMES		100
 
 namespace Thebe
 {
@@ -28,7 +35,8 @@ namespace Thebe
 		void EndFrame();
 
 #if defined THEBE_USE_IMGUI
-		void ShowImGuiPlotTreeWindow();
+		void EnableImGuiProfilerWindow(bool enable, ImGuiManager* manager);
+		bool ShowingImGuiProfilerWindow();
 #endif //THEBE_USE_IMGUI
 
 		class PersistentRecord : public ReferenceCounted
@@ -41,7 +49,8 @@ namespace Thebe
 			std::string GenerateText(int indentLevel = 0) const;
 
 #if defined THEBE_USE_IMGUI
-			void GenerateImGuiPlotTree() const;
+			void GenerateImGuiProfileTree() const;
+			void GenerateImGuiPlotGraphs() const;
 #endif //THEBE_USE_IMGUI
 
 		public:
@@ -49,11 +58,22 @@ namespace Thebe
 			double timeTakenMilliseconds;
 			std::map<std::string, Reference<PersistentRecord>> childMap;
 			uint64_t frameKey;
+
+#if defined THEBE_USE_IMGUI
+			mutable std::list<double> plotDataHistory;
+			mutable std::vector<const double*> plotDataArray;
+			ImVec4 graphColor;
+#endif //THEBE_USE_IMGUI
 		};
 
 		const PersistentRecord* GetProfileTree();
 
 	private:
+
+#if defined THEBE_USE_IMGUI
+		void ShowImGuiProfilerWindow();
+#endif //THEBE_USE_IMGUI
+
 		class ProfileBlockRecord : public LinkedListNode
 		{
 		public:
@@ -77,6 +97,9 @@ namespace Thebe
 		Clock clock;
 		Reference<PersistentRecord> persistentRootRecord;
 		uint64_t frameKey;
+#if defined THEBE_USE_IMGUI
+		int profilerWindowCookie;
+#endif //THEBE_USE_IMGUI
 	};
 
 	/**

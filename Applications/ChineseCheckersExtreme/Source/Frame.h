@@ -21,6 +21,9 @@ public:
 		ID_HostGame,
 		ID_JoinGame,
 		ID_LeaveGame,
+#if defined THEBE_USE_IMGUI
+		ID_ToggleProfilerWindow,
+#endif //THEBE_USE_IMGUI
 		ID_Timer
 	};
 
@@ -36,6 +39,9 @@ private:
 	void OnExit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnHelp(wxCommandEvent& event);
+#if defined THEBE_USE_IMGUI
+	void OnToggleProfilerWindow(wxCommandEvent& event);
+#endif //THEBE_USE_IMGUI
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);

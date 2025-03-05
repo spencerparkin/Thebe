@@ -6,8 +6,10 @@
 
 #include "Thebe/EngineParts/DescriptorPool.h"
 #include "ImGui/imgui.h"
+#include "ImPlot/implot.h"
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx12.h"
+#include <functional>
 
 namespace Thebe
 {
@@ -30,6 +32,11 @@ namespace Thebe
 		void EndRender(ID3D12GraphicsCommandList* commandList);
 		static LRESULT HandleWindowsMessage(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam);
 
+		typedef std::function<void()> ImGuiCallback;
+
+		bool RegisterGuiCallback(ImGuiCallback callback, int& cookie);
+		bool UnregisterGuiCallback(int& cookie);
+
 	private:
 
 		static void AllocSrvDescriptorEntryFunc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_desc_handle);
@@ -40,7 +47,10 @@ namespace Thebe
 
 		GraphicsEngine* graphicsEngine;
 		ImGuiContext* imGuiContext;
+		ImPlotContext* imPlotContext;
 		Reference<DescriptorPool> descriptorPool;
+		int nextCookie;
+		std::map<int, ImGuiCallback> callbackMap;
 	};
 }
 
