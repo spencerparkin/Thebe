@@ -205,6 +205,14 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			THEBE_PROFILE_BLOCK(SeparateBodies);
 
+			// TODO: I think there is a bug here.  It's not clear to me exactly what's wrong,
+			//       but in terms of visuals, the problem is that we can get some objects
+			//       smashed into stationary objects.  Anyhow, a better procedure here might be
+			//       to resolve stationary objects with non-stationary ones first, then consider
+			//       those resolved objects as now "stationary" for this frame, and then repeat
+			//       this process until there are no more objects to resolve.  Once that's done,
+			//       then we can just go resolve non-stationary objects with non-stationary objects
+			//       as normal.
 			for (auto& pair : this->collisionMap)
 			{
 				auto& collision = pair.second;
