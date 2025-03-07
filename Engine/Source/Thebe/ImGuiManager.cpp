@@ -64,6 +64,7 @@ bool ImGuiManager::Setup(HWND windowHandle, GraphicsEngine* graphicsEngine)
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	SwapChain* swapChain = graphicsEngine->GetSwapChain();
 
