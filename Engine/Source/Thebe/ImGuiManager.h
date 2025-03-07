@@ -20,10 +20,12 @@ namespace Thebe
 	class THEBE_API ImGuiManager
 	{
 	public:
-		ImGuiManager(GraphicsEngine* graphicsEngine);
+		ImGuiManager();
 		virtual ~ImGuiManager();
 
-		bool Setup(HWND windowHandle);
+		static ImGuiManager* Get();
+
+		bool Setup(HWND windowHandle, GraphicsEngine* graphicsEngine);
 		void Shutdown();
 		void BeginRender();
 		void EndRender(ID3D12GraphicsCommandList* commandList);
@@ -33,6 +35,8 @@ namespace Thebe
 
 		bool RegisterGuiCallback(ImGuiCallback callback, int& cookie);
 		bool UnregisterGuiCallback(int& cookie);
+		bool EnableGuiCallback(int cookie, bool enabled);
+		bool IsGuiCallbackEnabled(int cookie);
 
 	private:
 
@@ -42,11 +46,16 @@ namespace Thebe
 		void AllocSrvDescriptor(DescriptorPool::Descriptor& descriptor);
 		void FreeSrvDescriptor(const DescriptorPool::Descriptor& descriptor);
 
-		GraphicsEngine* graphicsEngine;
+		struct CallbackEntry
+		{
+			ImGuiCallback callback;
+			bool enabled;
+		};
+
 		ImGuiContext* imGuiContext;
 		ImPlotContext* imPlotContext;
 		Reference<DescriptorPool> descriptorPool;
 		int nextCookie;
-		std::map<int, ImGuiCallback> callbackMap;
+		std::map<int, CallbackEntry> callbackMap;
 	};
 }

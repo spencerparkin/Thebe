@@ -95,9 +95,8 @@ ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 
 void ChineseCheckersFrame::OnToggleProfilerWindow(wxCommandEvent& event)
 {
-	ImGuiManager* manager = wxGetApp().GetGraphicsEngine()->GetImGuiManager();
 	bool enable = !Profiler::Get()->ShowingImGuiProfilerWindow();
-	Profiler::Get()->EnableImGuiProfilerWindow(enable, manager);
+	Profiler::Get()->EnableImGuiProfilerWindow(enable);
 }
 
 void ChineseCheckersFrame::SetInfoText(const wxString& infoText)

@@ -76,23 +76,19 @@ const Profiler::PersistentRecord* Profiler::GetProfileTree()
 	return this->persistentRootRecord;
 }
 
-void Profiler::EnableImGuiProfilerWindow(bool enable, ImGuiManager* manager)
+void Profiler::RegisterWithImGuiManager()
 {
-	if (enable)
-	{
-		if (this->profilerWindowCookie == 0)
-			manager->RegisterGuiCallback([this]() { this->ShowImGuiProfilerWindow(); }, this->profilerWindowCookie);
-	}
-	else
-	{
-		if (this->profilerWindowCookie != 0)
-			manager->UnregisterGuiCallback(this->profilerWindowCookie);
-	}
+	ImGuiManager::Get()->RegisterGuiCallback([this]() { this->ShowImGuiProfilerWindow(); }, this->profilerWindowCookie);
+}
+
+void Profiler::EnableImGuiProfilerWindow(bool enable)
+{
+	ImGuiManager::Get()->EnableGuiCallback(this->profilerWindowCookie, enable);
 }
 
 bool Profiler::ShowingImGuiProfilerWindow()
 {
-	return this->profilerWindowCookie != 0;
+	return ImGuiManager::Get()->IsGuiCallbackEnabled(this->profilerWindowCookie);
 }
 
 void Profiler::ShowImGuiProfilerWindow()

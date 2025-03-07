@@ -8,9 +8,14 @@
 
 using namespace Thebe;
 
-ImGuiManager::ImGuiManager(GraphicsEngine* graphicsEngine)
+/*static*/ ImGuiManager* ImGuiManager::Get()
 {
-	this->graphicsEngine = graphicsEngine;
+	static ImGuiManager manager;
+	return &manager;
+}
+
+ImGuiManager::ImGuiManager()
+{
 	this->imGuiContext = nullptr;
 	this->imPlotContext = nullptr;
 	this->nextCookie = 1;
@@ -20,7 +25,7 @@ ImGuiManager::ImGuiManager(GraphicsEngine* graphicsEngine)
 {
 }
 
-bool ImGuiManager::Setup(HWND windowHandle)
+bool ImGuiManager::Setup(HWND windowHandle, GraphicsEngine* graphicsEngine)
 {
 	IMGUI_CHECKVERSION();
 
@@ -45,7 +50,7 @@ bool ImGuiManager::Setup(HWND windowHandle)
 	}
 
 	this->descriptorPool.Set(new DescriptorPool());
-	this->descriptorPool->SetGraphicsEngine(this->graphicsEngine);
+	this->descriptorPool->SetGraphicsEngine(graphicsEngine);
 	D3D12_DESCRIPTOR_HEAP_DESC& srvDescriptorPoolDesc = this->descriptorPool->GetDescriptorHeapDesc();
 	srvDescriptorPoolDesc.NumDescriptors = 5 * 1024;
 	srvDescriptorPoolDesc.NodeMask = 0;
@@ -60,7 +65,7 @@ bool ImGuiManager::Setup(HWND windowHandle)
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-	SwapChain* swapChain = this->graphicsEngine->GetSwapChain();
+	SwapChain* swapChain = graphicsEngine->GetSwapChain();
 
 	ImGui_ImplDX12_InitInfo initInfo{};
 	initInfo.Device = graphicsEngine->GetDevice();
@@ -109,7 +114,10 @@ void ImGuiManager::Shutdown()
 bool ImGuiManager::RegisterGuiCallback(ImGuiCallback callback, int& cookie)
 {
 	cookie = this->nextCookie++;
-	this->callbackMap.insert(std::pair(cookie, callback));
+	CallbackEntry entry;
+	entry.callback = callback;
+	entry.enabled = false;
+	this->callbackMap.insert(std::pair(cookie, entry));
 	return true;
 }
 
@@ -124,6 +132,25 @@ bool ImGuiManager::UnregisterGuiCallback(int& cookie)
 	return true;
 }
 
+bool ImGuiManager::EnableGuiCallback(int cookie, bool enabled)
+{
+	auto pair = this->callbackMap.find(cookie);
+	if (pair == this->callbackMap.end())
+		return false;
+
+	pair->second.enabled = enabled;
+	return true;
+}
+
+bool ImGuiManager::IsGuiCallbackEnabled(int cookie)
+{
+	auto pair = this->callbackMap.find(cookie);
+	if (pair == this->callbackMap.end())
+		return false;
+
+	return pair->second.enabled;
+}
+
 void ImGuiManager::BeginRender()
 {
 	ImGui_ImplDX12_NewFrame();
@@ -131,7 +158,11 @@ void ImGuiManager::BeginRender()
 	ImGui::NewFrame();
 
 	for (auto& pair : this->callbackMap)
-		pair.second();
+	{
+		CallbackEntry& entry = pair.second;
+		if (entry.enabled)
+			entry.callback();
+	}
 }
 
 void ImGuiManager::EndRender(ID3D12GraphicsCommandList* commandList)

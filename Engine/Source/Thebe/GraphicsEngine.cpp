@@ -58,7 +58,7 @@ namespace std
 
 using namespace Thebe;
 
-GraphicsEngine::GraphicsEngine() : audioSystem(&this->eventSystem), imGuiManager(this)
+GraphicsEngine::GraphicsEngine() : audioSystem(&this->eventSystem)
 {
 	this->frameCount = 0L;
 	this->deltaTimeSeconds = 0.0;
@@ -310,11 +310,14 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 		return false;
 	}
 
-	if (!this->imGuiManager.Setup(windowHandle))
+	if (!ImGuiManager::Get()->Setup(windowHandle, this))
 	{
 		THEBE_LOG("Failed to setup Dear ImGui.");
 		return false;
 	}
+
+	Profiler::Get()->RegisterWithImGuiManager();
+	this->physicsSystem.RegisterWithImGuiManager();
 
 	this->clock.Reset();
 
@@ -371,7 +374,7 @@ void GraphicsEngine::Shutdown()
 	this->collisionSystem.UntrackAllObjects();
 	this->physicsSystem.UntrackAllObjects();
 
-	this->imGuiManager.Shutdown();
+	ImGuiManager::Get()->Shutdown();
 
 	if (this->commandQueue)
 	{
@@ -646,11 +649,6 @@ CameraSystem* GraphicsEngine::GetCameraSystem()
 AudioSystem* GraphicsEngine::GetAudioSystem()
 {
 	return &this->audioSystem;
-}
-
-ImGuiManager* GraphicsEngine::GetImGuiManager()
-{
-	return &this->imGuiManager;
 }
 
 bool GraphicsEngine::GleanAssetsFolderFromPath(const std::filesystem::path& assetPath, std::filesystem::path& assetsFolder)

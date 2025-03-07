@@ -18,7 +18,10 @@ PhysicsSystem::PhysicsSystem()
 	this->contactResolverArray.push_back(new ContactResolver<RigidBody, RigidBody>());
 	this->contactResolverArray.push_back(new ContactResolver<RigidBody, FloppyBody>());
 	this->contactResolverArray.push_back(new ContactResolver<FloppyBody, FloppyBody>());
+	
 	this->accelerationDueToGravity.SetComponents(0.0, -9.8, 0.0);
+
+	this->physicsWindowCookie = 0;
 }
 
 /*virtual*/ PhysicsSystem::~PhysicsSystem()
@@ -333,6 +336,26 @@ void PhysicsSystem::ApplyFriction(Contact& contact)
 		//...call function here, same as above...
 	}
 #endif
+}
+
+void PhysicsSystem::RegisterWithImGuiManager()
+{
+	ImGuiManager::Get()->RegisterGuiCallback([this]() { this->ShowImGuiPhysicsWindow(); }, this->physicsWindowCookie);
+}
+
+void PhysicsSystem::EnablePhysicsImGuiWindow(bool enable)
+{
+	ImGuiManager::Get()->EnableGuiCallback(this->physicsWindowCookie, enable);
+}
+
+bool PhysicsSystem::ShowingPhysicsImGuiWindow()
+{
+	return ImGuiManager::Get()->IsGuiCallbackEnabled(this->physicsWindowCookie);
+}
+
+void PhysicsSystem::ShowImGuiPhysicsWindow()
+{
+
 }
 
 //------------------------------ PhysicsSystem::ContactResolver<RigidBody, RigidBody> ------------------------------

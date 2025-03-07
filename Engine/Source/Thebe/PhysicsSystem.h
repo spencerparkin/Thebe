@@ -5,6 +5,7 @@
 #include "Thebe/Math/Vector3.h"
 #include "Thebe/Math/GJKAlgorithm.h"
 #include "Thebe/CollisionSystem.h"
+#include "Thebe/ImGuiManager.h"
 #include <unordered_map>
 
 #define THEBE_MAX_PHYSICS_TIME_STEP		0.05
@@ -110,6 +111,10 @@ namespace Thebe
 		void SetGravity(const Vector3& accelerationDueToGravity);
 		const Vector3& GetGravity() const;
 
+		void RegisterWithImGuiManager();
+		void EnablePhysicsImGuiWindow(bool enable);
+		bool ShowingPhysicsImGuiWindow();
+
 	private:
 		void HandleCollisionObjectEvent(const Event* event);
 
@@ -128,6 +133,8 @@ namespace Thebe
 		 */
 		void ApplyFriction(Contact& contact);
 
+		void ShowImGuiPhysicsWindow();
+
 		std::unordered_map<RefHandle, Reference<PhysicsObject>> physicsObjectMap;
 		std::vector<ContactCalculatorInterface*> contactCalculatorArray;
 		std::vector<ContactResolverInterface*> contactResolverArray;
@@ -140,5 +147,7 @@ namespace Thebe
 		std::list<Contact> contactList;
 
 		Vector3 accelerationDueToGravity;
+
+		int physicsWindowCookie;
 	};
 }

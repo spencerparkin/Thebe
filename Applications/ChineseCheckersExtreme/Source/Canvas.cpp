@@ -38,7 +38,7 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 
-	*result = graphicsEngine->GetImGuiManager()->HandleWindowsMessage(this->GetHWND(), message, wParam, lParam);
+	*result = ImGuiManager::Get()->HandleWindowsMessage(this->GetHWND(), message, wParam, lParam);
 	if (*result != 0)
 		return true;
 

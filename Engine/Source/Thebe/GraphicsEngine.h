@@ -152,7 +152,6 @@ namespace Thebe
 		EventSystem* GetEventSystem();
 		CameraSystem* GetCameraSystem();
 		AudioSystem* GetAudioSystem();
-		ImGuiManager* GetImGuiManager();
 
 		/**
 		 * Convert a location in screen-space to a ray in world space
@@ -198,7 +197,6 @@ namespace Thebe
 		EventSystem eventSystem;
 		CameraSystem cameraSystem;
 		AudioSystem audioSystem;
-		ImGuiManager imGuiManager;
 		DWORD messageCallbackCookie;
 		Clock clock;
 		UINT64 frameCount;

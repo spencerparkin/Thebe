@@ -30,7 +30,8 @@ namespace Thebe
 		void BeginFrame();
 		void EndFrame();
 
-		void EnableImGuiProfilerWindow(bool enable, ImGuiManager* manager);
+		void RegisterWithImGuiManager();
+		void EnableImGuiProfilerWindow(bool enable);
 		bool ShowingImGuiProfilerWindow();
 
 		class PersistentRecord : public ReferenceCounted

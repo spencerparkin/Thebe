@@ -569,7 +569,7 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	commandList->RSSetViewports(1, &this->viewport);
 	commandList->RSSetScissorRects(1, &this->scissorRect);
 
-	graphicsEngine->GetImGuiManager()->BeginRender();
+	ImGuiManager::Get()->BeginRender();
 
 	return true;
 }
@@ -601,14 +601,14 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-		graphicsEngine->GetImGuiManager()->EndRender(commandList);
+		ImGuiManager::Get()->EndRender(commandList);
 
 		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);
 	}
 	else
 	{
-		graphicsEngine->GetImGuiManager()->EndRender(commandList);
+		ImGuiManager::Get()->EndRender(commandList);
 
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);
