@@ -200,6 +200,9 @@ void Profiler::PersistentRecord::GenerateImGuiPlotGraphs(int numGraphPlotFrames)
 		this->plotDataHistory.pop_front();
 
 	this->plotDataArray.clear();
+	static double zero = 0.0;
+	for (int i = 0; i < numGraphPlotFrames - int(this->plotDataHistory.size()); i++)
+		this->plotDataArray.push_back(&zero);
 	for (const double& timeTakenEntry : this->plotDataHistory)
 		this->plotDataArray.push_back(&timeTakenEntry);
 
