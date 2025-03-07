@@ -22,6 +22,7 @@ public:
 		ID_JoinGame,
 		ID_LeaveGame,
 		ID_ToggleProfilerWindow,
+		ID_TogglePhysicsWindow,
 		ID_Timer
 	};
 
@@ -38,12 +39,13 @@ private:
 	void OnAbout(wxCommandEvent& event);
 	void OnHelp(wxCommandEvent& event);
 	void OnToggleProfilerWindow(wxCommandEvent& event);
+	void OnTogglePhysicsWindow(wxCommandEvent& event);
+	void OnToggleLifeCountsButtonPressed(wxCommandEvent& event);
+	void OnToggleProfileStatsButtonPressed(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
-	void OnToggleLifeCountsButtonPressed(wxCommandEvent& event);
-	void OnToggleProfileStatsButtonPressed(wxCommandEvent& event);
-
+	
 	wxStaticText* infoText;
 	wxToggleButton* lifeToggleButton;
 	wxToggleButton* profileStatsToggleButton;

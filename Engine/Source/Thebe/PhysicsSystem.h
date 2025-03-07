@@ -111,6 +111,8 @@ namespace Thebe
 		void SetGravity(const Vector3& accelerationDueToGravity);
 		const Vector3& GetGravity() const;
 
+		double GetCoeficientOfRestituation() const;
+
 		void RegisterWithImGuiManager();
 		void EnablePhysicsImGuiWindow(bool enable);
 		bool ShowingPhysicsImGuiWindow();
@@ -147,6 +149,8 @@ namespace Thebe
 		std::list<Contact> contactList;
 
 		Vector3 accelerationDueToGravity;
+		double separationDampingFactor;
+		double coeficientOfRestitution;
 
 		int physicsWindowCookie;
 	};

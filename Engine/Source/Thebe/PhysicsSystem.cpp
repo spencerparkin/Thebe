@@ -20,6 +20,8 @@ PhysicsSystem::PhysicsSystem()
 	this->contactResolverArray.push_back(new ContactResolver<FloppyBody, FloppyBody>());
 	
 	this->accelerationDueToGravity.SetComponents(0.0, -9.8, 0.0);
+	this->separationDampingFactor = 0.5;
+	this->coeficientOfRestitution = 0.5;
 
 	this->physicsWindowCookie = 0;
 }
@@ -69,6 +71,11 @@ void PhysicsSystem::SetGravity(const Vector3& accelerationDueToGravity)
 const Vector3& PhysicsSystem::GetGravity() const
 {
 	return this->accelerationDueToGravity;
+}
+
+double PhysicsSystem::GetCoeficientOfRestituation() const
+{
+	return this->coeficientOfRestitution;
 }
 
 bool PhysicsSystem::TrackObject(PhysicsObject* physicsObject)
@@ -222,8 +229,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 				for (auto& pair : this->collisionMap)
 				{
 					auto& collision = pair.second;
-					double dampingFactor = 0.5;
-					Vector3 separationDelta = collision->separationDelta * dampingFactor;
+					Vector3 separationDelta = collision->separationDelta * this->separationDampingFactor;
 
 					RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
 					RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
@@ -355,7 +361,24 @@ bool PhysicsSystem::ShowingPhysicsImGuiWindow()
 
 void PhysicsSystem::ShowImGuiPhysicsWindow()
 {
+	ImGui::SetNextWindowSize(ImVec2(600, 200), ImGuiCond_FirstUseEver);
 
+	if (ImGui::Begin("Physics Parameters"))
+	{
+		static double gravityMin = -50.0;
+		static double gravityMax = 0.0;
+		ImGui::SliderScalarN("Gravity", ImGuiDataType_Double, &this->accelerationDueToGravity.x, 3, &gravityMin, &gravityMax);
+
+		static double minSepDampFactor = 0.01;
+		static double maxSepDampFactor = 1.0;
+		ImGui::SliderScalarN("Sep. Damp. Factor", ImGuiDataType_Double, &this->separationDampingFactor, 1, &minSepDampFactor, &maxSepDampFactor);
+
+		static double minCoefRest = 0.0;
+		static double maxCoefRest = 1.0;
+		ImGui::SliderScalarN("Coef. Rest.", ImGuiDataType_Double, &this->coeficientOfRestitution, 1, &minCoefRest, &maxCoefRest);
+	}
+
+	ImGui::End();
 }
 
 //------------------------------ PhysicsSystem::ContactResolver<RigidBody, RigidBody> ------------------------------
@@ -394,7 +417,7 @@ void PhysicsSystem::ShowImGuiPhysicsWindow()
 	double denominator = denomPartA + denomPartB;
 	THEBE_ASSERT(denominator != 0.0);
 
-	double coeficientOfRestitution = 0.5;		// TODO: Maybe get this from a setting somewhere?
+	double coeficientOfRestitution = physicsSystem->GetCoeficientOfRestituation();
 	double impulseMagnitude = -(1.0 + coeficientOfRestitution) * relativeVelocity / denominator;
 
 	Vector3 impulse = impulseMagnitude * contact.unitNormal;

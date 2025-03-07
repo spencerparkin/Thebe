@@ -32,6 +32,7 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 
 	wxMenu* optionsMenu = new wxMenu();
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_TogglePhysicsWindow, "Show Physics Window", "Show or hide the physics window.", wxITEM_CHECK));
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
@@ -53,11 +54,13 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnHelp, this, ID_Help);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleProfilerWindow, this, ID_ToggleProfilerWindow);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnTogglePhysicsWindow, this, ID_TogglePhysicsWindow);
 	this->Bind(wxEVT_TIMER, &ChineseCheckersFrame::OnTimer, this, ID_Timer);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleProfilerWindow);
+	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_TogglePhysicsWindow);
 	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
 	this->infoText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1));
@@ -97,6 +100,13 @@ void ChineseCheckersFrame::OnToggleProfilerWindow(wxCommandEvent& event)
 {
 	bool enable = !Profiler::Get()->ShowingImGuiProfilerWindow();
 	Profiler::Get()->EnableImGuiProfilerWindow(enable);
+}
+
+void ChineseCheckersFrame::OnTogglePhysicsWindow(wxCommandEvent& event)
+{
+	PhysicsSystem* physicsSystem = wxGetApp().GetGraphicsEngine()->GetPhysicsSystem();
+	bool enable = !physicsSystem->ShowingPhysicsImGuiWindow();
+	physicsSystem->EnablePhysicsImGuiWindow(enable);
 }
 
 void ChineseCheckersFrame::SetInfoText(const wxString& infoText)
@@ -293,6 +303,12 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_ToggleProfilerWindow:
 		{
 			event.Check(Profiler::Get()->ShowingImGuiProfilerWindow());
+			break;
+		}
+		case ID_TogglePhysicsWindow:
+		{
+			PhysicsSystem * physicsSystem = wxGetApp().GetGraphicsEngine()->GetPhysicsSystem();
+			event.Check(physicsSystem->ShowingPhysicsImGuiWindow());
 			break;
 		}
 	}
