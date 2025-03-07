@@ -205,14 +205,55 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 		{
 			THEBE_PROFILE_BLOCK(SeparateBodies);
 
-			// TODO: I think there is a bug here.  It's not clear to me exactly what's wrong,
-			//       but in terms of visuals, the problem is that we can get some objects
-			//       smashed into stationary objects.  Anyhow, a better procedure here might be
-			//       to resolve stationary objects with non-stationary ones first, then consider
-			//       those resolved objects as now "stationary" for this frame, and then repeat
-			//       this process until there are no more objects to resolve.  Once that's done,
-			//       then we can just go resolve non-stationary objects with non-stationary objects
-			//       as normal.
+			for (auto& pair : this->physicsObjectMap)
+			{
+				PhysicsObject* physicsObject = pair.second.Get();
+				physicsObject->SetSeparationResolved(physicsObject->IsStationary());
+				physicsObject->SetTotalSeparation(Vector3(0.0, 0.0, 0.0));
+			}
+
+			while (true)
+			{
+				int numSeparationsPerformed = 0;
+
+				for (auto& pair : this->collisionMap)
+				{
+					auto& collision = pair.second;
+					double dampingFactor = 0.5;
+					Vector3 separationDelta = collision->separationDelta * dampingFactor;
+
+					RefHandle handleA = (RefHandle)collision->objectA->GetPhysicsData();
+					RefHandle handleB = (RefHandle)collision->objectB->GetPhysicsData();
+
+					Reference<PhysicsObject> objectA, objectB;
+
+					if (HandleManager::Get()->GetObjectFromHandle(handleA, objectA) && HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
+					{
+						if (objectA->GetSeparationResolved() && !objectB->GetSeparationResolved())
+						{
+							Transform objectToWorld = objectB->GetObjectToWorld();
+							objectB->SetTotalSeparation(-separationDelta + objectA->GetTotalSeparation());
+							objectToWorld.translation += objectB->GetTotalSeparation();
+							objectB->SetObjectToWorld(objectToWorld);
+							objectB->SetSeparationResolved(true);
+							numSeparationsPerformed++;
+						}
+						else if (!objectA->GetSeparationResolved() && objectB->GetSeparationResolved())
+						{
+							Transform objectToWorld = objectA->GetObjectToWorld();
+							objectA->SetTotalSeparation(separationDelta + objectB->GetTotalSeparation());
+							objectToWorld.translation += objectA->GetTotalSeparation();
+							objectA->SetObjectToWorld(objectToWorld);
+							objectA->SetSeparationResolved(true);
+							numSeparationsPerformed++;
+						}
+					}
+				}
+
+				if (numSeparationsPerformed == 0)
+					break;
+			}
+
 			for (auto& pair : this->collisionMap)
 			{
 				auto& collision = pair.second;
@@ -225,7 +266,7 @@ void PhysicsSystem::StepSimulation(double deltaTimeSeconds, CollisionSystem* col
 
 				if (HandleManager::Get()->GetObjectFromHandle(handleA, objectA) && HandleManager::Get()->GetObjectFromHandle(handleB, objectB))
 				{
-					if (!objectA->IsStationary() && !objectB->IsStationary())
+					if (!objectA->GetSeparationResolved() && !objectB->GetSeparationResolved())
 					{
 						Transform objectToWorld = objectA->GetObjectToWorld();
 						objectToWorld.translation += separationDelta / 2.0;

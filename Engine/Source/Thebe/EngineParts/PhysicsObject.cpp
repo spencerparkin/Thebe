@@ -9,6 +9,7 @@ PhysicsObject::PhysicsObject()
 {
 	this->stationary = false;
 	this->frozen = false;
+	this->separationResolved = true;
 }
 
 /*virtual*/ PhysicsObject::~PhysicsObject()
@@ -185,6 +186,26 @@ void PhysicsObject::SetFrozen(bool frozen)
 bool PhysicsObject::IsFrozen() const
 {
 	return this->frozen;
+}
+
+void PhysicsObject::SetTotalSeparation(const Vector3& totalSeparation)
+{
+	this->totalSeparation = totalSeparation;
+}
+
+const Vector3& PhysicsObject::GetTotalSeparation() const
+{
+	return this->totalSeparation;
+}
+
+void PhysicsObject::SetSeparationResolved(bool separationResolved)
+{
+	this->separationResolved = separationResolved;
+}
+
+bool PhysicsObject::GetSeparationResolved() const
+{
+	return this->separationResolved;
 }
 
 void PhysicsObject::SetCollisionObject(CollisionObject* collisionObject)

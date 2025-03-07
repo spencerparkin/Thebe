@@ -103,6 +103,12 @@ namespace Thebe
 		const Vector3& GetTotalForce() const;
 		const Vector3& GetTotalTorque() const;
 
+		void SetTotalSeparation(const Vector3& totalSeparation);
+		const Vector3& GetTotalSeparation() const;
+
+		void SetSeparationResolved(bool separationResolved);
+		bool GetSeparationResolved() const;
+
 	protected:
 
 		void ApplyContactForce(const ContactForce& contactForce);
@@ -122,5 +128,8 @@ namespace Thebe
 
 		bool stationary;
 		bool frozen;
+
+		Vector3 totalSeparation;
+		bool separationResolved;
 	};
 }
