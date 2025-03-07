@@ -569,7 +569,8 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	commandList->RSSetViewports(1, &this->viewport);
 	commandList->RSSetScissorRects(1, &this->scissorRect);
 
-	ImGuiManager::Get()->BeginRender();
+	if (ImGuiManager::Get()->ShowingAnything())
+		ImGuiManager::Get()->BeginRender();
 
 	return true;
 }
@@ -590,25 +591,34 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 		commandList->ResolveSubresource(frame->renderTarget.Get(), 0, frame->msaaRenderTarget.Get(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		commandList->ResourceBarrier(1, &barrier);
+		if (ImGuiManager::Get()->ShowingAnything())
+		{
+			barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			commandList->ResourceBarrier(1, &barrier);
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-		this->rtvDescriptorSet.GetCpuHandle(frameIndex, rtvHandle);
+			CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+			this->rtvDescriptorSet.GetCpuHandle(frameIndex, rtvHandle);
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-		this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
+			CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+			this->dsvDescriptorSet.GetCpuHandle(frameIndex, dsvHandle);
 
-		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+			commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
-		ImGuiManager::Get()->EndRender(commandList);
+			ImGuiManager::Get()->EndRender(commandList);
 
-		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		commandList->ResourceBarrier(1, &barrier);
+			barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+			commandList->ResourceBarrier(1, &barrier);
+		}
+		else
+		{
+			barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PRESENT);
+			commandList->ResourceBarrier(1, &barrier);
+		}
 	}
 	else
 	{
-		ImGuiManager::Get()->EndRender(commandList);
+		if (ImGuiManager::Get()->ShowingAnything())
+			ImGuiManager::Get()->EndRender(commandList);
 
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);

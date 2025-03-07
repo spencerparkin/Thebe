@@ -151,6 +151,18 @@ bool ImGuiManager::IsGuiCallbackEnabled(int cookie)
 	return pair->second.enabled;
 }
 
+bool ImGuiManager::ShowingAnything() const
+{
+	for (const auto& pair : this->callbackMap)
+	{
+		const CallbackEntry& entry = pair.second;
+		if (entry.enabled)
+			return true;
+	}
+
+	return false;
+}
+
 void ImGuiManager::BeginRender()
 {
 	ImGui_ImplDX12_NewFrame();

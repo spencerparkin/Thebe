@@ -37,6 +37,7 @@ namespace Thebe
 		bool UnregisterGuiCallback(int& cookie);
 		bool EnableGuiCallback(int cookie, bool enabled);
 		bool IsGuiCallbackEnabled(int cookie);
+		bool ShowingAnything() const;
 
 	private:
 
