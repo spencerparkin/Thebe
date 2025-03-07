@@ -10,8 +10,6 @@
 #include <ImPlot/implot.h>
 #include "Thebe/ImGuiManager.h"
 
-#define THEBE_NUM_GRAPH_PLOT_FRAMES		100
-
 namespace Thebe
 {
 	/**
@@ -44,8 +42,7 @@ namespace Thebe
 			void UpdateTree(const ProfileBlockRecord* blockRecord, uint64_t masterFrameKey);
 			std::string GenerateText(int indentLevel = 0) const;
 
-			void GenerateImGuiProfileTree() const;
-			void GenerateImGuiPlotGraphs() const;
+			void GenerateImGuiPlotGraphs(int numGraphPlotFrames) const;
 
 		public:
 			const char* name;
@@ -87,6 +84,7 @@ namespace Thebe
 		Reference<PersistentRecord> persistentRootRecord;
 		uint64_t frameKey;
 		int profilerWindowCookie;
+		int numGraphPlotFrames;
 	};
 
 	/**

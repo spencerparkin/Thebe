@@ -30,8 +30,8 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	gameMenu->AppendSeparator();
 	gameMenu->Append(new wxMenuItem(gameMenu, ID_Exit, "Exit", "Go ski."));
 
-	wxMenu* debugMenu = new wxMenu();
-	debugMenu->Append(new wxMenuItem(debugMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
+	wxMenu* optionsMenu = new wxMenu();
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
@@ -40,7 +40,7 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 
 	wxMenuBar* menuBar = new wxMenuBar();
 	menuBar->Append(gameMenu, "Game");
-	menuBar->Append(debugMenu, "Debug");
+	menuBar->Append(optionsMenu, "Options");
 	menuBar->Append(helpMenu, "Help");
 	this->SetMenuBar(menuBar);
 

@@ -14,6 +14,7 @@ Profiler::Profiler()
 	this->blockRecordHeap.SetSize(sizeof(ProfileBlockRecord) * 2048);
 	this->frameKey = 0;
 	this->profilerWindowCookie = 0;
+	this->numGraphPlotFrames = 100;
 }
 
 /*virtual*/ Profiler::~Profiler()
@@ -102,20 +103,20 @@ void Profiler::ShowImGuiProfilerWindow()
 	{
 		if (this->persistentRootRecord)
 		{
-			ImPlot::SetNextAxesLimits(0.0, double(THEBE_NUM_GRAPH_PLOT_FRAMES - 1), 0.0, 30.0, ImPlotCond_Once);
+			ImPlot::SetNextAxesLimits(0.0, double(this->numGraphPlotFrames - 1), 0.0, 30.0, ImPlotCond_Always);
 
 			if (ImPlot::BeginPlot("Frame Times", "Frame", "Milliseconds"))
 			{
-				this->persistentRootRecord->GenerateImGuiPlotGraphs();
+				this->persistentRootRecord->GenerateImGuiPlotGraphs(this->numGraphPlotFrames);
 
 				ImPlot::EndPlot();
 			}
 
-			this->persistentRootRecord->GenerateImGuiProfileTree();
+			ImGui::SliderInt("Num Frames", &this->numGraphPlotFrames, 10, 500);
 		}
-
-		ImGui::End();
 	}
+
+	ImGui::End();
 }
 
 //------------------------------------ Profiler::ProfileBlockRecord ------------------------------------
@@ -196,23 +197,10 @@ std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) co
 	return text;
 }
 
-void Profiler::PersistentRecord::GenerateImGuiProfileTree() const
-{
-	if (ImGui::TreeNode(this->name))
-	{
-		ImGui::LabelText("Time Taken", "%1.2f ms", this->timeTakenMilliseconds);
-
-		for (const auto& pair : this->childMap)
-			pair.second->GenerateImGuiProfileTree();
-
-		ImGui::TreePop();
-	}
-}
-
-void Profiler::PersistentRecord::GenerateImGuiPlotGraphs() const
+void Profiler::PersistentRecord::GenerateImGuiPlotGraphs(int numGraphPlotFrames) const
 {
 	this->plotDataHistory.push_back(this->timeTakenMilliseconds);
-	while (this->plotDataHistory.size() > THEBE_NUM_GRAPH_PLOT_FRAMES)
+	while (this->plotDataHistory.size() > numGraphPlotFrames)
 		this->plotDataHistory.pop_front();
 
 	this->plotDataArray.clear();
@@ -231,7 +219,7 @@ void Profiler::PersistentRecord::GenerateImGuiPlotGraphs() const
 		}, const_cast<PersistentRecord*>(this), (int)this->plotDataArray.size());
 
 	for (const auto& pair : this->childMap)
-		pair.second->GenerateImGuiPlotGraphs();
+		pair.second->GenerateImGuiPlotGraphs(numGraphPlotFrames);
 }
 
 //------------------------------------ ScopedProfileBlock ------------------------------------
