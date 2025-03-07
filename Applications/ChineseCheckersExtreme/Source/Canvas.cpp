@@ -34,7 +34,6 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 {
 }
 
-#if defined THEBE_USE_IMGUI
 /*virtual*/ bool ChineseCheckersCanvas::MSWHandleMessage(WXLRESULT* result, WXUINT message, WXWPARAM wParam, WXLPARAM lParam)
 {
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
@@ -45,7 +44,6 @@ ChineseCheckersCanvas::ChineseCheckersCanvas(wxWindow* parent) : wxWindow(parent
 
 	return wxWindow::MSWHandleMessage(result, message, wParam, lParam);
 }
-#endif //THEBE_USE_IMGUI
 
 void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {

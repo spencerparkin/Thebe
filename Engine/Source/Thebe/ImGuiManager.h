@@ -1,9 +1,6 @@
 #pragma once
 
 #include "Thebe/Common.h"
-
-#if defined THEBE_USE_IMGUI
-
 #include "Thebe/EngineParts/DescriptorPool.h"
 #include "ImGui/imgui.h"
 #include "ImPlot/implot.h"
@@ -53,5 +50,3 @@ namespace Thebe
 		std::map<int, ImGuiCallback> callbackMap;
 	};
 }
-
-#endif //THEBE_USE_IMGUI

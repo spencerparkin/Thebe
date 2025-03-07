@@ -13,9 +13,7 @@ Profiler::Profiler()
 	this->currentRecord = nullptr;
 	this->blockRecordHeap.SetSize(sizeof(ProfileBlockRecord) * 2048);
 	this->frameKey = 0;
-#if defined THEBE_USE_IMGUI
 	this->profilerWindowCookie = 0;
-#endif //THEBE_USE_IMGUI
 }
 
 /*virtual*/ Profiler::~Profiler()
@@ -77,8 +75,6 @@ const Profiler::PersistentRecord* Profiler::GetProfileTree()
 	return this->persistentRootRecord;
 }
 
-#if defined THEBE_USE_IMGUI
-
 void Profiler::EnableImGuiProfilerWindow(bool enable, ImGuiManager* manager)
 {
 	if (enable)
@@ -122,8 +118,6 @@ void Profiler::ShowImGuiProfilerWindow()
 	}
 }
 
-#endif //THEBE_USE_IMGUI
-
 //------------------------------------ Profiler::ProfileBlockRecord ------------------------------------
 
 Profiler::ProfileBlockRecord::ProfileBlockRecord()
@@ -146,12 +140,10 @@ Profiler::PersistentRecord::PersistentRecord()
 	this->name = nullptr;
 	this->timeTakenMilliseconds = 0.0;
 	this->frameKey = 0;
-#if defined THEBE_USE_IMGUI
 	this->graphColor.x = random.InRange(0.0, 1.0);
 	this->graphColor.y = random.InRange(0.0, 1.0);
 	this->graphColor.z = random.InRange(0.0, 1.0);
 	this->graphColor.w = 1.0;
-#endif //THEBE_USE_IMGUI
 }
 
 /*virtual*/ Profiler::PersistentRecord::~PersistentRecord()
@@ -204,7 +196,6 @@ std::string Profiler::PersistentRecord::GenerateText(int indentLevel /*= 0*/) co
 	return text;
 }
 
-#if defined THEBE_USE_IMGUI
 void Profiler::PersistentRecord::GenerateImGuiProfileTree() const
 {
 	if (ImGui::TreeNode(this->name))
@@ -242,7 +233,6 @@ void Profiler::PersistentRecord::GenerateImGuiPlotGraphs() const
 	for (const auto& pair : this->childMap)
 		pair.second->GenerateImGuiPlotGraphs();
 }
-#endif //THEBE_USE_IMGUI
 
 //------------------------------------ ScopedProfileBlock ------------------------------------
 

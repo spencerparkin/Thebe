@@ -234,7 +234,6 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
 
 target_compile_definitions(ThebeGraphicsEngine PUBLIC
     THEBE_PROFILING
-    THEBE_USE_IMGUI
 )
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)

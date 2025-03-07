@@ -569,9 +569,7 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 	commandList->RSSetViewports(1, &this->viewport);
 	commandList->RSSetScissorRects(1, &this->scissorRect);
 
-#if defined THEBE_USE_IMGUI
 	graphicsEngine->GetImGuiManager()->BeginRender();
-#endif //THEBE_USE_IMGUI
 
 	return true;
 }
@@ -592,10 +590,6 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 		commandList->ResolveSubresource(frame->renderTarget.Get(), 0, frame->msaaRenderTarget.Get(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-#if !defined THEBE_USE_IMGUI
-		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PRESENT);
-		commandList->ResourceBarrier(1, &barrier);
-#else
 		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		commandList->ResourceBarrier(1, &barrier);
 
@@ -611,13 +605,10 @@ bool SwapChain::GetWindowDimensions(int& width, int& height)
 
 		barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);
-#endif //THEBE_USE_IMGUI
 	}
 	else
 	{
-#if defined THEBE_USE_IMGUI
 		graphicsEngine->GetImGuiManager()->EndRender(commandList);
-#endif //THEBE_USE_IMGUI
 
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(frame->renderTarget.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &barrier);

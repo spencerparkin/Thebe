@@ -31,9 +31,7 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	gameMenu->Append(new wxMenuItem(gameMenu, ID_Exit, "Exit", "Go ski."));
 
 	wxMenu* debugMenu = new wxMenu();
-#if defined THEBE_USE_IMGUI
 	debugMenu->Append(new wxMenuItem(debugMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
-#endif //THEBE_USE_IMGUI
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
@@ -54,15 +52,13 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnExit, this, ID_Exit);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnAbout, this, ID_About);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnHelp, this, ID_Help);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleProfilerWindow, this, ID_ToggleProfilerWindow);
 	this->Bind(wxEVT_TIMER, &ChineseCheckersFrame::OnTimer, this, ID_Timer);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
-	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
-#if defined THEBE_USE_IMGUI
-	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleProfilerWindow, this, ID_ToggleProfilerWindow);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleProfilerWindow);
-#endif //THEBE_USE_IMGUI
+	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
 	this->infoText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1));
 
@@ -97,16 +93,12 @@ ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 	return this->canvas;
 }
 
-#if defined THEBE_USE_IMGUI
-
 void ChineseCheckersFrame::OnToggleProfilerWindow(wxCommandEvent& event)
 {
 	ImGuiManager* manager = wxGetApp().GetGraphicsEngine()->GetImGuiManager();
 	bool enable = !Profiler::Get()->ShowingImGuiProfilerWindow();
 	Profiler::Get()->EnableImGuiProfilerWindow(enable, manager);
 }
-
-#endif //THEBE_USE_IMGUI
 
 void ChineseCheckersFrame::SetInfoText(const wxString& infoText)
 {
@@ -299,13 +291,11 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 			event.Enable(wxGetApp().GetGameClientArray().size() > 0);
 			break;
 		}
-#if defined THEBE_USE_IMGUI
 		case ID_ToggleProfilerWindow:
 		{
 			event.Check(Profiler::Get()->ShowingImGuiProfilerWindow());
 			break;
 		}
-#endif //THEBE_USE_IMGUI
 	}
 }
 

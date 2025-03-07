@@ -1,7 +1,4 @@
 #include "Thebe/ImGuiManager.h"
-
-#if defined THEBE_USE_IMGUI
-
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/CommandQueue.h"
 #include "Thebe/EngineParts/RenderTarget.h"
@@ -186,5 +183,3 @@ void ImGuiManager::FreeSrvDescriptor(const DescriptorPool::Descriptor& descripto
 	bool succeeded = this->descriptorPool->FreeDescriptor(descriptor);
 	THEBE_ASSERT_FATAL(succeeded);
 }
-
-#endif //THEBE_USE_IMGUI
