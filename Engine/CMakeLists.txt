@@ -181,6 +181,8 @@ set(GRAPHICS_ENGINE_SOURCES
     Source/Thebe/Math/PolygonMesh.h
     Source/Thebe/Math/Graph.cpp
     Source/Thebe/Math/Graph.h
+    Source/Thebe/Math/FacetGraph.cpp
+    Source/Thebe/Math/FacetGraph.h
     Source/Thebe/Math/Random.cpp
     Source/Thebe/Math/Random.h
     Source/Thebe/Math/GJKAlgorithm.cpp
