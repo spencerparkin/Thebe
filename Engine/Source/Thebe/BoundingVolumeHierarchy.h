@@ -31,6 +31,15 @@ namespace Thebe
 		void FindObjects(const AxisAlignedBoundingBox& worldBox, std::list<BVHObject*>& objectList);
 		BVHObject* FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal);
 
+		struct Stats
+		{
+			int numNodes;
+			int numObjects;
+			int maxDepth;
+		};
+
+		void GatherStats(Stats& stats) const;
+
 	private:
 		Reference<BVHNode> rootNode;
 		AxisAlignedBoundingBox worldBox;
@@ -57,6 +66,8 @@ namespace Thebe
 		BVHObject* FindNearestObjectHitByRay(const Ray& ray, Vector3& unitSurfaceNormal);
 
 		Interval rayHitInterval;
+
+		void GatherStats(BVHTree::Stats& stats, int depth) const;
 
 	private:
 		std::list<Reference<BVHObject>> objectList;

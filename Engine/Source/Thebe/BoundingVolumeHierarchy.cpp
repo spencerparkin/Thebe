@@ -113,6 +113,16 @@ void BVHTree::FindObjects(const AxisAlignedBoundingBox& worldBox, std::list<BVHO
 	}
 }
 
+void BVHTree::GatherStats(Stats& stats) const
+{
+	stats.numNodes = 0;
+	stats.numObjects = 0;
+	stats.maxDepth = 0;
+
+	if (this->rootNode)
+		this->rootNode->GatherStats(stats, 1);
+}
+
 //---------------------------------------- BVHNode ----------------------------------------
 
 BVHNode::BVHNode()
@@ -134,6 +144,18 @@ RefHandle BVHNode::GetTreeHandle() const
 const AxisAlignedBoundingBox& BVHNode::GetWorldBox() const
 {
 	return this->worldBox;
+}
+
+void BVHNode::GatherStats(BVHTree::Stats& stats, int depth) const
+{
+	stats.numNodes++;
+	stats.numObjects += this->objectList.size();
+
+	if (depth > stats.maxDepth)
+		stats.maxDepth = depth;
+
+	for (const auto& childNode : this->childNodeArray)
+		childNode->GatherStats(stats, depth + 1);
 }
 
 void BVHNode::RemoveObject(BVHObject* object)

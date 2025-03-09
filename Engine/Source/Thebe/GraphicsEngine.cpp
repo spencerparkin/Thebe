@@ -318,6 +318,7 @@ bool GraphicsEngine::Setup(HWND windowHandle)
 
 	Profiler::Get()->RegisterWithImGuiManager();
 	this->physicsSystem.RegisterWithImGuiManager();
+	this->collisionSystem.RegisterWithImGuiManager();
 
 	this->clock.Reset();
 

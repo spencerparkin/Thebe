@@ -33,6 +33,8 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	wxMenu* optionsMenu = new wxMenu();
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_TogglePhysicsWindow, "Show Physics Window", "Show or hide the physics window.", wxITEM_CHECK));
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleCollisionWindow, "Show Collision Window", "Show or hide the collision window.", wxITEM_CHECK));
+	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleDebugDraw, "Debug Draw", "Toggle the drawing of collision objects, etc.", wxITEM_CHECK));
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
@@ -55,12 +57,16 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnHelp, this, ID_Help);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleProfilerWindow, this, ID_ToggleProfilerWindow);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnTogglePhysicsWindow, this, ID_TogglePhysicsWindow);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleCollisionWindow, this, ID_ToggleCollisionWindow);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleDebugDraw, this, ID_ToggleDebugDraw);
 	this->Bind(wxEVT_TIMER, &ChineseCheckersFrame::OnTimer, this, ID_Timer);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_LeaveGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleProfilerWindow);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_TogglePhysicsWindow);
+	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleCollisionWindow);
+	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleDebugDraw);
 	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
 	this->infoText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1));
@@ -107,6 +113,13 @@ void ChineseCheckersFrame::OnTogglePhysicsWindow(wxCommandEvent& event)
 	PhysicsSystem* physicsSystem = wxGetApp().GetGraphicsEngine()->GetPhysicsSystem();
 	bool enable = !physicsSystem->ShowingPhysicsImGuiWindow();
 	physicsSystem->EnablePhysicsImGuiWindow(enable);
+}
+
+void ChineseCheckersFrame::OnToggleCollisionWindow(wxCommandEvent& event)
+{
+	CollisionSystem* collisionSystem = wxGetApp().GetGraphicsEngine()->GetCollisionSystem();
+	bool enable = !collisionSystem->ShowingCollisionImGuiWindow();
+	collisionSystem->EnableCollisionImGuiWindow(enable);
 }
 
 void ChineseCheckersFrame::SetInfoText(const wxString& infoText)
@@ -311,6 +324,17 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 			event.Check(physicsSystem->ShowingPhysicsImGuiWindow());
 			break;
 		}
+		case ID_ToggleCollisionWindow:
+		{
+			CollisionSystem* collisionSystem = wxGetApp().GetGraphicsEngine()->GetCollisionSystem();
+			event.Check(collisionSystem->ShowingCollisionImGuiWindow());
+			break;
+		}
+		case ID_ToggleDebugDraw:
+		{
+			event.Check(this->canvas->GetDebugDraw());
+			break;
+		}
 	}
 }
 
@@ -333,4 +357,9 @@ void ChineseCheckersFrame::OnTimer(wxTimerEvent& event)
 
 	for (ChineseCheckersGameClient* gameClient : wxGetApp().GetGameClientArray())
 		gameClient->Update(deltaTimeSeconds);
+}
+
+void ChineseCheckersFrame::OnToggleDebugDraw(wxCommandEvent& event)
+{
+	this->canvas->SetDebugDraw(!this->canvas->GetDebugDraw());
 }

@@ -3,6 +3,7 @@
 #include "Thebe/EngineParts/DynamicLineRenderer.h"
 #include "Thebe/Log.h"
 #include "Thebe/Profiler.h"
+#include "Thebe/ImGuiManager.h"
 
 using namespace Thebe;
 
@@ -11,6 +12,7 @@ using namespace Thebe;
 CollisionSystem::CollisionSystem()
 {
 	this->boxTree.Set(new BVHTree());
+	this->collisionWindowCookie = 0;
 }
 
 /*virtual*/ CollisionSystem::~CollisionSystem()
@@ -177,6 +179,40 @@ void CollisionSystem::DebugDraw(DynamicLineRenderer* lineRenderer) const
 		const CollisionObject* collisionObject = pair.second;
 		collisionObject->DebugDraw(lineRenderer);
 	}
+}
+
+void CollisionSystem::RegisterWithImGuiManager()
+{
+	ImGuiManager::Get()->RegisterGuiCallback([this]() { this->ShowImGuiCollisionWindow(); }, this->collisionWindowCookie);
+}
+
+void CollisionSystem::EnableCollisionImGuiWindow(bool enable)
+{
+	ImGuiManager::Get()->EnableGuiCallback(this->collisionWindowCookie, enable);
+}
+
+bool CollisionSystem::ShowingCollisionImGuiWindow()
+{
+	return ImGuiManager::Get()->IsGuiCallbackEnabled(this->collisionWindowCookie);
+}
+
+void CollisionSystem::ShowImGuiCollisionWindow()
+{
+	ImGui::SetNextWindowSize(ImVec2(600, 200), ImGuiCond_FirstUseEver);
+
+	if (ImGui::Begin("Collision Info"))
+	{
+		BVHTree::Stats stats;
+		this->boxTree->GatherStats(stats);
+
+		ImGui::LabelText("BVH Num Nodes", "%d", stats.numNodes);
+		ImGui::LabelText("BVH Num Objects", "%d", stats.numObjects);
+		ImGui::LabelText("BVH Max Depth", "%d", stats.maxDepth);
+		ImGui::LabelText("Coll. Obj. Map Size", "%d", this->collisionObjectMap.size());
+		ImGui::LabelText("Coll. Cache Map Size", "%d", this->collisionCacheMap.size());
+	}
+
+	ImGui::End();
 }
 
 //--------------------------------- CollisionSystem::Collision ---------------------------------

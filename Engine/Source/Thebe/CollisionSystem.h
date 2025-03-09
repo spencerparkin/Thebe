@@ -88,11 +88,19 @@ namespace Thebe
 
 		void DebugDraw(DynamicLineRenderer* lineRenderer) const;
 
+		void RegisterWithImGuiManager();
+		void EnableCollisionImGuiWindow(bool enable);
+		bool ShowingCollisionImGuiWindow();
+
 	protected:
+
+		void ShowImGuiCollisionWindow();
+
 		std::string MakeCollisionCacheKey(const CollisionObject* objectA, const CollisionObject* objectB);
 
 		Reference<BVHTree> boxTree;
 		std::unordered_map<RefHandle, Reference<CollisionObject>> collisionObjectMap;
 		std::unordered_map<std::string, Reference<Collision>> collisionCacheMap;
+		int collisionWindowCookie;
 	};
 }

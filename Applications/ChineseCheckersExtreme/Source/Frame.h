@@ -23,6 +23,8 @@ public:
 		ID_LeaveGame,
 		ID_ToggleProfilerWindow,
 		ID_TogglePhysicsWindow,
+		ID_ToggleCollisionWindow,
+		ID_ToggleDebugDraw,
 		ID_Timer
 	};
 
@@ -40,8 +42,10 @@ private:
 	void OnHelp(wxCommandEvent& event);
 	void OnToggleProfilerWindow(wxCommandEvent& event);
 	void OnTogglePhysicsWindow(wxCommandEvent& event);
+	void OnToggleCollisionWindow(wxCommandEvent& event);
 	void OnToggleLifeCountsButtonPressed(wxCommandEvent& event);
 	void OnToggleProfileStatsButtonPressed(wxCommandEvent& event);
+	void OnToggleDebugDraw(wxCommandEvent& event);
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
