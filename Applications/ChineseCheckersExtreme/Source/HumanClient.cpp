@@ -1,6 +1,5 @@
 #include "Application.h"
 #include "HumanClient.h"
-#include "Factory.h"
 #include "Thebe/GraphicsEngine.h"
 #include "Thebe/EngineParts/Mesh.h"
 #include "Thebe/EngineParts/Scene.h"
@@ -18,6 +17,7 @@ HumanClient::HumanClient()
 {
 	this->connectionProgressDialog = nullptr;
 	this->audioEventHandlerID = 0;
+	this->collisionEventHandlerID = 0;
 }
 
 /*virtual*/ HumanClient::~HumanClient()
@@ -74,6 +74,7 @@ HumanClient::HumanClient()
 	}
 
 	graphicsEngine->GetEventSystem()->UnregisterEventHandler(this->audioEventHandlerID);
+	graphicsEngine->GetEventSystem()->UnregisterEventHandler(this->collisionEventHandlerID);
 
 	AudioSystem* audioSystem = graphicsEngine->GetAudioSystem();
 	audioSystem->ClearMidiSongQueue();
@@ -196,6 +197,54 @@ void HumanClient::HandleAudioEvent(const Thebe::AudioEvent* audioEvent)
 	if (audioEvent->type == AudioEvent::SONG_QUEUE_EMPTY)
 	{
 		this->QueueUpSongs();
+	}
+}
+
+Marble* HumanClient::FindMarbleOwningCollisionHandle(Thebe::RefHandle handle, Node*& node)
+{
+	const std::vector<ChineseCheckers::Node*>& nodeArray = this->graph->GetNodeArray();
+	for (auto& nativeNode : nodeArray)
+	{
+		ChineseCheckers::Marble* nativeMarble = nativeNode->GetOccupant().get();
+		if (!nativeMarble)
+			continue;
+
+		auto marble = dynamic_cast<Marble*>(nativeMarble);
+		if (!marble)
+			continue;
+
+		if (marble->collisionObjectHandle == handle)
+		{
+			node = dynamic_cast<Node*>(nativeNode);
+			return marble;
+		}
+	}
+
+	return nullptr;
+}
+
+void HumanClient::HandleCollisionObjectEvent(const Thebe::Event* event)
+{
+	auto collisionObjectEvent = (CollisionObjectEvent*)event;
+	if (collisionObjectEvent->what == CollisionObjectEvent::COLLISION_OBJECT_NOT_IN_COLLISION_WORLD)
+	{
+		RefHandle handle = (RefHandle)collisionObjectEvent->collisionObject->GetHandle();
+		
+		Node* node = nullptr;
+		Marble* marble = this->FindMarbleOwningCollisionHandle(handle, node);
+		if (marble && node)
+		{
+			Transform objectToWorld;
+			objectToWorld.SetIdentity();
+			objectToWorld.translation = node->GetLocation3D() + Vector3(0.0, 2.5, 0.0);
+
+			Reference<CollisionObject> collisionObject;
+			if (HandleManager::Get()->GetObjectFromHandle(handle, collisionObject))
+			{
+				collisionObject->SetObjectToWorld(objectToWorld);
+				wxGetApp().GetGraphicsEngine()->GetCollisionSystem()->TrackObject(collisionObject.Get());
+			}
+		}
 	}
 }
 
@@ -413,6 +462,11 @@ void HumanClient::RegenerateScene(const std::string& gameType)
 	}
 
 	this->animationProcessor.SnapAllMarblesToPosition(this->graph.get());
+
+	this->collisionEventHandlerID = graphicsEngine->GetEventSystem()->RegisterEventHandler("collision_object", [=](const Event* event)
+		{
+			this->HandleCollisionObjectEvent(event);
+		});
 }
 
 /*static*/ Thebe::Vector4 HumanClient::MarbleColor(ChineseCheckers::Marble::Color color, double alpha)

@@ -5,6 +5,8 @@
 #include "Thebe/Math/Vector4.h"
 #include "Thebe/AudioSystem.h"
 #include "Thebe/Math/Random.h"
+#include "Thebe/EventSystem.h"
+#include "Factory.h"
 #include "Animation.h"
 #include <wx/string.h>
 #include <wx/progdlg.h>
@@ -25,13 +27,18 @@ private:
 	void RegenerateScene(const std::string& gameType);
 
 	void HandleAudioEvent(const Thebe::AudioEvent* audioEvent);
+	void HandleCollisionObjectEvent(const Thebe::Event* event);
+
 	void QueueUpSongs();
 
 	static Thebe::Vector4 MarbleColor(ChineseCheckers::Marble::Color color, double alpha);
 	static wxString MarbleText(ChineseCheckers::Marble::Color color);
 
+	Marble* FindMarbleOwningCollisionHandle(Thebe::RefHandle handle, Node*& node);
+
 	AnimationProcessor animationProcessor;
 	wxProgressDialog* connectionProgressDialog;
 	Thebe::EventHandlerID audioEventHandlerID;
+	Thebe::EventHandlerID collisionEventHandlerID;
 	Thebe::Random random;
 };
