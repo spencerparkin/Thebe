@@ -189,6 +189,11 @@ namespace Thebe
 			void Reverse();
 
 			/**
+			 * Tell the caller if the given vertex is had by this polygon.
+			 */
+			bool HasVertex(int vertex) const;
+
+			/**
 			 * Write this polygon to JSON.
 			 */
 			bool ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const;

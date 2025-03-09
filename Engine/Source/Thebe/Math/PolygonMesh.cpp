@@ -489,6 +489,15 @@ void PolygonMesh::Polygon::Reverse()
 	}
 }
 
+bool PolygonMesh::Polygon::HasVertex(int vertex) const
+{
+	for (int i = 0; i < (int)this->vertexArray.size(); i++)
+		if (this->vertexArray[i] == vertex)
+			return true;
+
+	return false;
+}
+
 bool PolygonMesh::Polygon::ToJson(std::unique_ptr<ParseParty::JsonValue>& jsonValue) const
 {
 	using namespace ParseParty;

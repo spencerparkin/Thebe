@@ -56,9 +56,9 @@ void FacetGraph::Clear()
 	this->nodeArray.clear();
 }
 
-bool FacetGraph::GenerateTriangleStrips(std::vector<std::vector<int>>& triangleStripArray) const
+bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 {
-	triangleStripArray.clear();
+	triangleStrip.clear();
 
 	for (const Node* node : this->nodeArray)
 		if (node->polygon->vertexArray.size() != 3)
@@ -67,6 +67,7 @@ bool FacetGraph::GenerateTriangleStrips(std::vector<std::vector<int>>& triangleS
 	for (const Node* node : this->nodeArray)
 		node->encorporated = false;
 
+	// This algorithm depends on the triangles of the mesh all being consistently wound CCW.
 	while (true)
 	{
 		std::list<const Node*> triangleList;
@@ -155,9 +156,35 @@ bool FacetGraph::GenerateTriangleStrips(std::vector<std::vector<int>>& triangleS
 			}
 		}
 
-		// TODO: Convert triangle list into triangle strip.
+		if (triangleStrip.size() > 0)
+			triangleStrip.push_back(-1);
 
-		// TODO: Add the strip to the array.
+		std::list<const Node*>::iterator iter = triangleList.begin();
+		const Node* triangleA = *iter;
+		if (triangleList.size() == 1)
+		{
+			for (int i = 0; i < (int)triangleA->polygon->vertexArray.size(); i++)
+				triangleStrip.push_back(triangleA->polygon->vertexArray[i]);
+		}
+		else if (triangleList.size() > 1)
+		{
+			const Node* triangleB = *++iter;
+			int i = triangleA->FindUncommonVertexWith(triangleB);
+			THEBE_ASSERT(i != -1);
+			for (int j = 0; j < int(triangleA->polygon->vertexArray.size()); j++)
+				triangleStrip.push_back(triangleA->polygon->vertexArray[triangleA->polygon->Mod(i + j)]);
+
+			while (true)
+			{
+				i = triangleB->FindUncommonVertexWith(triangleA);
+				THEBE_ASSERT(i != -1);
+				triangleStrip.push_back(triangleB->polygon->vertexArray[i]);
+				if (++iter == triangleList.end())
+					break;
+				triangleA = triangleB;
+				triangleB = *iter;
+			}
+		}
 	}
 
 	return true;
@@ -196,4 +223,13 @@ FacetGraph::Node::Node(const PolygonMesh::Polygon* polygon)
 	}
 
 	return false;
+}
+
+int FacetGraph::Node::FindUncommonVertexWith(const Node* node) const
+{
+	for (int i = 0; i < (int)this->polygon->vertexArray.size(); i++)
+		if (!node->polygon->HasVertex(this->polygon->vertexArray[i]))
+			return i;
+
+	return -1;
 }

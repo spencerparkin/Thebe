@@ -36,16 +36,17 @@ namespace Thebe
 		 * triangle strips from a mesh, and that's what we try
 		 * to do here.  We also try to minimize the number of
 		 * strips returned.  All the same, there are cases I can
-		 * think of where we don't find the optimzal solution here.
+		 * think of where we don't find the optimal solution here.
 		 * 
 		 * Note that some graphics APIs allow you to do multiple
 		 * triangle strips in one draw-call by concatinating strips
-		 * with -1 as a delimeter between strips.
+		 * with -1 as a delimeter between strips.  That's what we
+		 * do here if more than one strip needs to be returned.
 		 * 
 		 * We will fail here if the graph is not generated from a
 		 * triangle mesh.
 		 */
-		bool GenerateTriangleStrips(std::vector<std::vector<int>>& triangleStripArray) const;
+		bool GenerateTriangleStrip(std::vector<int>& triangleStrip) const;
 
 		/**
 		 * Each of these represents a facet (or polygon) of a polygon mesh.
@@ -60,6 +61,12 @@ namespace Thebe
 			 * This is used by the graph generation process.
 			 */
 			static bool SharedAdjacencyFound(const Node* nodeA, const Node* nodeB, int& vertexA, int& vertexB);
+
+			/**
+			 * Return the first index we find of this polygon's vertices
+			 * that is not shared with the given polygon.
+			 */
+			int FindUncommonVertexWith(const Node* node) const;
 
 		public:
 			/**
