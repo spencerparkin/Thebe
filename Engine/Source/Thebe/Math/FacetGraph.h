@@ -32,19 +32,7 @@ namespace Thebe
 		void Clear();
 
 		/**
-		 * One application of this kind of graph is to generate
-		 * triangle strips from a mesh, and that's what we try
-		 * to do here.  We also try to minimize the number of
-		 * strips returned.  All the same, there are cases I can
-		 * think of where we don't find the optimal solution here.
-		 * 
-		 * Note that some graphics APIs allow you to do multiple
-		 * triangle strips in one draw-call by concatinating strips
-		 * with -1 as a delimeter between strips.  That's what we
-		 * do here if more than one strip needs to be returned.
-		 * 
-		 * We will fail here if the graph is not generated from a
-		 * triangle mesh.
+		 * ...
 		 */
 		bool GenerateTriangleStrip(std::vector<int>& triangleStrip) const;
 
@@ -86,14 +74,6 @@ namespace Thebe
 			 * polygon in question.
 			 */
 			std::vector<Node*> adjacencyArray;
-
-			/**
-			 * These are used for tri-stripping, but they could be used for other things.
-			 */
-			mutable bool encorporated;
-			mutable bool enqueued;
-			mutable int parentIndex;
-			mutable bool append;
 		};
 
 	private:
