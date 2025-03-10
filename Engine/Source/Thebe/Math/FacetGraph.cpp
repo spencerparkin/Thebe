@@ -143,30 +143,42 @@ bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 		if (triangleStrip.size() > 0)
 			triangleStrip.push_back(-1);
 
-		std::list<const Node*>::iterator iter = triangleList.begin();
-		const Node* triangleA = *iter;
-		if (triangleList.size() == 1)
-		{
-			for (int i = 0; i < (int)triangleA->polygon->vertexArray.size(); i++)
-				triangleStrip.push_back(triangleA->polygon->vertexArray[i]);
-		}
-		else if (triangleList.size() > 1)
-		{
-			const Node* triangleB = *++iter;
-			int i = triangleA->FindUncommonVertexWith(triangleB);
-			THEBE_ASSERT(i != -1);
-			for (int j = 0; j < int(triangleA->polygon->vertexArray.size()); j++)
-				triangleStrip.push_back(triangleA->polygon->vertexArray[triangleA->polygon->Mod(i + j)]);
+		std::vector<const Node*> triangleArray;
+		for (const Node* triangle : triangleList)
+			triangleArray.push_back(triangle);
 
-			while (true)
+		if (triangleArray.size() == 1)
+		{
+			const Node* triangle = triangleArray[0];
+			for (int i = 0; i < 3; i++)
+				triangleStrip.push_back(triangle->polygon->vertexArray[i]);
+		}
+		else if (triangleArray.size() > 1)
+		{
+			// Sanity check: Are the triangles a string of adjacent triangles?
+			for (int i = 0; i < (int)triangleArray.size() - 1; i++)
 			{
-				i = triangleB->FindUncommonVertexWith(triangleA);
-				THEBE_ASSERT(i != -1);
-				triangleStrip.push_back(triangleB->polygon->vertexArray[i]);
-				if (++iter == triangleList.end())
-					break;
-				triangleA = triangleB;
-				triangleB = *iter;
+				const Node* triangleA = triangleArray[i];
+				const Node* triangleB = triangleArray[i + 1];
+
+				if (triangleA->FindAdjacencyIndex(triangleB) == -1 ||
+					triangleB->FindAdjacencyIndex(triangleA) == -1)
+				{
+					THEBE_ASSERT(false);
+					return false;
+				}
+			}
+
+			int j = triangleArray[0]->FindUncommonVertexWith(triangleArray[1]);
+			for (int i = 0; i < 3; i++)
+				triangleStrip.push_back(triangleArray[0]->polygon->vertexArray[triangleArray[0]->polygon->Mod(i + j)]);
+
+			for (int i = 1; i < (int)triangleArray.size(); i++)
+			{
+				j = triangleArray[i]->FindUncommonVertexWith(triangleArray[i - 1]);
+				triangleStrip.push_back(triangleArray[i]->polygon->vertexArray[j]);
+
+				// TODO: I think I see now why this will never work.  Redo it all.
 			}
 		}
 	}
