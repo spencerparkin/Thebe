@@ -3,7 +3,7 @@
 	"data": "Buffers\\Cubie.index_buffer_data",
 	"format": 42,
 	"name": "Cubie_IndexBuffer",
-	"primitive_topology": 4,
-	"size": 144,
+	"primitive_topology": 5,
+	"size": 56,
 	"type": 1
 }

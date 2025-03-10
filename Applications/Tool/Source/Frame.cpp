@@ -108,6 +108,7 @@ void GraphicsToolFrame::OnBuildScene(wxCommandEvent& event)
 	std::unordered_map<std::string, uint32_t> flagsMap;
 	flagsMap.insert(std::pair("Collapse", SCENE_BUILDER_FLAG_COLLAPSE_TREE));
 	flagsMap.insert(std::pair("Apply Mesh Transform", SCENE_BUILDER_FLAG_APPLY_MESH_TRANSFORM));
+	flagsMap.insert(std::pair("Tri-strip Meshes", SCENE_BUILDER_FLAG_TRI_STRIP_MESHES));
 	uint32_t flags = 0;		// TODO: Maybe remember this value from the registry or something?
 	if (!this->FlagsDialog(flagsMap, flags, "Choose scene builder options."))
 		return;

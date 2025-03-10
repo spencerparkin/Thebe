@@ -708,6 +708,7 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 		primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
 		break;
 	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP:
 		primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 		break;
 	}

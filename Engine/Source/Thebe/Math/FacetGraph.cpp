@@ -40,7 +40,7 @@ bool FacetGraph::Regenerate(const PolygonMesh& polygonMesh)
 					return false;
 
 				nodeA->adjacencyArray[vertexA] = nodeB;
-				nodeB->adjacencyArray[vertexB] = nodeB;
+				nodeB->adjacencyArray[vertexB] = nodeA;
 			}
 		}
 	}
@@ -65,12 +65,16 @@ bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 			return false;
 
 	for (const Node* node : this->nodeArray)
+	{
 		node->encorporated = false;
+		node->enqueued = false;
+	}
 
 	// This algorithm depends on the triangles of the mesh all being consistently wound CCW.
 	while (true)
 	{
 		std::list<const Node*> triangleList;
+		std::list<const Node*> triangleQueue;
 
 		for (const Node* triangle : this->nodeArray)
 		{
@@ -78,79 +82,59 @@ bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 			{
 				triangleList.push_back(triangle);
 				triangle->encorporated = true;
+
+				for (int i = 0; i < 3 && triangleQueue.size() < 2; i++)
+				{
+					const Node* adjacentTriangle = triangle->adjacencyArray[i];
+
+					if (!adjacentTriangle->encorporated && !adjacentTriangle->enqueued)
+					{
+						triangleQueue.push_back(adjacentTriangle);
+						adjacentTriangle->parentIndex = adjacentTriangle->FindAdjacencyIndex(triangle);
+						THEBE_ASSERT(adjacentTriangle->parentIndex != -1);
+						THEBE_ASSERT(adjacentTriangle->adjacencyArray[adjacentTriangle->parentIndex] == triangle);
+						adjacentTriangle->enqueued = true;
+						adjacentTriangle->append = (triangleQueue.size() == 1);
+					}
+				}
+
 				break;
 			}
 		}
 
 		if (triangleList.size() != 1)
 			break;
-
-		struct Item
+		
+		while (triangleQueue.size() > 0)
 		{
-			enum Type
-			{
-				APPEND,
-				PREPEND
-			};
+			const Node* triangle = *triangleQueue.begin();
+			triangleQueue.pop_front();
 
-			const Node* triangle;
-			int i;
-			Type type;
-		};
+			THEBE_ASSERT(!triangle->encorporated);
 
-		const Node* triangle = *triangleList.begin();
-		std::list<Item> queue;
-		int j = 0;
-		for (int i = 0; i < (int)triangle->adjacencyArray.size() && queue.size() < 2; i++)
-		{
-			if (triangle->adjacencyArray[i] != nullptr)
-			{
-				Item item{ triangle, i, Item::Type(j++) };
-				queue.push_back(item);
-			}
-		}
+			if (triangle->append)
+				triangleList.push_back(triangle);
+			else
+				triangleList.push_front(triangle);
 
-		while (queue.size() > 0)
-		{
-			Item item = *queue.begin();
-			queue.pop_front();
+			triangle->encorporated = true;
 
-			const Node* nextTriangle = item.triangle->adjacencyArray[item.i];
-			switch (item.type)
-			{
-				case Item::Type::APPEND:
-				{
-					triangleList.push_back(nextTriangle);
-					break;
-				}
-				case Item::Type::PREPEND:
-				{
-					triangleList.push_front(nextTriangle);
-					break;
-				}
-			}
-
-			nextTriangle->encorporated = true;
-
-			int i;
-			for (i = 0; i < (int)nextTriangle->adjacencyArray.size(); i++)
-				if (nextTriangle->adjacencyArray[i] == item.triangle)
-					break;
-
-			THEBE_ASSERT(i != (int)nextTriangle->adjacencyArray.size());
-
-			// Make as tight a right-turn as possible.  (We choose right over left arbitrarily here.  All that matters is consistency.)
+			int i = triangle->parentIndex;
 			while (true)
 			{
-				i = (i + 1) % nextTriangle->adjacencyArray.size();
-
-				if (nextTriangle->adjacencyArray[i] == item.triangle)
+				// Make as tight a right turn as possible.
+				i = (i + 1) % 3;
+				if (i == triangle->parentIndex)
 					break;
-
-				if (nextTriangle->adjacencyArray[i] != nullptr && !nextTriangle->adjacencyArray[i]->encorporated)
+				const Node* adjacentTriangle = triangle->adjacencyArray[i];
+				if (!adjacentTriangle->encorporated && !adjacentTriangle->enqueued)
 				{
-					Item nextItem{ nextTriangle, i, item.type };
-					queue.push_back(item);
+					triangleQueue.push_back(adjacentTriangle);
+					adjacentTriangle->parentIndex = adjacentTriangle->FindAdjacencyIndex(triangle);
+					THEBE_ASSERT(adjacentTriangle->parentIndex != -1);
+					THEBE_ASSERT(adjacentTriangle->adjacencyArray[adjacentTriangle->parentIndex] == triangle);
+					adjacentTriangle->enqueued = true;
+					adjacentTriangle->append = triangle->append;
 					break;
 				}
 			}
@@ -196,6 +180,9 @@ FacetGraph::Node::Node(const PolygonMesh::Polygon* polygon)
 {
 	this->polygon = polygon;
 	this->encorporated = false;
+	this->enqueued = false;
+	this->parentIndex = -1;
+	this->append = false;
 
 	this->adjacencyArray.resize(polygon->vertexArray.size());
 	for (int i = 0; i < (int)this->adjacencyArray.size(); i++)
@@ -213,7 +200,7 @@ FacetGraph::Node::Node(const PolygonMesh::Polygon* polygon)
 		for (int j = 0; j < (int)nodeB->polygon->vertexArray.size(); j++)
 		{
 			if (nodeA->polygon->vertexArray[i] == nodeB->polygon->vertexArray[nodeB->polygon->Mod(j + 1)] &&
-				nodeA->polygon->vertexArray[nodeA->polygon->Mod(i + 1)] == nodeA->polygon->vertexArray[j])
+				nodeA->polygon->vertexArray[nodeA->polygon->Mod(i + 1)] == nodeB->polygon->vertexArray[j])
 			{
 				vertexA = i;
 				vertexB = j;
@@ -229,6 +216,15 @@ int FacetGraph::Node::FindUncommonVertexWith(const Node* node) const
 {
 	for (int i = 0; i < (int)this->polygon->vertexArray.size(); i++)
 		if (!node->polygon->HasVertex(this->polygon->vertexArray[i]))
+			return i;
+
+	return -1;
+}
+
+int FacetGraph::Node::FindAdjacencyIndex(const Node* node) const
+{
+	for (int i = 0; i < (int)this->adjacencyArray.size(); i++)
+		if (this->adjacencyArray[i] == node)
 			return i;
 
 	return -1;

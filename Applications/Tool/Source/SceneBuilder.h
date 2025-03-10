@@ -13,6 +13,7 @@
 
 #define SCENE_BUILDER_FLAG_COLLAPSE_TREE			0x00000001
 #define SCENE_BUILDER_FLAG_APPLY_MESH_TRANSFORM		0x00000002
+#define SCENE_BUILDER_FLAG_TRI_STRIP_MESHES			0x00000004
 
 class SceneBuilder : public Builder
 {
@@ -29,7 +30,7 @@ private:
 	Thebe::Reference<Thebe::Space> GenerateSceneTree(const aiNode* inputParentNode);
 	Thebe::Reference<Thebe::MeshInstance> GenerateMeshInstance(const aiMesh* inputMesh, const aiNode* inputNode);
 	Thebe::Reference<Thebe::Mesh> GenerateMesh(const aiMesh* inputMesh, Thebe::MeshInstance* meshInstance);
-	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh);
+	Thebe::Reference<Thebe::IndexBuffer> GenerateIndexBuffer(const aiMesh* inputMesh, const Thebe::Transform& vertexTransform);
 	Thebe::Reference<Thebe::VertexBuffer> GenerateVertexBuffer(const aiMesh* inputMesh, const Thebe::Transform& vertexTransform);
 	Thebe::Reference<Thebe::Material> GenerateMaterial(const aiMaterial* inputMaterial);
 

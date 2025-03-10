@@ -68,6 +68,11 @@ namespace Thebe
 			 */
 			int FindUncommonVertexWith(const Node* node) const;
 
+			/**
+			 * Find the index of this node's adjacency that points to the given node; or -1, if not found.
+			 */
+			int FindAdjacencyIndex(const Node* node) const;
+
 		public:
 			/**
 			 * This is the polygon we represent.
@@ -83,9 +88,12 @@ namespace Thebe
 			std::vector<Node*> adjacencyArray;
 
 			/**
-			 * This is used for tri-stripping, but it could be used for other things.
+			 * These are used for tri-stripping, but they could be used for other things.
 			 */
 			mutable bool encorporated;
+			mutable bool enqueued;
+			mutable int parentIndex;
+			mutable bool append;
 		};
 
 	private:

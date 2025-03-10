@@ -2,6 +2,9 @@
 #include "Thebe/Log.h"
 #include "Thebe/EngineParts/Space.h"
 #include "Thebe/EngineParts/Mesh.h"
+#include "Thebe/Math/PolygonMesh.h"
+#include "Thebe/Math/FacetGraph.h"
+#include "Thebe/Math/Polygon.h"
 #include <assimp/postprocess.h>
 
 SceneBuilder::SceneBuilder()
@@ -234,16 +237,6 @@ Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh
 	const aiMaterial* inputMaterial = this->importer.GetScene()->mMaterials[inputMesh->mMaterialIndex];
 	outputMesh->SetMaterialPath(this->GenerateMaterialPath(inputMaterial));
 
-	Thebe::Reference<Thebe::IndexBuffer> outputIndexBuffer = this->GenerateIndexBuffer(inputMesh);
-	if (!outputIndexBuffer.Get())
-	{
-		THEBE_LOG("Failed to generate index buffer for mesh %s.", inputMesh->mName.C_Str());
-		return Thebe::Reference<Thebe::Mesh>();
-	}
-
-	std::filesystem::path outputIndexBufferPath = this->GenerateIndexBufferPath(inputMesh);
-	outputMesh->SetIndexBufferPath(outputIndexBufferPath);
-
 	Thebe::Transform vertexTransform;
 	vertexTransform.SetIdentity();
 	if ((this->flags & SCENE_BUILDER_FLAG_APPLY_MESH_TRANSFORM) != 0)
@@ -252,6 +245,16 @@ Thebe::Reference<Thebe::Mesh> SceneBuilder::GenerateMesh(const aiMesh* inputMesh
 		vertexTransform = meshInstance->GetChildToParentTransform();
 		meshInstance->SetChildToParentTransform(Thebe::Transform::Identity());
 	}
+
+	Thebe::Reference<Thebe::IndexBuffer> outputIndexBuffer = this->GenerateIndexBuffer(inputMesh, vertexTransform);
+	if (!outputIndexBuffer.Get())
+	{
+		THEBE_LOG("Failed to generate index buffer for mesh %s.", inputMesh->mName.C_Str());
+		return Thebe::Reference<Thebe::Mesh>();
+	}
+
+	std::filesystem::path outputIndexBufferPath = this->GenerateIndexBufferPath(inputMesh);
+	outputMesh->SetIndexBufferPath(outputIndexBufferPath);
 
 	Thebe::Reference<Thebe::VertexBuffer> outputVertexBuffer = this->GenerateVertexBuffer(inputMesh, vertexTransform);
 	if (!outputVertexBuffer.Get())
@@ -410,7 +413,7 @@ Thebe::Reference<Thebe::VertexBuffer> SceneBuilder::GenerateVertexBuffer(const a
 	return outputVertexBuffer;
 }
 
-Thebe::Reference<Thebe::IndexBuffer> SceneBuilder::GenerateIndexBuffer(const aiMesh* inputMesh)
+Thebe::Reference<Thebe::IndexBuffer> SceneBuilder::GenerateIndexBuffer(const aiMesh* inputMesh, const Thebe::Transform& vertexTransform)
 {
 	Thebe::Reference<Thebe::IndexBuffer> outputIndexBuffer(new Thebe::IndexBuffer());
 	outputIndexBuffer->SetGraphicsEngine(wxGetApp().GetGraphicsEngine());
@@ -424,25 +427,75 @@ Thebe::Reference<Thebe::IndexBuffer> SceneBuilder::GenerateIndexBuffer(const aiM
 	outputIndexBuffer->SetName(outputIndexBufferName);
 
 	outputIndexBuffer->SetFormat(DXGI_FORMAT_R32_UINT);
-	outputIndexBuffer->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	std::vector<UINT8>& outputBuffer = outputIndexBuffer->GetOriginalBuffer();
-	outputBuffer.resize(inputMesh->mNumFaces * 3 * sizeof(uint32_t));
-
-	auto outputIndex = reinterpret_cast<uint32_t*>(outputBuffer.data());
-	for (int i = 0; i < (int)inputMesh->mNumFaces; i++)
+	if ((this->flags & SCENE_BUILDER_FLAG_TRI_STRIP_MESHES) != 0)
 	{
-		const aiFace* inputFace = &inputMesh->mFaces[i];
-		if (inputFace->mNumIndices != 3)
+		outputIndexBuffer->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		// Get the mesh into our own math system's polygon mesh data-structure.
+		// I suppose we don't really need the vertex transform here, but...whatever.
+		Thebe::PolygonMesh polygonMesh;
+		for (int i = 0; i < (int)inputMesh->mNumVertices; i++)
+			polygonMesh.AddVertex(vertexTransform.TransformPoint(this->MakeVector(inputMesh->mVertices[i])));
+		for (int i = 0; i < (int)inputMesh->mNumFaces; i++)
 		{
-			THEBE_LOG("Expected each face to have exactly three vertices (be a triangle.)");
+			const aiFace* inputFace = &inputMesh->mFaces[i];
+			Thebe::PolygonMesh::Polygon polygon;
+			for (int j = 0; j < (int)inputFace->mNumIndices; j++)
+				polygon.vertexArray.push_back((int)inputFace->mIndices[j]);
+			polygonMesh.AddPolygon(polygon);
+		}
+
+		std::vector<Thebe::Polygon> standalonePolygonArray;
+		polygonMesh.ToStandalonePolygonArray(standalonePolygonArray);
+		polygonMesh.FromStandalonePolygonArray(standalonePolygonArray);
+
+		Thebe::FacetGraph graph;
+		if (!graph.Regenerate(polygonMesh))
+		{
+			THEBE_LOG("Failed to generate polygon mesh graph.");
 			return Thebe::Reference<Thebe::IndexBuffer>();
 		}
 
-		for (int j = 0; j < (int)inputFace->mNumIndices; j++)
+		std::vector<int> triangleStrip;
+		if (!graph.GenerateTriangleStrip(triangleStrip))
 		{
-			uint32_t inputIndex = (uint32_t)inputFace->mIndices[j];
-			*outputIndex++ = inputIndex;
+			THEBE_LOG("Failed to generate triangle strip.");
+			return Thebe::Reference<Thebe::IndexBuffer>();
+		}
+
+		std::vector<UINT8>& outputBuffer = outputIndexBuffer->GetOriginalBuffer();
+		outputBuffer.resize(triangleStrip.size() * sizeof(uint32_t));
+		
+		auto outputIndex = reinterpret_cast<uint32_t*>(outputBuffer.data());
+		for (int i = 0; i < (int)triangleStrip.size(); i++)
+			*outputIndex++ = (uint32_t)triangleStrip[i];
+
+		THEBE_LOG("Triangle strip size: %d", triangleStrip.size());
+		THEBE_LOG("Typical index buffer size: %d", inputMesh->mNumFaces * 3);
+	}
+	else
+	{
+		outputIndexBuffer->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		std::vector<UINT8>& outputBuffer = outputIndexBuffer->GetOriginalBuffer();
+		outputBuffer.resize(inputMesh->mNumFaces * 3 * sizeof(uint32_t));
+
+		auto outputIndex = reinterpret_cast<uint32_t*>(outputBuffer.data());
+		for (int i = 0; i < (int)inputMesh->mNumFaces; i++)
+		{
+			const aiFace* inputFace = &inputMesh->mFaces[i];
+			if (inputFace->mNumIndices != 3)
+			{
+				THEBE_LOG("Expected each face to have exactly three vertices (be a triangle.)");
+				return Thebe::Reference<Thebe::IndexBuffer>();
+			}
+
+			for (int j = 0; j < (int)inputFace->mNumIndices; j++)
+			{
+				uint32_t inputIndex = (uint32_t)inputFace->mIndices[j];
+				*outputIndex++ = inputIndex;
+			}
 		}
 	}
 
