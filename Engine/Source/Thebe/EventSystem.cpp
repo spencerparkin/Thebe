@@ -11,6 +11,9 @@ EventSystem::EventSystem()
 
 /*virtual*/ EventSystem::~EventSystem()
 {
+	for (Event* event : this->eventQueue)
+		delete event;
+
 	for (auto& pair : this->categoryHandlerMap)
 		delete pair.second;
 }
