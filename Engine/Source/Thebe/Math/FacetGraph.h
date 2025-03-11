@@ -32,7 +32,8 @@ namespace Thebe
 		void Clear();
 
 		/**
-		 * ...
+		 * Try to tri-strip the mesh.  Our result here just tries to be
+		 * correct, not necessarily optimal.
 		 */
 		bool GenerateTriangleStrip(std::vector<int>& triangleStrip) const;
 
@@ -49,12 +50,6 @@ namespace Thebe
 			 * This is used by the graph generation process.
 			 */
 			static bool SharedAdjacencyFound(const Node* nodeA, const Node* nodeB, int& vertexA, int& vertexB);
-
-			/**
-			 * Return the first index we find of this polygon's vertices
-			 * that is not shared with the given polygon.
-			 */
-			int FindUncommonVertexWith(const Node* node) const;
 
 			/**
 			 * Find the index of this node's adjacency that points to the given node; or -1, if not found.
@@ -74,6 +69,8 @@ namespace Thebe
 			 * polygon in question.
 			 */
 			std::vector<Node*> adjacencyArray;
+
+			mutable bool visited;
 		};
 
 	private:

@@ -58,17 +58,59 @@ void FacetGraph::Clear()
 
 bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 {
+	// TODO: This is untested and surely doesn't work.  Test it.
+
 	triangleStrip.clear();
 
-	// TODO: Note that not every sequence of triangles (where consecutive triangles
-	//       share two vertices in common) can be turned into a triangle strip.
-	//       This was a false assumption upon which I had earler operated.  Anyhow,
-	//       there is an obvious way to create strips (delimited by -1) that will
-	//       fill the entire graph, but what's not obvious is how to make it optimal.
-	//       In any case, I'm not motivated to revisit this problem, because I can't
-	//       take advantage of it yet, because there's no mesh I have that shares
-	//       vertices between triangles.  So any triangle-strippification would just
-	//       inflate the size of the index buffer anyway.
+	for (const Node* triangle : this->nodeArray)
+		if (triangle->polygon->vertexArray.size() != 3)
+			return false;
+
+	for (const Node* triangle : this->nodeArray)
+		triangle->visited = false;
+
+	while (true)
+	{
+		int i;
+		for (i = 0; i < (int)this->nodeArray.size(); i++)
+			if (!this->nodeArray[i]->visited)
+				break;
+
+		if (i == (int)this->nodeArray.size())
+			break;
+
+		const Node* triangle = this->nodeArray[i];
+
+		if (triangleStrip.size() > 0)
+			triangleStrip.push_back(-1);
+
+		for (i = 0; i < 3; i++)
+			triangleStrip.push_back(triangle->polygon->vertexArray[i]);
+
+		int j = 0;
+		i = 1;
+
+		while (true)
+		{
+			triangle->visited = true;
+
+			const Node* nextTriangle = triangle->adjacencyArray[i];
+			if (!nextTriangle || nextTriangle->visited)
+				break;
+
+			for (i = 0; i < 3; i++)
+				if (!triangle->polygon->HasVertex(nextTriangle->polygon->vertexArray[i]))
+					break;
+
+			THEBE_ASSERT(i != 3);
+
+			triangleStrip.push_back(nextTriangle->polygon->vertexArray[i]);
+			triangle = nextTriangle;
+
+			if (++j % 2 == 0 && --i < 0)
+				i = 2;
+		}
+	}
 
 	return true;
 }
@@ -78,6 +120,7 @@ bool FacetGraph::GenerateTriangleStrip(std::vector<int>& triangleStrip) const
 FacetGraph::Node::Node(const PolygonMesh::Polygon* polygon)
 {
 	this->polygon = polygon;
+	this->visited = false;
 
 	this->adjacencyArray.resize(polygon->vertexArray.size());
 	for (int i = 0; i < (int)this->adjacencyArray.size(); i++)
@@ -105,15 +148,6 @@ FacetGraph::Node::Node(const PolygonMesh::Polygon* polygon)
 	}
 
 	return false;
-}
-
-int FacetGraph::Node::FindUncommonVertexWith(const Node* node) const
-{
-	for (int i = 0; i < (int)this->polygon->vertexArray.size(); i++)
-		if (!node->polygon->HasVertex(this->polygon->vertexArray[i]))
-			return i;
-
-	return -1;
 }
 
 int FacetGraph::Node::FindAdjacencyIndex(const Node* node) const
