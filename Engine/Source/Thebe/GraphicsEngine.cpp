@@ -726,10 +726,7 @@ ID3D12PipelineState* GraphicsEngine::GetOrCreatePipelineState(Material* material
 	psoDesc.RasterizerState.MultisampleEnable = TRUE;
 	psoDesc.RasterizerState.AntialiasedLineEnable = TRUE;
 	psoDesc.BlendState = material->GetBlendDesc();
-	psoDesc.DepthStencilState.DepthEnable = TRUE;
-	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.DepthStencilState = material->GetDepthStencilDesc();
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = primitiveTopologyType;
 	psoDesc.NumRenderTargets = 1;

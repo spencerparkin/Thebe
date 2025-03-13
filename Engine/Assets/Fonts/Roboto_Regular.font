@@ -1,5 +1,6 @@
 {
 	"alpha_blending": true,
+	"always_on_top": true,
 	"casts_shadows": false,
 	"character_array":
 	[

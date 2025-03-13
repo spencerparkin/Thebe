@@ -13,6 +13,7 @@ Material::Material()
 {
 	this->castsShadows = true;
 	::ZeroMemory(&this->blendDesc, sizeof(this->blendDesc));
+	::ZeroMemory(&this->depthStencilDesc, sizeof(this->depthStencilDesc));
 }
 
 /*virtual*/ Material::~Material()
@@ -101,6 +102,16 @@ Material::Material()
 		this->blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		this->blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 		this->blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	}
+
+	this->depthStencilDesc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	auto alwaysOnTop = dynamic_cast<const JsonBool*>(rootValue->GetValue("always_on_top"));
+	if (alwaysOnTop && alwaysOnTop->GetValue())
+	{
+		this->depthStencilDesc.DepthEnable = FALSE;
+		this->depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		this->depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		this->depthStencilDesc.StencilEnable = FALSE;
 	}
 
 	this->textureFileMap.clear();
@@ -206,6 +217,11 @@ Shader* Material::GetShader()
 D3D12_BLEND_DESC& Material::GetBlendDesc()
 {
 	return this->blendDesc;
+}
+
+D3D12_DEPTH_STENCIL_DESC& Material::GetDepthStencilDesc()
+{
+	return this->depthStencilDesc;
 }
 
 UINT Material::GetNumTextures()

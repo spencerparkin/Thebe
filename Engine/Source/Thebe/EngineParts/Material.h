@@ -30,6 +30,7 @@ namespace Thebe
 		void ClearAllTexturePaths();
 		Shader* GetShader();
 		D3D12_BLEND_DESC& GetBlendDesc();
+		D3D12_DEPTH_STENCIL_DESC& GetDepthStencilDesc();
 		UINT GetNumTextures();
 		Buffer* GetTextureForRegister(UINT i);
 		void SetCastsShadows(bool castsShadows);
@@ -44,6 +45,7 @@ namespace Thebe
 		std::map<std::string, std::filesystem::path> textureFileMap;
 		std::filesystem::path cubeMapPath;
 		D3D12_BLEND_DESC blendDesc;
+		D3D12_DEPTH_STENCIL_DESC depthStencilDesc;
 		std::filesystem::path shaderPath;
 		bool castsShadows;
 	};
