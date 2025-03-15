@@ -18,3 +18,4 @@ Some things I'd like to achieve...
 [ ] Bug at end of game where after the winning move, the game resets to before that move was made.
 [ ] The AI is really, really dumb.  Can it be smarter?
 [ ] Can we write an installer script?
+[ ] Use PBR shader for rendering cubes so they look better and can be shadowed.
