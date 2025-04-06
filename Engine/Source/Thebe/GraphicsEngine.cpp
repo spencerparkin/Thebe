@@ -92,10 +92,11 @@ bool GraphicsEngine::MakeAttachableToPIXIfNecessary()
 	std::filesystem::path pixInstallationPath = programFilesPath;
 	pixInstallationPath /= "Microsoft PIX";
 	std::wstring newestVersionFound;
-	for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
-		if (directory_entry.is_directory())
-			if (newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str())
-				newestVersionFound = directory_entry.path().filename().c_str();
+	if (std::filesystem::exists(pixInstallationPath))
+		for (auto const& directory_entry : std::filesystem::directory_iterator(pixInstallationPath))
+			if (directory_entry.is_directory())
+				if (newestVersionFound.empty() || newestVersionFound < directory_entry.path().filename().c_str())
+					newestVersionFound = directory_entry.path().filename().c_str();
 
 	if (newestVersionFound.empty())
 	{

@@ -156,3 +156,5 @@ if __name__ == '__main__':
     for shader_file in shader_file_list:
         print('Processing %s...' % shader_file)
         process_shader_file(shader_file, assets_base_dir, 'debug', shader_pdb_dir)
+
+    print('Done!')

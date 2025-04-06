@@ -39,6 +39,8 @@ target_link_libraries(ChineseCheckersGame PRIVATE
     ThebeGraphicsEngine
     ParseParty
     ChineseCheckers
+    wx::core
+    wx::base
 )
 
 target_compile_definitions(ChineseCheckersGame PRIVATE
@@ -47,18 +49,6 @@ target_compile_definitions(ChineseCheckersGame PRIVATE
     _USE_MATH_DEFINES
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_link_directories(ChineseCheckersGame PRIVATE
-        "${WX_WIDGETS_ROOT}/lib/vc_x64_lib"
-    )
-else()
-    target_link_directories(ChineseCheckersGame PRIVATE
-        "${WX_WIDGETS_ROOT}/lib/vc_lib"
-    )
-endif()
-
 target_include_directories(ChineseCheckersGame PRIVATE
-    "${WX_WIDGETS_ROOT}/include"
-    "${WX_WIDGETS_ROOT}/include/msvc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source"
 )

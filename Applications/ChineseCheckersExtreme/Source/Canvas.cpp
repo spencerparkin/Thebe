@@ -49,7 +49,9 @@ void ChineseCheckersCanvas::OnPaint(wxPaintEvent& event)
 {
 	THEBE_PROFILE_BEGIN_FRAME;
 
-	wxGetApp().GetController()->Update();
+	XBoxController* controller = wxGetApp().GetController();
+	if (controller)
+		controller->Update();
 
 	GraphicsEngine* graphicsEngine = wxGetApp().GetGraphicsEngine();
 	CollisionSystem* collisionSystem = graphicsEngine->GetCollisionSystem();
