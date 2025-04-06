@@ -31,7 +31,10 @@ set(CHINESE_CHECKERS_EXTREME_SOURCES
 
 source_group("Sources" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CHINESE_CHECKERS_EXTREME_SOURCES})
 
-add_executable(ChineseCheckersGame WIN32 ${CHINESE_CHECKERS_EXTREME_SOURCES})
+add_executable(ChineseCheckersGame WIN32
+    ${CHINESE_CHECKERS_EXTREME_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/wx_dpi_aware_pmv2.manifest
+)
 
 target_compile_definitions(ChineseCheckersGame PUBLIC __WXMSW__ _UNICODE)
 

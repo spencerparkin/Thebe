@@ -1,6 +1,6 @@
 # CMakeLists.txt for the Thebe graphics engine project.
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.5)
 
 project(Thebe)
 
