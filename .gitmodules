@@ -10,3 +10,6 @@
 [submodule "ThirdParty/implot"]
 	path = ThirdParty/implot
 	url = https://github.com/epezent/implot
+[submodule "ThirdParty/wxWidgets"]
+	path = ThirdParty/wxWidgets
+	url = https://github.com/wxWidgets/wxWidgets
