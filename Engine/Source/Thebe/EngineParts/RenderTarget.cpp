@@ -1,6 +1,7 @@
 #include "Thebe/EngineParts/RenderTarget.h"
 #include "Thebe/EngineParts/DescriptorHeap.h"
 #include "Thebe/GraphicsEngine.h"
+#include "Thebe/Profiler.h"
 #include "Thebe/Log.h"
 
 using namespace Thebe;
@@ -86,10 +87,14 @@ RenderTarget::RenderTarget()
 	THEBE_ASSERT(0 <= frameIndex && frameIndex < (UINT)this->frameArray.size());
 	Frame* frame = this->frameArray[frameIndex];
 
-	if (!frame->BeginRecordingCommandList())
 	{
-		THEBE_LOG("Failed to begin command-list recording.");
-		return false;
+		THEBE_PROFILE_BLOCK(BeginRecording);
+
+		if (!frame->BeginRecordingCommandList())
+		{
+			THEBE_LOG("Failed to begin command-list recording.");
+			return false;
+		}
 	}
 
 	bool renderSucceeded = false;
@@ -137,10 +142,14 @@ RenderTarget::RenderTarget()
 		return false;
 	}
 
-	if (!frame->EndRecordingCommandList())
 	{
-		THEBE_LOG("Failed to end command-list recording.");
-		return false;
+		THEBE_PROFILE_BLOCK(EndRecording);
+
+		if (!frame->EndRecordingCommandList())
+		{
+			THEBE_LOG("Failed to end command-list recording.");
+			return false;
+		}
 	}
 
 	return true;
