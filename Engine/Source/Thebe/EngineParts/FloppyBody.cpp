@@ -37,7 +37,7 @@ FloppyBody::FloppyBody()
 
 	if (this->pointMassArray.size() == 0)
 	{
-		for (unsigned int i = 0; i < convexHull->hull.GetNumVertices(); i++)
+		for (unsigned int i = 0; i < (unsigned int)convexHull->hull.GetNumVertices(); i++)
 		{
 			PointMass pointMass;
 			pointMass.offset = i;
@@ -51,7 +51,7 @@ FloppyBody::FloppyBody()
 	{
 		for (const PointMass& pointMass : this->pointMassArray)
 		{
-			if (pointMass.offset >= convexHull->hull.GetNumVertices())
+			if (pointMass.offset >= (unsigned int)convexHull->hull.GetNumVertices())
 			{
 				THEBE_LOG("Offset %d is out of range.", pointMass.offset);
 				return false;
@@ -73,7 +73,7 @@ FloppyBody::FloppyBody()
 			this->springArray.push_back(spring);
 		}
 
-		for (unsigned int i = 0; i < convexHull->hull.GetNumVertices(); i++)
+		for (unsigned int i = 0; i < (unsigned int)convexHull->hull.GetNumVertices(); i++)
 		{
 			Spring spring;
 			spring.offset[0] = i;
@@ -83,7 +83,7 @@ FloppyBody::FloppyBody()
 
 			// This can create some redundant springs, but...I'm okay with that for now.
 			double largestDistance = -1.0;
-			for (unsigned int j = 0; j < convexHull->hull.GetNumVertices(); j++)
+			for (unsigned int j = 0; j < (unsigned int)convexHull->hull.GetNumVertices(); j++)
 			{
 				double distance = (convexHull->hull.GetVertex(i) - convexHull->hull.GetVertex(j)).Length();
 				if (distance > largestDistance)
@@ -96,7 +96,7 @@ FloppyBody::FloppyBody()
 			this->springArray.push_back(spring);
 		}
 
-		for (unsigned int i = 0; i < convexHull->hull.GetNumPolygons(); i++)
+		for (unsigned int i = 0; i < (unsigned int)convexHull->hull.GetNumPolygons(); i++)
 		{
 			const PolygonMesh::Polygon& polygon = convexHull->hull.GetPolygon(i);
 

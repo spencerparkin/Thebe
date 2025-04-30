@@ -149,7 +149,7 @@ const AxisAlignedBoundingBox& BVHNode::GetWorldBox() const
 void BVHNode::GatherStats(BVHTree::Stats& stats, int depth) const
 {
 	stats.numNodes++;
-	stats.numObjects += this->objectList.size();
+	stats.numObjects += (int)this->objectList.size();
 
 	if (depth > stats.maxDepth)
 		stats.maxDepth = depth;

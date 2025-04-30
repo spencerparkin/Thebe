@@ -32,7 +32,7 @@ void JsonClient::SetNeeds(bool needsSending, bool needsReceiving)
 	if (this->sender || this->receiver)
 		return false;
 
-	DWORD version = MAKEWORD(2, 2);
+	WORD version = MAKEWORD(2, 2);
 	WSADATA startupData;
 	if (WSAStartup(version, &startupData) != 0)
 		return false;

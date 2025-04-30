@@ -74,7 +74,7 @@ namespace Thebe
 	 * This is the base class for any type of event that can flow through the system.
 	 * It can be useful by itself or a derivative can carry extra info.
 	 */
-	class Event
+	class THEBE_API Event
 	{
 	public:
 		Event();

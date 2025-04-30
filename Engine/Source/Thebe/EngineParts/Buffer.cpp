@@ -382,7 +382,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		}
 
 		auto floatBuffer = reinterpret_cast<float*>(this->originalBuffer.data());
-		for (int i = 0; i < floatArrayValue->GetSize(); i++)
+		for (int i = 0; i < (signed)floatArrayValue->GetSize(); i++)
 		{
 			auto floatValue = dynamic_cast<const JsonFloat*>(floatArrayValue->GetValue(i));
 			if (!floatValue)
@@ -403,7 +403,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		}
 
 		auto intBuffer = reinterpret_cast<int*>(this->originalBuffer.data());
-		for (int i = 0; i < intArrayValue->GetSize(); i++)
+		for (int i = 0; i < (signed)intArrayValue->GetSize(); i++)
 		{
 			auto intValue = dynamic_cast<const JsonInt*>(intArrayValue->GetValue(i));
 			if (!intValue)
@@ -489,7 +489,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 		return false;
 
 	rootValue->SetValue("type", new JsonInt(this->type));
-	rootValue->SetValue("size", new JsonInt(this->GetBufferSize()));
+	rootValue->SetValue("size", new JsonInt((long)this->GetBufferSize()));
 
 	std::filesystem::path bufferDataPath = assetPath;
 	bufferDataPath.replace_extension(bufferDataPath.extension().string() + "_data");
@@ -514,7 +514,7 @@ const D3D12_RESOURCE_DESC& Buffer::GetResourceDesc() const
 			return false;
 
 		fileStream.write((const char*)compressedBuffer.data(), compressedBuffer.size());
-		rootValue->SetValue("compressed_size", new JsonInt(compressedBuffer.size()));
+		rootValue->SetValue("compressed_size", new JsonInt((long)compressedBuffer.size()));
 	}
 
 	fileStream.close();

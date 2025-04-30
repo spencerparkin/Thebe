@@ -57,7 +57,7 @@ StructuredBuffer::StructuredBuffer()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 	srvDesc.Buffer.FirstElement = 0;
 	srvDesc.Buffer.NumElements = (UINT)this->GetNumStructs();
-	srvDesc.Buffer.StructureByteStride = this->structSize;
+	srvDesc.Buffer.StructureByteStride = (UINT)this->structSize;
 	device->CreateShaderResourceView(this->gpuBuffer.Get(), &srvDesc, handle);
 	return true;
 }

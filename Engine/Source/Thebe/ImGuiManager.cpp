@@ -5,6 +5,7 @@
 #include "Thebe/EngineParts/SwapChain.h"
 #include "Thebe/Profiler.h"
 #include "Thebe/Log.h"
+#include "netImgui/NetImgui_Api.h"
 
 using namespace Thebe;
 
@@ -85,11 +86,19 @@ bool ImGuiManager::Setup(HWND windowHandle, GraphicsEngine* graphicsEngine)
 		return false;
 	}
 
+	if (!NetImgui::Startup())
+	{
+		THEBE_LOG("Failed to start-up NetImgui!");
+		return false;
+	}
+
 	return true;
 }
 
 void ImGuiManager::Shutdown()
 {
+	NetImgui::Shutdown();
+
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 

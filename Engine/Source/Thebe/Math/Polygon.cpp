@@ -1274,7 +1274,7 @@ int Polygon::Mod(int i) const
 	if (i < 0)
 	{
 		int j = -i / int(this->vertexArray.size()) + 1;
-		i += j * this->vertexArray.size();
+		i += j * int(this->vertexArray.size());
 	}
 	else
 	{

@@ -83,13 +83,13 @@ bool DescriptorHeap::AllocDescriptorSet(UINT numDescriptors, DescriptorSet& desc
 	descriptorSet.descriptorSize = graphicsEngine->GetDevice()->GetDescriptorHandleIncrementSize(this->descriptorHeapDesc.Type);
 	
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(this->descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	cpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
+	cpuHandle.Offset((INT)descriptorSet.offset, descriptorSet.descriptorSize);
 	descriptorSet.cpuHandle = cpuHandle;
 
 	if ((this->descriptorHeapDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0)
 	{
 		CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(this->descriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		gpuHandle.Offset(descriptorSet.offset, descriptorSet.descriptorSize);
+		gpuHandle.Offset((INT)descriptorSet.offset, descriptorSet.descriptorSize);
 		descriptorSet.gpuHandle = gpuHandle;
 	}
 	else

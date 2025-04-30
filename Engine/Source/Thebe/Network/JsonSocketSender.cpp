@@ -48,7 +48,7 @@ void JsonSocketSender::SendJson(const ParseParty::JsonValue* jsonValue)
 		if (!jsonText)
 			break;
 
-		uint32_t numBytesToSend = jsonText->length() + 1;
+		uint32_t numBytesToSend = uint32_t(jsonText->length()) + 1;
 		uint32_t totalBytesSent = 0;
 		while (totalBytesSent < numBytesToSend)
 		{

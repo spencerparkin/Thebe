@@ -47,7 +47,7 @@ const D3D12_INDEX_BUFFER_VIEW* IndexBuffer::GetIndexBufferView() const
 		return false;
 
 	this->indexBufferView.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
-	this->indexBufferView.SizeInBytes = this->GetBufferSize();
+	this->indexBufferView.SizeInBytes = (UINT)this->GetBufferSize();
 
 	return true;
 }

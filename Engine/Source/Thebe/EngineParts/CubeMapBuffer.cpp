@@ -84,8 +84,8 @@ CubeMapBuffer::CubeMapBuffer()
 		return false;
 
 	const D3D12_RESOURCE_DESC& resourceDesc = this->GetResourceDesc();
-	rootValue->SetValue("width", new JsonInt(resourceDesc.Width));
-	rootValue->SetValue("height", new JsonInt(resourceDesc.Height));
+	rootValue->SetValue("width", new JsonInt((long)resourceDesc.Width));
+	rootValue->SetValue("height", new JsonInt((long)resourceDesc.Height));
 	rootValue->SetValue("pixel_format", new JsonInt(resourceDesc.Format));
 	rootValue->SetValue("array_size", new JsonInt(resourceDesc.DepthOrArraySize));
 
@@ -112,7 +112,7 @@ CubeMapBuffer::CubeMapBuffer()
 		return false;
 	}
 
-	UINT bytesPerPixel = this->GetBytesPerPixel();
+	UINT bytesPerPixel = (UINT)this->GetBytesPerPixel();
 	if (bytesPerPixel == 0)
 		return false;
 

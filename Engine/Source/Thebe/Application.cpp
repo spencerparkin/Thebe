@@ -90,7 +90,7 @@ Application::Application()
 		this->BetweenDispatches();
 	}
 
-	return msg.wParam;
+	return (int)msg.wParam;
 }
 
 /*virtual*/ void Application::BetweenDispatches()

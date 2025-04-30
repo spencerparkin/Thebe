@@ -71,8 +71,8 @@ void SwapChain::SetWindowHandle(HWND windowHandle)
 
 	this->viewport.TopLeftX = 0;
 	this->viewport.TopLeftY = 0;
-	this->viewport.Width = width;
-	this->viewport.Height = height;
+	this->viewport.Width = (FLOAT)width;
+	this->viewport.Height = (FLOAT)height;
 	this->viewport.MinDepth = 0.0;
 	this->viewport.MaxDepth = 1.0;
 
@@ -466,8 +466,8 @@ bool SwapChain::Resize(int width, int height)
 
 	this->viewport.TopLeftX = 0;
 	this->viewport.TopLeftY = 0;
-	this->viewport.Width = width;
-	this->viewport.Height = height;
+	this->viewport.Width = (FLOAT)width;
+	this->viewport.Height = (FLOAT)height;
 
 	this->scissorRect.left = 0;
 	this->scissorRect.right = width;

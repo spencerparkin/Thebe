@@ -31,7 +31,7 @@ bool NetworkAddress::SetAddress(const std::string& ipAddrAndPort)
 {
 	if (ipAddrAndPort.length() > 0 && ::isdigit(ipAddrAndPort.c_str()[0]))
 	{
-		int colonPos = ipAddrAndPort.find(':');
+		int colonPos = (int)ipAddrAndPort.find(':');
 		if (colonPos == std::string::npos)
 		{
 			this->ipAddr = ipAddrAndPort;

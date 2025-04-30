@@ -75,7 +75,7 @@ void ConstantsBuffer::SetShader(Shader* shader)
 	D3D12_RESOURCE_DESC resourceDesc = this->gpuBuffer->GetDesc();
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
 	cbvDesc.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
-	cbvDesc.SizeInBytes = resourceDesc.Width;
+	cbvDesc.SizeInBytes = (UINT)resourceDesc.Width;
 	device->CreateConstantBufferView(&cbvDesc, handle);
 	return true;
 }

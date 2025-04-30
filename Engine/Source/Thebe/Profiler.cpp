@@ -137,9 +137,9 @@ Profiler::PersistentRecord::PersistentRecord()
 	this->name = nullptr;
 	this->timeTakenMilliseconds = 0.0;
 	this->frameKey = 0;
-	this->graphColor.x = random.InRange(0.0, 1.0);
-	this->graphColor.y = random.InRange(0.0, 1.0);
-	this->graphColor.z = random.InRange(0.0, 1.0);
+	this->graphColor.x = (float)random.InRange(0.0, 1.0);
+	this->graphColor.y = (float)random.InRange(0.0, 1.0);
+	this->graphColor.z = (float)random.InRange(0.0, 1.0);
 	this->graphColor.w = 1.0;
 }
 

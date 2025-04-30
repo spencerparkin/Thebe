@@ -256,6 +256,9 @@ target_compile_definitions(ThebeGraphicsEngine PRIVATE
     _USE_MATH_DEFINES
     WIN32_LEAN_AND_MEAN
     NOMINMAX
+    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+    _CRT_SECURE_NO_WARNINGS
+    _WINSOCK_DEPRECATED_NO_WARNINGS
 )
 
 target_compile_definitions(ThebeGraphicsEngine PUBLIC
@@ -268,6 +271,8 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         THEBE_PIX_ATTACH
     )
 endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
 
 target_link_libraries(ThebeGraphicsEngine PRIVATE
     d3d12.lib

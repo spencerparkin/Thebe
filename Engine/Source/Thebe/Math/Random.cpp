@@ -19,7 +19,7 @@ void Random::SetSeed(int seed)
 
 void Random::SetSeedUsingTime()
 {
-	this->generator.seed(time(nullptr));
+	this->generator.seed((unsigned int)time(nullptr));
 }
 
 int Random::InRange(int min, int max)

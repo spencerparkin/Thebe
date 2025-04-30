@@ -55,7 +55,7 @@ int JsonServer::GetMaxConnections()
 	if (this->socket != INVALID_SOCKET)
 		return false;
 
-	DWORD version = MAKEWORD(2, 2);
+	WORD version = MAKEWORD(2, 2);
 	WSADATA startupData;
 	if (WSAStartup(version, &startupData) != 0)
 		return false;
@@ -170,12 +170,12 @@ JsonServer::ClientManagerThread::ClientManagerThread(JsonServer* server)
 		SOCKET socket = this->server->GetSocket();
 
 		timeval timeout{};
-		timeout.tv_sec = 1.0;
+		timeout.tv_sec = 1;
 
 		fd_set readSet;
 		FD_ZERO(&readSet);
 		FD_SET(socket, &readSet);
-		int result = ::select(socket, &readSet, nullptr, nullptr, &timeout);
+		int result = ::select((int)socket, &readSet, nullptr, nullptr, &timeout);
 		if (result == SOCKET_ERROR)
 			break;
 

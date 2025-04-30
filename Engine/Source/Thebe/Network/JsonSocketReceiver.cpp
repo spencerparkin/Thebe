@@ -33,7 +33,7 @@ void JsonSocketReceiver::SetRecvFunc(JsonSocketRecvFunc recvFunc)
 
 	while (true)
 	{
-		uint32_t numBytesReceived = ::recv(this->socket, recvBuffer.data(), recvBuffer.size(), 0);
+		uint32_t numBytesReceived = (uint32_t)::recv(this->socket, recvBuffer.data(), int(recvBuffer.size()), 0);
 		if (numBytesReceived == SOCKET_ERROR)
 			break;
 
@@ -61,7 +61,7 @@ void JsonSocketReceiver::SetRecvFunc(JsonSocketRecvFunc recvFunc)
 			if (!jsonValue.get())
 				break;
 
-			if (!ringBuffer.DeleteBytes(jsonText.length() + 1))
+			if (!ringBuffer.DeleteBytes(uint32_t(jsonText.length()) + 1))
 				break;
 
 			this->ReceiveJson(jsonValue);

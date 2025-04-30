@@ -54,7 +54,7 @@ D3D_PRIMITIVE_TOPOLOGY VertexBuffer::GetPrimitiveTopology() const
 		return false;
 
 	this->vertexBufferView.BufferLocation = this->gpuBuffer->GetGPUVirtualAddress();
-	this->vertexBufferView.SizeInBytes = this->GetBufferSize();
+	this->vertexBufferView.SizeInBytes = (UINT)this->GetBufferSize();
 
 	return true;
 }
@@ -107,7 +107,7 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& VertexBuffer::GetElementDescArray()
 
 	this->semanticNameHeap.Reset();
 	this->elementDescArray.clear();
-	for (int i = 0; i < elementDescArrayValue->GetSize(); i++)
+	for (int i = 0; i < (int)elementDescArrayValue->GetSize(); i++)
 	{
 		auto elementDescValue = dynamic_cast<const JsonObject*>(elementDescArrayValue->GetValue(i));
 		if (!elementDescValue)

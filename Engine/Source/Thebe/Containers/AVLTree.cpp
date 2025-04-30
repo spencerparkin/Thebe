@@ -298,7 +298,7 @@ AVLTreeNode* AVLTreeNode::Find(const AVLTreeKey* givenKey)
 	else if (givenKey->IsGreaterThan(this->GetKey()))
 	{
 		if (this->rightNode)
-			if (this->rightNode->Find(givenKey));
+			return this->rightNode->Find(givenKey);
 	}
 
 	return this;

@@ -384,14 +384,14 @@ void PolygonMesh::Restore(std::istream& stream)
 
 	this->Clear();
 
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < (signed)numVertices; i++)
 	{
 		Vector3 vertex;
 		vertex.Restore(stream);
 		this->vertexArray.push_back(vertex);
 	}
 
-	for (int i = 0; i < numPolygons; i++)
+	for (int i = 0; i < (signed)numPolygons; i++)
 	{
 		Polygon polygon;
 		polygon.Restore(stream);
@@ -441,7 +441,7 @@ int PolygonMesh::Polygon::operator()(int i) const
 {
 	i %= (signed)this->vertexArray.size();
 	if (i < 0)
-		i += this->vertexArray.size();
+		i += int(this->vertexArray.size());
 	return this->vertexArray[i];
 }
 
@@ -546,7 +546,7 @@ void PolygonMesh::Polygon::Restore(std::istream& stream)
 	stream.read((char*)&numVertices, sizeof(numVertices));
 
 	this->vertexArray.clear();
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < (signed)numVertices; i++)
 	{
 		int j = 0;
 		stream.read((char*)&j, sizeof(j));
