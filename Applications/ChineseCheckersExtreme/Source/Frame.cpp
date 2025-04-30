@@ -30,11 +30,17 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	gameMenu->AppendSeparator();
 	gameMenu->Append(new wxMenuItem(gameMenu, ID_Exit, "Exit", "Go ski."));
 
+	wxMenu* imguiRenderMenu = new wxMenu();
+	imguiRenderMenu->Append(new wxMenuItem(imguiRenderMenu, ID_ImGuiRenderLocal, "ImGui Render Local", "Render ImGui windows in the local viewport.", wxITEM_CHECK));
+	imguiRenderMenu->Append(new wxMenuItem(imguiRenderMenu, ID_ImGuiRenderRemote, "ImGui Render Remote", "Render ImGui windows in a remote server viewport.", wxITEM_CHECK));
+
 	wxMenu* optionsMenu = new wxMenu();
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleProfilerWindow, "Show Profiler Window", "Show or hide the profiler window.", wxITEM_CHECK));
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_TogglePhysicsWindow, "Show Physics Window", "Show or hide the physics window.", wxITEM_CHECK));
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleCollisionWindow, "Show Collision Window", "Show or hide the collision window.", wxITEM_CHECK));
 	optionsMenu->Append(new wxMenuItem(optionsMenu, ID_ToggleDebugDraw, "Debug Draw", "Toggle the drawing of collision objects, etc.", wxITEM_CHECK));
+	optionsMenu->AppendSeparator();
+	optionsMenu->AppendSubMenu(imguiRenderMenu, "ImGui Render Mode");
 
 	wxMenu* helpMenu = new wxMenu();
 	helpMenu->Append(new wxMenuItem(helpMenu, ID_Help, "Help", "Show the documentation."));
@@ -59,6 +65,8 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnTogglePhysicsWindow, this, ID_TogglePhysicsWindow);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleCollisionWindow, this, ID_ToggleCollisionWindow);
 	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnToggleDebugDraw, this, ID_ToggleDebugDraw);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnImGuiRenderMode, this, ID_ImGuiRenderLocal);
+	this->Bind(wxEVT_MENU, &ChineseCheckersFrame::OnImGuiRenderMode, this, ID_ImGuiRenderRemote);
 	this->Bind(wxEVT_TIMER, &ChineseCheckersFrame::OnTimer, this, ID_Timer);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_HostGame);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_JoinGame);
@@ -67,6 +75,8 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_TogglePhysicsWindow);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleCollisionWindow);
 	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ToggleDebugDraw);
+	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ImGuiRenderLocal);
+	this->Bind(wxEVT_UPDATE_UI, &ChineseCheckersFrame::OnUpdateUI, this, ID_ImGuiRenderRemote);
 	this->Bind(wxEVT_CLOSE_WINDOW, &ChineseCheckersFrame::OnCloseWindow, this);
 
 	this->infoText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxSize(-1, -1));
@@ -100,6 +110,30 @@ ChineseCheckersFrame::ChineseCheckersFrame(const wxPoint& pos, const wxSize& siz
 ChineseCheckersCanvas* ChineseCheckersFrame::GetCanvas()
 {
 	return this->canvas;
+}
+
+void ChineseCheckersFrame::OnImGuiRenderMode(wxCommandEvent& event)
+{
+	auto desiredMode = ImGuiManager::RenderMode::RENDER_LOCAL;
+	switch (event.GetId())
+	{
+		case ID_ImGuiRenderLocal:
+		{
+			desiredMode = ImGuiManager::RenderMode::RENDER_LOCAL;
+			break;
+		}
+		case ID_ImGuiRenderRemote:
+		{
+			desiredMode = ImGuiManager::RenderMode::RENDER_REMOTE;
+			break;
+		}
+	}
+
+	std::string error;
+	if (!ImGuiManager::Get()->SetRenderMode(desiredMode, error))
+	{
+		wxMessageBox(wxString::Format("Error: %s", error.c_str()), "Error!", wxICON_ERROR | wxOK, this);
+	}
 }
 
 void ChineseCheckersFrame::OnToggleProfilerWindow(wxCommandEvent& event)
@@ -333,6 +367,16 @@ void ChineseCheckersFrame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_ToggleDebugDraw:
 		{
 			event.Check(this->canvas->GetDebugDraw());
+			break;
+		}
+		case ID_ImGuiRenderLocal:
+		{
+			event.Check(ImGuiManager::Get()->GetRenderMode() == ImGuiManager::RenderMode::RENDER_LOCAL);
+			break;
+		}
+		case ID_ImGuiRenderRemote:
+		{
+			event.Check(ImGuiManager::Get()->GetRenderMode() == ImGuiManager::RenderMode::RENDER_REMOTE);
 			break;
 		}
 	}

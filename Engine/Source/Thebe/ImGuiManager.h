@@ -39,6 +39,15 @@ namespace Thebe
 		bool IsGuiCallbackEnabled(int cookie);
 		bool ShowingAnything() const;
 
+		enum RenderMode
+		{
+			RENDER_LOCAL,
+			RENDER_REMOTE
+		};
+
+		bool SetRenderMode(RenderMode renderMode, std::string& error);
+		RenderMode GetRenderMode() const;
+
 	private:
 
 		static void AllocSrvDescriptorEntryFunc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_desc_handle);
@@ -58,5 +67,6 @@ namespace Thebe
 		Reference<DescriptorPool> descriptorPool;
 		int nextCookie;
 		std::map<int, CallbackEntry> callbackMap;
+		RenderMode renderMode;
 	};
 }

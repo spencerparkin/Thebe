@@ -20,6 +20,7 @@ ImGuiManager::ImGuiManager()
 	this->imGuiContext = nullptr;
 	this->imPlotContext = nullptr;
 	this->nextCookie = 1;
+	this->renderMode = RenderMode::RENDER_LOCAL;
 }
 
 /*virtual*/ ImGuiManager::~ImGuiManager()
@@ -86,19 +87,11 @@ bool ImGuiManager::Setup(HWND windowHandle, GraphicsEngine* graphicsEngine)
 		return false;
 	}
 
-	if (!NetImgui::Startup())
-	{
-		THEBE_LOG("Failed to start-up NetImgui!");
-		return false;
-	}
-
 	return true;
 }
 
 void ImGuiManager::Shutdown()
 {
-	NetImgui::Shutdown();
-
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 
@@ -173,11 +166,90 @@ bool ImGuiManager::ShowingAnything() const
 	return false;
 }
 
+bool ImGuiManager::SetRenderMode(RenderMode renderMode, std::string& error)
+{
+	if (this->renderMode == renderMode)
+	{
+		error = "Already in desired mode.";
+		return false;
+	}
+
+	switch (renderMode)
+	{
+		case RenderMode::RENDER_REMOTE:
+		{
+			if (!NetImgui::Startup())
+			{
+				error = "Failed to start-up NetImgui!";
+				return false;
+			}
+
+			NetImgui::ConnectToApp("ChineseCheckersExtreme", "127.0.0.1", 8888U);
+			
+			::Sleep(1000);	// Apparently, need to do this to overcome race conditions...
+
+			if (!NetImgui::IsConnected())
+			{
+				error = "Failed to connect to NetImgui server!";
+				THEBE_LOG(error.c_str());
+
+				NetImgui::Disconnect();
+				NetImgui::Shutdown();
+
+				return false;
+			}
+
+			const ImFontAtlas* pFonts = ImGui::GetIO().Fonts;
+			uint8_t* pPixelData(nullptr); int width(0), height(0);
+			ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pPixelData, &width, &height);
+			NetImgui::SendDataTexture(pFonts->TexID, pPixelData, static_cast<uint16_t>(width), static_cast<uint16_t>(height), NetImgui::eTexFormat::kTexFmtA8);
+
+			break;
+		}
+		case RenderMode::RENDER_LOCAL:
+		{
+			if (NetImgui::IsConnected())
+			{
+				NetImgui::Disconnect();
+			}
+
+			NetImgui::Shutdown();
+			break;
+		}
+	}
+
+	this->renderMode = renderMode;
+	return true;
+}
+
+ImGuiManager::RenderMode ImGuiManager::GetRenderMode() const
+{
+	return this->renderMode;
+}
+
 void ImGuiManager::BeginRender()
 {
-	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+
+	switch (this->renderMode)
+	{
+		case RenderMode::RENDER_LOCAL:
+		{
+			ImGui_ImplDX12_NewFrame();
+
+			ImGui::NewFrame();
+			break;
+		}
+		case RenderMode::RENDER_REMOTE:
+		{
+			NetImgui::NewFrame();
+			break;
+		}
+		default:
+		{
+			return;
+		}
+	}
 
 	for (auto& pair : this->callbackMap)
 	{
@@ -189,12 +261,24 @@ void ImGuiManager::BeginRender()
 
 void ImGuiManager::EndRender(ID3D12GraphicsCommandList* commandList)
 {
-	ImGui::Render();
+	switch (this->renderMode)
+	{
+		case RenderMode::RENDER_LOCAL:
+		{
+			ImGui::Render();
 
-	ID3D12DescriptorHeap* srvDescriptorHeap = this->descriptorPool->GetDescriptorHeap();
-	commandList->SetDescriptorHeaps(1, &srvDescriptorHeap);
+			ID3D12DescriptorHeap* srvDescriptorHeap = this->descriptorPool->GetDescriptorHeap();
+			commandList->SetDescriptorHeaps(1, &srvDescriptorHeap);
 
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+			break;
+		}
+		case RenderMode::RENDER_REMOTE:
+		{
+			NetImgui::EndFrame();
+			break;
+		}
+	}
 }
 
 /*static*/ LRESULT ImGuiManager::HandleWindowsMessage(HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam)

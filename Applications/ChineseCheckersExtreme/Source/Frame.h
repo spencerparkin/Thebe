@@ -25,6 +25,8 @@ public:
 		ID_TogglePhysicsWindow,
 		ID_ToggleCollisionWindow,
 		ID_ToggleDebugDraw,
+		ID_ImGuiRenderLocal,
+		ID_ImGuiRenderRemote,
 		ID_Timer
 	};
 
@@ -49,6 +51,7 @@ private:
 	void OnUpdateUI(wxUpdateUIEvent& event);
 	void OnTimer(wxTimerEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
+	void OnImGuiRenderMode(wxCommandEvent& event);
 	
 	wxStaticText* infoText;
 	wxToggleButton* lifeToggleButton;
