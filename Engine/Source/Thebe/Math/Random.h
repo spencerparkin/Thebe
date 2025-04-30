@@ -58,9 +58,9 @@ namespace Thebe
 		template<typename T>
 		void Shuffle(T* givenArray, uint32_t givenArraySize)
 		{
-			for (int i = 0; i < givenArraySize - 1; i++)
+			for (uint32_t i = 0; i < givenArraySize - 1; i++)
 			{
-				int j = this->InRange(i, givenArraySize - 1);
+				uint32_t j = this->InRange(int(i), int(givenArraySize - 1));
 				if (i != j)
 				{
 					T temp = givenArray[i];

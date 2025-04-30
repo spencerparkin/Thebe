@@ -219,12 +219,36 @@ set(IMPLOT_SOURCES
     Source/ImPlot/implot_items.cpp
 )
 
+set(NETIMGUI_SOURCES
+    Source/netImgui/Private/NetImgui_Api.cpp
+    Source/netImgui/Private/NetImgui_Client.cpp
+    Source/netImgui/Private/NetImgui_Client.h
+    Source/netImgui/Private/NetImgui_Client.inl
+    Source/netImgui/Private/NetImgui_CmdPackets.h
+    Source/netImgui/Private/NetImgui_CmdPackets.inl
+    Source/netImgui/Private/NetImgui_CmdPackets_DrawFrame.cpp
+    Source/netImgui/Private/NetImgui_CmdPackets_DrawFrame.h
+    Source/netImgui/Private/NetImgui_Network.h
+    Source/netImgui/Private/NetImgui_NetworkPosix.cpp
+    Source/netImgui/Private/NetImgui_NetworkUE4.cpp
+    Source/netImgui/Private/NetImgui_NetworkWin32.cpp
+    Source/netImgui/Private/NetImgui_Shared.h
+    Source/netImgui/Private/NetImgui_Shared.inl
+    Source/netImgui/Private/NetImgui_WarningDisable.h
+    Source/netImgui/Private/NetImgui_WarningDisableImgui.h
+    Source/netImgui/Private/NetImgui_WarningDisableStd.h
+    Source/netImgui/Private/NetImgui_WarningReenable.h
+    Source/netImgui/NetImgui_Api.h
+    Source/netImgui/NetImgui_Config.h
+)
+
 source_group("Source" TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${GAME_ENGINE_SOURCES})
 
 add_library(ThebeGraphicsEngine SHARED
     ${GRAPHICS_ENGINE_SOURCES}
     ${IMGUI_SOURCES}
     ${IMPLOT_SOURCES}
+    ${NETIMGUI_SOURCES}
 )
 
 target_compile_definitions(ThebeGraphicsEngine PRIVATE
@@ -269,6 +293,7 @@ target_include_directories(ThebeGraphicsEngine PUBLIC
     "Source"
     "Source/ImGui"
     "Source/ImPlot"
+    "Source/netImgui"
     "DirectXHeader"
     "../ThirdParty/ParseParty/ParseLibrary/Source"
     "../ThirdParty/zLib/include"

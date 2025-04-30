@@ -19,9 +19,9 @@ namespace Thebe
 	{
 		friend class ScopedProfileBlock;
 		
-	public:
 		class ProfileBlockRecord;
 
+	public:
 		Profiler();
 		virtual ~Profiler();
 
